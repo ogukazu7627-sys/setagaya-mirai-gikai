@@ -15,6 +15,7 @@ const makeBill = (
   id: "bill-1",
   name: "テスト法案",
   is_featured: false,
+  is_review_completed: true,
   originating_house: "HR",
   shugiin_url: null,
   diet_session_id: null,
@@ -167,6 +168,15 @@ describe("buildLoopModeSystemPrompt", () => {
     });
 
     expect(result).toContain("（賛成か、反対か）");
+  });
+
+  it("法案内容の誤認検知と補足ガイダンスが含まれる", () => {
+    const result = buildLoopModeSystemPrompt(baseParams);
+
+    expect(result).toContain("法案内容の誤認検知と補足");
+    expect(result).toContain("誤認の兆候例");
+    expect(result).toContain("補足の仕方");
+    expect(result).toContain("補足しない場合");
   });
 
   it("深掘りテクニックが含まれる", () => {

@@ -13,6 +13,7 @@ const baseBill: Bill = {
   updated_at: "2025-01-02T00:00:00Z",
   diet_session_id: "session-001",
   is_featured: true,
+  is_review_completed: true,
   originating_house: "HR",
   publish_status: "published",
   published_at: null,
@@ -41,6 +42,11 @@ describe("prepareBillForDuplication", () => {
   it("publish_statusをdraftに設定する", () => {
     const result = prepareBillForDuplication(baseBill);
     expect(result.publish_status).toBe("draft");
+  });
+
+  it("is_review_completedをfalseにリセットする", () => {
+    const result = prepareBillForDuplication(baseBill);
+    expect(result.is_review_completed).toBe(false);
   });
 
   it("その他のフィールドを保持する", () => {
