@@ -30,7 +30,9 @@ export default async function AdminLoginPage({
 
   if (data.user && isAdminUser(data.user)) {
     redirect(
-      (params?.next?.startsWith("/admin") ? params.next : "/admin/bills") as Route
+      (params?.next?.startsWith("/admin")
+        ? params.next
+        : "/admin/bills") as Route
     );
   }
 
@@ -42,32 +44,38 @@ export default async function AdminLoginPage({
         </CardHeader>
         <CardContent>
           <form action={loginAdminAction} className="flex flex-col gap-4">
-            <input type="hidden" name="next" value={params?.next ?? "/admin/bills"} />
+            <input
+              type="hidden"
+              name="next"
+              value={params?.next ?? "/admin/bills"}
+            />
             {params?.error && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
                 {params.error}
               </div>
             )}
-            <label className="flex flex-col gap-1.5 text-sm font-bold">
-              メールアドレス
+            <div className="flex flex-col gap-1.5 text-sm font-bold">
+              <label htmlFor="admin-email">メールアドレス</label>
               <Input
+                id="admin-email"
                 type="email"
                 name="email"
                 autoComplete="email"
                 required
                 placeholder="admin@example.com"
               />
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm font-bold">
-              パスワード
+            </div>
+            <div className="flex flex-col gap-1.5 text-sm font-bold">
+              <label htmlFor="admin-password">パスワード</label>
               <Input
+                id="admin-password"
                 type="password"
                 name="password"
                 autoComplete="current-password"
                 required
                 placeholder="admin123456"
               />
-            </label>
+            </div>
             <Button type="submit">ログイン</Button>
             <p className="text-xs leading-relaxed text-mirai-text-secondary">
               ローカル開発ではseedの管理者ユーザーを使います。

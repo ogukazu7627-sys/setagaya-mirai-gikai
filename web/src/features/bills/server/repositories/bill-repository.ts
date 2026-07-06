@@ -152,7 +152,10 @@ import { groupTagsByBillId } from "../../shared/utils/group-tags";
 export async function findTagsByBillIds(
   billIds: string[]
 ): Promise<
-  Map<string, Array<{ id: string; label: string; major_category?: string | null }>>
+  Map<
+    string,
+    Array<{ id: string; label: string; major_category?: string | null }>
+  >
 > {
   if (billIds.length === 0) {
     return new Map();

@@ -64,7 +64,10 @@ function getBillSampleQuestions(bill: BillWithContent): string[] {
     question: ["議員は何を問題視した？", "区の答弁は十分？"],
   };
 
-  return [...COMMON_BILL_QUESTIONS, ...(itemTypeQuestions[bill.item_type] ?? [])];
+  return [
+    ...COMMON_BILL_QUESTIONS,
+    ...(itemTypeQuestions[bill.item_type] ?? []),
+  ];
 }
 
 /**
@@ -94,7 +97,9 @@ function ChatMessages({
 }) {
   const { scrollToBottom } = useStickToBottomContext();
   const safeMessages = messages ?? [];
-  const userMessageLength = safeMessages.filter((x) => x.role === "user").length;
+  const userMessageLength = safeMessages.filter(
+    (x) => x.role === "user"
+  ).length;
   const isResponding = status === "streaming" || status === "submitted";
 
   // メッセージが追加されたら自動的にスクロール

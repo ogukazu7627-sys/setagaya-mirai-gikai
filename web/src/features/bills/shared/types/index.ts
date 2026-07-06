@@ -34,7 +34,8 @@ export const MAJOR_CATEGORY_OPTIONS = [
   {
     id: "education",
     label: "教育🏫",
-    description: "学校、保育、学童、子育て支援、若者支援、不登校、給食、教育環境",
+    description:
+      "学校、保育、学童、子育て支援、若者支援、不登校、給食、教育環境",
   },
   {
     id: "medical_welfare",

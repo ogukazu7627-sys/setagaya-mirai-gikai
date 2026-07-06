@@ -220,10 +220,12 @@ export async function createTestTag(
     label: string;
     description: string;
     featured_priority: number;
+    major_category: string;
   }> = {}
 ) {
   const defaults = {
     label: `テストタグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    major_category: "教育🏫",
     ...overrides,
   };
   const { data, error } = await adminClient

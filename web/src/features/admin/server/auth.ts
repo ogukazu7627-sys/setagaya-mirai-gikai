@@ -42,9 +42,7 @@ export async function createAdminAuthClient() {
   );
 }
 
-export function isAdminUser(
-  user: unknown
-): boolean {
+export function isAdminUser(user: unknown): boolean {
   if (!user || typeof user !== "object") return false;
   const appMetadata = (user as { app_metadata?: unknown }).app_metadata;
   if (!appMetadata || typeof appMetadata !== "object") return false;

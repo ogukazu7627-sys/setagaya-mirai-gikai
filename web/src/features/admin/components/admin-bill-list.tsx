@@ -80,7 +80,9 @@ export function AdminBillList({ bills }: AdminBillListProps) {
                       {publishStatusLabel(bill.publish_status)}
                     </Badge>
                   </td>
-                  <td className="px-4 py-4">{formatAdminDate(bill.updated_at)}</td>
+                  <td className="px-4 py-4">
+                    {formatAdminDate(bill.updated_at)}
+                  </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" asChild>
@@ -92,7 +94,10 @@ export function AdminBillList({ bills }: AdminBillListProps) {
                         <Button variant="outline" size="sm" asChild>
                           <Link
                             href={
-                              getPreviewPath(bill.id, bill.previewToken) as Route
+                              getPreviewPath(
+                                bill.id,
+                                bill.previewToken
+                              ) as Route
                             }
                             target="_blank"
                           >
@@ -102,7 +107,10 @@ export function AdminBillList({ bills }: AdminBillListProps) {
                       )}
                       {bill.publish_status === "published" && (
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/bills/${bill.id}` as Route} target="_blank">
+                          <Link
+                            href={`/bills/${bill.id}` as Route}
+                            target="_blank"
+                          >
                             公開ページ
                           </Link>
                         </Button>

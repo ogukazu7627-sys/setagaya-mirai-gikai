@@ -15,9 +15,15 @@ function formatReiwaDate(value: string | null | undefined): string | null {
   return `令和${year - 2018}年${Number(match[2])}月${Number(match[3])}日`;
 }
 
-function extractCommittee(statusNote: string | null | undefined): string | null {
+function extractCommittee(
+  statusNote: string | null | undefined
+): string | null {
   if (!statusNote) return null;
-  return statusNote.match(/（(.+?)）/)?.[1] ?? statusNote.match(/(文教常任委員会)/)?.[1] ?? null;
+  return (
+    statusNote.match(/（(.+?)）/)?.[1] ??
+    statusNote.match(/(文教常任委員会)/)?.[1] ??
+    null
+  );
 }
 
 function extractVote(statusNote: string | null | undefined): string | null {

@@ -32,7 +32,9 @@ export async function BillContent({ bill }: BillContentProps) {
     return null;
   }
 
-  const content = await parseMarkdown(normalizeSetagayaHeadings(markdownContent));
+  const content = await parseMarkdown(
+    normalizeSetagayaHeadings(markdownContent)
+  );
 
   return (
     <div

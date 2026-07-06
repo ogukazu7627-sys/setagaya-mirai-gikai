@@ -41,13 +41,13 @@ function Field({
   hint?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5">
       <span className="text-sm font-bold">{label}</span>
       {children}
       {hint && (
         <span className="text-xs text-mirai-text-secondary">{hint}</span>
       )}
-    </label>
+    </div>
   );
 }
 
@@ -113,7 +113,19 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
   const sources = normalizeSources(bill?.sources);
   const sourceRows = Array.from({
     length: Math.max(5, sources.length + 1),
-  }).map((_, index) => sources[index] ?? null);
+  }).map((_, index) => ({
+    index,
+    key: sources[index]
+      ? [
+          sources[index]?.title,
+          sources[index]?.url,
+          sources[index]?.source_type,
+          sources[index]?.published_at,
+          sources[index]?.accessed_at,
+        ].join("|")
+      : `empty-source-row-${index + 1}`,
+    source: sources[index] ?? null,
+  }));
   const currentStatusLabel = bill?.status_label ?? "";
   const hasCurrentStatusLabelOption =
     !currentStatusLabel ||
@@ -368,9 +380,9 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
           </Field>
           <div className="grid gap-4">
             <h2 className="text-sm font-bold">公式資料・出典</h2>
-            {sourceRows.map((source, index) => (
+            {sourceRows.map(({ source, index, key }) => (
               <div
-                key={index}
+                key={key}
                 className="grid gap-3 rounded-lg border bg-white p-4 md:grid-cols-[1.2fr_1.2fr_0.9fr_0.8fr_0.8fr]"
               >
                 <Input

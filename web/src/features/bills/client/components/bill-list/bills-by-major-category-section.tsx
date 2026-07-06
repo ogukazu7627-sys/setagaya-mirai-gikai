@@ -41,25 +41,26 @@ export function BillsByMajorCategorySection({
         </h2>
         <div className="-mx-4 overflow-x-auto px-4">
           <div className="flex w-max gap-2">
-            {[ALL_TAB, ...MAJOR_CATEGORY_OPTIONS.map((category) => category.label)].map(
-              (label) => {
-                const isSelected = selectedCategory === label;
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setSelectedCategory(label)}
-                    className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                      isSelected
-                        ? "border-primary bg-primary text-white"
-                        : "border-mirai-border bg-white text-mirai-text hover:bg-gray-50"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              }
-            )}
+            {[
+              ALL_TAB,
+              ...MAJOR_CATEGORY_OPTIONS.map((category) => category.label),
+            ].map((label) => {
+              const isSelected = selectedCategory === label;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setSelectedCategory(label)}
+                  className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                    isSelected
+                      ? "border-primary bg-primary text-white"
+                      : "border-mirai-border bg-white text-mirai-text hover:bg-gray-50"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
