@@ -14,7 +14,7 @@ export function ComingSoonSection({ bills }: ComingSoonSectionProps) {
       {/* ヘッダー */}
       <div className="flex flex-col gap-2">
         <h2 className="text-[22px] font-bold text-black leading-[1.48]">
-          これから掲載される法案
+          これから掲載される議案
         </h2>
         <p className="text-xs text-mirai-text-secondary">
           みらい議会は、順次更新されていきます
@@ -36,16 +36,16 @@ export function ComingSoonSection({ bills }: ComingSoonSectionProps) {
         </div>
       )}
 
-      {/* 国会議案情報へのリンク */}
+      {/* 公式議案情報へのリンク */}
       <div className="text-right text-sm text-mirai-text-secondary">
         <Link
-          href="https://www.shugiin.go.jp/internet/itdb_gian.nsf/html/gian/menu.htm"
+          href="https://www.city.setagaya.lg.jp/02252/33569.html"
           target="_blank"
           rel="noopener noreferrer"
           className="hover:opacity-80 inline-flex items-center gap-1"
         >
-          国会に提出されているすべての法案は{" "}
-          <span className="underline">国会議案情報へ</span>
+          世田谷区議会に提出されている議案は{" "}
+          <span className="underline">公式議案一覧へ</span>
           <ExternalLink className="h-3 w-3" />
         </Link>
       </div>
@@ -83,7 +83,7 @@ function ComingSoonBillCard({ bill }: { bill: ComingSoonBill }) {
     </Card>
   );
 
-  // shugiin_url がある場合は外部リンク
+  // 公式URLがある場合は外部リンク
   if (bill.shugiin_url) {
     return (
       <Link

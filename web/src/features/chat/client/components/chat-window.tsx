@@ -43,6 +43,31 @@ interface ChatWindowProps {
   };
   disableAutoFocus?: boolean;
   sessionId: string;
+  previewOnly?: boolean;
+}
+
+const COMMON_BILL_QUESTIONS = [
+  "この案件のポイントは？",
+  "自分にどんな影響がある？",
+  "議員に聞くなら何を聞けばいい？",
+  "公式資料のどこを見ればいい？",
+  "賛成・反対の論点は？",
+];
+
+function getBillSampleQuestions(bill: BillWithContent): string[] {
+  const itemTypeQuestions: Partial<
+    Record<NonNullable<BillWithContent["item_type"]>, string[]>
+  > = {
+    bill: ["この議案で何が変わる？", "なぜこの条例改正が必要？"],
+    report: ["この報告は今後どう進む？", "これは将来、議案になる？"],
+    petition: ["この陳情は今どういう状態？", "採択されると何が起きる？"],
+    question: ["議員は何を問題視した？", "区の答弁は十分？"],
+  };
+
+  return [
+    ...COMMON_BILL_QUESTIONS,
+    ...(itemTypeQuestions[bill.item_type] ?? []),
+  ];
 }
 
 /**
@@ -58,6 +83,7 @@ function ChatMessages({
   status,
   pageContext,
   sessionId,
+  previewOnly,
 }: {
   billContext?: BillWithContent;
   hasInterviewConfig?: boolean;
@@ -67,9 +93,13 @@ function ChatMessages({
   status: ChatWindowProps["chatState"]["status"];
   pageContext?: ChatWindowProps["pageContext"];
   sessionId: string;
+  previewOnly?: boolean;
 }) {
   const { scrollToBottom } = useStickToBottomContext();
-  const userMessageLength = messages.filter((x) => x.role === "user").length;
+  const safeMessages = messages ?? [];
+  const userMessageLength = safeMessages.filter(
+    (x) => x.role === "user"
+  ).length;
   const isResponding = status === "streaming" || status === "submitted";
 
   // メッセージが追加されたら自動的にスクロール
@@ -85,7 +115,7 @@ function ChatMessages({
         {/* 初期メッセージ */}
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold leading-[1.8] text-mirai-text">
-            国会や法案について、気になることをAIに質問してください。
+            世田谷区議会の案件について、気になることをAIに質問してください。
           </p>
           {billContext && (
             <p className="text-sm font-bold leading-[1.8] text-mirai-text">
@@ -97,20 +127,21 @@ function ChatMessages({
         {/* サンプル質問チップ */}
         <div className="flex flex-wrap gap-3">
           {(billContext
-            ? [`この法案のポイントは？`, "この法案は私にどんな影響がある？"]
+            ? getBillSampleQuestions(billContext)
             : [
                 "みらい議会って何？",
-                "国会って何をするところ？",
-                "注目の法案について教えて",
+                "世田谷区議会って何をするところ？",
+                "注目の案件について教えて",
               ]
           ).map((question) => {
             return (
               <button
                 key={question}
                 type="button"
-                disabled={isResponding}
+                disabled={isResponding || previewOnly}
                 className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
+                  if (previewOnly) return;
                   sendMessage({
                     text: question,
                     metadata: {
@@ -128,10 +159,16 @@ function ChatMessages({
             );
           })}
         </div>
+        {previewOnly && (
+          <p className="text-xs font-medium leading-relaxed text-mirai-text-muted">
+            このプレビューではAI回答は準備中です。見た目のみ確認できます。
+          </p>
+        )}
       </div>
-      {messages.map((message) => {
+      {safeMessages.map((message) => {
         const isStreaming =
-          status === "streaming" && message.id === messages.at(-1)?.id;
+          status === "streaming" &&
+          message.id === safeMessages[safeMessages.length - 1]?.id;
 
         return message.role === "user" ? (
           <UserMessage key={message.id} message={message} />
@@ -162,10 +199,12 @@ export function ChatWindow({
   pageContext,
   disableAutoFocus = false,
   sessionId,
+  previewOnly = false,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const { messages, sendMessage, status, error } = chatState;
+  const safeMessages = messages ?? [];
   const isDesktop = useIsDesktop();
   const viewportHeight = useViewportHeight();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -196,7 +235,7 @@ export function ChatWindow({
   const handleSubmit = async (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
 
-    if (!hasText || isResponding) {
+    if (!hasText || isResponding || previewOnly) {
       return;
     }
 
@@ -260,11 +299,12 @@ export function ChatWindow({
               billContext={billContext}
               hasInterviewConfig={hasInterviewConfig}
               difficultyLevel={difficultyLevel}
-              messages={messages}
+              messages={safeMessages}
               sendMessage={sendMessage}
               status={status}
               pageContext={pageContext}
               sessionId={sessionId}
+              previewOnly={previewOnly}
             />
           </ConversationContent>
           <ConversationScrollButton />
@@ -282,6 +322,7 @@ export function ChatWindow({
                 onChange={handleInputChange}
                 value={input}
                 placeholder="わからないことをAIに質問する"
+                disabled={previewOnly}
                 rows={1}
                 submitOnEnter={isDesktop}
                 // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
@@ -290,7 +331,7 @@ export function ChatWindow({
             </PromptInputBody>
             <button
               type="submit"
-              disabled={!input || isResponding}
+              disabled={!input || isResponding || previewOnly}
               className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
             >
               <Image
@@ -303,7 +344,7 @@ export function ChatWindow({
             </button>
           </PromptInput>
           <PromptInputError status={status} error={error} />
-          {messages.length > 0 && <PromptInputHint />}
+          {safeMessages.length > 0 && <PromptInputHint />}
         </div>
       </div>
     </>

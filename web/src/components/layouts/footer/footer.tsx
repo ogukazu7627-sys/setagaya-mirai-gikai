@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isInterviewPage } from "@/lib/page-layout-utils";
 import { routes } from "@/lib/routes";
+import { SETAGAYA_SITE_DISCLAIMER } from "@/config/site-disclaimer";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
@@ -93,8 +94,13 @@ function FooterPolicies() {
 
 function FooterCopyright() {
   return (
-    <div className="text-center text-sm font-medium text-slate-800">
-      © 2025 Team Mirai All rights Reserved
+    <div className="space-y-2 text-center text-xs font-medium text-slate-800">
+      <div className="space-y-1 leading-relaxed">
+        {SETAGAYA_SITE_DISCLAIMER.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </div>
+      <p>みらい議会＠世田谷区 Fork MVP</p>
     </div>
   );
 }

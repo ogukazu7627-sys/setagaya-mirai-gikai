@@ -36,9 +36,10 @@ export function registerTagsTools(server: McpServer): void {
         label: z.string().min(1),
         description: z.string().nullable().optional(),
         featured_priority: z.number().int().nullable().optional(),
+        major_category: z.string().nullable().optional(),
       },
     },
-    async ({ label, description, featured_priority }) => {
+    async ({ label, description, featured_priority, major_category }) => {
       const trimmed = label.trim();
       if (trimmed.length === 0) {
         return jsonResult({ ok: false, error: "タグ名を入力してください" });
@@ -47,6 +48,7 @@ export function registerTagsTools(server: McpServer): void {
         label: trimmed,
         description: description ?? null,
         featured_priority: featured_priority ?? null,
+        major_category: major_category ?? "教育🏫",
       });
       if (result.error) {
         return jsonResult({

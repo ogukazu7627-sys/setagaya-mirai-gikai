@@ -41,7 +41,7 @@ export function DesktopMenuLogo() {
             lineHeight: "2em",
           }}
         >
-          国会の議論をわかりやすく
+          世田谷区議会の議案をわかりやすく
         </p>
       </div>
     </Link>

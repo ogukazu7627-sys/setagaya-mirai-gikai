@@ -9,4 +9,7 @@ export const EXTERNAL_LINKS = {
   TERMS: "https://team-mir.ai/terms",
   PRIVACY: "https://team-mir.ai/privacy",
   FAQ: "https://team-mirai.notion.site/FAQ-28cf6f56bae180bd84e7f7ae80f806a1",
+  SETAGAYA_COUNCIL: "https://www.city.setagaya.lg.jp/gikai/index.html",
+  SETAGAYA_BILLS: "https://www.city.setagaya.lg.jp/02252/33569.html",
+  ORIGINAL_MIRAI_GIKAI: "https://gikai.team-mir.ai/",
 } as const;

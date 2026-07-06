@@ -45,7 +45,7 @@ function durationMinutes(
 interface ReportIntervieweeCardProps {
   roleTitle: string | null;
   roleDescription: string | null;
-  /** 賛否（for=期待 / against=懸念）。 */
+  /** 期待・懸念（for=期待 / against=懸念）。 */
   stance: string | null;
   /** 回答者の立場（interview_report.role）。カテゴリラベルに変換して表示。 */
   role: string | null;

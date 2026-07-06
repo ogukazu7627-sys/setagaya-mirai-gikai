@@ -1,6 +1,7 @@
 import "server-only";
 
 import { shouldDisplayPublicReports } from "@mirai-gikai/shared/report-publication/auto-publish";
+import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import {
   mapPublicInterviewReports,
   type PublicInterviewReportDisplay,
@@ -23,6 +24,10 @@ export type PublicReportsResult = {
 export async function getPublicReportsByBillId(
   billId: string
 ): Promise<PublicReportsResult> {
+  if (isSetagayaMockMode) {
+    return { reports: [], totalCount: 0 };
+  }
+
   const totalCount = await countPublicReportsByBillId(billId);
 
   if (!shouldDisplayPublicReports(totalCount)) {

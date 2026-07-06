@@ -103,7 +103,7 @@ export async function findTagsByBillId(billId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills_tags")
-    .select("tags(id, label)")
+    .select("tags(id, label, major_category)")
     .eq("bill_id", billId);
 
   if (error) {
@@ -151,7 +151,12 @@ import { groupTagsByBillId } from "../../shared/utils/group-tags";
  */
 export async function findTagsByBillIds(
   billIds: string[]
-): Promise<Map<string, Array<{ id: string; label: string }>>> {
+): Promise<
+  Map<
+    string,
+    Array<{ id: string; label: string; major_category?: string | null }>
+  >
+> {
   if (billIds.length === 0) {
     return new Map();
   }
@@ -159,7 +164,7 @@ export async function findTagsByBillIds(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills_tags")
-    .select("bill_id, tags(id, label)")
+    .select("bill_id, tags(id, label, major_category)")
     .in("bill_id", billIds);
 
   if (error) {
@@ -174,7 +179,7 @@ export async function findTagsByBillIds(
 // ============================================================
 
 /**
- * 国会会期IDに紐づく公開済み議案を取得
+ * 世田谷区議会会期IDに紐づく公開済み議案を取得
  */
 export async function findPublishedBillsByDietSession(
   dietSessionId: string,
@@ -212,7 +217,7 @@ export async function findPublishedBillsByDietSession(
 }
 
 /**
- * 前回の国会会期の公開済み議案を取得（成立法案を優先、件数制限あり）
+ * 前回の世田谷区議会会期の公開済み議案を取得（成立案件を優先、件数制限あり）
  */
 export async function findPreviousSessionBills(
   dietSessionId: string,
@@ -253,7 +258,7 @@ export async function findPreviousSessionBills(
 }
 
 /**
- * 前回の国会会期の公開済み議案数を取得
+ * 前回の世田谷区議会会期の公開済み議案数を取得
  */
 export async function countPublishedBillsByDietSession(
   dietSessionId: string,
@@ -330,7 +335,8 @@ export async function findPublishedBillsByTag(
         bills_tags!inner (
           tags (
             id,
-            label
+            label,
+            major_category
           )
         )
       )
@@ -380,7 +386,8 @@ export async function findFeaturedBillsWithContents(
       tags:bills_tags(
         tag:tags(
           id,
-          label
+          label,
+          major_category
         )
       )
     `
