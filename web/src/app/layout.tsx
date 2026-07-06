@@ -30,6 +30,7 @@ const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
   "世田谷区議会の議案を、みらい議会の形式でわかりやすく確認するための非公式Fork MVP";
 const siteName = "みらい議会＠世田谷区";
+const themeColor = "#38bdf8";
 const ogImage = {
   url: "/ogp.jpg",
   width: 1200,
@@ -90,7 +91,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#2aa693",
+  themeColor,
 };
 
 export default function RootLayout({
@@ -103,7 +104,7 @@ export default function RootLayout({
       <body
         className={`${notoSansJP.variable} ${lexendGiga.variable} ${notoSerifJP.variable} font-sans antialiased bg-mirai-surface-light`}
       >
-        <NextTopLoader showSpinner={false} color="#2aa693" />
+        <NextTopLoader showSpinner={false} color={themeColor} />
         {children}
       </body>
     </html>
