@@ -14,7 +14,7 @@ export function DesktopMenuLogo() {
       {/* ロゴ */}
       <div className="relative w-[116px] h-[98.38px]">
         <Image
-          src="/img/logo.png"
+          src="/img/logo-transparent.png"
           alt="みらい議会＠世田谷区ロゴ"
           fill
           className="object-contain"
