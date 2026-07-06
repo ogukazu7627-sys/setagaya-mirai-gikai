@@ -121,7 +121,7 @@ export async function GET(request: Request) {
         alignItems: "center",
         justifyContent: "center",
         backgroundImage:
-          "linear-gradient(177deg, rgb(226, 246, 243) 0%, rgb(238, 246, 226) 100%)",
+          "linear-gradient(177deg, rgb(224, 242, 254) 0%, rgb(125, 211, 252) 100%)",
       }}
     >
       {/* グラデーションborder用ラッパー */}
@@ -219,7 +219,7 @@ export async function GET(request: Request) {
           <img
             alt="みらい議会＠世田谷区ロゴ"
             src={logoDataUrl}
-            width={189}
+            width={160}
             height={160}
             style={{
               position: "absolute",

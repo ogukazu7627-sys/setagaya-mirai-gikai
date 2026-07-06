@@ -24,8 +24,6 @@ const notoSerifJP = Noto_Serif_JP({
   weight: ["500", "600"],
 });
 
-const isDev = process.env.NODE_ENV === "development";
-const isStaging = process.env.VERCEL_TARGET_ENV === "staging";
 const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
   "世田谷区議会の議案を、みらい議会の形式でわかりやすく確認するための非公式Fork MVP";
@@ -52,14 +50,11 @@ export const metadata: Metadata = {
     "解説",
   ],
   icons: {
-    icon: isDev
-      ? "/icons/pwa/icon_dev_192_v3.png"
-      : isStaging
-        ? "/icons/pwa/icon_staging_192.png"
-        : "/icons/pwa/icon_android_192.png",
-    apple: isStaging
-      ? "/icons/pwa/icon_staging_ios.png"
-      : "/icons/pwa/icon_ios.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/pwa/icon_android_192.png", sizes: "192x192" },
+    ],
+    apple: "/icons/pwa/icon_ios.png",
   },
   manifest: "/manifest.json",
   openGraph: {

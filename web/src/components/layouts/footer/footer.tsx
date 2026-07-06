@@ -33,9 +33,9 @@ function FooterLogoSection() {
     <div className="flex flex-col items-center text-center mb-9">
       <Link href={routes.home()} aria-label="みらい議会 トップページ">
         <Image
-          src="/img/logo.svg"
-          alt="みらい議会"
-          width={150}
+          src="/img/logo.png"
+          alt="みらい議会＠世田谷区"
+          width={128}
           height={128}
           className="h-auto"
         />
