@@ -2,13 +2,13 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <div className="relative w-full aspect-[402/670] md:aspect-auto md:h-[70vh] md:min-h-[400px]">
+    <div className="relative w-full aspect-[402/670] overflow-hidden bg-[#e0f2fe] md:aspect-[16/9]">
       <Image
         src="/img/hero_background.jpg"
         alt="みらい議会"
         fill
         priority
-        className="hidden object-cover object-center md:block"
+        className="hidden object-contain object-center md:block"
         sizes="(min-width: 768px) 100vw, 0vw"
         quality={85}
       />
@@ -17,7 +17,7 @@ export function Hero() {
         alt="みらい議会"
         fill
         priority
-        className="object-cover object-top md:hidden"
+        className="object-contain object-top md:hidden"
         sizes="(max-width: 767px) 100vw, 0vw"
         quality={85}
       />
