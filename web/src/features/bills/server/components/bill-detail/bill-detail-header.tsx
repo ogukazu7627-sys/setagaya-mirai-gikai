@@ -11,10 +11,12 @@ import {
   ReviewCompleteBadge,
   ReviewInProgressBanner,
 } from "../../../client/components/bill-detail/review-status-banner";
+import { BillItemTypeBadge } from "../../../client/components/bill-list/bill-item-type-badge";
 import { BillStatusBadge } from "../../../client/components/bill-list/bill-status-badge";
 import { BillTag } from "../../../client/components/bill-list/bill-tag";
 import { getBillShareData } from "../../../client/utils/share";
 import type { BillWithContent } from "../../../shared/types";
+import { getDisplayTags } from "../../../shared/utils/display-tags";
 
 interface BillDetailHeaderProps {
   bill: BillWithContent;
@@ -33,6 +35,7 @@ export async function BillDetailHeader({
 }: BillDetailHeaderProps) {
   const displayTitle = bill.bill_content?.title;
   const displaySummary = bill.bill_content?.summary;
+  const displayTags = getDisplayTags(bill);
 
   const { shareUrl, shareMessage, thumbnailUrl } = await getBillShareData(bill);
 
@@ -65,8 +68,13 @@ export async function BillDetailHeader({
             )}
           </h1>
         )}
-        <div className="flex flex-row gap-4">
-          <BillStatusBadge status={bill.status} className="w-fit" />
+        <div className="flex flex-wrap items-center gap-3">
+          <BillItemTypeBadge itemType={bill.item_type} />
+          <BillStatusBadge
+            status={bill.status}
+            statusLabel={bill.status_label}
+            className="w-fit"
+          />
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             {bill.submitted_date && (
               <time>{formatDateWithDots(bill.submitted_date)} 提出</time>
@@ -81,9 +89,9 @@ export async function BillDetailHeader({
         )}
 
         {/* タグ表示 */}
-        {bill.tags && bill.tags.length > 0 && (
+        {displayTags.length > 0 && (
           <div className="flex flex-wrap gap-3 mb-4">
-            {bill.tags.map((tag) => (
+            {displayTags.map((tag) => (
               <BillTag key={tag.id} tag={tag} />
             ))}
           </div>

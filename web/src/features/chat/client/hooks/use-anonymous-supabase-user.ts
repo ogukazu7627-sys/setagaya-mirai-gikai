@@ -1,10 +1,6 @@
 "use client";
 
-import { createBrowserClient } from "@mirai-gikai/supabase";
 import { useEffect, useState } from "react";
-
-// Create a singleton Supabase client with persistent session
-const supabase = createBrowserClient();
 
 /**
  * Hook to ensure an anonymous Supabase user exists and return the user ID
@@ -14,8 +10,15 @@ export function useAnonymousSupabaseUser() {
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SETAGAYA_MOCK_MODE === "true") {
+      return;
+    }
+
     const ensureAnonUser = async () => {
       try {
+        const { createBrowserClient } = await import("@mirai-gikai/supabase");
+        const supabase = createBrowserClient();
+
         // Check if user already exists
         const {
           data: { user },

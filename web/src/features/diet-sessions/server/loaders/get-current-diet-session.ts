@@ -1,15 +1,23 @@
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import {
+  getSetagayaMockSession,
+  isSetagayaMockMode,
+} from "@/lib/setagaya-mock";
 import type { DietSession } from "../../shared/types";
 import { findCurrentDietSession } from "../repositories/diet-session-repository";
 
 /**
- * 指定日時点で開催中の国会会期を取得
+ * 指定日時点で開催中の世田谷区議会会期を取得
  * 指定日が開始日と終了日の範囲内にある会期を返す
  */
 export async function getCurrentDietSession(
   date: Date
 ): Promise<DietSession | null> {
+  if (isSetagayaMockMode) {
+    return getSetagayaMockSession();
+  }
+
   // YYYY-MM-DD形式に変換
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

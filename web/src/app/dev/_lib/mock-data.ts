@@ -14,13 +14,16 @@ export const allBillStatuses: BillStatusEnum[] = [
 
 const baseBill: BillWithContent = {
   id: "mock-bill-001",
-  name: "サンプル法案（第XXX回国会提出）",
+  name: "サンプル案件（第XXX回世田谷区議会提出）",
+  item_type: "bill",
   status: "in_originating_house",
   originating_house: "HR",
   is_featured: false,
   is_review_completed: true,
+  status_label: null,
   thumbnail_url: null,
   share_thumbnail_url: null,
+  sources: [],
   published_at: "2026-02-15",
   submitted_date: "2026-02-15",
   publish_status: "published",
@@ -37,9 +40,9 @@ const baseBill: BillWithContent = {
   bill_content: {
     id: "mock-content-001",
     bill_id: "mock-bill-001",
-    title: "サンプル法案のタイトル",
+    title: "サンプル案件のタイトル",
     summary:
-      "この法案は開発プレビュー用のサンプルデータです。法案の要約文がここに表示されます。実際のデータではありません。",
+      "この案件は開発プレビュー用のサンプルデータです。案件の要約文がここに表示されます。実際のデータではありません。",
     content: "# サンプルコンテンツ\n\n本文がここに入ります。",
     difficulty_level: "normal",
     created_at: "2026-02-15T00:00:00Z",

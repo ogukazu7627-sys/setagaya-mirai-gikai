@@ -1,14 +1,22 @@
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import {
+  getSetagayaMockSession,
+  isSetagayaMockMode,
+} from "@/lib/setagaya-mock";
 import type { DietSession } from "../../shared/types";
 import { findActiveDietSession } from "../repositories/diet-session-repository";
 
 /**
- * アクティブな国会会期を取得
+ * アクティブな世田谷区議会会期を取得
  * is_active = true の会期を返す
  * アクティブな会期がない場合は null を返す
  */
 export async function getActiveDietSession(): Promise<DietSession | null> {
+  if (isSetagayaMockMode) {
+    return getSetagayaMockSession();
+  }
+
   return _getCachedActiveDietSession();
 }
 

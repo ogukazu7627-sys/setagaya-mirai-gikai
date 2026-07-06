@@ -4,6 +4,7 @@ import {
   getPublicTopicAnalysis as fetchPublicTopicAnalysis,
   type PublicTopicAnalysis,
 } from "@mirai-gikai/topic-analysis-core/public-server";
+import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import { cache } from "react";
 
 /**
@@ -16,6 +17,10 @@ import { cache } from "react";
  * （generateMetadata とページ本体で同じ billId を取得しても1回のクエリで済む）。
  */
 export const getPublicTopicAnalysis = cache(
-  (billId: string): Promise<PublicTopicAnalysis | null> =>
-    fetchPublicTopicAnalysis(billId)
+  (billId: string): Promise<PublicTopicAnalysis | null> => {
+    if (isSetagayaMockMode) {
+      return Promise.resolve(null);
+    }
+    return fetchPublicTopicAnalysis(billId);
+  }
 );

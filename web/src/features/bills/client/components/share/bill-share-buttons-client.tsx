@@ -46,7 +46,7 @@ export function BillShareButtonsClient({
             height={28}
             className="shrink-0"
           />
-          記事を共有する
+          案件を共有する
         </Button>
         <Button
           variant="outline"

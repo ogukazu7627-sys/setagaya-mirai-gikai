@@ -26,22 +26,30 @@ const notoSerifJP = Noto_Serif_JP({
 
 const isDev = process.env.NODE_ENV === "development";
 const isStaging = process.env.VERCEL_TARGET_ENV === "staging";
-const siteTitle = "みらい議会｜チームみらい";
+const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
-  "国会で今どんな法案が検討されているか、わかりやすく伝えるプラットフォーム";
-const siteName = "みらい議会";
+  "世田谷区議会の議案を、みらい議会の形式でわかりやすく確認するための非公式Fork MVP";
+const siteName = "みらい議会＠世田谷区";
 const ogImage = {
   url: "/ogp.jpg",
   width: 1200,
   height: 630,
-  alt: "みらい議会のOGPイメージ",
+  alt: "みらい議会＠世田谷区のOGPイメージ",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.webUrl),
   title: siteTitle,
   description: siteDescription,
-  keywords: [siteName, "議案", "政治", "日本", "政策", "解説", "チームみらい"],
+  keywords: [
+    siteName,
+    "世田谷区議会",
+    "議案",
+    "区議会",
+    "条例",
+    "政策",
+    "解説",
+  ],
   icons: {
     icon: isDev
       ? "/icons/pwa/icon_dev_192_v3.png"

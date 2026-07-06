@@ -4,7 +4,7 @@ import type { DietSession } from "../../shared/types";
 import { findDietSessionBySlug } from "../repositories/diet-session-repository";
 
 /**
- * slugで国会会期を取得
+ * slugで世田谷区議会会期を取得
  */
 export async function getDietSessionBySlug(
   slug: string

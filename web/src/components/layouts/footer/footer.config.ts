@@ -20,27 +20,22 @@ export const primaryLinks: FooterLink[] = [
   },
   {
     label: "みらい議会とは",
-    href: EXTERNAL_LINKS.ABOUT_NOTE,
+    href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
     external: true,
   },
   {
-    label: "チームみらいについて",
-    href: EXTERNAL_LINKS.TEAM_MIRAI_ABOUT,
+    label: "世田谷区議会公式",
+    href: EXTERNAL_LINKS.SETAGAYA_COUNCIL,
     external: true,
   },
   {
-    label: "寄附で応援する",
-    href: EXTERNAL_LINKS.DONATION,
+    label: "公式議案一覧",
+    href: EXTERNAL_LINKS.SETAGAYA_BILLS,
     external: true,
   },
 ];
 
 export const policyLinks: FooterPolicyLink[] = [
-  {
-    label: "よくあるご質問",
-    href: EXTERNAL_LINKS.FAQ,
-    external: true,
-  },
   {
     label: "利用規約",
     href: routes.terms(),

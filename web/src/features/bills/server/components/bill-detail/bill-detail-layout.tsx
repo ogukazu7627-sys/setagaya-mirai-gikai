@@ -8,11 +8,11 @@ import { getPublicTopicAnalysis } from "@/features/user-topic-analysis/server/lo
 import { BillDetailClient } from "../../../client/components/bill-detail/bill-detail-client";
 import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
-import { MiraiStanceCard } from "../../../client/components/bill-detail/mirai-stance-card";
 import type { BillWithContent } from "../../../shared/types";
 import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
+import { CouncilVoteResultCard } from "./council-vote-result-card";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
@@ -23,7 +23,6 @@ export async function BillDetailLayout({
   bill,
   currentDifficulty,
 }: BillDetailLayoutProps) {
-  const showMiraiStance = bill.status === "preparing" || bill.mirai_stance;
   const [interviewConfig, publicReportsResult, topicAnalysis] =
     await Promise.all([
       getInterviewConfig(bill.id),
@@ -56,16 +55,21 @@ export async function BillDetailLayout({
             <BillStatusProgress
               status={bill.status}
               originatingHouse={bill.originating_house}
+              itemType={bill.item_type}
               statusNote={bill.status_note}
             />
           </div>
 
           <BillContent bill={bill} />
+
+          <div className="my-8">
+            <CouncilVoteResultCard bill={bill} />
+          </div>
         </Container>
       </BillDetailClient>
 
       <Container>
-        {/* 法案のトピック一覧（AIインタビュー意見の整理） */}
+        {/* 案件のトピック一覧（AIインタビュー意見の整理） */}
         <div className="my-8">
           <BillTopicsPreviewSection
             billId={bill.id}
@@ -79,20 +83,12 @@ export async function BillDetailLayout({
             <InterviewLandingSection billId={bill.id} />
           </div>
         )}
-        {showMiraiStance && (
-          <div className="my-8">
-            <MiraiStanceCard
-              stance={bill.mirai_stance}
-              billStatus={bill.status}
-            />
-          </div>
-        )}
         {/* シェアボタン */}
         <div className="my-8">
           <BillShareButtons bill={bill} />
         </div>
 
-        {/* データの出典と免責事項 */}
+        {/* 公式資料へのリンク集は本文・免責と重複しやすいため、公開詳細ページでは表示しない。 */}
         <div className="my-8">
           <BillDisclaimer />
         </div>

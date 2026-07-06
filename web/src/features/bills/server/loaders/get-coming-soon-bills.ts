@@ -8,8 +8,8 @@ import { findComingSoonBills } from "../repositories/bill-repository";
 
 /**
  * Coming Soon議案を取得する
- * publish_status = 'coming_soon' でアクティブな国会会期の議案を取得
- * アクティブな国会会期がない場合は全件取得
+ * publish_status = 'coming_soon' でアクティブな世田谷区議会会期の議案を取得
+ * アクティブな世田谷区議会会期がない場合は全件取得
  */
 export async function getComingSoonBills(): Promise<ComingSoonBill[]> {
   // キャッシュ外でcookiesにアクセス

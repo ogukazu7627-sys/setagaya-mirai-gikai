@@ -162,4 +162,42 @@ More text.`;
 
     expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
   });
+
+  it("should use h1 as section boundaries when markdown has multiple h1 sections", async () => {
+    const input = `# この質問のポイント
+
+Point.
+
+# 主な論点
+
+## 教員体制は十分か
+
+Issue.
+
+## 多様な学びをどう実現するか
+
+Issue 2.
+
+# よくある質問
+
+## Q. これは議案ですか？
+
+Answer.`;
+
+    const result = await processor.process(input);
+    const output = result.toString();
+
+    const expected = `<h1>この質問のポイント</h1>
+<section><p>Point.</p></section>
+<h1>主な論点</h1>
+<section><h2>教員体制は十分か</h2>
+<p>Issue.</p>
+<h2>多様な学びをどう実現するか</h2>
+<p>Issue 2.</p></section>
+<h1>よくある質問</h1>
+<section><h2>Q. これは議案ですか？</h2>
+<p>Answer.</p></section>`;
+
+    expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
+  });
 });

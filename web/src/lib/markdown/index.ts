@@ -48,11 +48,11 @@ export async function parseMarkdown(markdown: string): Promise<ReactElement> {
     .use(rehypeInjectElement, {
       injections: [
         {
-          targetH2Index: 3,
+          targetHeadingText: "関係する人・地域",
           tagName: "LongPressSection",
         },
         {
-          targetH2Index: -1,
+          targetHeadingText: "よくある質問",
           tagName: "DifficultyInfoCard",
         },
       ],

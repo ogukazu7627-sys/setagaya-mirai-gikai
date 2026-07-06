@@ -1,7 +1,8 @@
 import type { Element, ElementContent, Root } from "hast";
 
 /**
- * h2要素とその後続要素をsectionで囲むrehypeプラグイン
+ * 見出しとその後続要素をsectionで囲むrehypeプラグイン。
+ * H1が複数ある案件本文ではH1を大区切りにし、H2は論点やFAQ内の小見出しとして扱う。
  */
 export function rehypeWrapSections() {
   return (tree: Root) => {
@@ -9,10 +10,15 @@ export function rehypeWrapSections() {
 
     // 既存の子要素を一時的に保存
     const originalChildren = [...tree.children];
+    const h1Count = originalChildren.filter(
+      (child) => child.type === "element" && child.tagName === "h1"
+    ).length;
+    const sectionHeadingTag = h1Count > 1 ? "h1" : "h2";
+
     tree.children = [];
 
     for (const child of originalChildren) {
-      if (child.type === "element" && child.tagName === "h2") {
+      if (child.type === "element" && child.tagName === sectionHeadingTag) {
         // 既存のsectionを完了
         if (currentSection && currentSection.children.length > 0) {
           tree.children.push(currentSection);

@@ -164,7 +164,7 @@ export async function GET(request: Request) {
             {truncatedSummary}
           </div>
 
-          {/* 法案名 */}
+          {/* 案件名 */}
           <div
             style={{
               display: "flex",
@@ -203,13 +203,13 @@ export async function GET(request: Request) {
         >
           <span
             style={{
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: 800,
               color: "#1f2937",
-              letterSpacing: "0.03em",
+              letterSpacing: "0",
             }}
           >
-            みらい議会
+            みらい議会＠世田谷区
           </span>
         </div>
 
@@ -217,7 +217,7 @@ export async function GET(request: Request) {
         {logoDataUrl && (
           // biome-ignore lint/performance/noImgElement: ignore
           <img
-            alt="チームみらいロゴ"
+            alt="みらい議会＠世田谷区ロゴ"
             src={logoDataUrl}
             width={189}
             height={160}

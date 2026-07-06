@@ -11,8 +11,8 @@ type FooterLinkItem = {
 
 const links: FooterLinkItem[] = [
   {
-    label: "チームみらいについて",
-    href: EXTERNAL_LINKS.TEAM_MIRAI_ABOUT,
+    label: "世田谷区議会公式",
+    href: EXTERNAL_LINKS.SETAGAYA_COUNCIL,
     external: true,
   },
   {
@@ -26,8 +26,8 @@ const links: FooterLinkItem[] = [
     external: false,
   },
   {
-    label: "よくあるご質問",
-    href: EXTERNAL_LINKS.FAQ,
+    label: "本家みらい議会",
+    href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
     external: true,
   },
 ];
@@ -58,7 +58,7 @@ export function DesktopMenuLinks() {
           lineHeight: "1.48em",
         }}
       >
-        © 2025 Team Mirai
+        みらい議会＠世田谷区 Fork MVP
       </p>
     </div>
   );

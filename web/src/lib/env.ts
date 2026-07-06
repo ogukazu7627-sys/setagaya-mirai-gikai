@@ -3,11 +3,15 @@
  * アプリケーション全体で使用する環境変数を一元管理
  */
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+const isSetagayaMockMode =
+  process.env.NEXT_PUBLIC_SETAGAYA_MOCK_MODE === "true" ||
+  process.env.SETAGAYA_MOCK_MODE === "true";
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL && !isSetagayaMockMode) {
   throw new Error("環境変数 NEXT_PUBLIC_SUPABASE_URL が設定されていません");
 }
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !isSetagayaMockMode) {
   throw new Error(
     "環境変数 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY が設定されていません"
   );
@@ -57,8 +61,9 @@ if (
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   adminUrl: process.env.ADMIN_URL || "http://localhost:3001",
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabasePublishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321",
+  supabasePublishableKey:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "setagaya-mock-key",
   revalidateSecret: process.env.REVALIDATE_SECRET,
   analytics: {
     gaTrackingId: process.env.NEXT_PUBLIC_GA_TRACKING_ID,

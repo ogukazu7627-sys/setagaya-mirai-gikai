@@ -80,9 +80,12 @@ export type Database = {
           created_at: string
           diet_session_id: string | null
           id: string
+          interview_enabled: boolean
           is_featured: boolean
           is_review_completed: boolean
+          item_type: Database["public"]["Enums"]["bill_item_type"]
           knowledge_source: string | null
+          major_category: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
@@ -91,7 +94,9 @@ export type Database = {
           share_thumbnail_url: string | null
           shugiin_url: string | null
           slug: string | null
+          sources: Json
           status: Database["public"]["Enums"]["bill_status_enum"]
+          status_label: string | null
           status_note: string | null
           status_order: number | null
           submitted_date: string | null
@@ -103,9 +108,12 @@ export type Database = {
           created_at?: string
           diet_session_id?: string | null
           id?: string
+          interview_enabled?: boolean
           is_featured?: boolean
           is_review_completed?: boolean
+          item_type?: Database["public"]["Enums"]["bill_item_type"]
           knowledge_source?: string | null
+          major_category?: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -114,7 +122,9 @@ export type Database = {
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
           slug?: string | null
+          sources?: Json
           status: Database["public"]["Enums"]["bill_status_enum"]
+          status_label?: string | null
           status_note?: string | null
           status_order?: number | null
           submitted_date?: string | null
@@ -126,9 +136,12 @@ export type Database = {
           created_at?: string
           diet_session_id?: string | null
           id?: string
+          interview_enabled?: boolean
           is_featured?: boolean
           is_review_completed?: boolean
+          item_type?: Database["public"]["Enums"]["bill_item_type"]
           knowledge_source?: string | null
+          major_category?: string | null
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
@@ -137,7 +150,9 @@ export type Database = {
           share_thumbnail_url?: string | null
           shugiin_url?: string | null
           slug?: string | null
+          sources?: Json
           status?: Database["public"]["Enums"]["bill_status_enum"]
+          status_label?: string | null
           status_note?: string | null
           status_order?: number | null
           submitted_date?: string | null
@@ -779,6 +794,7 @@ export type Database = {
           featured_priority: number | null
           id: string
           label: string
+          major_category: string
           updated_at: string
         }
         Insert: {
@@ -787,6 +803,7 @@ export type Database = {
           featured_priority?: number | null
           id?: string
           label: string
+          major_category?: string
           updated_at?: string
         }
         Update: {
@@ -795,6 +812,7 @@ export type Database = {
           featured_priority?: number | null
           id?: string
           label?: string
+          major_category?: string
           updated_at?: string
         }
         Relationships: []
@@ -1267,6 +1285,7 @@ export type Database = {
       }
     }
     Enums: {
+      bill_item_type: "bill" | "report" | "petition" | "question"
       bill_publish_status: "draft" | "published" | "coming_soon"
       bill_status_enum:
         | "introduced"

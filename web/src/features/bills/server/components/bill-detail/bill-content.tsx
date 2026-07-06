@@ -5,6 +5,26 @@ interface BillContentProps {
   bill: BillWithContent;
 }
 
+const HEADING_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/^(#{1,6})\s+この(?:法律|議案)のポイント\s*$/gm, "$1 この案件のポイント"],
+  [
+    /^(#{1,6})\s+この(?:法律|議案)が必要な理由\s*$/gm,
+    "$1 この案件が出てきた背景",
+  ],
+  [
+    /^(#{1,6})\s+影響を受ける(?:可能性がある)?人(?:・団体)?\s*$/gm,
+    "$1 関係する人・地域",
+  ],
+  [/^(#{1,6})\s+チームみらいの賛否\s*$/gm, "$1 議会での結果"],
+];
+
+function normalizeSetagayaHeadings(markdown: string): string {
+  return HEADING_REPLACEMENTS.reduce(
+    (current, [pattern, replacement]) => current.replace(pattern, replacement),
+    markdown
+  );
+}
+
 export async function BillContent({ bill }: BillContentProps) {
   const markdownContent = bill.bill_content?.content;
 
@@ -12,7 +32,7 @@ export async function BillContent({ bill }: BillContentProps) {
     return null;
   }
 
-  const content = await parseMarkdown(markdownContent);
+  const content = await parseMarkdown(normalizeSetagayaHeadings(markdownContent));
 
   return (
     <div
