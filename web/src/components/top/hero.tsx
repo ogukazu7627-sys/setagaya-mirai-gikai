@@ -8,8 +8,17 @@ export function Hero() {
         alt="みらい議会"
         fill
         priority
-        className="object-cover object-[35%_center] md:object-center"
-        sizes="100vw"
+        className="hidden object-cover object-center md:block"
+        sizes="(min-width: 768px) 100vw, 0vw"
+        quality={85}
+      />
+      <Image
+        src="/img/hero_background_mobile.jpg"
+        alt="みらい議会"
+        fill
+        priority
+        className="object-cover object-center md:hidden"
+        sizes="(max-width: 767px) 100vw, 0vw"
         quality={85}
       />
       <div className="sr-only">
