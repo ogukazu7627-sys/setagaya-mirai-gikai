@@ -60,6 +60,24 @@ jobs:
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
 
+      - name: Render production Supabase config
+        run: |
+          ruby <<'RUBY'
+          path = "supabase/config.toml"
+          site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL")
+          redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL")
+          config = File.read(path)
+          config.sub!(/^site_url = .+$/, "site_url = #{site_url.dump}")
+          config.sub!(
+            /^additional_redirect_urls = .+$/,
+            "additional_redirect_urls = [#{redirect_url.dump}]"
+          )
+          File.write(path, config)
+          RUBY
+        env:
+          SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
+          SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+
       - name: Supabase config push
         run: |
           supabase config push --yes
