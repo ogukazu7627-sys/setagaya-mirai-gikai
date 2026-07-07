@@ -1,13 +1,13 @@
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getBillItemTypeLabel } from "@/features/bills/shared/types";
 import {
-  getPreviewPath,
   type AdminBillListItem,
   formatAdminDate,
+  getPreviewPath,
 } from "../server/bill-admin";
-import { getBillItemTypeLabel } from "@/features/bills/shared/types";
 
 interface AdminBillListProps {
   bills: Array<AdminBillListItem & { previewToken?: string | null }>;
@@ -17,9 +17,6 @@ function publishStatusLabel(status: string) {
   switch (status) {
     case "published":
       return "公開";
-    case "coming_soon":
-      return "近日公開";
-    case "draft":
     default:
       return "下書き";
   }
