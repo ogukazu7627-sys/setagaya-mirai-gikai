@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isHtmlAcceptHeader, isValidDifficultyLevel } from "./middleware";
+import {
+  isHtmlAcceptHeader,
+  isValidDifficultyLevel,
+  shouldSkipSupabaseSessionUpdate,
+} from "./middleware";
 
 describe("isValidDifficultyLevel", () => {
   it("should return true for 'normal'", () => {
@@ -46,5 +50,16 @@ describe("isHtmlAcceptHeader", () => {
 
   it("should return false for empty string", () => {
     expect(isHtmlAcceptHeader("")).toBe(false);
+  });
+});
+
+describe("shouldSkipSupabaseSessionUpdate", () => {
+  it("should skip Supabase session refresh on chat auth callback", () => {
+    expect(shouldSkipSupabaseSessionUpdate("/auth/callback")).toBe(true);
+  });
+
+  it("should not skip Supabase session refresh on other pages", () => {
+    expect(shouldSkipSupabaseSessionUpdate("/")).toBe(false);
+    expect(shouldSkipSupabaseSessionUpdate("/admin/bills")).toBe(false);
   });
 });

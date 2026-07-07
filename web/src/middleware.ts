@@ -5,6 +5,7 @@ import {
   type DifficultyLevelEnum,
   VALID_DIFFICULTY_LEVELS,
 } from "./features/bill-difficulty/shared/types";
+import { CHAT_AUTH_CALLBACK_PATH } from "./features/chat/shared/auth";
 import {
   createUnauthorizedResponse,
   getBasicAuthConfig,
@@ -22,8 +23,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Supabaseセッションをリフレッシュ（トークン期限切れ時に自動更新）
-  const response = await updateSupabaseSession(request);
+  // OAuth callbackではPKCE code-verifier cookieが必要。
+  // ここでgetUser()を走らせるとログイン前扱いでcode-verifierが消えるためスキップする。
+  const response = shouldSkipSupabaseSessionUpdate(request.nextUrl.pathname)
+    ? NextResponse.next({ request })
+    : await updateSupabaseSession(request);
 
   // URLパラメータからdifficulty Cookieをセット
   _applyDifficultyCookie(request, response);
@@ -87,6 +91,10 @@ export function isHtmlAcceptHeader(accept: string): boolean {
 function _isHtmlRequest(request: NextRequest) {
   const accept = request.headers.get("accept") || "";
   return isHtmlAcceptHeader(accept);
+}
+
+export function shouldSkipSupabaseSessionUpdate(pathname: string): boolean {
+  return pathname === CHAT_AUTH_CALLBACK_PATH;
 }
 
 export const config = {
