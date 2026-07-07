@@ -93,9 +93,9 @@ export default function TermsPage() {
         </section>
 
         <section className="space-y-4">
-          <LegalSectionTitle>第3条（AI下書きとレビュー状態）</LegalSectionTitle>
+          <LegalSectionTitle>第3条（掲載情報と確認状態）</LegalSectionTitle>
           <LegalParagraph>
-            本サービスの議案説明は、公式資料をもとにAIで下書きし、人間が確認する運用を前提にしています。初期MVPでは、AIインタビュー、AIチャット、意見分析、管理画面の動作保証は対象外です。
+            本サービスの案件説明は、運営者が公式資料を確認し、手動で整理した内容を掲載します。AIチャット、AIインタビュー、意見分析は補助機能であり、公式情報や最終判断の代替ではありません。
           </LegalParagraph>
           <LegalParagraph>
             公開前の議案カードには不確実な箇所が含まれる可能性があります。正確な内容は、世田谷区公式サイトの議案PDF、議案一覧、審議案件・審議結果等をご確認ください。
@@ -115,7 +115,7 @@ export default function TermsPage() {
             運営者は、本サービスが提供する情報の正確性、完全性、最新性、有用性、真実性等について、いかなる保証も行いません。
           </LegalParagraph>
           <LegalParagraph>
-            AIによる下書きは、その性質上、誤った情報を含む可能性があることを理解した上で利用するものとします。
+            AI機能による回答は、その性質上、誤った情報を含む可能性があることを理解した上で利用するものとします。
           </LegalParagraph>
         </section>
 
