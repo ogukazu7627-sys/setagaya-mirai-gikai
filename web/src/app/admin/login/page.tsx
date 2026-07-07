@@ -10,6 +10,8 @@ import {
 } from "@/features/admin/server/auth";
 import { loginAdminAction } from "@/features/admin/server/actions";
 
+export const dynamic = "force-dynamic";
+
 interface AdminLoginPageProps {
   searchParams?: Promise<{
     error?: string;

@@ -9,6 +9,8 @@ import {
   listAdminBills,
 } from "@/features/admin/server/bill-admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminBillsPage() {
   const [user, bills] = await Promise.all([
     requireAdmin("/admin/bills"),
