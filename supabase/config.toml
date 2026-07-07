@@ -106,6 +106,13 @@ file_size_limit = "50MiB"
 # [storage.image_transformation]
 # enabled = true
 
+# Vector Buckets is a paid-tier feature on hosted Supabase. Keep it disabled
+# unless the project explicitly adopts vector storage.
+[storage.vector]
+enabled = false
+max_buckets = 10
+max_indexes = 5
+
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
 # public = false
