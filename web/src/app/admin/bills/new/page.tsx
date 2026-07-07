@@ -3,6 +3,8 @@ import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
 import { getAdminBillFormData } from "@/features/admin/server/bill-admin";
 
+export const dynamic = "force-dynamic";
+
 interface AdminNewBillPageProps {
   searchParams?: Promise<{
     error?: string;
