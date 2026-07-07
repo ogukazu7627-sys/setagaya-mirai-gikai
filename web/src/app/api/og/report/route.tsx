@@ -121,7 +121,7 @@ export async function GET(request: Request) {
         alignItems: "center",
         justifyContent: "center",
         backgroundImage:
-          "linear-gradient(177deg, rgb(226, 246, 243) 0%, rgb(238, 246, 226) 100%)",
+          "linear-gradient(177deg, rgb(224, 242, 254) 0%, rgb(125, 211, 252) 100%)",
       }}
     >
       {/* グラデーションborder用ラッパー */}
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
           height: 560,
           borderRadius: 30,
           backgroundImage:
-            "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
+            "linear-gradient(-30deg, rgb(224, 242, 254) 1%, rgb(125, 211, 252) 99%)",
           padding: 6,
           position: "relative",
         }}
@@ -172,7 +172,7 @@ export async function GET(request: Request) {
               maxHeight: OG_BILL_NAME_MAX_HEIGHT,
               fontSize: 32,
               fontWeight: 800,
-              color: "#0f8472",
+              color: "#0ea5e9",
               lineHeight: 1.5,
               overflow: "hidden",
               wordBreak: "break-all",
@@ -198,7 +198,7 @@ export async function GET(request: Request) {
             borderBottomLeftRadius: 30,
             borderTopRightRadius: 30,
             backgroundImage:
-              "linear-gradient(-30deg, rgb(188, 236, 211) 1%, rgb(100, 216, 198) 99%)",
+              "linear-gradient(-30deg, rgb(224, 242, 254) 1%, rgb(125, 211, 252) 99%)",
           }}
         >
           <span
@@ -219,7 +219,7 @@ export async function GET(request: Request) {
           <img
             alt="みらい議会＠世田谷区ロゴ"
             src={logoDataUrl}
-            width={189}
+            width={160}
             height={160}
             style={{
               position: "absolute",

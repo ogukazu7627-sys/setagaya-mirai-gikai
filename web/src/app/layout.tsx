@@ -24,12 +24,11 @@ const notoSerifJP = Noto_Serif_JP({
   weight: ["500", "600"],
 });
 
-const isDev = process.env.NODE_ENV === "development";
-const isStaging = process.env.VERCEL_TARGET_ENV === "staging";
 const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
   "世田谷区議会の議案を、みらい議会の形式でわかりやすく確認するための非公式Fork MVP";
 const siteName = "みらい議会＠世田谷区";
+const themeColor = "#38bdf8";
 const ogImage = {
   url: "/ogp.jpg",
   width: 1200,
@@ -51,14 +50,11 @@ export const metadata: Metadata = {
     "解説",
   ],
   icons: {
-    icon: isDev
-      ? "/icons/pwa/icon_dev_192_v3.png"
-      : isStaging
-        ? "/icons/pwa/icon_staging_192.png"
-        : "/icons/pwa/icon_android_192.png",
-    apple: isStaging
-      ? "/icons/pwa/icon_staging_ios.png"
-      : "/icons/pwa/icon_ios.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/pwa/icon_android_192.png", sizes: "192x192" },
+    ],
+    apple: "/icons/pwa/icon_ios.png",
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -90,7 +86,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#2aa693",
+  themeColor,
 };
 
 export default function RootLayout({
@@ -103,7 +99,7 @@ export default function RootLayout({
       <body
         className={`${notoSansJP.variable} ${lexendGiga.variable} ${notoSerifJP.variable} font-sans antialiased bg-mirai-surface-light`}
       >
-        <NextTopLoader showSpinner={false} color="#2aa693" />
+        <NextTopLoader showSpinner={false} color={themeColor} />
         {children}
       </body>
     </html>

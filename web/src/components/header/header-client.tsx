@@ -31,16 +31,12 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
               aria-label="ホーム"
             >
               <Image
-                src="/img/logo.svg"
-                alt="みらい議会"
-                width={42}
-                height={36}
-              />
-              <Image
-                src="/img/service-logo.svg"
-                alt="みらい議会"
-                width={115}
-                height={21}
+                src="/img/brand-logo.png"
+                alt="みらい議会＠世田谷区"
+                width={207}
+                height={60}
+                className="h-9 w-auto sm:h-11"
+                priority
               />
             </Link>
           </div>
