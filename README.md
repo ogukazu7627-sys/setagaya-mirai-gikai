@@ -2,7 +2,7 @@
 
 本リポジトリは、`team-mirai/mirai-gikai` をもとにした世田谷区議会向けの非公式Fork MVPです。これは政党チームみらいが運営しているものではありません。
 
-初期MVPでは、令和8年第2回区議会定例会の議案カード10件を表示対象にし、AIチャット、AIインタビュー、意見分析、Admin編集画面は動作保証対象から外しています。
+初期MVPでは、令和7年第4回区議会定例会から、議案・報告事項・請願/陳情・質問を1件ずつ表示対象にしています。AIチャット、AIインタビュー、意見分析は補助機能として扱います。
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/team-mirai-volunteer/mirai-gikai)
 [![codecov](https://codecov.io/gh/team-mirai/mirai-gikai/branch/develop/graph/badge.svg)](https://codecov.io/gh/team-mirai/mirai-gikai)
@@ -28,7 +28,7 @@ pnpm dev
 
 ## 世田谷区議会MVP用CSV
 
-Obsidian側の議案カードからseed用CSVを再生成する場合は、Vault直下の `tools/mirai-gikai-setagaya` で以下を実行します。
+現在の4件サンプルからseed用CSVを再生成する場合は、Vault直下の `tools/mirai-gikai-setagaya` で以下を実行します。
 
 ```bash
 pnpm --filter @mirai-gikai/seed generate:setagaya-csv

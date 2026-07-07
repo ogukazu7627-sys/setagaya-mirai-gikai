@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "seed": "tsx main/run.ts",
-    "generate:setagaya-ai-content": "node csv/generate-setagaya-ai-content.mjs",
     "generate:setagaya-csv": "node csv/generate-setagaya-csv.mjs",
     "seed:csv": "tsx csv/import-csv.ts",
     "typecheck": "tsc --noEmit"

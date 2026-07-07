@@ -4,40 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, "../../..");
-const vaultRoot = path.resolve(repoRoot, "../..");
-const cardsRoot = path.join(
-  vaultRoot,
-  "10_Products",
-  "みらい議会",
-  "令和8年第2回区議会定例会"
-);
 const dataDir = path.join(__dirname, "data");
-const aiContentCachePath = path.join(dataDir, "setagaya_ai_bill_contents.json");
 
-const SESSION_ID = deterministicUuid("setagaya-session-2026-02");
-const SESSION_NAME = "令和8年第2回区議会定例会";
-const SESSION_SLUG = "setagaya-2026-02";
-const PREVIOUS_SESSION_ID = deterministicUuid("setagaya-session-2025-04");
-const PREVIOUS_SESSION_NAME = "令和7年第4回区議会定例会";
-const PREVIOUS_SESSION_SLUG = "setagaya-2025-04";
-const OFFICIAL_RESULT_URL =
-  "https://www.city.setagaya.lg.jp/02030/33463.html";
+const SESSION_ID = deterministicUuid("setagaya-session-2025-04");
+const SESSION_NAME = "令和7年第4回区議会定例会";
+const SESSION_SLUG = "setagaya-2025-04";
 const CREATED_AT = "2026-07-05 00:00:00+09";
-const SUBMITTED_AT = "2026-06-10 00:00:00+09";
-const INCLUDE_OFFICIAL_BILL_CARDS = false;
 
 const TAG_DESCRIPTIONS = {
-  財政: "補正予算、基金、歳入歳出など、区の財政に関する議案",
-  税: "特別区税や税制上の手続きに関する議案",
-  教育: "学校、図書館、教育環境に関する議案",
-  "子ども・若者": "児童館、子育て、若者支援に関する議案",
-  公共施設: "区立施設、工事、設備、移転、解体に関する議案",
-  まちづくり: "地区計画、土地利用、都市整備に関する議案",
-  福祉: "高齢者、障害者、生活支援、アクセシビリティに関する議案",
-  行政運営: "区の事務、契約、制度運用に関する議案",
-  "道路・公園": "道路、公園、緑地、スポーツ施設に関する議案",
-  "防災・安全": "防災設備、感染症、熱中症、安全確保に関する議案",
   会計: "区の会計、歳入歳出、決算処理に関する案件",
   文教常任委員会: "文教常任委員会で扱われる教育・文化・子ども関連の案件",
   学校事務: "学校現場の事務、校務、教育委員会の運用に関する案件",
@@ -340,258 +314,19 @@ function writeCsv(fileName, headers, rows) {
   fs.writeFileSync(path.join(dataDir, fileName), `${lines.join("\n")}\n`);
 }
 
-function readCards() {
-  const files = fs
-    .readdirSync(cardsRoot)
-    .filter((name) => /^議案第\d+号_.*\.md$/.test(name))
-    .sort((a, b) => Number(a.match(/議案第(\d+)号/)?.[1] ?? 0) - Number(b.match(/議案第(\d+)号/)?.[1] ?? 0));
-
-  return files.map((file) => {
-    const fullPath = path.join(cardsRoot, file);
-    const text = fs.readFileSync(fullPath, "utf-8");
-    const frontmatter = text.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
-    return {
-      file,
-      text,
-      ...parseFrontmatter(frontmatter),
-      sourceExcerpt: extractSection(text, "根拠抜粋"),
-      detailText: readDetailText(frontmatter),
-    };
-  });
-}
-
-function parseFrontmatter(frontmatter) {
-  const result = {};
-  const lines = frontmatter.split("\n");
-  let currentKey = null;
-
-  for (const line of lines) {
-    const keyMatch = line.match(/^([A-Za-z0-9_]+):(?:\s*(.*))?$/);
-    if (keyMatch) {
-      currentKey = keyMatch[1];
-      const value = keyMatch[2] ?? "";
-      if (value === "") {
-        result[currentKey] = [];
-      } else if (value === "true" || value === "false") {
-        result[currentKey] = value === "true";
-      } else {
-        result[currentKey] = unquote(value);
-      }
-      continue;
-    }
-
-    const listMatch = line.match(/^\s+-\s*(.*)$/);
-    if (listMatch && currentKey) {
-      if (!Array.isArray(result[currentKey])) result[currentKey] = [];
-      result[currentKey].push(unquote(listMatch[1]));
-    }
-  }
-
-  return result;
-}
-
-function unquote(value) {
-  const trimmed = value.trim();
-  if (
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
-    return trimmed.slice(1, -1);
-  }
-  if (trimmed === "[]") return [];
-  return trimmed;
-}
-
-function extractSection(text, heading) {
-  const pattern = new RegExp(`## ${heading}\\n\\n([\\s\\S]*?)(?=\\n## |$)`);
-  return (text.match(pattern)?.[1] ?? "").trim();
-}
-
-function readDetailText(frontmatter) {
-  const detailNote = frontmatter.match(/^detail_source_note:\s*"([^"]+)"/m)?.[1];
-  if (!detailNote) return "";
-  const detailPath = path.join(
-    cardsRoot,
-    "公式PDF抽出テキスト",
-    `${detailNote}.md`
-  );
-  if (!fs.existsSync(detailPath)) return "";
-  const detail = fs.readFileSync(detailPath, "utf-8");
-  return detail.match(/```text\n([\s\S]*?)\n```/)?.[1]?.trim() ?? "";
-}
-
-function billStatus(result) {
-  if (result === "可決") return "enacted";
-  if (result === "否決") return "rejected";
-  return "in_originating_house";
-}
-
-function normalizeOfficialText(text) {
-  return text
-    .replace(/\s+/g, " ")
-    .replace(/([。！？])\s+/g, "$1\n")
-    .trim();
-}
-
-function officialExcerpt(card, length = 520) {
-  const source = normalizeOfficialText(card.detailText || card.sourceExcerpt || "");
-  return source.slice(0, length) || "公式資料の抽出テキストがまだありません。";
-}
-
-function readAiContentCache() {
-  if (!fs.existsSync(aiContentCachePath)) return new Map();
-  const cache = JSON.parse(fs.readFileSync(aiContentCachePath, "utf-8"));
-  return new Map(
-    (cache.bills ?? []).map((bill) => [
-      bill.bill_number,
-      {
-        normal: {
-          summary: bill.normal_summary,
-          content: bill.normal_content,
-        },
-        hard: {
-          summary: bill.hard_summary,
-          content: bill.hard_content,
-        },
-      },
-    ])
-  );
-}
-
-function billKind(card) {
-  if (card.title.includes("補正予算")) return "補正予算";
-  if (card.title.includes("条例")) return "条例改正";
-  if (card.title.includes("契約")) return "契約";
-  if (card.title.includes("財産")) return "財産取得";
-  if (card.title.includes("和解")) return "和解";
-  if (card.title.includes("同意")) return "人事同意";
-  return "議案";
-}
-
-function summaryFromOfficial(card) {
-  return `${card.bill_number}「${card.title.replace(/^議案第\d+号\s*/, "")}」は、${billKind(card)}に関する世田谷区議会の議案です。${card.committee}に付託され、${card.vote_date}に${card.result}されています。`;
-}
-
-function statusSection(card) {
-  return `- 議案番号: ${card.bill_number}
-- 付託先: ${card.committee}
-- 議決日: ${card.vote_date}
-- 結果: ${card.result}`;
-}
-
-function commonSections(card, detailLevel) {
-  const excerptLength = detailLevel === "hard" ? 1200 : 520;
-  const excerpt = officialExcerpt(card, excerptLength);
-  const kind = billKind(card);
-
-  return `# ${card.title}
-
-## 審議ステータス
-
-${statusSection(card)}
-
-## この議案のポイント
-
-- ${kind}として提出された議案です。
-- 区の提出資料から読み取れる主な内容は、次のとおりです。
-
-> ${excerpt}
-
-## この議案が必要な理由
-
-公式資料に記載された制度、予算、契約、施設、手続きなどを区議会で審議し、区として実施・変更・承認できるようにするための議案です。
-
-## 意見が分かれるところ
-
-- 費用や財源の妥当性
-- 対象となる区民、施設、地域への影響
-- 実施時期や運用方法
-- 代替案や優先順位
-
-ここでは賛否の評価ではなく、区民が内容を確認するときの観点として整理しています。
-
-## よくある質問
-
-### これは何の議案ですか？
-${summaryFromOfficial(card)}
-
-### どこで正確な内容を確認できますか？
-議案PDFと審議結果ページで確認できます。下の関連リンクから公式ページに戻れます。
-
-### AIが判断した内容ですか？
-本文は公式PDF抽出テキストをもとに、本家みらい議会の見出し構成へ整理した下書きです。公開判断や正確性確認は人間レビューを前提にします。
-
-## 影響を受ける人
-
-この議案の対象は、公式PDFに記載された制度、施設、契約、予算、地域に関係する区民・事業者・区の担当部門です。具体的な対象範囲は公式PDF本文で確認してください。
-
-## 関連リンク
-
-- 議案PDF: ${card.official_pdf_url}
-- 審議結果: ${card.result_page_url}
-`;
-}
-
-function normalContent(card) {
-  return commonSections(card, "normal");
-}
-
-function hardContent(card) {
-  return commonSections(card, "hard");
-}
-
-function toArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
-function sourcesForOfficialBill(card) {
-  return [
-    {
-      title: "議案PDF",
-      url: card.official_pdf_url,
-      source_type: "bill_pdf",
-      accessed_at: "2026-07-05",
-    },
-    {
-      title: "審議案件及び審議結果等",
-      url: card.result_page_url || OFFICIAL_RESULT_URL,
-      source_type: "session_result",
-      accessed_at: "2026-07-05",
-    },
-  ];
-}
-
 function stringifySources(sources) {
   return JSON.stringify(sources ?? []);
 }
 
 function main() {
-  const cards = INCLUDE_OFFICIAL_BILL_CARDS ? readCards() : [];
-  if (INCLUDE_OFFICIAL_BILL_CARDS && cards.length === 0) {
-    throw new Error(`No bill cards found in ${cardsRoot}`);
-  }
-  const aiContentByBillNumber = INCLUDE_OFFICIAL_BILL_CARDS
-    ? readAiContentCache()
-    : new Map();
-
   const tagMajorCategoryByLabel = new Map();
-  for (const card of cards) {
-    for (const label of toArray(card.categories)) {
-      tagMajorCategoryByLabel.set(label, "財政💰");
-    }
-  }
   for (const item of SAMPLE_ITEMS) {
     for (const label of item.tags) {
       tagMajorCategoryByLabel.set(label, item.major_category);
     }
   }
 
-  const tagLabels = [
-    ...new Set([
-      ...cards.flatMap((card) => toArray(card.categories)),
-      ...SAMPLE_ITEMS.flatMap((item) => item.tags),
-    ]),
-  ];
+  const tagLabels = [...new Set(SAMPLE_ITEMS.flatMap((item) => item.tags))];
   const tagRows = tagLabels.map((label, index) => ({
     id: deterministicUuid(`setagaya-tag-${label}`),
     label,
@@ -602,31 +337,7 @@ function main() {
     description: TAG_DESCRIPTIONS[label] ?? `${label}に関する世田谷区議会の案件`,
   }));
 
-  const billRows = cards.map((card, index) => ({
-    id: deterministicUuid(`setagaya-bill-${card.bill_number}`),
-    name: card.title,
-    item_type: "bill",
-    major_category: "財政💰",
-    originating_house: "HR",
-    status: billStatus(card.result),
-    status_label: card.result,
-    status_note: `${card.vote_date} ${card.result}（${card.committee}）`,
-    submitted_date: SUBMITTED_AT,
-    created_at: CREATED_AT,
-    updated_at: CREATED_AT,
-    thumbnail_url: "",
-    publish_status: "published",
-    is_featured: index < 3 ? "true" : "false",
-    share_thumbnail_url: "",
-    shugiin_url: card.result_page_url || OFFICIAL_RESULT_URL,
-    diet_session_id: SESSION_ID,
-    sources: stringifySources(sourcesForOfficialBill(card)),
-    knowledge_source: `${summaryFromOfficial(card)}\n\n${card.detailText.slice(0, 4000)}`,
-    use_knowledge_source_in_chat: "false",
-    interview_enabled: "false",
-  }));
-
-  const sampleBillRows = SAMPLE_ITEMS.map((item) => ({
+  const billRows = SAMPLE_ITEMS.map((item) => ({
     id: deterministicUuid(`setagaya-sample-${item.key}`),
     name: item.title,
     item_type: item.item_type,
@@ -643,49 +354,14 @@ function main() {
     is_featured: "false",
     share_thumbnail_url: "",
     shugiin_url: "",
-    diet_session_id: PREVIOUS_SESSION_ID,
+    diet_session_id: SESSION_ID,
     sources: stringifySources(item.sources),
     knowledge_source: `${item.summary}\n\n${item.content}`,
     use_knowledge_source_in_chat: "false",
     interview_enabled: "false",
   }));
 
-  const contentRows = cards.flatMap((card) => {
-    const billId = deterministicUuid(`setagaya-bill-${card.bill_number}`);
-    const aiContent = aiContentByBillNumber.get(card.bill_number);
-    const normal = aiContent?.normal ?? {
-      summary: summaryFromOfficial(card),
-      content: normalContent(card),
-    };
-    const hard = aiContent?.hard ?? {
-      summary: summaryFromOfficial(card),
-      content: hardContent(card),
-    };
-    return [
-      {
-        id: deterministicUuid(`setagaya-content-${card.bill_number}-normal`),
-        bill_id: billId,
-        difficulty_level: "normal",
-        title: card.title,
-        summary: normal.summary,
-        content: normal.content,
-        created_at: CREATED_AT,
-        updated_at: CREATED_AT,
-      },
-      {
-        id: deterministicUuid(`setagaya-content-${card.bill_number}-hard`),
-        bill_id: billId,
-        difficulty_level: "hard",
-        title: card.title,
-        summary: hard.summary,
-        content: hard.content,
-        created_at: CREATED_AT,
-        updated_at: CREATED_AT,
-      },
-    ];
-  });
-
-  const sampleContentRows = SAMPLE_ITEMS.flatMap((item) => {
+  const contentRows = SAMPLE_ITEMS.flatMap((item) => {
     const billId = deterministicUuid(`setagaya-sample-${item.key}`);
     return ["normal", "hard"].map((difficultyLevel) => ({
       id: deterministicUuid(
@@ -701,15 +377,7 @@ function main() {
     }));
   });
 
-  const billTagRows = cards.flatMap((card) =>
-    toArray(card.categories).map((label) => ({
-      bill_id: deterministicUuid(`setagaya-bill-${card.bill_number}`),
-      tag_id: deterministicUuid(`setagaya-tag-${label}`),
-      created_at: CREATED_AT,
-    }))
-  );
-
-  const sampleBillTagRows = SAMPLE_ITEMS.flatMap((item) =>
+  const billTagRows = SAMPLE_ITEMS.flatMap((item) =>
     item.tags.map((label) => ({
       bill_id: deterministicUuid(`setagaya-sample-${item.key}`),
       tag_id: deterministicUuid(`setagaya-tag-${label}`),
@@ -729,13 +397,13 @@ function main() {
     "is_active",
   ], [
     {
-      id: PREVIOUS_SESSION_ID,
-      name: PREVIOUS_SESSION_NAME,
+      id: SESSION_ID,
+      name: SESSION_NAME,
       start_date: "2025-11-26",
       end_date: "2025-12-05",
       created_at: CREATED_AT,
       updated_at: CREATED_AT,
-      slug: PREVIOUS_SESSION_SLUG,
+      slug: SESSION_SLUG,
       shugiin_url: "",
       is_active: "true",
     },
@@ -773,7 +441,7 @@ function main() {
     "knowledge_source",
     "use_knowledge_source_in_chat",
     "interview_enabled",
-  ], [...billRows, ...sampleBillRows]);
+  ], billRows);
 
   writeCsv("bill_contents_rows.csv", [
     "id",
@@ -784,12 +452,9 @@ function main() {
     "content",
     "created_at",
     "updated_at",
-  ], [...contentRows, ...sampleContentRows]);
+  ], contentRows);
 
-  writeCsv("bills_tags_rows.csv", ["bill_id", "tag_id", "created_at"], [
-    ...billTagRows,
-    ...sampleBillTagRows,
-  ]);
+  writeCsv("bills_tags_rows.csv", ["bill_id", "tag_id", "created_at"], billTagRows);
   writeCsv("interview_configs_rows.csv", [
     "id",
     "bill_id",
@@ -811,7 +476,7 @@ function main() {
   ], []);
 
   console.log(
-    `Generated Setagaya CSV seed from ${cards.length} bill cards and ${SAMPLE_ITEMS.length} sample items.`
+    `Generated Setagaya CSV seed from ${SAMPLE_ITEMS.length} sample items.`
   );
 }
 
