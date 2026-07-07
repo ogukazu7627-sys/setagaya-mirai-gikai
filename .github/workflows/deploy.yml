@@ -16,6 +16,27 @@ jobs:
         with:
             version: latest
 
+      # config.toml は Auth URL も本番へ反映するため、ローカルURLの混入をCIで止める。
+      - name: Validate Supabase Auth URLs
+        run: |
+          if [ -z "$SUPABASE_AUTH_SITE_URL" ]; then
+            echo "::error::SUPABASE_AUTH_SITE_URL is required"
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_AUTH_REDIRECT_URL" ]; then
+            echo "::error::SUPABASE_AUTH_REDIRECT_URL is required"
+            exit 1
+          fi
+
+          if printf '%s\n%s\n' "$SUPABASE_AUTH_SITE_URL" "$SUPABASE_AUTH_REDIRECT_URL" | grep -Eiq 'localhost|127\.0\.0\.1'; then
+            echo "::error::Supabase Auth URLs must not point to localhost or 127.0.0.1 in CI"
+            exit 1
+          fi
+        env:
+          SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
+          SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+
       # Supabase プロジェクトへリンク（ノンインタラクティブ）
       - name: Supabase link
         run: |
@@ -24,6 +45,8 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
+          SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
 
       # マイグレーション適用（idempotent）
       # --yes: CI(非TTY)で確認プロンプト待ちハングを防ぐ（prod に未適用マイグレーションが
@@ -32,12 +55,18 @@ jobs:
       - name: Supabase db push
         run: |
           supabase db push --include-all --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
+          SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+
+      - name: Supabase config push
+        run: |
           supabase config push --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
-          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
-          ADMIN_AUTH_CALLBACK_URL: ${{ secrets.ADMIN_AUTH_CALLBACK_URL }}
+          SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
+          SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
 
       # 成功したら Vercel デプロイを開始
       - name: Trigger Vercel Deploy Hook
