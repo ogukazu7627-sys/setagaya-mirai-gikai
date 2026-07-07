@@ -2,14 +2,13 @@ import "server-only";
 
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
-import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Database } from "@mirai-gikai/supabase";
+import { createAdminClient } from "@mirai-gikai/supabase";
 import { nanoid } from "nanoid";
 import type { Route } from "next";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { CACHE_TAGS } from "@/lib/cache-tags";
 import type {
   BillItemType,
   BillPublishStatus,
@@ -19,6 +18,7 @@ import type {
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { routes } from "@/lib/routes";
 import {
   getSetagayaMockBillById,
@@ -87,7 +87,6 @@ export const PUBLISH_STATUS_OPTIONS: Array<{
   label: string;
 }> = [
   { value: "draft", label: "下書き" },
-  { value: "coming_soon", label: "近日公開" },
   { value: "published", label: "公開" },
 ];
 
@@ -146,7 +145,7 @@ const billFormSchema = z
       "enacted",
       "rejected",
     ]),
-    publish_status: z.enum(["draft", "published", "coming_soon"]),
+    publish_status: z.enum(["draft", "published"]),
     diet_session_id: z.string().uuid().nullable(),
     submitted_date: z.string().nullable(),
     status_label: z.string().trim().nullable(),

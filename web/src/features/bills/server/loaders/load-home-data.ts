@@ -1,15 +1,13 @@
 import {
   getSetagayaMockBills,
   getSetagayaMockBillsByMajorCategory,
-  getSetagayaMockComingSoonBills,
   isSetagayaMockMode,
 } from "@/lib/setagaya-mock";
 import {
-  MAJOR_CATEGORY_OPTIONS,
-  type BillWithContent,
   type BillsByMajorCategory,
+  type BillWithContent,
+  MAJOR_CATEGORY_OPTIONS,
 } from "../../shared/types";
-import { getComingSoonBills } from "./get-coming-soon-bills";
 import { getBills } from "./get-bills";
 import { getFeaturedBills } from "./get-featured-bills";
 import { getPreviousSessionBills } from "./get-previous-session-bills";
@@ -26,23 +24,19 @@ export async function loadHomeData() {
     return {
       billsByMajorCategory: getSetagayaMockBillsByMajorCategory("normal"),
       featuredBills,
-      comingSoonBills: getSetagayaMockComingSoonBills(),
       previousSessionData: null,
     };
   }
 
-  const [featuredBills, bills, comingSoonBills, previousSessionData] =
-    await Promise.all([
-      getFeaturedBills(),
-      getBills(),
-      getComingSoonBills(),
-      getPreviousSessionBills(),
-    ]);
+  const [featuredBills, bills, previousSessionData] = await Promise.all([
+    getFeaturedBills(),
+    getBills(),
+    getPreviousSessionBills(),
+  ]);
 
   return {
     billsByMajorCategory: groupBillsByMajorCategory(bills),
     featuredBills,
-    comingSoonBills,
     previousSessionData,
   };
 }
