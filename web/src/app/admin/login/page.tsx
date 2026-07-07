@@ -9,6 +9,7 @@ import {
   isAdminAuthBypassed,
   isAdminUser,
 } from "@/features/admin/server/auth";
+import { getAdminLoginErrorMessage } from "@/features/admin/server/login-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function AdminLoginPage({
   searchParams,
 }: AdminLoginPageProps) {
   const params = await searchParams;
+  const errorMessage = getAdminLoginErrorMessage(params?.error);
   if (isAdminAuthBypassed) {
     redirect("/admin/bills" as Route);
   }
@@ -51,9 +53,9 @@ export default async function AdminLoginPage({
               name="next"
               value={params?.next ?? "/admin/bills"}
             />
-            {params?.error && (
+            {errorMessage && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
-                {params.error}
+                {errorMessage}
               </div>
             )}
             <div className="flex flex-col gap-1.5 text-sm font-bold">
