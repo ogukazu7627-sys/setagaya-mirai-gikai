@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 
 /**
- * Hook to ensure an anonymous Supabase user exists and return the user ID
- * This will automatically create an anonymous user if none exists
+ * Hook to ensure an anonymous Supabase user exists and return the user ID.
+ * This remains for non-chat interactions such as reactions that still use
+ * anonymous ownership. AI chat uses Google login via useChatAuth instead.
  */
 export function useAnonymousSupabaseUser() {
   const [userId, setUserId] = useState<string | undefined>(undefined);

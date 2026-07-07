@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { LogIn, X } from "lucide-react";
 import Image from "next/image";
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -20,6 +20,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import type { ChatAuthStatus } from "../hooks/use-chat-auth";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
 import { SystemMessage } from "./system-message";
@@ -44,6 +45,10 @@ interface ChatWindowProps {
   disableAutoFocus?: boolean;
   sessionId: string;
   previewOnly?: boolean;
+  authStatus: ChatAuthStatus;
+  authUserEmail?: string;
+  authError?: string;
+  onSignInWithGoogle: () => Promise<void>;
 }
 
 const COMMON_BILL_QUESTIONS = [
@@ -84,6 +89,7 @@ function ChatMessages({
   pageContext,
   sessionId,
   previewOnly,
+  authStatus,
 }: {
   billContext?: BillWithContent;
   hasInterviewConfig?: boolean;
@@ -94,6 +100,7 @@ function ChatMessages({
   pageContext?: ChatWindowProps["pageContext"];
   sessionId: string;
   previewOnly?: boolean;
+  authStatus: ChatAuthStatus;
 }) {
   const { scrollToBottom } = useStickToBottomContext();
   const safeMessages = messages ?? [];
@@ -101,6 +108,7 @@ function ChatMessages({
     (x) => x.role === "user"
   ).length;
   const isResponding = status === "streaming" || status === "submitted";
+  const isChatLocked = !previewOnly && authStatus !== "authenticated";
 
   // メッセージが追加されたら自動的にスクロール
   useEffect(() => {
@@ -138,10 +146,10 @@ function ChatMessages({
               <button
                 key={question}
                 type="button"
-                disabled={isResponding || previewOnly}
+                disabled={isResponding || previewOnly || isChatLocked}
                 className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
-                  if (previewOnly) return;
+                  if (previewOnly || isChatLocked) return;
                   sendMessage({
                     text: question,
                     metadata: {
@@ -200,6 +208,9 @@ export function ChatWindow({
   disableAutoFocus = false,
   sessionId,
   previewOnly = false,
+  authStatus,
+  authError,
+  onSignInWithGoogle,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -210,6 +221,9 @@ export function ChatWindow({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isResponding = status === "streaming" || status === "submitted";
+  const isAuthLoading = authStatus === "loading";
+  const isChatLocked = !previewOnly && authStatus !== "authenticated";
+  const isInputDisabled = previewOnly || isChatLocked;
 
   useEffect(() => {
     setIsMounted(true);
@@ -235,7 +249,7 @@ export function ChatWindow({
   const handleSubmit = async (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
 
-    if (!hasText || isResponding || previewOnly) {
+    if (!hasText || isResponding || isInputDisabled) {
       return;
     }
 
@@ -305,6 +319,7 @@ export function ChatWindow({
               pageContext={pageContext}
               sessionId={sessionId}
               previewOnly={previewOnly}
+              authStatus={authStatus}
             />
           </ConversationContent>
           <ConversationScrollButton />
@@ -312,38 +327,63 @@ export function ChatWindow({
 
         {/* 入力エリア（固定下部） */}
         <div className="px-6 pb-4 pt-2">
-          <PromptInput
-            onSubmit={handleSubmit}
-            className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
-          >
-            <PromptInputBody className="flex-1">
-              <PromptInputTextarea
-                ref={textareaRef}
-                onChange={handleInputChange}
-                value={input}
-                placeholder="わからないことをAIに質問する"
-                disabled={previewOnly}
-                rows={1}
-                submitOnEnter={isDesktop}
-                // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
-              />
-            </PromptInputBody>
-            <button
-              type="submit"
-              disabled={!input || isResponding || previewOnly}
-              className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
+          <div className="relative">
+            <PromptInput
+              onSubmit={handleSubmit}
+              className={`flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0 ${
+                isChatLocked ? "pointer-events-none opacity-40" : ""
+              }`}
             >
-              <Image
-                src="/icons/send-button-icon.svg"
-                alt="送信"
-                width={40}
-                height={40}
-                className="w-full h-full"
-              />
-            </button>
-          </PromptInput>
+              <PromptInputBody className="flex-1">
+                <PromptInputTextarea
+                  ref={textareaRef}
+                  onChange={handleInputChange}
+                  value={input}
+                  placeholder="わからないことをAIに質問する"
+                  disabled={isInputDisabled}
+                  rows={1}
+                  submitOnEnter={isDesktop}
+                  // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
+                  className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
+                />
+              </PromptInputBody>
+              <button
+                type="submit"
+                disabled={!input || isResponding || isInputDisabled}
+                className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
+              >
+                <Image
+                  src="/icons/send-button-icon.svg"
+                  alt="送信"
+                  width={40}
+                  height={40}
+                  className="w-full h-full"
+                />
+              </button>
+            </PromptInput>
+            {isChatLocked && (
+              <div className="absolute inset-0 flex items-center gap-2 rounded-[50px] border border-primary/30 bg-white/95 px-4 shadow-sm">
+                <p className="min-w-0 flex-1 text-[11px] font-bold leading-snug text-mirai-text sm:text-xs">
+                  {isAuthLoading
+                    ? "ログイン状態を確認中です"
+                    : "AIチャットを使うにはGoogleログインが必要です"}
+                </p>
+                <button
+                  type="button"
+                  disabled={isAuthLoading}
+                  onClick={onSignInWithGoogle}
+                  className="inline-flex h-9 flex-shrink-0 items-center gap-1.5 rounded-full bg-mirai-gradient px-3 text-[11px] font-bold text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60 sm:text-xs"
+                >
+                  <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
+                  Googleでログイン
+                </button>
+              </div>
+            )}
+          </div>
           <PromptInputError status={status} error={error} />
+          {authError && (
+            <p className="mt-2 text-xs font-medium text-red-600">{authError}</p>
+          )}
           {safeMessages.length > 0 && <PromptInputHint />}
         </div>
       </div>
