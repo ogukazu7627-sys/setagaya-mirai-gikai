@@ -33,9 +33,28 @@ jobs:
             echo "::error::Supabase Auth URLs must not point to localhost or 127.0.0.1 in CI"
             exit 1
           fi
+
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            if [ -z "$SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID" ]; then
+              echo "::error::SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID is required for production Google login"
+              exit 1
+            fi
+
+            if [ -z "$SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET" ]; then
+              echo "::error::SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET is required for production Google login"
+              exit 1
+            fi
+
+            if ! printf '%s\n' "$SUPABASE_AUTH_REDIRECT_URL" | grep -Eq '/auth/callback/?$'; then
+              echo "::error::SUPABASE_AUTH_REDIRECT_URL must point to the web auth callback path"
+              exit 1
+            fi
+          fi
         env:
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       # Supabase プロジェクトへリンク（ノンインタラクティブ）
       - name: Supabase link
@@ -47,6 +66,8 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       # マイグレーション適用（idempotent）
       # --yes: CI(非TTY)で確認プロンプト待ちハングを防ぐ（prod に未適用マイグレーションが
@@ -59,6 +80,8 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       - name: Render production Supabase config
         run: |
@@ -66,17 +89,39 @@ jobs:
           path = "supabase/config.toml"
           site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL")
           redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL")
+          google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s
+          google_secret = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET"].to_s
+          google_enabled = !google_client_id.empty? && !google_secret.empty?
           config = File.read(path)
-          config.sub!(/^site_url = .+$/, "site_url = #{site_url.dump}")
-          config.sub!(
+          unless config.sub!(/^site_url = .+$/, "site_url = #{site_url.dump}")
+            abort "Failed to render auth.site_url"
+          end
+          unless config.sub!(
             /^additional_redirect_urls = .+$/,
             "additional_redirect_urls = [#{redirect_url.dump}]"
           )
+            abort "Failed to render auth.additional_redirect_urls"
+          end
+          google_config = <<~TOML.strip
+          [auth.external.google]
+          enabled = #{google_enabled}
+          client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+          secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+          skip_nonce_check = false
+          TOML
+          unless config.sub!(
+            /^\[auth\.external\.google\]\nenabled = .+\nclient_id = .+\nsecret = .+\nskip_nonce_check = .+$/,
+            google_config
+          )
+            abort "Failed to render auth.external.google"
+          end
           File.write(path, config)
           RUBY
         env:
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       - name: Supabase config push
         run: |
@@ -85,6 +130,8 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_AUTH_SITE_URL: ${{ secrets.SUPABASE_AUTH_SITE_URL }}
           SUPABASE_AUTH_REDIRECT_URL: ${{ secrets.SUPABASE_AUTH_REDIRECT_URL }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       # 成功したら Vercel デプロイを開始
       - name: Trigger Vercel Deploy Hook

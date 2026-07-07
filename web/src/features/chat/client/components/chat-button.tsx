@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { useChatAuth } from "../hooks/use-chat-auth";
 import { ChatWindow } from "./chat-window";
 
 // アニメーション定数
@@ -60,6 +61,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     const [showText, setShowText] = useState(true);
     const [openedWithText, setOpenedWithText] = useState(false);
     const pathname = usePathname();
+    const chatAuth = useChatAuth({ disabled: isSetagayaChatPreview });
 
     // Chat state をここで管理することで、モーダルが閉じても状態が保持される
     const chatState = useChat();
@@ -72,6 +74,12 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     useImperativeHandle(ref, () => ({
       openWithText: (selectedText: string) => {
         if (isSetagayaChatPreview) {
+          setOpenedWithText(true);
+          setIsOpen(true);
+          return;
+        }
+
+        if (chatAuth.status !== "authenticated") {
           setOpenedWithText(true);
           setIsOpen(true);
           return;
@@ -198,6 +206,10 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
           disableAutoFocus={openedWithText}
           sessionId={sessionId}
           previewOnly={isSetagayaChatPreview}
+          authStatus={chatAuth.status}
+          authUserEmail={chatAuth.userEmail}
+          authError={chatAuth.error}
+          onSignInWithGoogle={chatAuth.signInWithGoogle}
         />
       </>
     );
