@@ -41,6 +41,19 @@ jobs:
 
       # 成功したら Vercel デプロイを開始
       - name: Trigger Vercel Deploy Hook
+        env:
+          WEB_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.WEB_VERCEL_DEPLOY_HOOK_URL }}
+          ADMIN_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.ADMIN_VERCEL_DEPLOY_HOOK_URL }}
         run: |
-          curl -X POST "${{ secrets.WEB_VERCEL_DEPLOY_HOOK_URL }}"
-          curl -X POST "${{ secrets.ADMIN_VERCEL_DEPLOY_HOOK_URL }}"
+          if [ -z "$WEB_VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "::error::WEB_VERCEL_DEPLOY_HOOK_URL is required"
+            exit 1
+          fi
+
+          curl -fsS -X POST "$WEB_VERCEL_DEPLOY_HOOK_URL"
+
+          if [ -n "$ADMIN_VERCEL_DEPLOY_HOOK_URL" ]; then
+            curl -fsS -X POST "$ADMIN_VERCEL_DEPLOY_HOOK_URL"
+          else
+            echo "ADMIN_VERCEL_DEPLOY_HOOK_URL is not set; skipping admin deploy hook."
+          fi
