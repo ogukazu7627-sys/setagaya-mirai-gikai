@@ -8,6 +8,7 @@ import {
   isAdminUser,
 } from "./auth";
 import { saveAdminBill } from "./bill-admin";
+import { buildAdminLoginErrorPath } from "./login-errors";
 
 export async function loginAdminAction(formData: FormData) {
   if (isAdminAuthBypassed) {
@@ -19,9 +20,7 @@ export async function loginAdminAction(formData: FormData) {
   const next = String(formData.get("next") ?? "/admin/bills");
 
   if (!email || !password) {
-    redirect(
-      "/admin/login?error=メールアドレスとパスワードを入力してください" as Route
-    );
+    redirect(buildAdminLoginErrorPath("missing_credentials", next) as Route);
   }
 
   const supabase = await createAdminAuthClient();
@@ -31,12 +30,12 @@ export async function loginAdminAction(formData: FormData) {
   });
 
   if (error || !data.user) {
-    redirect("/admin/login?error=ログインに失敗しました" as Route);
+    redirect(buildAdminLoginErrorPath("login_failed", next) as Route);
   }
 
   if (!isAdminUser(data.user)) {
     await supabase.auth.signOut();
-    redirect("/admin/login?error=管理者権限がありません" as Route);
+    redirect(buildAdminLoginErrorPath("not_admin", next) as Route);
   }
 
   redirect((next.startsWith("/admin") ? next : "/admin/bills") as Route);
