@@ -67,7 +67,7 @@ describe("ChatWindow auth gate", () => {
     ).toBeInTheDocument();
 
     const loginButton = screen.getByRole("button", {
-      name: "Googleでログイン",
+      name: "Google でログイン",
     });
     expect(loginButton).toBeEnabled();
 
