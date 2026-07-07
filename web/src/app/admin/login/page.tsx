@@ -3,12 +3,12 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { loginAdminAction } from "@/features/admin/server/actions";
 import {
   createAdminAuthClient,
   isAdminAuthBypassed,
   isAdminUser,
 } from "@/features/admin/server/auth";
-import { loginAdminAction } from "@/features/admin/server/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +64,7 @@ export default async function AdminLoginPage({
                 name="email"
                 autoComplete="email"
                 required
-                placeholder="admin@example.com"
+                placeholder="you@example.com"
               />
             </div>
             <div className="flex flex-col gap-1.5 text-sm font-bold">
@@ -75,13 +75,10 @@ export default async function AdminLoginPage({
                 name="password"
                 autoComplete="current-password"
                 required
-                placeholder="admin123456"
+                placeholder="パスワード"
               />
             </div>
             <Button type="submit">ログイン</Button>
-            <p className="text-xs leading-relaxed text-mirai-text-secondary">
-              ローカル開発ではseedの管理者ユーザーを使います。
-            </p>
           </form>
         </CardContent>
       </Card>

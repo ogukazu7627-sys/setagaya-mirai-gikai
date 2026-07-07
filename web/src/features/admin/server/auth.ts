@@ -6,15 +6,18 @@ import type { Route } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { isAllowedAdminUser } from "./admin-access";
 
 const ADMIN_HOME_PATH = "/admin/bills";
 const LOGIN_PATH = "/admin/login";
 const MOCK_ADMIN_USER = {
   email: "local-admin@example.com",
 };
+const isVercelProduction = process.env.VERCEL_ENV === "production";
 
 export const isAdminAuthBypassed =
-  isSetagayaMockMode || process.env.SETAGAYA_ADMIN_NO_AUTH === "true";
+  !isVercelProduction &&
+  (isSetagayaMockMode || process.env.SETAGAYA_ADMIN_NO_AUTH === "true");
 
 export async function createAdminAuthClient() {
   const cookieStore = await cookies();
@@ -43,11 +46,10 @@ export async function createAdminAuthClient() {
 }
 
 export function isAdminUser(user: unknown): boolean {
-  if (!user || typeof user !== "object") return false;
-  const appMetadata = (user as { app_metadata?: unknown }).app_metadata;
-  if (!appMetadata || typeof appMetadata !== "object") return false;
-  const roles = (appMetadata as { roles?: unknown }).roles;
-  return Array.isArray(roles) && roles.includes("admin");
+  return isAllowedAdminUser(user, {
+    adminEmails: process.env.SETAGAYA_ADMIN_EMAILS,
+    requireEmailAllowlist: isVercelProduction,
+  });
 }
 
 export async function requireAdmin(nextPath?: string) {
