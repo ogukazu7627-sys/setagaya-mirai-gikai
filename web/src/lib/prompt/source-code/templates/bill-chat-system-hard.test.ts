@@ -48,4 +48,24 @@ describe("buildBillChatSystemHardPrompt", () => {
 
     expect(result).not.toContain("<knowledge_source>");
   });
+
+  it("案件本文優先・Web検索補助・選択テキスト優先のルールが含まれる", () => {
+    const result = buildBillChatSystemHardPrompt("a", "b", "c", "d");
+
+    expect(result).toContain("案件ページAIチャットの回答材料");
+    expect(result).toContain("第一優先");
+    expect(result).toContain("第二優先");
+    expect(result).toContain("Web検索は補助");
+    expect(result).toContain("案件本文に書かれている情報");
+    expect(result).toContain("外部検索で補った情報");
+    expect(result).toContain("ユーザーが本文の一部を「」で示して質問した場合");
+  });
+
+  it("詳細本文が不足していても限定回答するルールが含まれる", () => {
+    const result = buildBillChatSystemHardPrompt("案件名", "", "", "");
+
+    expect(result).toContain("詳細本文が空、または十分でない場合");
+    expect(result).toContain("限定的に答えてください");
+    expect(result).toContain("情報が不足していることを明示してください");
+  });
 });
