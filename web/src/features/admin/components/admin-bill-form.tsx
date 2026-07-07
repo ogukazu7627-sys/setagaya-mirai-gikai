@@ -138,7 +138,11 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
       : null;
 
   return (
-    <form action={saveAdminBillAction} className="flex flex-col gap-6">
+    <form
+      action={saveAdminBillAction}
+      encType="multipart/form-data"
+      className="flex flex-col gap-6"
+    >
       {bill?.id && <input type="hidden" name="id" value={bill.id} />}
 
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -284,11 +288,34 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
               placeholder="例: 2025-12-01 文教常任委員会で報告"
             />
           </Field>
-          <Field label="サムネイルURL">
-            <Input
+          <Field
+            label="サムネイル"
+            hint="画像を選ぶと保存時にアップロードします。未選択の場合は現在の画像を維持します。"
+          >
+            <input
+              type="hidden"
               name="thumbnail_url"
-              defaultValue={bill?.thumbnail_url ?? ""}
+              value={bill?.thumbnail_url ?? ""}
             />
+            <div className="grid gap-3 rounded-md border border-input bg-white p-3">
+              {bill?.thumbnail_url && (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={bill.thumbnail_url}
+                    alt="現在のサムネイル"
+                    className="h-20 w-28 rounded-md border object-cover"
+                  />
+                  <span className="text-xs text-mirai-text-secondary">
+                    現在のサムネイル
+                  </span>
+                </div>
+              )}
+              <Input
+                type="file"
+                name="thumbnail_file"
+                accept="image/png,image/jpeg,image/webp"
+              />
+            </div>
           </Field>
           <Field label="共有画像URL">
             <Input

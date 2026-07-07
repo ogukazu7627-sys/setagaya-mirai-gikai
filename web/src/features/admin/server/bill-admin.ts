@@ -1,5 +1,7 @@
 import "server-only";
 
+import { Buffer } from "node:buffer";
+import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Database } from "@mirai-gikai/supabase";
 import { nanoid } from "nanoid";
@@ -30,6 +32,16 @@ type BillRow = Database["public"]["Tables"]["bills"]["Row"];
 type BillContentRow = Database["public"]["Tables"]["bill_contents"]["Row"];
 type DietSessionRow = Database["public"]["Tables"]["diet_sessions"]["Row"];
 type TagRow = Database["public"]["Tables"]["tags"]["Row"];
+type AdminSupabaseClient = ReturnType<typeof createAdminClient>;
+
+const THUMBNAIL_BUCKET = "bill-thumbnails";
+const MAX_THUMBNAIL_FILE_SIZE = 5 * 1024 * 1024;
+const THUMBNAIL_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const THUMBNAIL_EXTENSION_BY_MIME_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
 export const BILL_ITEM_TYPE_OPTIONS: Array<{
   value: BillItemType;
@@ -183,6 +195,88 @@ function nullableString(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function isFormFile(value: FormDataEntryValue | null): value is File {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "arrayBuffer" in value &&
+    "name" in value &&
+    "size" in value &&
+    "type" in value
+  );
+}
+
+function thumbnailFileFromFormData(formData: FormData): File | null {
+  const file = formData.get("thumbnail_file");
+  if (!isFormFile(file) || file.size === 0) return null;
+
+  if (!THUMBNAIL_MIME_TYPES.has(file.type)) {
+    throw new Error("サムネイルはJPEG、PNG、WebPの画像を選択してください。");
+  }
+
+  if (file.size > MAX_THUMBNAIL_FILE_SIZE) {
+    throw new Error("サムネイルは5MB以下の画像を選択してください。");
+  }
+
+  return file;
+}
+
+function redirectToAdminBillFormError(
+  billId: string | undefined,
+  message: string
+): never {
+  const target = billId ? `/admin/bills/${billId}/edit` : "/admin/bills/new";
+  redirect(`${target}?error=${encodeURIComponent(message)}` as Route);
+}
+
+async function ensureThumbnailBucket(supabase: AdminSupabaseClient) {
+  const { error } = await supabase.storage.getBucket(THUMBNAIL_BUCKET);
+  if (!error) return;
+
+  const { error: createError } = await supabase.storage.createBucket(
+    THUMBNAIL_BUCKET,
+    {
+      public: true,
+      fileSizeLimit: MAX_THUMBNAIL_FILE_SIZE,
+      allowedMimeTypes: Array.from(THUMBNAIL_MIME_TYPES),
+    }
+  );
+
+  if (createError && !/already exists/i.test(createError.message)) {
+    throw createError;
+  }
+}
+
+async function uploadBillThumbnail(
+  supabase: AdminSupabaseClient,
+  billId: string,
+  file: File
+): Promise<string> {
+  await ensureThumbnailBucket(supabase);
+
+  const extension = THUMBNAIL_EXTENSION_BY_MIME_TYPE[file.type] ?? "jpg";
+  const objectPath = `${billId}/${randomUUID()}.${extension}`;
+  const body = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await supabase.storage
+    .from(THUMBNAIL_BUCKET)
+    .upload(objectPath, body, {
+      cacheControl: "31536000",
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (error) {
+    throw new Error(`サムネイルのアップロードに失敗しました: ${error.message}`);
+  }
+
+  const { data } = supabase.storage
+    .from(THUMBNAIL_BUCKET)
+    .getPublicUrl(objectPath);
+
+  return data.publicUrl;
 }
 
 function dateToTimestamp(value: string | null): string | null {
@@ -581,6 +675,34 @@ export async function saveAdminBill(formData: FormData) {
   const supabase = createAdminClient();
   const now = new Date().toISOString();
   const isPublishing = parsed.publish_status === "published";
+  const thumbnailFile = (() => {
+    try {
+      return thumbnailFileFromFormData(formData);
+    } catch (error) {
+      redirectToAdminBillFormError(
+        parsed.id,
+        error instanceof Error
+          ? error.message
+          : "サムネイル画像を確認してください。"
+      );
+    }
+  })();
+
+  let billId = parsed.id;
+  let thumbnailUrl = parsed.thumbnail_url;
+
+  if (billId && thumbnailFile) {
+    try {
+      thumbnailUrl = await uploadBillThumbnail(supabase, billId, thumbnailFile);
+    } catch (error) {
+      redirectToAdminBillFormError(
+        billId,
+        error instanceof Error
+          ? error.message
+          : "サムネイルのアップロードに失敗しました。"
+      );
+    }
+  }
 
   const billPayload = {
     name: parsed.name,
@@ -594,7 +716,7 @@ export async function saveAdminBill(formData: FormData) {
     diet_session_id: parsed.diet_session_id,
     submitted_date: dateToTimestamp(parsed.submitted_date),
     published_at: isPublishing ? now : null,
-    thumbnail_url: parsed.thumbnail_url,
+    thumbnail_url: thumbnailUrl,
     share_thumbnail_url: parsed.share_thumbnail_url,
     sources: parsed.sources,
     knowledge_source: parsed.knowledge_source,
@@ -605,7 +727,6 @@ export async function saveAdminBill(formData: FormData) {
     updated_at: now,
   };
 
-  let billId = parsed.id;
   if (billId) {
     const updatePayload = { ...billPayload };
     if (!isPublishing) {
@@ -633,6 +754,32 @@ export async function saveAdminBill(formData: FormData) {
       );
     }
     billId = data.id;
+
+    if (thumbnailFile) {
+      try {
+        thumbnailUrl = await uploadBillThumbnail(
+          supabase,
+          billId,
+          thumbnailFile
+        );
+      } catch (error) {
+        redirectToAdminBillFormError(
+          billId,
+          error instanceof Error
+            ? error.message
+            : "サムネイルのアップロードに失敗しました。"
+        );
+      }
+
+      const { error: thumbnailUpdateError } = await supabase
+        .from("bills")
+        .update({ thumbnail_url: thumbnailUrl, updated_at: now })
+        .eq("id", billId);
+
+      if (thumbnailUpdateError) {
+        redirectToAdminBillFormError(billId, thumbnailUpdateError.message);
+      }
+    }
   }
 
   const hardTitle = parsed.hard_title || parsed.normal_title;
