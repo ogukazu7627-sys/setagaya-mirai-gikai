@@ -398,12 +398,31 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
             selectedTagIds={data.selectedTagIds}
             defaultMajorCategory={bill?.major_category}
           />
-          <Field label="ナレッジソース">
-            <Textarea
-              name="knowledge_source"
-              defaultValue={bill?.knowledge_source ?? ""}
-              rows={8}
-            />
+          <Field
+            label="ナレッジソース"
+            hint="AIチャット・AIインタビューに渡す内部用テキストです。"
+          >
+            <div className="grid gap-3">
+              <Textarea
+                name="knowledge_source"
+                defaultValue={bill?.knowledge_source ?? ""}
+                rows={8}
+              />
+              <div className="grid gap-2 rounded-md border border-input bg-white p-3">
+                <span className="text-xs font-bold text-mirai-text-secondary">
+                  ファイルから追加
+                </span>
+                <Input
+                  type="file"
+                  name="knowledge_source_file"
+                  accept=".md,.txt,.docx,text/markdown,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                />
+                <span className="text-xs text-mirai-text-secondary">
+                  .md / .txt /
+                  .docxのみ対応。PDFは使えません。選択したファイルの本文は保存時に上のナレッジソースへ追記されます。
+                </span>
+              </div>
+            </div>
           </Field>
           <div className="grid gap-4">
             <h2 className="text-sm font-bold">公式資料・出典</h2>
