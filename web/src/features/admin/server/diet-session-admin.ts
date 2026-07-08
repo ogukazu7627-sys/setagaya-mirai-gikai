@@ -66,13 +66,6 @@ function parseDietSessionFormData(formData: FormData) {
   });
 }
 
-function parseActiveDietSessionIds(formData: FormData) {
-  return z
-    .array(z.string().uuid())
-    .max(1, "現在の会期は1つだけ選んでください")
-    .parse(formData.getAll("active_session_ids"));
-}
-
 function parseDietSessionFormDataOrRedirect(formData: FormData) {
   try {
     return parseDietSessionFormData(formData);
@@ -83,6 +76,41 @@ function parseDietSessionFormDataOrRedirect(formData: FormData) {
         ? (error.issues[0]?.message ?? "入力内容を確認してください")
         : "入力内容を確認してください";
     redirect(buildAdminDietSessionErrorPath(id, message));
+  }
+}
+
+async function ensureDietSessionDateRangeDoesNotOverlap(
+  supabase: ReturnType<typeof createAdminClient>,
+  parsed: z.infer<typeof dietSessionFormSchema>
+) {
+  let overlapQuery = supabase
+    .from("diet_sessions")
+    .select("id, name, start_date, end_date")
+    .lte("start_date", parsed.end_date)
+    .gte("end_date", parsed.start_date);
+
+  if (parsed.id) {
+    overlapQuery = overlapQuery.neq("id", parsed.id);
+  }
+
+  const { data, error } = await overlapQuery.limit(1).maybeSingle();
+
+  if (error) {
+    redirect(
+      buildAdminDietSessionErrorPath(
+        parsed.id,
+        `会期の日程確認に失敗しました: ${error.message}`
+      )
+    );
+  }
+
+  if (data) {
+    redirect(
+      buildAdminDietSessionErrorPath(
+        parsed.id,
+        `入力した日程は「${data.name}」（${data.start_date} - ${data.end_date}）と重複しています。会期の日程が重ならないようにしてください。`
+      )
+    );
   }
 }
 
@@ -150,6 +178,8 @@ export async function saveAdminDietSession(formData: FormData) {
   }
 
   const supabase = createAdminClient();
+  await ensureDietSessionDateRangeDoesNotOverlap(supabase, parsed);
+
   const now = new Date().toISOString();
   const payload = {
     name: parsed.name,
@@ -179,68 +209,6 @@ export async function saveAdminDietSession(formData: FormData) {
         `会期の保存に失敗しました: ${error?.message ?? "不明なエラー"}`
       )
     );
-  }
-
-  revalidateTag(CACHE_TAGS.DIET_SESSIONS);
-  revalidateTag(CACHE_TAGS.BILLS);
-  redirect(`${routes.adminDietSessions()}?saved=1` as Route);
-}
-
-export async function saveActiveDietSessions(formData: FormData) {
-  await requireAdmin(routes.adminDietSessions());
-
-  let activeSessionIds: string[];
-  try {
-    activeSessionIds = parseActiveDietSessionIds(formData);
-  } catch (error) {
-    const message =
-      error instanceof z.ZodError
-        ? (error.issues[0]?.message ?? "現在の会期を確認してください")
-        : "現在の会期を確認してください";
-    redirect(buildAdminDietSessionErrorPath(undefined, message));
-  }
-
-  if (isSetagayaMockMode) {
-    redirect(
-      buildAdminDietSessionErrorPath(
-        undefined,
-        "現在はローカルのモック表示中です。保存するにはSupabase接続を設定してください。"
-      )
-    );
-  }
-
-  const supabase = createAdminClient();
-
-  if (activeSessionIds.length === 0) {
-    const { error } = await supabase
-      .from("diet_sessions")
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString(),
-      })
-      .not("id", "is", null);
-
-    if (error) {
-      redirect(
-        buildAdminDietSessionErrorPath(
-          undefined,
-          `現在の会期の解除に失敗しました: ${error.message}`
-        )
-      );
-    }
-  } else {
-    const { error } = await supabase.rpc("set_active_diet_session", {
-      target_session_id: activeSessionIds[0],
-    });
-
-    if (error) {
-      redirect(
-        buildAdminDietSessionErrorPath(
-          undefined,
-          `現在の会期への切り替えに失敗しました: ${error.message}`
-        )
-      );
-    }
   }
 
   revalidateTag(CACHE_TAGS.DIET_SESSIONS);
