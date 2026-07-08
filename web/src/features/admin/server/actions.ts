@@ -7,7 +7,7 @@ import {
   isAdminAuthBypassed,
   isAdminUser,
 } from "./auth";
-import { saveAdminBill } from "./bill-admin";
+import { deleteAdminBill, saveAdminBill } from "./bill-admin";
 import { buildAdminLoginErrorPath } from "./login-errors";
 
 export async function loginAdminAction(formData: FormData) {
@@ -53,4 +53,8 @@ export async function logoutAdminAction() {
 
 export async function saveAdminBillAction(formData: FormData) {
   await saveAdminBill(formData);
+}
+
+export async function deleteAdminBillAction(formData: FormData) {
+  await deleteAdminBill(formData);
 }

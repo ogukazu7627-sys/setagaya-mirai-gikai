@@ -8,6 +8,8 @@ import {
   formatAdminDate,
   getPreviewPath,
 } from "../server/bill-admin";
+import { deleteAdminBillAction } from "../server/actions";
+import { AdminDeleteBillButton } from "./admin-delete-bill-button";
 
 interface AdminBillListProps {
   bills: Array<AdminBillListItem & { previewToken?: string | null }>;
@@ -112,6 +114,11 @@ export function AdminBillList({ bills }: AdminBillListProps) {
                           </Link>
                         </Button>
                       )}
+                      <AdminDeleteBillButton
+                        billId={bill.id}
+                        title={title}
+                        action={deleteAdminBillAction}
+                      />
                     </div>
                   </td>
                 </tr>
