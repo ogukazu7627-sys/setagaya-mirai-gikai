@@ -68,4 +68,13 @@ describe("buildBillChatSystemHardPrompt", () => {
     expect(result).toContain("限定的に答えてください");
     expect(result).toContain("情報が不足していることを明示してください");
   });
+
+  it("範囲外質問には回答しないルールが含まれる", () => {
+    const result = buildBillChatSystemHardPrompt("a", "b", "c", "d");
+
+    expect(result).toContain("話題範囲外の質問への対応");
+    expect(result).toContain("晩御飯");
+    expect(result).toContain("内容にはお答えできません");
+    expect(result).toContain("Web検索ツールも使わないでください");
+  });
 });

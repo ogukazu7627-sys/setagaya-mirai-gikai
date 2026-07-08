@@ -248,6 +248,59 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_message_events: {
+        Row: {
+          bill_id: string | null
+          block_reason: string | null
+          created_at: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"] | null
+          id: string
+          message: string
+          metadata: Json | null
+          occurred_at: string
+          page_type: string
+          scope_status: "allowed" | "blocked"
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          bill_id?: string | null
+          block_reason?: string | null
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"] | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          occurred_at?: string
+          page_type?: string
+          scope_status?: "allowed" | "blocked"
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          bill_id?: string | null
+          block_reason?: string | null
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"] | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          occurred_at?: string
+          page_type?: string
+          scope_status?: "allowed" | "blocked"
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_events_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           bill_id: string
