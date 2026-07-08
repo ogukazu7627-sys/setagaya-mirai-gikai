@@ -1,6 +1,11 @@
 import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import type { Bill, BillDietSession } from "../../shared/types";
+
+type BillWithDietSession = Bill & {
+  diet_session?: BillDietSession | null;
+};
 
 // ============================================================
 // Bills
@@ -48,7 +53,16 @@ export async function findPublishedBillById(id: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("*")
+    .select(
+      `
+      *,
+      diet_session:diet_sessions (
+        id,
+        name,
+        slug
+      )
+    `
+    )
     .eq("id", id)
     .eq("publish_status", "published")
     .single();
@@ -57,7 +71,7 @@ export async function findPublishedBillById(id: string) {
     return null;
   }
 
-  return data;
+  return data as BillWithDietSession;
 }
 
 /**
@@ -67,7 +81,16 @@ export async function findBillById(id: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("*")
+    .select(
+      `
+      *,
+      diet_session:diet_sessions (
+        id,
+        name,
+        slug
+      )
+    `
+    )
     .eq("id", id)
     .single();
 
@@ -75,7 +98,7 @@ export async function findBillById(id: string) {
     return null;
   }
 
-  return data;
+  return data as BillWithDietSession;
 }
 
 /**

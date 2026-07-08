@@ -27,6 +27,28 @@ interface BillDetailHeaderProps {
   topicCount?: number;
 }
 
+function DietSessionMeta({
+  session,
+}: {
+  session: BillWithContent["diet_session"];
+}) {
+  if (!session?.name) return null;
+
+  const label = `＠${session.name}`;
+  if (!session.slug) {
+    return <span>{label}</span>;
+  }
+
+  return (
+    <Link
+      href={routes.kokkaiSessionBills(session.slug) as Route}
+      className="underline-offset-4 hover:text-primary hover:underline"
+    >
+      {label}
+    </Link>
+  );
+}
+
 export async function BillDetailHeader({
   bill,
   hasInterviewConfig,
@@ -36,6 +58,7 @@ export async function BillDetailHeader({
   const displayTitle = bill.bill_content?.title;
   const displaySummary = bill.bill_content?.summary;
   const displayTags = getDisplayTags(bill);
+  const hasDateMeta = Boolean(bill.submitted_date || bill.diet_session?.name);
 
   const { shareUrl, shareMessage, thumbnailUrl } = await getBillShareData(bill);
 
@@ -75,11 +98,14 @@ export async function BillDetailHeader({
             statusLabel={bill.status_label}
             className="w-fit"
           />
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            {bill.submitted_date && (
-              <time>{formatDateWithDots(bill.submitted_date)} 提出</time>
-            )}
-          </div>
+          {hasDateMeta && (
+            <div className="flex flex-wrap items-center gap-0 text-xs font-medium text-muted-foreground">
+              {bill.submitted_date && (
+                <time>{formatDateWithDots(bill.submitted_date)} 提出</time>
+              )}
+              <DietSessionMeta session={bill.diet_session} />
+            </div>
+          )}
         </div>
       </div>
 

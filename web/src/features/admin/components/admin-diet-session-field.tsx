@@ -1,8 +1,11 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { routes } from "@/lib/routes";
 
 export type AdminDietSessionOption = {
   id: string;
@@ -92,7 +95,14 @@ export function AdminDietSessionField({
         </p>
       ) : (
         <p className="text-xs text-mirai-text-secondary">
-          既存会期を検索して選ぶか、下で新しい会期を追加してください。
+          保存済みの会期を検索して選んでください。会期がない場合は{" "}
+          <Link
+            href={routes.adminDietSessions() as Route}
+            className="font-bold text-primary underline-offset-4 hover:underline"
+          >
+            会期管理
+          </Link>{" "}
+          で追加してください。
         </p>
       )}
 
@@ -116,74 +126,17 @@ export function AdminDietSessionField({
             </button>
           ))
         ) : (
-          <p className="px-3 py-3 text-sm text-mirai-text-secondary">
-            一致する会期がありません。
-          </p>
+          <div className="px-3 py-3 text-sm text-mirai-text-secondary">
+            <p>一致する会期がありません。</p>
+            <Link
+              href={routes.adminDietSessions() as Route}
+              className="mt-1 inline-block font-bold text-primary underline-offset-4 hover:underline"
+            >
+              会期管理で追加してください
+            </Link>
+          </div>
         )}
       </div>
-
-      <details className="pt-2">
-        <summary className="cursor-pointer text-sm font-bold text-primary">
-          新しい会期を追加
-        </summary>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <label
-            className="flex flex-col gap-1.5"
-            htmlFor="new_diet_session_name"
-          >
-            <span className="text-xs font-bold">会期名</span>
-            <Input
-              id="new_diet_session_name"
-              name="new_diet_session_name"
-              placeholder="例: 令和8年第2回区議会定例会"
-            />
-          </label>
-          <label
-            className="flex flex-col gap-1.5"
-            htmlFor="new_diet_session_slug"
-          >
-            <span className="text-xs font-bold">URL用スラッグ（任意）</span>
-            <Input
-              id="new_diet_session_slug"
-              name="new_diet_session_slug"
-              placeholder="例: 2026-2"
-            />
-          </label>
-          <label
-            className="flex flex-col gap-1.5"
-            htmlFor="new_diet_session_start_date"
-          >
-            <span className="text-xs font-bold">開始日</span>
-            <Input
-              id="new_diet_session_start_date"
-              type="date"
-              name="new_diet_session_start_date"
-            />
-          </label>
-          <label
-            className="flex flex-col gap-1.5"
-            htmlFor="new_diet_session_end_date"
-          >
-            <span className="text-xs font-bold">終了日</span>
-            <Input
-              id="new_diet_session_end_date"
-              type="date"
-              name="new_diet_session_end_date"
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm font-bold md:col-span-2">
-            <input
-              type="checkbox"
-              name="new_diet_session_is_active"
-              className="h-5 w-5 accent-primary"
-            />
-            この会期を現在の会期にする
-          </label>
-          <p className="text-xs text-mirai-text-secondary md:col-span-2">
-            新しい会期を入力して保存すると、この案件には新しく作った会期が紐づきます。
-          </p>
-        </div>
-      </details>
     </div>
   );
 }
