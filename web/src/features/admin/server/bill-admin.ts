@@ -18,6 +18,10 @@ import type {
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
+import {
+  findUnknownCouncilorNamesByBillId,
+  syncCouncilorBillStatements,
+} from "@/features/councilors/server/repositories/councilor-statement-repository";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { routes } from "@/lib/routes";
 import {
@@ -124,6 +128,7 @@ export type AdminBillFormData = {
   previewToken: string | null;
   tags: TagRow[];
   sessions: DietSessionRow[];
+  unknownCouncilorNames: string[];
 };
 
 const majorCategoryLabels = MAJOR_CATEGORY_OPTIONS.map(
@@ -473,6 +478,7 @@ function mockFormData(billId?: string): AdminBillFormData {
     previewToken: bill ? "mock-preview-token" : null,
     tags: mockTags(),
     sessions: [mockSession()],
+    unknownCouncilorNames: [],
   };
 }
 
@@ -538,17 +544,23 @@ export async function getAdminBillFormData(
       previewToken: null,
       tags: tagsResult.data ?? [],
       sessions: sessionsResult.data ?? [],
+      unknownCouncilorNames: [],
     };
   }
 
-  const [billResult, contentsResult, billTagsResult, token] = await Promise.all(
-    [
-      supabase.from("bills").select("*").eq("id", billId).single(),
-      supabase.from("bill_contents").select("*").eq("bill_id", billId),
-      supabase.from("bills_tags").select("tag_id").eq("bill_id", billId),
-      ensurePreviewToken(billId),
-    ]
-  );
+  const [
+    billResult,
+    contentsResult,
+    billTagsResult,
+    token,
+    unknownCouncilorNames,
+  ] = await Promise.all([
+    supabase.from("bills").select("*").eq("id", billId).single(),
+    supabase.from("bill_contents").select("*").eq("bill_id", billId),
+    supabase.from("bills_tags").select("tag_id").eq("bill_id", billId),
+    ensurePreviewToken(billId),
+    findUnknownCouncilorNamesByBillId(billId),
+  ]);
 
   if (billResult.error) {
     throw new Error(`Failed to fetch bill: ${billResult.error.message}`);
@@ -580,6 +592,7 @@ export async function getAdminBillFormData(
     previewToken: token,
     tags: tagsResult.data ?? [],
     sessions: sessionsResult.data ?? [],
+    unknownCouncilorNames,
   };
 }
 
@@ -841,6 +854,21 @@ export async function saveAdminBill(formData: FormData) {
     );
   }
 
+  try {
+    await syncCouncilorBillStatements({
+      supabase,
+      billId,
+      normalContent: parsed.normal_content,
+      now,
+    });
+  } catch (error) {
+    redirect(
+      `/admin/bills/${billId}/edit?error=${encodeURIComponent(
+        error instanceof Error ? error.message : "議員発言の保存に失敗しました"
+      )}` as Route
+    );
+  }
+
   let resolvedTagIds: string[];
   try {
     resolvedTagIds = await resolveTagIds(parsed.tag_ids, parsed.new_tags);
@@ -879,6 +907,7 @@ export async function saveAdminBill(formData: FormData) {
 
   await ensurePreviewToken(billId);
   revalidateTag(CACHE_TAGS.BILLS);
+  revalidateTag(CACHE_TAGS.COUNCILOR_STATEMENTS);
   redirect(`/admin/bills/${billId}/edit?saved=1` as Route);
 }
 

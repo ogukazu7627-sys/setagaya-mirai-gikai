@@ -53,8 +53,26 @@ export const COUNCILOR_ICON_URLS: Record<string, string> = {
   青空こうじ: "/icons/councilors/aozora-koji.jpg",
 };
 
-function normalizeCouncilorText(value: string): string {
+export function normalizeCouncilorText(value: string): string {
   return value.normalize("NFKC").replace(/\s+/g, " ").trim();
+}
+
+export function getCouncilorPartyOrGroup(headingText: string): string | null {
+  const normalized = normalizeCouncilorText(headingText);
+  const match = normalized.match(/[（(]([^）)]*?)[）)]/u);
+  return match?.[1] ? normalizeCouncilorText(match[1]) : null;
+}
+
+export function normalizeCouncilorName(headingText: string): string {
+  const normalized = normalizeCouncilorText(headingText);
+  const withoutParty = normalizeCouncilorText(
+    normalized.replace(/[（(].*?[）)]/gu, "")
+  );
+  const withoutSuffix = normalizeCouncilorText(
+    withoutParty.replace(/議員$/u, "")
+  );
+
+  return normalizeCouncilorText(withoutSuffix.replace(/\s+/g, ""));
 }
 
 export function getCouncilorNameCandidates(headingText: string): string[] {
@@ -71,7 +89,13 @@ export function getCouncilorNameCandidates(headingText: string): string[] {
 
   return Array.from(
     new Set(
-      [normalized, withoutParty, withoutSuffix, withoutSpaces].filter(Boolean)
+      [
+        normalized,
+        withoutParty,
+        withoutSuffix,
+        withoutSpaces,
+        normalizeCouncilorName(headingText),
+      ].filter(Boolean)
     )
   );
 }

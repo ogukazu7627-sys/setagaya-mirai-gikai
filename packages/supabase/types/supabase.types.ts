@@ -286,6 +286,96 @@ export type Database = {
           },
         ]
       }
+      councilor_bill_statements: {
+        Row: {
+          bill_id: string
+          content_md: string
+          content_text: string
+          councilor_id: string | null
+          councilor_name: string
+          created_at: string
+          difficulty_level: Database["public"]["Enums"]["difficulty_level_enum"]
+          id: string
+          party_or_group: string | null
+          raw_heading: string
+          statement_index: number
+          updated_at: string
+        }
+        Insert: {
+          bill_id: string
+          content_md: string
+          content_text: string
+          councilor_id?: string | null
+          councilor_name: string
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+          party_or_group?: string | null
+          raw_heading: string
+          statement_index: number
+          updated_at?: string
+        }
+        Update: {
+          bill_id?: string
+          content_md?: string
+          content_text?: string
+          councilor_id?: string | null
+          councilor_name?: string
+          created_at?: string
+          difficulty_level?: Database["public"]["Enums"]["difficulty_level_enum"]
+          id?: string
+          party_or_group?: string | null
+          raw_heading?: string
+          statement_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_bill_statements_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "councilor_bill_statements_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilors: {
+        Row: {
+          created_at: string
+          display_name: string
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          normalized_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          normalized_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          normalized_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       diet_sessions: {
         Row: {
           created_at: string

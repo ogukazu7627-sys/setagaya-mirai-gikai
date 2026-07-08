@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,10 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { BillSource } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
-import { AdminDietSessionField } from "./admin-diet-session-field";
-import { AdminTagSelector } from "./admin-tag-selector";
 import { saveAdminBillAction } from "../server/actions";
 import {
+  type AdminBillFormData,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
   BILL_STATUS_OPTIONS,
@@ -23,8 +22,9 @@ import {
   getPreviewPath,
   PUBLISH_STATUS_OPTIONS,
   SOURCE_TYPE_OPTIONS,
-  type AdminBillFormData,
 } from "../server/bill-admin";
+import { AdminDietSessionField } from "./admin-diet-session-field";
+import { AdminTagSelector } from "./admin-tag-selector";
 
 interface AdminBillFormProps {
   data: AdminBillFormData;
@@ -178,6 +178,13 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
       {saved && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
           保存しました。
+        </div>
+      )}
+      {data.unknownCouncilorNames.length > 0 && (
+        <div className="rounded-lg border border-mirai-star bg-mirai-badge-yellow px-4 py-3 text-sm font-bold text-mirai-text">
+          議員マスタに未登録の名前があります:{" "}
+          {data.unknownCouncilorNames.join("、")}
+          。表記を確認するか、議員マスタに追加してください。
         </div>
       )}
 
