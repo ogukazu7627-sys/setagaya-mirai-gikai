@@ -1,5 +1,6 @@
 import { buildKnowledgeSourceSection } from "./knowledge-source-section";
 import {
+  BILL_CHAT_SOURCE_RULES,
   COMMON_RULES,
   MIRAI_GIKAI_OVERVIEW,
   PLAN_2026,
@@ -34,6 +35,8 @@ ${MIRAI_GIKAI_OVERVIEW}
 - 要約: ${billSummary}
 - 詳細: ${billContent}
 ${buildKnowledgeSourceSection(knowledgeSource)}
+${BILL_CHAT_SOURCE_RULES}
+
 ## 回答の難易度：難しい（専門用語を含む詳細な内容）
 - 専門用語を正確に使用し、詳細で網羅的な説明をしてください
 - 条例・議案的な背景や制度的な文脈も含めて説明してください
