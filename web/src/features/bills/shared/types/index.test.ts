@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import { getBillStatusLabel } from "./index";
+import { getBillStatusLabel, MAJOR_CATEGORY_OPTIONS } from "./index";
+
+describe("MAJOR_CATEGORY_OPTIONS", () => {
+  it("uses the Setagaya major category order", () => {
+    expect(MAJOR_CATEGORY_OPTIONS.map((category) => category.label)).toEqual([
+      "教育🏫",
+      "子育て👶",
+      "福祉🤝",
+      "まちづくり🏗️",
+      "防災☔",
+      "行財政🏛️",
+      "文化📚",
+      "産業💡",
+      "環境🌿",
+      "暮らし🙋",
+    ]);
+  });
+});
 
 describe("getBillStatusLabel", () => {
   it("returns '準備中' for preparing", () => {
