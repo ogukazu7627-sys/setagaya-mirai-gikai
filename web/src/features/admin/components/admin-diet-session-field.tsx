@@ -13,7 +13,6 @@ export type AdminDietSessionOption = {
   start_date: string;
   end_date: string;
   slug: string | null;
-  is_active: boolean;
 };
 
 interface AdminDietSessionFieldProps {
@@ -22,8 +21,7 @@ interface AdminDietSessionFieldProps {
 }
 
 function formatSessionLabel(session: AdminDietSessionOption) {
-  const activeLabel = session.is_active ? "（現在）" : "";
-  return `${session.name} ${session.start_date} - ${session.end_date}${activeLabel}`;
+  return `${session.name} ${session.start_date} - ${session.end_date}`;
 }
 
 function matchesSession(session: AdminDietSessionOption, query: string) {
@@ -121,7 +119,6 @@ export function AdminDietSessionField({
               <span className="font-bold">{session.name}</span>
               <span className="ml-2 text-xs text-mirai-text-secondary">
                 {session.start_date} - {session.end_date}
-                {session.is_active ? " / 現在" : ""}
               </span>
             </button>
           ))

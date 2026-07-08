@@ -11,7 +11,8 @@ import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
-import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { getJapanTime } from "@/lib/utils/date";
 
 export default async function Home() {
   const { billsByMajorCategory, featuredBills, previousSessionData } =
@@ -19,7 +20,7 @@ export default async function Home() {
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
   const [currentSession, currentDifficulty] = await Promise.all([
-    getActiveDietSession(),
+    getCurrentDietSession(getJapanTime()),
     getDifficultyLevel(),
   ]);
 

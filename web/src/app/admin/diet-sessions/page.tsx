@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { AdminDietSessionForm } from "@/features/admin/components/admin-diet-session-form";
 import { AdminDietSessionList } from "@/features/admin/components/admin-diet-session-list";
 import { AdminShell } from "@/features/admin/components/admin-shell";
-import { saveActiveDietSessionsAction } from "@/features/admin/server/actions";
 import { requireAdmin } from "@/features/admin/server/auth";
 import { listAdminDietSessions } from "@/features/admin/server/diet-session-admin";
 import { routes } from "@/lib/routes";
@@ -68,10 +67,7 @@ export default async function AdminDietSessionsPage({
                 名前・日付・slugで検索できます。
               </p>
             </div>
-            <AdminDietSessionList
-              sessions={sessions}
-              activeAction={saveActiveDietSessionsAction}
-            />
+            <AdminDietSessionList sessions={sessions} />
           </section>
         </div>
       </div>
