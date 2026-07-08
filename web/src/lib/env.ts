@@ -45,7 +45,7 @@ if (
 }
 
 const chatMonthlyTotalCostLimitUsdRaw =
-  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "1000";
+  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "20";
 
 const chatMonthlyTotalCostLimitUsd = Number(chatMonthlyTotalCostLimitUsdRaw);
 
