@@ -18,6 +18,10 @@ import {
   SUGGEST_INTERVIEW_TOOL_NAME,
   SUGGEST_INTERVIEW_TOOL_TYPE,
 } from "@/features/chat/shared/constants";
+import {
+  isClearlyOffTopicChatRequest,
+  OFF_TOPIC_RESPONSE_TEXT,
+} from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
@@ -68,6 +72,10 @@ export async function handleChatRequest({
   userId,
   deps,
 }: ChatRequestParams) {
+  if (isClearlyOffTopicChatRequest(messages)) {
+    return createStaticChatResponse(OFF_TOPIC_RESPONSE_TEXT);
+  }
+
   const promptProvider = deps?.promptProvider ?? createPromptProvider();
 
   // Extract context from messages
@@ -160,6 +168,40 @@ export async function handleChatRequest({
       error instanceof Error ? error.message : String(error)
     );
   }
+}
+
+function createStaticChatResponse(text: string): Response {
+  const messageId = Math.random().toString(36).substring(2, 10);
+  const textPartId = "text-1";
+  const chunks = [
+    { type: "start", messageId },
+    { type: "text-start", id: textPartId },
+    { type: "text-delta", id: textPartId, delta: text },
+    { type: "text-end", id: textPartId },
+    { type: "finish" },
+  ].map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`);
+
+  chunks.push("data: [DONE]\n\n");
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "x-vercel-ai-ui-message-stream": "v1",
+    },
+  });
 }
 
 /**

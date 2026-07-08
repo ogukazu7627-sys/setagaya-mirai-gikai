@@ -9,6 +9,7 @@ import {
 } from "@test-utils/utils";
 import type { LanguageModelUsage, UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OFF_TOPIC_RESPONSE_TEXT } from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { createStreamMock } from "@/test-utils/mock-language-model";
 import { createMockPromptProvider } from "@/test-utils/mock-prompt-provider";
@@ -392,6 +393,34 @@ describe("handleChatRequest 統合テスト", () => {
       await consumeResponseStream(response);
 
       expect(receivedPromptNames[0]).toBe("top-chat-system");
+    });
+
+    it("明らかな範囲外質問はモデルに渡さず固定文で返す", async () => {
+      const receivedPromptNames: string[] = [];
+      const trackingPromptProvider = {
+        getPrompt: async (name: string) => {
+          receivedPromptNames.push(name);
+          return { content: "呼ばれないプロンプト", metadata: "{}" };
+        },
+      };
+      const mockModel = createStreamMock(["呼ばれない応答"]);
+      const messages = createTestMessages({
+        pageContext: { type: "bill" },
+      });
+      messages[0].parts = [{ type: "text", text: "今日の晩御飯を考えて" }];
+
+      const response = await handleChatRequest({
+        messages,
+        userId: testUser.id,
+        deps: { model: mockModel, promptProvider: trackingPromptProvider },
+      });
+
+      const content = await consumeResponseStream(response);
+
+      expect(response.status).toBe(200);
+      expect(content).toContain(OFF_TOPIC_RESPONSE_TEXT);
+      expect(content).not.toContain("魚の照り焼き");
+      expect(receivedPromptNames).toHaveLength(0);
     });
   });
 

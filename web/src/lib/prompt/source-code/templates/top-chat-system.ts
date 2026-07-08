@@ -1,6 +1,7 @@
 import {
   COMMON_RULES,
   MIRAI_GIKAI_OVERVIEW,
+  OFF_TOPIC_RULES,
   PLAN_2026,
   TEAM_MIRAI_OVERVIEW,
   WEB_SEARCH_RULES,
@@ -35,6 +36,8 @@ ${billSummary}
 - 議案や政策の背景・メリット・デメリット、他の論点や反対意見も提示して、バランスを保つ
 
 ${COMMON_RULES}
+
+${OFF_TOPIC_RULES}
 
 ${WEB_SEARCH_RULES}
 
