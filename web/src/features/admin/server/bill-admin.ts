@@ -27,6 +27,10 @@ import {
   isSetagayaMockMode,
 } from "@/lib/setagaya-mock";
 import { requireAdmin } from "./auth";
+import {
+  extractKnowledgeSourceFile,
+  mergeKnowledgeSourceText,
+} from "./utils/knowledge-source-file";
 
 type BillRow = Database["public"]["Tables"]["bills"]["Row"];
 type BillContentRow = Database["public"]["Tables"]["bill_contents"]["Row"];
@@ -686,6 +690,26 @@ export async function saveAdminBill(formData: FormData) {
       );
     }
   })();
+  const knowledgeSource = await (async () => {
+    const file = formData.get("knowledge_source_file");
+    if (!isFormFile(file) || file.size === 0) {
+      return parsed.knowledge_source;
+    }
+
+    try {
+      return mergeKnowledgeSourceText(
+        parsed.knowledge_source,
+        await extractKnowledgeSourceFile(file)
+      );
+    } catch (error) {
+      redirectToAdminBillFormError(
+        parsed.id,
+        error instanceof Error
+          ? error.message
+          : "ナレッジソースファイルを読み取れませんでした。"
+      );
+    }
+  })();
 
   let billId = parsed.id;
   let thumbnailUrl = parsed.thumbnail_url;
@@ -718,7 +742,7 @@ export async function saveAdminBill(formData: FormData) {
     thumbnail_url: thumbnailUrl,
     share_thumbnail_url: parsed.share_thumbnail_url,
     sources: parsed.sources,
-    knowledge_source: parsed.knowledge_source,
+    knowledge_source: knowledgeSource,
     use_knowledge_source_in_chat: parsed.use_knowledge_source_in_chat,
     is_review_completed: parsed.is_review_completed,
     is_featured: parsed.is_featured,
