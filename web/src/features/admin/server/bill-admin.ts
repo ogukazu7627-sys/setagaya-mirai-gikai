@@ -135,68 +135,6 @@ type NewTagInput = {
   major_category: MajorCategoryLabel;
 };
 
-const dateInputSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "日付はYYYY-MM-DD形式で入力してください")
-  .nullable();
-
-const newDietSessionSchema = z
-  .object({
-    name: z.string().trim().nullable(),
-    start_date: dateInputSchema,
-    end_date: dateInputSchema,
-    slug: z.string().trim().nullable(),
-    is_active: z.boolean(),
-  })
-  .superRefine((value, ctx) => {
-    const hasAnyInput =
-      Boolean(value.name) ||
-      Boolean(value.start_date) ||
-      Boolean(value.end_date) ||
-      Boolean(value.slug) ||
-      value.is_active;
-
-    if (!hasAnyInput) return;
-
-    if (!value.name) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["name"],
-        message: "新しい会期を追加する場合は会期名を入力してください",
-      });
-    }
-
-    if (!value.start_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["start_date"],
-        message: "新しい会期を追加する場合は開始日を入力してください",
-      });
-    }
-
-    if (!value.end_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["end_date"],
-        message: "新しい会期を追加する場合は終了日を入力してください",
-      });
-    }
-
-    if (
-      value.start_date &&
-      value.end_date &&
-      value.end_date < value.start_date
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["end_date"],
-        message: "会期の終了日は開始日以降にしてください",
-      });
-    }
-  });
-
-type NewDietSessionInput = z.infer<typeof newDietSessionSchema>;
-
 const billFormSchema = z
   .object({
     id: z.string().uuid().optional(),
@@ -236,7 +174,6 @@ const billFormSchema = z
         major_category: z.enum(majorCategoryLabels),
       })
     ),
-    new_diet_session: newDietSessionSchema,
     sources: z.array(
       z.object({
         title: z.string().trim().min(1),
@@ -434,13 +371,6 @@ function parseBillFormData(formData: FormData) {
     hard_content: nullableString(formData.get("hard_content")),
     tag_ids: formData.getAll("tag_ids"),
     new_tags: newTagsFromFormData(formData),
-    new_diet_session: {
-      name: nullableString(formData.get("new_diet_session_name")),
-      start_date: nullableString(formData.get("new_diet_session_start_date")),
-      end_date: nullableString(formData.get("new_diet_session_end_date")),
-      slug: nullableString(formData.get("new_diet_session_slug")),
-      is_active: formData.get("new_diet_session_is_active") === "on",
-    },
     sources: sourcesFromFormData(formData),
   });
 }
@@ -736,62 +666,6 @@ async function resolveTagIds(tagIds: string[], newTags: NewTagInput[]) {
   return Array.from(new Set([...tagIds, ...(data ?? []).map((tag) => tag.id)]));
 }
 
-async function resolveDietSessionId(
-  supabase: AdminSupabaseClient,
-  selectedDietSessionId: string | null,
-  newDietSession: NewDietSessionInput
-): Promise<{
-  dietSessionId: string | null;
-  dietSessionsChanged: boolean;
-}> {
-  if (!newDietSession.name) {
-    return {
-      dietSessionId: selectedDietSessionId,
-      dietSessionsChanged: false,
-    };
-  }
-
-  if (!newDietSession.start_date || !newDietSession.end_date) {
-    throw new Error("新しい会期の開始日と終了日を入力してください。");
-  }
-
-  const { data, error } = await supabase
-    .from("diet_sessions")
-    .insert({
-      name: newDietSession.name,
-      start_date: newDietSession.start_date,
-      end_date: newDietSession.end_date,
-      slug: newDietSession.slug,
-      is_active: false,
-    })
-    .select("id")
-    .single();
-
-  if (error || !data) {
-    throw new Error(
-      `新しい会期の作成に失敗しました: ${error?.message ?? "不明なエラー"}`
-    );
-  }
-
-  if (newDietSession.is_active) {
-    const { error: activeError } = await supabase.rpc(
-      "set_active_diet_session",
-      { target_session_id: data.id }
-    );
-
-    if (activeError) {
-      throw new Error(
-        `現在の会期への切り替えに失敗しました: ${activeError.message}`
-      );
-    }
-  }
-
-  return {
-    dietSessionId: data.id,
-    dietSessionsChanged: true,
-  };
-}
-
 export async function saveAdminBill(formData: FormData) {
   await requireAdmin();
   if (isSetagayaMockMode) {
@@ -843,24 +717,6 @@ export async function saveAdminBill(formData: FormData) {
 
   let billId = parsed.id;
   let thumbnailUrl = parsed.thumbnail_url;
-  const dietSessionResult = await (async () => {
-    try {
-      return await resolveDietSessionId(
-        supabase,
-        parsed.diet_session_id,
-        parsed.new_diet_session
-      );
-    } catch (error) {
-      redirectToAdminBillFormError(
-        parsed.id,
-        error instanceof Error ? error.message : "会期の保存に失敗しました。"
-      );
-    }
-  })();
-
-  if (dietSessionResult.dietSessionsChanged) {
-    revalidateTag(CACHE_TAGS.DIET_SESSIONS);
-  }
 
   if (billId && thumbnailFile) {
     try {
@@ -884,7 +740,7 @@ export async function saveAdminBill(formData: FormData) {
     status_note: parsed.status_note,
     publish_status: parsed.publish_status,
     originating_house: "HR" as const,
-    diet_session_id: dietSessionResult.dietSessionId,
+    diet_session_id: parsed.diet_session_id,
     submitted_date: dateToTimestamp(parsed.submitted_date),
     published_at: isPublishing ? now : null,
     thumbnail_url: thumbnailUrl,

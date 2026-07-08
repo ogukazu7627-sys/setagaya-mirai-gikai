@@ -8,6 +8,7 @@ import {
   ensurePreviewToken,
   listAdminBills,
 } from "@/features/admin/server/bill-admin";
+import { routes } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +45,16 @@ export default async function AdminBillsPage({
               追加・編集・下書き保存・公開切替を行います。
             </p>
           </div>
-          <Button asChild>
-            <Link href={"/admin/bills/new" as Route}>新しい案件を追加</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link href={routes.adminDietSessions() as Route}>会期管理</Link>
+            </Button>
+            <Button asChild>
+              <Link href={routes.adminBillNew() as Route}>
+                新しい案件を追加
+              </Link>
+            </Button>
+          </div>
         </div>
         {params?.error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">

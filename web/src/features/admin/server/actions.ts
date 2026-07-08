@@ -8,6 +8,7 @@ import {
   isAdminUser,
 } from "./auth";
 import { deleteAdminBill, saveAdminBill } from "./bill-admin";
+import { saveAdminDietSession } from "./diet-session-admin";
 import { buildAdminLoginErrorPath } from "./login-errors";
 
 export async function loginAdminAction(formData: FormData) {
@@ -57,4 +58,8 @@ export async function saveAdminBillAction(formData: FormData) {
 
 export async function deleteAdminBillAction(formData: FormData) {
   await deleteAdminBill(formData);
+}
+
+export async function saveAdminDietSessionAction(formData: FormData) {
+  await saveAdminDietSession(formData);
 }

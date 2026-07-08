@@ -193,6 +193,13 @@ function loadMockData() {
       share_thumbnail_url: row.share_thumbnail_url || null,
       shugiin_url: row.shugiin_url || null,
       diet_session_id: row.diet_session_id || null,
+      diet_session: row.diet_session_id
+        ? {
+            id: session.id,
+            name: session.name,
+            slug: session.slug,
+          }
+        : null,
       sources: parseSources(row.sources),
       knowledge_source: row.knowledge_source || null,
       use_knowledge_source_in_chat: bool(row.use_knowledge_source_in_chat),

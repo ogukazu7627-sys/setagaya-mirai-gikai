@@ -108,6 +108,11 @@ export type BillTag = {
   major_category?: string | null;
 };
 
+export type BillDietSession = Pick<
+  Database["public"]["Tables"]["diet_sessions"]["Row"],
+  "id" | "name" | "slug"
+>;
+
 export type FeaturedTag = {
   id: string;
   label: string;
@@ -125,6 +130,7 @@ export type BillWithContent = Omit<
   major_category?: MajorCategoryLabel | string | null;
   interview_enabled?: boolean;
   featured_tag?: FeaturedTag;
+  diet_session?: BillDietSession | null;
   hasPublicInterview?: boolean;
 };
 

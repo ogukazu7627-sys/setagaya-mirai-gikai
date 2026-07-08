@@ -18,6 +18,9 @@ export const routes = {
   adminBills: () => "/admin/bills" as const,
   adminBillNew: () => "/admin/bills/new" as const,
   adminBillEdit: (billId: string) => `/admin/bills/${billId}/edit` as const,
+  adminDietSessions: () => "/admin/diet-sessions" as const,
+  adminDietSessionEdit: (sessionId: string) =>
+    `/admin/diet-sessions/${sessionId}/edit` as const,
 
   // ── 議案 ──────────────────────────────────────────
   billDetail: (billId: string) => `/bills/${billId}` as const,
