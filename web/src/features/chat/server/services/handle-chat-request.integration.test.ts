@@ -66,6 +66,10 @@ describe("handleChatRequest 統合テスト", () => {
 
   afterEach(async () => {
     await adminClient
+      .from("chat_message_events")
+      .delete()
+      .eq("user_id", testUser.id);
+    await adminClient
       .from("chat_usage_events")
       .delete()
       .eq("user_id", testUser.id);
@@ -92,6 +96,39 @@ describe("handleChatRequest 統合テスト", () => {
       const content = await consumeResponseStream(response);
       // AI SDK のストリーム形式でテキストが含まれている
       expect(content.length).toBeGreaterThan(0);
+    });
+
+    it("最新のユーザー質問を chat_message_events に保存する", async () => {
+      const mockModel = createStreamMock(["テスト応答"]);
+      const mockPromptProvider = createMockPromptProvider();
+      const messages = createTestMessages({
+        pageContext: { type: "bill" },
+        sessionId: "question-log-session",
+      });
+      messages[0].parts = [
+        { type: "text", text: "この案件のポイントを教えて" },
+      ];
+
+      const response = await handleChatRequest({
+        messages,
+        userId: testUser.id,
+        deps: { model: mockModel, promptProvider: mockPromptProvider },
+      });
+
+      await consumeResponseStream(response);
+
+      const { data, error } = await adminClient
+        .from("chat_message_events")
+        .select("message, page_type, session_id, scope_status, block_reason")
+        .eq("user_id", testUser.id)
+        .single();
+
+      expect(error).toBeNull();
+      expect(data?.message).toBe("この案件のポイントを教えて");
+      expect(data?.page_type).toBe("bill");
+      expect(data?.session_id).toBe("question-log-session");
+      expect(data?.scope_status).toBe("allowed");
+      expect(data?.block_reason).toBeNull();
     });
 
     it("billContext を持つメッセージで bill-chat-system プロンプトが選択される", async () => {
@@ -395,7 +432,7 @@ describe("handleChatRequest 統合テスト", () => {
       expect(receivedPromptNames[0]).toBe("top-chat-system");
     });
 
-    it("明らかな範囲外質問はモデルに渡さず固定文で返す", async () => {
+    it("明らかな範囲外質問はモデルに渡さず固定文で返し、blocked として保存する", async () => {
       const receivedPromptNames: string[] = [];
       const trackingPromptProvider = {
         getPrompt: async (name: string) => {
@@ -407,7 +444,9 @@ describe("handleChatRequest 統合テスト", () => {
       const messages = createTestMessages({
         pageContext: { type: "bill" },
       });
-      messages[0].parts = [{ type: "text", text: "今日の晩御飯を考えて" }];
+      messages[0].parts = [
+        { type: "text", text: "今日の夜ご飯のメニューを考えて" },
+      ];
 
       const response = await handleChatRequest({
         messages,
@@ -421,6 +460,17 @@ describe("handleChatRequest 統合テスト", () => {
       expect(content).toContain(OFF_TOPIC_RESPONSE_TEXT);
       expect(content).not.toContain("魚の照り焼き");
       expect(receivedPromptNames).toHaveLength(0);
+
+      const { data, error } = await adminClient
+        .from("chat_message_events")
+        .select("message, scope_status, block_reason")
+        .eq("user_id", testUser.id)
+        .single();
+
+      expect(error).toBeNull();
+      expect(data?.message).toBe("今日の夜ご飯のメニューを考えて");
+      expect(data?.scope_status).toBe("blocked");
+      expect(data?.block_reason).toBe("off_topic_standalone_request");
     });
   });
 

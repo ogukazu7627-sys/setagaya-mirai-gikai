@@ -19,7 +19,7 @@ import {
   SUGGEST_INTERVIEW_TOOL_TYPE,
 } from "@/features/chat/shared/constants";
 import {
-  isClearlyOffTopicChatRequest,
+  assessChatTopicScope,
   OFF_TOPIC_RESPONSE_TEXT,
 } from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
@@ -32,6 +32,7 @@ import {
   createPromptProvider,
   type PromptProvider,
 } from "@/lib/prompt";
+import { recordUserChatMessageEvent } from "./chat-message-event-logger";
 import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 import {
   checkSystemDailyCostLimit,
@@ -72,14 +73,16 @@ export async function handleChatRequest({
   userId,
   deps,
 }: ChatRequestParams) {
-  if (isClearlyOffTopicChatRequest(messages)) {
+  // Extract context from messages
+  const context = extractChatContext(messages);
+  const topicScope = assessChatTopicScope(messages);
+  await recordUserChatMessageEvent({ messages, userId, context, topicScope });
+
+  if (topicScope.status === "blocked") {
     return createStaticChatResponse(OFF_TOPIC_RESPONSE_TEXT);
   }
 
   const promptProvider = deps?.promptProvider ?? createPromptProvider();
-
-  // Extract context from messages
-  const context = extractChatContext(messages);
 
   try {
     // Check per-user cost limit before processing
