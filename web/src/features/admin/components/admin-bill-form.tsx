@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { BillSource } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
+import { AdminDietSessionField } from "./admin-diet-session-field";
 import { AdminTagSelector } from "./admin-tag-selector";
 import { saveAdminBillAction } from "../server/actions";
 import {
@@ -247,20 +248,10 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
               ))}
             </NativeSelect>
           </Field>
-          <Field label="会期">
-            <NativeSelect
-              name="diet_session_id"
-              defaultValue={bill?.diet_session_id}
-            >
-              <option value="">未設定</option>
-              {data.sessions.map((session) => (
-                <option key={session.id} value={session.id}>
-                  {session.name}
-                  {session.is_active ? "（現在）" : ""}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
+          <AdminDietSessionField
+            sessions={data.sessions}
+            defaultSessionId={bill?.diet_session_id}
+          />
           <Field label="日付">
             <Input
               type="date"
