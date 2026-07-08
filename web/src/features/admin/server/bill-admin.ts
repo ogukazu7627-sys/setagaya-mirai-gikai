@@ -234,6 +234,10 @@ function redirectToAdminBillFormError(
   redirect(`${target}?error=${encodeURIComponent(message)}` as Route);
 }
 
+function redirectToAdminBillsError(message: string): never {
+  redirect(`/admin/bills?error=${encodeURIComponent(message)}` as Route);
+}
+
 async function ensureThumbnailBucket(supabase: AdminSupabaseClient) {
   const { error } = await supabase.storage.getBucket(THUMBNAIL_BUCKET);
   if (!error) return;
@@ -876,6 +880,44 @@ export async function saveAdminBill(formData: FormData) {
   await ensurePreviewToken(billId);
   revalidateTag(CACHE_TAGS.BILLS);
   redirect(`/admin/bills/${billId}/edit?saved=1` as Route);
+}
+
+export async function deleteAdminBill(formData: FormData) {
+  await requireAdmin("/admin/bills");
+
+  const billIdResult = z
+    .string()
+    .uuid()
+    .safeParse(nullableString(formData.get("id")));
+
+  if (!billIdResult.success) {
+    redirectToAdminBillsError("削除対象の案件を確認できませんでした。");
+  }
+
+  if (isSetagayaMockMode) {
+    redirectToAdminBillsError(
+      "現在はローカルのモック表示中です。削除するにはSupabase接続を設定してください。"
+    );
+  }
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .delete()
+    .eq("id", billIdResult.data)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    redirectToAdminBillsError(`削除に失敗しました: ${error.message}`);
+  }
+
+  if (!data) {
+    redirectToAdminBillsError("削除対象の案件が見つかりませんでした。");
+  }
+
+  revalidateTag(CACHE_TAGS.BILLS);
+  redirect("/admin/bills?deleted=1" as Route);
 }
 
 export function getInitialAdminBillValues(data: AdminBillFormData) {

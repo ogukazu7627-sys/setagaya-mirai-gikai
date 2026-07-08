@@ -11,8 +11,18 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminBillsPage() {
-  const [user, bills] = await Promise.all([
+interface AdminBillsPageProps {
+  searchParams?: Promise<{
+    deleted?: string;
+    error?: string;
+  }>;
+}
+
+export default async function AdminBillsPage({
+  searchParams,
+}: AdminBillsPageProps) {
+  const [params, user, bills] = await Promise.all([
+    searchParams,
     requireAdmin("/admin/bills"),
     listAdminBills(),
   ]);
@@ -38,6 +48,16 @@ export default async function AdminBillsPage() {
             <Link href={"/admin/bills/new" as Route}>新しい案件を追加</Link>
           </Button>
         </div>
+        {params?.error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {params.error}
+          </div>
+        )}
+        {params?.deleted === "1" && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
+            削除しました。
+          </div>
+        )}
         <AdminBillList bills={billsWithPreviewTokens} />
       </div>
     </AdminShell>
