@@ -28,7 +28,6 @@ const dietSessionFormSchema = z
     start_date: dateInputSchema,
     end_date: dateInputSchema,
     slug: z.string().trim().nullable(),
-    is_active: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.end_date < value.start_date) {
@@ -64,8 +63,14 @@ function parseDietSessionFormData(formData: FormData) {
     start_date: formData.get("start_date"),
     end_date: formData.get("end_date"),
     slug: nullableString(formData.get("slug")),
-    is_active: formData.get("is_active") === "on",
   });
+}
+
+function parseActiveDietSessionIds(formData: FormData) {
+  return z
+    .array(z.string().uuid())
+    .max(1, "現在の会期は1つだけ選んでください")
+    .parse(formData.getAll("active_session_ids"));
 }
 
 function parseDietSessionFormDataOrRedirect(formData: FormData) {
@@ -151,7 +156,6 @@ export async function saveAdminDietSession(formData: FormData) {
     start_date: parsed.start_date,
     end_date: parsed.end_date,
     slug: parsed.slug,
-    is_active: false,
     updated_at: now,
   };
 
@@ -177,17 +181,63 @@ export async function saveAdminDietSession(formData: FormData) {
     );
   }
 
-  if (parsed.is_active) {
-    const { error: activeError } = await supabase.rpc(
-      "set_active_diet_session",
-      { target_session_id: data.id }
-    );
+  revalidateTag(CACHE_TAGS.DIET_SESSIONS);
+  revalidateTag(CACHE_TAGS.BILLS);
+  redirect(`${routes.adminDietSessions()}?saved=1` as Route);
+}
 
-    if (activeError) {
+export async function saveActiveDietSessions(formData: FormData) {
+  await requireAdmin(routes.adminDietSessions());
+
+  let activeSessionIds: string[];
+  try {
+    activeSessionIds = parseActiveDietSessionIds(formData);
+  } catch (error) {
+    const message =
+      error instanceof z.ZodError
+        ? (error.issues[0]?.message ?? "現在の会期を確認してください")
+        : "現在の会期を確認してください";
+    redirect(buildAdminDietSessionErrorPath(undefined, message));
+  }
+
+  if (isSetagayaMockMode) {
+    redirect(
+      buildAdminDietSessionErrorPath(
+        undefined,
+        "現在はローカルのモック表示中です。保存するにはSupabase接続を設定してください。"
+      )
+    );
+  }
+
+  const supabase = createAdminClient();
+
+  if (activeSessionIds.length === 0) {
+    const { error } = await supabase
+      .from("diet_sessions")
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString(),
+      })
+      .not("id", "is", null);
+
+    if (error) {
       redirect(
         buildAdminDietSessionErrorPath(
-          data.id,
-          `現在の会期への切り替えに失敗しました: ${activeError.message}`
+          undefined,
+          `現在の会期の解除に失敗しました: ${error.message}`
+        )
+      );
+    }
+  } else {
+    const { error } = await supabase.rpc("set_active_diet_session", {
+      target_session_id: activeSessionIds[0],
+    });
+
+    if (error) {
+      redirect(
+        buildAdminDietSessionErrorPath(
+          undefined,
+          `現在の会期への切り替えに失敗しました: ${error.message}`
         )
       );
     }

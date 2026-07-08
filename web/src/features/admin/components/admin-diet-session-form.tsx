@@ -80,18 +80,9 @@ export function AdminDietSessionForm({
           id="diet-session-slug"
           name="slug"
           defaultValue={session?.slug ?? ""}
-          placeholder="例: 2026-1"
+          placeholder="例: r8-special-1"
         />
       </Field>
-      <label className="flex items-center justify-between gap-4 rounded-lg border bg-white px-4 py-3 text-sm font-bold">
-        <span>現在の会期にする</span>
-        <input
-          type="checkbox"
-          name="is_active"
-          defaultChecked={session?.is_active ?? false}
-          className="h-5 w-5 accent-primary"
-        />
-      </label>
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit">{submitLabel}</Button>
         {session?.id && (
