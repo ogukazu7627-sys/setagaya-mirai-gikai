@@ -1,6 +1,4 @@
 import Image from "next/image";
-import { EXTERNAL_LINKS } from "@/config/external-links";
-import { LinkButton } from "./link-button";
 
 export function About() {
   return (
@@ -34,19 +32,6 @@ export function About() {
               みらい議会＠世田谷区は、世田谷区議会で扱われる議案や質問、請願・陳情、報告事項を、区民が読みやすい形に整理して紹介するサイトです。公式資料に戻れることを大切にしながら、AIも活用して背景や論点を補っています。
             </p>
           </div>
-
-          {/* もっと詳しく知るボタン */}
-          <LinkButton
-            href={EXTERNAL_LINKS.ABOUT_NOTE}
-            icon={{
-              src: "/icons/note-icon.png",
-              alt: "note",
-              width: 25,
-              height: 25,
-            }}
-          >
-            みらい議会の考え方を見る
-          </LinkButton>
         </div>
       </div>
     </div>

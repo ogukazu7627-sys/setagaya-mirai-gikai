@@ -19,13 +19,8 @@ export const primaryLinks: FooterLink[] = [
     href: routes.home(),
   },
   {
-    label: "元になったみらい議会",
+    label: "みらい議会",
     href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
-    external: true,
-  },
-  {
-    label: "世田谷区議会公式",
-    href: EXTERNAL_LINKS.SETAGAYA_COUNCIL,
     external: true,
   },
   {

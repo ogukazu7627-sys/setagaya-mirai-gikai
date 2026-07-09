@@ -3,10 +3,9 @@ import { About } from "@/components/top/about";
 import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
-import { FiscalYearArchiveSection } from "@/features/bills/server/components/fiscal-year-archive-section";
+import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
@@ -74,11 +73,11 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       </Container>
 
-      {/* 前年度以前の世田谷区議会セクション */}
+      {/* 前年以前の世田谷区議会セクション */}
       {archiveData.years.length > 0 && (
         <div className="bg-mirai-surface-muted py-10">
           <Container>
-            <FiscalYearArchiveSection archiveData={archiveData} />
+            <YearArchiveSection archiveData={archiveData} />
           </Container>
         </div>
       )}
@@ -87,11 +86,8 @@ export default async function Home({ searchParams }: HomeProps) {
         {/* みらい議会とは セクション */}
         <About />
 
-        {/* 参考にしたプロジェクト セクション */}
+        {/* みらい議会 セクション */}
         <TeamMirai />
-
-        {/* 掲載コンテンツについて */}
-        <BillDisclaimer />
       </Container>
 
       {/* チャット機能 */}

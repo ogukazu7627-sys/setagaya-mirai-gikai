@@ -11,8 +11,8 @@ type FooterLinkItem = {
 
 const links: FooterLinkItem[] = [
   {
-    label: "世田谷区議会公式",
-    href: EXTERNAL_LINKS.SETAGAYA_COUNCIL,
+    label: "公式議案一覧",
+    href: EXTERNAL_LINKS.SETAGAYA_BILLS,
     external: true,
   },
   {
@@ -26,7 +26,7 @@ const links: FooterLinkItem[] = [
     external: false,
   },
   {
-    label: "元になったみらい議会",
+    label: "みらい議会",
     href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
     external: true,
   },
