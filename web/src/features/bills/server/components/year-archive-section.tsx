@@ -1,15 +1,13 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { BillsByMajorCategorySection } from "../../client/components/bill-list/bills-by-major-category-section";
-import type { FiscalArchiveData } from "../loaders/load-home-data";
+import type { YearArchiveData } from "../loaders/load-home-data";
 
-type FiscalYearArchiveSectionProps = {
-  archiveData: FiscalArchiveData;
+type YearArchiveSectionProps = {
+  archiveData: YearArchiveData;
 };
 
-export function FiscalYearArchiveSection({
-  archiveData,
-}: FiscalYearArchiveSectionProps) {
+export function YearArchiveSection({ archiveData }: YearArchiveSectionProps) {
   if (archiveData.years.length === 0 || archiveData.selectedYear == null) {
     return null;
   }
@@ -19,10 +17,10 @@ export function FiscalYearArchiveSection({
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">
           <h2 className="text-[22px] font-bold text-black leading-[1.48]">
-            前年度以前の世田谷区議会
+            前年以前の世田谷区議会
           </h2>
           <p className="text-xs text-mirai-text-secondary">
-            年度を選ぶと、その年度に始まった会期の案件をテーマ別に確認できます。
+            年を選ぶと、その年に始まった会期の案件をテーマ別に確認できます。
           </p>
         </div>
 
@@ -40,7 +38,7 @@ export function FiscalYearArchiveSection({
                       : "border-mirai-border bg-white text-mirai-text hover:bg-gray-50"
                   }`}
                 >
-                  {year}年度
+                  {year}年
                 </Link>
               );
             })}
@@ -51,11 +49,11 @@ export function FiscalYearArchiveSection({
       {archiveData.billsByMajorCategory.length > 0 ? (
         <BillsByMajorCategorySection
           billsByMajorCategory={archiveData.billsByMajorCategory}
-          title={`${archiveData.selectedYear}年度の案件をテーマから探す`}
+          title={`${archiveData.selectedYear}年の案件をテーマから探す`}
         />
       ) : (
         <p className="text-center py-12 text-muted-foreground">
-          この年度の公開案件はまだありません
+          この年の公開案件はまだありません
         </p>
       )}
     </section>

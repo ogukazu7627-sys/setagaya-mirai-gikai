@@ -1,3 +1,4 @@
+import { EXTERNAL_LINKS } from "@/config/external-links";
 import { LinkButton } from "./link-button";
 
 export function TeamMirai() {
@@ -10,7 +11,7 @@ export function TeamMirai() {
             みらい議会
           </h2>
           <p className="text-sm font-bold text-primary-accent">
-            参考にしたプロジェクト
+            チームみらいが公開している元プロジェクト
           </p>
         </div>
 
@@ -18,14 +19,17 @@ export function TeamMirai() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <p className="text-[15px] leading-[28px] text-black">
-              このサイトは、国会の法案をわかりやすく紹介する「みらい議会」の考え方を参考に、世田谷区議会向けに作っています。世田谷区や世田谷区議会、政党チームみらいが運営する公式サイトではありません。
+              このサイトは、チームみらいが国会の法案をわかりやすく紹介するために公開している「みらい議会」をもとに、世田谷区議会向けに作っています。仕組みや考え方は参考にしつつ、掲載内容と運営は世田谷区版として独自に整理しています。
+            </p>
+            <p className="text-[15px] leading-[28px] text-black">
+              世田谷区公認のサイトではなく、世田谷区議会または政党チームみらいが運営するものでもありません。
             </p>
           </div>
 
           {/* ボタングループ */}
           <div className="flex flex-col gap-4">
             <LinkButton
-              href="https://gikai.team-mir.ai/"
+              href={EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI}
               icon={{
                 src: "/icons/info-icon.svg",
                 alt: "",
@@ -33,19 +37,19 @@ export function TeamMirai() {
                 height: 22,
               }}
             >
-              元になったみらい議会を見る
+              みらい議会
             </LinkButton>
 
             <LinkButton
-              href="https://www.city.setagaya.lg.jp/gikai/index.html"
+              href={EXTERNAL_LINKS.ABOUT_NOTE}
               icon={{
-                src: "/icons/heart-icon.svg",
-                alt: "",
-                width: 18,
-                height: 17,
+                src: "/icons/note-icon.png",
+                alt: "note",
+                width: 25,
+                height: 25,
               }}
             >
-              世田谷区議会公式を見る
+              みらい議会の考え方
             </LinkButton>
           </div>
         </div>

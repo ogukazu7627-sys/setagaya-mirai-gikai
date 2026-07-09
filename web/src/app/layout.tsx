@@ -26,7 +26,7 @@ const notoSerifJP = Noto_Serif_JP({
 
 const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
-  "世田谷区議会の議案や質問を、公式資料に戻れる形でわかりやすく確認するための非公式サイト";
+  "世田谷区議会の議案や質問を、公式資料に戻れる形でわかりやすく確認するための情報整理サイト";
 const siteName = "みらい議会＠世田谷区";
 const themeColor = "#38bdf8";
 const ogImage = {

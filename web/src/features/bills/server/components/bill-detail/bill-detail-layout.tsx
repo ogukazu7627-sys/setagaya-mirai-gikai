@@ -6,7 +6,6 @@ import { getPublicReportsByBillId } from "@/features/interview-report/server/loa
 import { BillTopicsPreviewSection } from "@/features/user-topic-analysis/server/components/bill-topics-preview-section";
 import { getPublicTopicAnalysis } from "@/features/user-topic-analysis/server/loaders/get-public-topic-analysis";
 import { BillDetailClient } from "../../../client/components/bill-detail/bill-detail-client";
-import { BillDisclaimer } from "../../../client/components/bill-detail/bill-disclaimer";
 import { BillStatusProgress } from "../../../client/components/bill-detail/bill-status-progress";
 import type { BillWithContent } from "../../../shared/types";
 import { BillShareButtons } from "../share/bill-share-buttons";
@@ -86,11 +85,6 @@ export async function BillDetailLayout({
         {/* シェアボタン */}
         <div className="my-8">
           <BillShareButtons bill={bill} />
-        </div>
-
-        {/* 公式資料へのリンク集は本文・免責と重複しやすいため、公開詳細ページでは表示しない。 */}
-        <div className="my-8">
-          <BillDisclaimer />
         </div>
       </Container>
     </div>

@@ -4,10 +4,10 @@ import {
   findDietSessionsStartingBetween,
 } from "@/features/diet-sessions/server/repositories/diet-session-repository";
 import {
-  getFiscalYearFromDate,
-  getFiscalYearRange,
-  parseFiscalYear,
-} from "@/features/diet-sessions/shared/utils/fiscal-year";
+  getCalendarYearFromDate,
+  getCalendarYearRange,
+  parseCalendarYear,
+} from "@/features/diet-sessions/shared/utils/calendar-year";
 import {
   getSetagayaMockBills,
   getSetagayaMockBillsByMajorCategory,
@@ -33,7 +33,7 @@ type HomeDataOptions = {
   archiveYear?: string | string[];
 };
 
-export type FiscalArchiveData = {
+export type YearArchiveData = {
   years: number[];
   selectedYear: number | null;
   billsByMajorCategory: BillsByMajorCategory[];
@@ -64,30 +64,30 @@ export async function loadHomeData(options: HomeDataOptions) {
     };
   }
 
-  const currentFiscalYear = getFiscalYearFromDate(options.currentDate);
-  const currentFiscalRange = getFiscalYearRange(currentFiscalYear);
-  const [difficultyLevel, currentFiscalSessions, pastSessions] =
+  const currentYear = getCalendarYearFromDate(options.currentDate);
+  const currentYearRange = getCalendarYearRange(currentYear);
+  const [difficultyLevel, currentYearSessions, pastSessions] =
     await Promise.all([
       getDifficultyLevel(),
       findDietSessionsStartingBetween(
-        currentFiscalRange.startDate,
-        currentFiscalRange.endDate
+        currentYearRange.startDate,
+        currentYearRange.endDate
       ),
-      findDietSessionsStartingBefore(currentFiscalRange.startDate),
+      findDietSessionsStartingBefore(currentYearRange.startDate),
     ]);
 
-  const currentFiscalSessionIds = currentFiscalSessions.map(
+  const currentYearSessionIds = currentYearSessions.map(
     (session) => session.id
   );
-  const archiveYears = uniqueFiscalYearsFromSessions(pastSessions);
-  const requestedArchiveYear = parseFiscalYear(options.archiveYear);
+  const archiveYears = uniqueYearsFromSessions(pastSessions);
+  const requestedArchiveYear = parseCalendarYear(options.archiveYear);
   const selectedArchiveYear =
     requestedArchiveYear != null && archiveYears.includes(requestedArchiveYear)
       ? requestedArchiveYear
       : (archiveYears[0] ?? null);
   const archiveRange =
     selectedArchiveYear != null
-      ? getFiscalYearRange(selectedArchiveYear)
+      ? getCalendarYearRange(selectedArchiveYear)
       : null;
   const archiveSessions = archiveRange
     ? await findDietSessionsStartingBetween(
@@ -99,12 +99,9 @@ export async function loadHomeData(options: HomeDataOptions) {
 
   const [featuredBillRows, currentBillRows, archiveBillRows] =
     await Promise.all([
-      findFeaturedBillsByDietSessionIds(
-        currentFiscalSessionIds,
-        difficultyLevel
-      ),
+      findFeaturedBillsByDietSessionIds(currentYearSessionIds, difficultyLevel),
       findPublishedBillsByDietSessionIds(
-        currentFiscalSessionIds,
+        currentYearSessionIds,
         difficultyLevel
       ),
       findPublishedBillsByDietSessionIds(archiveSessionIds, difficultyLevel),
@@ -167,12 +164,12 @@ async function buildBillsWithContent(
   }) as BillWithContent[];
 }
 
-function uniqueFiscalYearsFromSessions(
+function uniqueYearsFromSessions(
   sessions: Array<{ start_date: string }>
 ): number[] {
   return Array.from(
     new Set(
-      sessions.map((session) => getFiscalYearFromDate(session.start_date))
+      sessions.map((session) => getCalendarYearFromDate(session.start_date))
     )
   ).sort((yearA, yearB) => yearB - yearA);
 }

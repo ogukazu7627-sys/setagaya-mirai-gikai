@@ -4,7 +4,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SETAGAYA_SITE_FOOTER_NOTICE } from "@/config/site-disclaimer";
+import { SETAGAYA_CONTENT_NOTICE } from "@/config/site-disclaimer";
 import { isInterviewPage } from "@/lib/page-layout-utils";
 import { routes } from "@/lib/routes";
 import { policyLinks, primaryLinks } from "./footer.config";
@@ -22,6 +22,7 @@ export function Footer() {
         <FooterLogoSection />
         <FooterPrimaryLinks />
         <FooterPolicies />
+        <FooterDisclaimer />
         <FooterCopyright />
       </div>
     </footer>
@@ -95,8 +96,25 @@ function FooterPolicies() {
 function FooterCopyright() {
   return (
     <div className="space-y-2 text-center text-xs font-medium text-slate-800">
-      <p className="leading-relaxed">{SETAGAYA_SITE_FOOTER_NOTICE}</p>
       <p>みらい議会＠世田谷区</p>
     </div>
+  );
+}
+
+function FooterDisclaimer() {
+  return (
+    <section
+      aria-labelledby="footer-content-notice"
+      className="mb-6 space-y-3 text-center text-xs font-medium leading-relaxed text-slate-800"
+    >
+      <h2 id="footer-content-notice" className="text-sm font-bold">
+        掲載コンテンツについて
+      </h2>
+      <div className="space-y-2">
+        {SETAGAYA_CONTENT_NOTICE.map((notice) => (
+          <p key={notice}>{notice}</p>
+        ))}
+      </div>
+    </section>
   );
 }
