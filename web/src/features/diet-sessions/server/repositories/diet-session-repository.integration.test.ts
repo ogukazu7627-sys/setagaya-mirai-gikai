@@ -1,12 +1,14 @@
-import { describe, it, expect, afterEach } from "vitest";
 import {
-  createTestDietSession,
   cleanupTestDietSession,
+  createTestDietSession,
 } from "@test-utils/utils";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   findActiveDietSession,
   findCurrentDietSession,
   findDietSessionBySlug,
+  findDietSessionsStartingBefore,
+  findDietSessionsStartingBetween,
   findPreviousDietSession,
 } from "./diet-session-repository";
 
@@ -110,6 +112,51 @@ describe("diet-session-repository 統合テスト", () => {
       const result = await findDietSessionBySlug("non-existent-slug-999999999");
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findDietSessionsStartingBetween", () => {
+    it("指定期間に開始した会期だけを返す", async () => {
+      const inside = await createTestDietSession({
+        start_date: "2030-04-01",
+        end_date: "2030-06-30",
+        is_active: false,
+      });
+      const outside = await createTestDietSession({
+        start_date: "2031-04-01",
+        end_date: "2031-06-30",
+        is_active: false,
+      });
+      sessionIds.push(inside.id, outside.id);
+
+      const result = await findDietSessionsStartingBetween(
+        "2030-04-01",
+        "2031-03-31"
+      );
+
+      expect(result.map((session) => session.id)).toContain(inside.id);
+      expect(result.map((session) => session.id)).not.toContain(outside.id);
+    });
+  });
+
+  describe("findDietSessionsStartingBefore", () => {
+    it("指定日より前に開始した会期だけを返す", async () => {
+      const previous = await createTestDietSession({
+        start_date: "2033-03-31",
+        end_date: "2033-06-30",
+        is_active: false,
+      });
+      const current = await createTestDietSession({
+        start_date: "2033-04-01",
+        end_date: "2033-06-30",
+        is_active: false,
+      });
+      sessionIds.push(previous.id, current.id);
+
+      const result = await findDietSessionsStartingBefore("2033-04-01");
+
+      expect(result.map((session) => session.id)).toContain(previous.id);
+      expect(result.map((session) => session.id)).not.toContain(current.id);
     });
   });
 

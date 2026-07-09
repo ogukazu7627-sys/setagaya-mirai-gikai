@@ -107,7 +107,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <LegalSectionTitle>8. お問い合わせ窓口</LegalSectionTitle>
           <LegalParagraph>
-            個人情報の確認・修正・削除等のご相談は、本MVPの運営者までご連絡ください。
+            個人情報の確認・修正・削除等のご相談は、本サービスの運営者までご連絡ください。
           </LegalParagraph>
           <LegalList items={[...SETAGAYA_SITE_DISCLAIMER]} />
         </section>

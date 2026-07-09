@@ -10,12 +10,16 @@ import { BillCard } from "./bill-card";
 
 interface BillsByMajorCategorySectionProps {
   billsByMajorCategory: BillsByMajorCategory[];
+  title?: string;
+  description?: string;
 }
 
 const ALL_TAB = "すべて";
 
 export function BillsByMajorCategorySection({
   billsByMajorCategory,
+  title = "テーマから探す",
+  description,
 }: BillsByMajorCategorySectionProps) {
   const [selectedCategory, setSelectedCategory] = useState(ALL_TAB);
 
@@ -37,8 +41,11 @@ export function BillsByMajorCategorySection({
     <section className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <h2 className="text-[22px] font-bold text-black leading-[1.48]">
-          テーマから探す
+          {title}
         </h2>
+        {description && (
+          <p className="text-xs text-mirai-text-secondary">{description}</p>
+        )}
         <div className="-mx-4 overflow-x-auto px-4">
           <div className="flex w-max gap-2">
             {[

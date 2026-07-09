@@ -5,3 +5,6 @@ export const SETAGAYA_SITE_DISCLAIMER = [
   "正確な情報は、必ず世田谷区・世田谷区議会の公式資料をご確認ください。",
   "本サイトは、政党チームみらいが運営するものではありません。",
 ];
+
+export const SETAGAYA_SITE_FOOTER_NOTICE =
+  "非公式サイトです。正確な情報は、世田谷区・世田谷区議会の公式資料をご確認ください。";
