@@ -64,7 +64,7 @@ export const MAJOR_CATEGORY_OPTIONS = [
   },
   {
     id: "culture",
-    label: "文化📚",
+    label: "文化・スポーツ📚",
     description: "文化施設、スポーツ施設、生涯学習、図書館、地域イベント",
   },
   {
@@ -74,7 +74,7 @@ export const MAJOR_CATEGORY_OPTIONS = [
   },
   {
     id: "environment",
-    label: "環境🌿",
+    label: "環境問題🌿",
     description: "ごみ、清掃、リサイクル、気候変動、緑、環境政策",
   },
   {
