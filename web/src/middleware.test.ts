@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildUtmShortLinkRedirectUrl,
   isHtmlAcceptHeader,
   isValidDifficultyLevel,
   shouldSkipSupabaseSessionUpdate,
@@ -61,5 +62,41 @@ describe("shouldSkipSupabaseSessionUpdate", () => {
   it("should not skip Supabase session refresh on other pages", () => {
     expect(shouldSkipSupabaseSessionUpdate("/")).toBe(false);
     expect(shouldSkipSupabaseSessionUpdate("/admin/bills")).toBe(false);
+  });
+});
+
+describe("buildUtmShortLinkRedirectUrl", () => {
+  it.each([
+    ["/ig", "instagram", "social"],
+    ["/x", "x", "social"],
+    ["/note", "note", "referral"],
+    ["/line", "line", "social"],
+    ["/qr", "qr", "offline"],
+  ])("redirects %s to the home page with UTM params", (path, source, medium) => {
+    const redirectUrl = buildUtmShortLinkRedirectUrl(
+      new URL(`https://civictech-setagaya.org${path}`)
+    );
+
+    expect(redirectUrl?.toString()).toBe(
+      `https://civictech-setagaya.org/?utm_source=${source}&utm_medium=${medium}&utm_campaign=launch`
+    );
+  });
+
+  it("accepts a trailing slash on short links", () => {
+    const redirectUrl = buildUtmShortLinkRedirectUrl(
+      new URL("https://civictech-setagaya.org/ig/")
+    );
+
+    expect(redirectUrl?.toString()).toBe(
+      "https://civictech-setagaya.org/?utm_source=instagram&utm_medium=social&utm_campaign=launch"
+    );
+  });
+
+  it("does not redirect normal pages", () => {
+    expect(
+      buildUtmShortLinkRedirectUrl(
+        new URL("https://civictech-setagaya.org/bills/abc")
+      )
+    ).toBeNull();
   });
 });

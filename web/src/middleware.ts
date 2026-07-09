@@ -14,7 +14,40 @@ import {
 } from "./lib/basic-auth";
 import { updateSupabaseSession } from "./lib/supabase/middleware";
 
+const UTM_SHORT_LINKS = {
+  "/ig": {
+    source: "instagram",
+    medium: "social",
+    campaign: "launch",
+  },
+  "/x": {
+    source: "x",
+    medium: "social",
+    campaign: "launch",
+  },
+  "/note": {
+    source: "note",
+    medium: "referral",
+    campaign: "launch",
+  },
+  "/line": {
+    source: "line",
+    medium: "social",
+    campaign: "launch",
+  },
+  "/qr": {
+    source: "qr",
+    medium: "offline",
+    campaign: "launch",
+  },
+} as const;
+
 export async function middleware(request: NextRequest) {
+  const utmRedirectUrl = buildUtmShortLinkRedirectUrl(request.nextUrl);
+  if (utmRedirectUrl) {
+    return NextResponse.redirect(utmRedirectUrl);
+  }
+
   // /dev routes: 本番では404、開発ではauthスキップ
   if (request.nextUrl.pathname.startsWith("/dev")) {
     if (process.env.NODE_ENV !== "development") {
@@ -95,6 +128,30 @@ function _isHtmlRequest(request: NextRequest) {
 
 export function shouldSkipSupabaseSessionUpdate(pathname: string): boolean {
   return pathname === CHAT_AUTH_CALLBACK_PATH;
+}
+
+export function buildUtmShortLinkRedirectUrl(
+  nextUrl: Pick<URL, "origin" | "pathname">
+): URL | null {
+  const pathname = normalizeShortLinkPath(nextUrl.pathname);
+  const utm = UTM_SHORT_LINKS[pathname as keyof typeof UTM_SHORT_LINKS];
+
+  if (!utm) {
+    return null;
+  }
+
+  const redirectUrl = new URL("/", nextUrl.origin);
+  redirectUrl.searchParams.set("utm_source", utm.source);
+  redirectUrl.searchParams.set("utm_medium", utm.medium);
+  redirectUrl.searchParams.set("utm_campaign", utm.campaign);
+  return redirectUrl;
+}
+
+function normalizeShortLinkPath(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
 }
 
 export const config = {
