@@ -1,14 +1,30 @@
 const FISCAL_YEAR_START_MONTH = 4;
 
 export function getFiscalYearFromDate(dateLike: Date | string): number {
-  const date =
-    typeof dateLike === "string"
-      ? new Date(`${dateLike}T00:00:00+09:00`)
-      : dateLike;
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+  const { year, month } = getYearAndMonth(dateLike);
 
   return month >= FISCAL_YEAR_START_MONTH ? year : year - 1;
+}
+
+function getYearAndMonth(dateLike: Date | string): {
+  year: number;
+  month: number;
+} {
+  if (typeof dateLike === "string") {
+    const datePart = dateLike.match(/^(\d{4})-(\d{2})/);
+    if (datePart) {
+      return {
+        year: Number(datePart[1]),
+        month: Number(datePart[2]),
+      };
+    }
+  }
+
+  const date = typeof dateLike === "string" ? new Date(dateLike) : dateLike;
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+  };
 }
 
 export function getFiscalYearRange(fiscalYear: number): {
