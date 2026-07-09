@@ -87,4 +87,30 @@ describe("buildCouncilorStatementRows", () => {
 
     expect(result.unknownCouncilorNames).toEqual(["山田太郎"]);
   });
+
+  it("links known faction headings without warnings", () => {
+    const result = buildCouncilorStatementRows({
+      billId: "bill-1",
+      now: "2026-07-08T12:00:00.000Z",
+      councilorIdByName: new Map([["公明党世田谷区議団", "faction-1"]]),
+      statements: [
+        {
+          statementIndex: 0,
+          rawHeading: "公明党世田谷区議団",
+          councilorName: "公明党世田谷区議団",
+          partyOrGroup: null,
+          contentMd: "会派としての意見本文。",
+          contentText: "会派としての意見本文。",
+          sourceSectionTitle: "議員の意見",
+        },
+      ],
+    });
+
+    expect(result.rows[0]).toMatchObject({
+      councilor_id: "faction-1",
+      councilor_name: "公明党世田谷区議団",
+      raw_heading: "公明党世田谷区議団",
+    });
+    expect(result.unknownCouncilorNames).toEqual([]);
+  });
 });
