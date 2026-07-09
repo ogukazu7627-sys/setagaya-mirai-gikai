@@ -61,6 +61,22 @@ A. いいえ。`);
     expect(statements[0]?.partyOrGroup).toBe("会派");
   });
 
+  it("keeps faction headings as statement actors", () => {
+    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+
+## 公明党世田谷区議団
+
+会派としての意見本文。`);
+
+    expect(statements[0]).toMatchObject({
+      rawHeading: "公明党世田谷区議団",
+      councilorName: "公明党世田谷区議団",
+      partyOrGroup: null,
+      contentMd: "会派としての意見本文。",
+      contentText: "会派としての意見本文。",
+    });
+  });
+
   it("ignores h2 headings outside the councilor opinion section", () => {
     const statements = extractCouncilorStatementsFromMarkdown(`# 主な論点
 

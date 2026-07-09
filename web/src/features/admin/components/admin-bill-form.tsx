@@ -182,9 +182,9 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
       )}
       {data.unknownCouncilorNames.length > 0 && (
         <div className="rounded-lg border border-mirai-star bg-mirai-badge-yellow px-4 py-3 text-sm font-bold text-mirai-text">
-          議員マスタに未登録の名前があります:{" "}
+          議員・会派マスタに未登録の名前があります:{" "}
           {data.unknownCouncilorNames.join("、")}
-          。表記を確認するか、議員マスタに追加してください。
+          。表記を確認するか、議員・会派マスタに追加してください。
         </div>
       )}
 
