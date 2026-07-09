@@ -70,6 +70,52 @@ export async function findDietSessionBySlug(
 }
 
 /**
+ * 指定した期間に開始した世田谷区議会会期を取得
+ */
+export async function findDietSessionsStartingBetween(
+  startDate: string,
+  endDate: string
+): Promise<DietSession[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .gte("start_date", startDate)
+    .lte("start_date", endDate)
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch diet sessions by date range:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+/**
+ * 指定日より前に開始した世田谷区議会会期を取得
+ */
+export async function findDietSessionsStartingBefore(
+  beforeDate: string
+): Promise<DietSession[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("diet_sessions")
+    .select("*")
+    .lt("start_date", beforeDate)
+    .order("start_date", { ascending: false });
+
+  if (error) {
+    console.error("Failed to fetch past diet sessions:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+/**
  * 指定日より前の直近の世田谷区議会会期を取得
  */
 export async function findPreviousDietSession(

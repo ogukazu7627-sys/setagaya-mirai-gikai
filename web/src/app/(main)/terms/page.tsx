@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Container } from "@/components/layouts/container";
 import {
   LegalList,
   LegalPageLayout,
@@ -6,7 +7,6 @@ import {
   LegalSectionTitle,
   LegalSubSectionTitle,
 } from "@/components/layouts/legal-page-layout";
-import { Container } from "@/components/layouts/container";
 import { SETAGAYA_SITE_DISCLAIMER } from "@/config/site-disclaimer";
 
 export const metadata: Metadata = {
@@ -27,8 +27,7 @@ export default function TermsPage() {
         </LegalParagraph>
 
         <LegalParagraph>
-          みらい議会＠世田谷区（以下「本サービス」といいます。）をご利用いただく場合、以下の規約に同意いただいたものとみなします。本サービスは「みらい議会」をもとにした非公式Fork
-          MVPです。
+          みらい議会＠世田谷区（以下「本サービス」といいます。）をご利用いただく場合、以下の規約に同意いただいたものとみなします。本サービスは、世田谷区議会の公開資料をわかりやすく確認するための非公式サイトです。
         </LegalParagraph>
         <LegalList items={[...SETAGAYA_SITE_DISCLAIMER]} />
 

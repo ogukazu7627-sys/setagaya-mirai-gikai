@@ -6,7 +6,7 @@ import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/ge
 import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
-import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { FiscalYearArchiveSection } from "@/features/bills/server/components/fiscal-year-archive-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
@@ -14,13 +14,24 @@ import { CurrentDietSession } from "@/features/diet-sessions/client/components/c
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
 
-export default async function Home() {
-  const { billsByMajorCategory, featuredBills, previousSessionData } =
-    await loadHomeData();
+type HomeProps = {
+  searchParams?: Promise<{
+    archive_year?: string | string[];
+  }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const now = getJapanTime();
+  const { billsByMajorCategory, featuredBills, archiveData } =
+    await loadHomeData({
+      currentDate: now,
+      archiveYear: params?.archive_year,
+    });
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
   const [currentSession, currentDifficulty] = await Promise.all([
-    getCurrentDietSession(getJapanTime()),
+    getCurrentDietSession(now),
     getDifficultyLevel(),
   ]);
 
@@ -63,15 +74,11 @@ export default async function Home() {
         </div>
       </Container>
 
-      {/* 前回の世田谷区議会セクション（Archive） */}
-      {previousSessionData && (
+      {/* 前年度以前の世田谷区議会セクション */}
+      {archiveData.years.length > 0 && (
         <div className="bg-mirai-surface-muted py-10">
           <Container>
-            <PreviousSessionSection
-              session={previousSessionData.session}
-              bills={previousSessionData.bills}
-              totalBillCount={previousSessionData.totalBillCount}
-            />
+            <FiscalYearArchiveSection archiveData={archiveData} />
           </Container>
         </div>
       )}
@@ -80,10 +87,10 @@ export default async function Home() {
         {/* みらい議会とは セクション */}
         <About />
 
-        {/* Fork元について セクション */}
+        {/* 参考にしたプロジェクト セクション */}
         <TeamMirai />
 
-        {/* 免責事項 */}
+        {/* 掲載コンテンツについて */}
         <BillDisclaimer />
       </Container>
 

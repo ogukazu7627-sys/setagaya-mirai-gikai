@@ -240,6 +240,49 @@ export async function findPublishedBillsByDietSession(
 }
 
 /**
+ * 複数の世田谷区議会会期IDに紐づく公開済み案件を取得
+ */
+export async function findPublishedBillsByDietSessionIds(
+  dietSessionIds: string[],
+  difficultyLevel: DifficultyLevelEnum
+) {
+  if (dietSessionIds.length === 0) {
+    return [];
+  }
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      *,
+      bill_contents!inner (
+        id,
+        bill_id,
+        title,
+        summary,
+        content,
+        difficulty_level,
+        created_at,
+        updated_at
+      )
+    `
+    )
+    .in("diet_session_id", dietSessionIds)
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .order("submitted_date", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    throw new Error(
+      `Failed to fetch bills by diet session ids: ${error.message}`
+    );
+  }
+
+  return data ?? [];
+}
+
+/**
  * 前回の世田谷区議会会期の公開済み議案を取得（成立案件を優先、件数制限あり）
  */
 export async function findPreviousSessionBills(
@@ -416,6 +459,7 @@ export async function findFeaturedBillsWithContents(
     `
     )
     .eq("is_featured", true)
+    .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("submitted_date", { ascending: false, nullsFirst: false });
 
@@ -427,6 +471,56 @@ export async function findFeaturedBillsWithContents(
 
   if (error) {
     console.error("Failed to fetch featured bills:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+/**
+ * 複数の世田谷区議会会期IDに紐づく注目表示対象の公開済み案件を取得
+ */
+export async function findFeaturedBillsByDietSessionIds(
+  dietSessionIds: string[],
+  difficultyLevel: DifficultyLevelEnum
+) {
+  if (dietSessionIds.length === 0) {
+    return [];
+  }
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      *,
+      bill_contents!inner (
+        id,
+        bill_id,
+        title,
+        summary,
+        content,
+        difficulty_level,
+        created_at,
+        updated_at
+      ),
+      tags:bills_tags(
+        tag:tags(
+          id,
+          label,
+          major_category
+        )
+      )
+    `
+    )
+    .in("diet_session_id", dietSessionIds)
+    .eq("is_featured", true)
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .order("submitted_date", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    console.error("Failed to fetch featured bills by sessions:", error);
     return [];
   }
 

@@ -10,7 +10,7 @@ export function TeamMirai() {
             みらい議会
           </h2>
           <p className="text-sm font-bold text-primary-accent">
-            Fork元について
+            参考にしたプロジェクト
           </p>
         </div>
 
@@ -18,8 +18,7 @@ export function TeamMirai() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <p className="text-[15px] leading-[28px] text-black">
-              このサイトは、本家「みらい議会」の公開リポジトリをもとにした世田谷区議会向けの非公式Fork
-              MVPです。本サイトは、世田谷区および世田谷区議会の公式サイトではありません。公開されている公式資料をもとに、独自に整理・要約したものです。本サイトは、政党チームみらいが運営するものではありません。
+              このサイトは、国会の法案をわかりやすく紹介する「みらい議会」の考え方を参考に、世田谷区議会向けに作っています。世田谷区や世田谷区議会、政党チームみらいが運営する公式サイトではありません。
             </p>
           </div>
 
@@ -34,7 +33,7 @@ export function TeamMirai() {
                 height: 22,
               }}
             >
-              本家みらい議会を見る
+              元になったみらい議会を見る
             </LinkButton>
 
             <LinkButton

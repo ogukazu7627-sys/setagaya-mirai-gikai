@@ -26,7 +26,7 @@ const links: FooterLinkItem[] = [
     external: false,
   },
   {
-    label: "本家みらい議会",
+    label: "元になったみらい議会",
     href: EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI,
     external: true,
   },
@@ -58,7 +58,7 @@ export function DesktopMenuLinks() {
           lineHeight: "1.48em",
         }}
       >
-        みらい議会＠世田谷区 Fork MVP
+        みらい議会＠世田谷区
       </p>
     </div>
   );
