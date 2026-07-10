@@ -155,6 +155,7 @@ async function buildBillsWithContent(
     const { bill_contents, tags: _joinedTags, ...bill } = item;
     return {
       ...bill,
+      knowledge_source: null,
       bill_content: toHomeBillContent(bill_contents),
       tags: tagsByBillId.get(item.id) ?? [],
       hasPublicInterview: interviewBillIds.has(item.id),
