@@ -32,6 +32,7 @@ import {
   createPromptProvider,
   type PromptProvider,
 } from "@/lib/prompt";
+import { chatStreamErrorMessage } from "../utils/chat-error-response";
 import { recordUserChatMessageEvent } from "./chat-message-event-logger";
 import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 import {
@@ -163,7 +164,9 @@ export async function handleChatRequest({
       },
     });
 
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      onError: chatStreamErrorMessage,
+    });
   } catch (error) {
     console.error("LLM generation error:", error);
     throw new ChatError(
