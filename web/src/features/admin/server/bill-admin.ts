@@ -23,6 +23,7 @@ import {
   syncCouncilorBillStatements,
 } from "@/features/councilors/server/repositories/councilor-statement-repository";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 import {
   getSetagayaMockBillById,
@@ -140,6 +141,18 @@ type NewTagInput = {
   major_category: MajorCategoryLabel;
 };
 
+export class AdminBillSaveError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code: string,
+    public readonly billId?: string
+  ) {
+    super(message);
+    this.name = "AdminBillSaveError";
+  }
+}
+
 const billFormSchema = z
   .object({
     id: z.string().uuid().optional(),
@@ -197,6 +210,127 @@ const billFormSchema = z
         message: "タグは最大3つまでです",
       });
     }
+  });
+
+type AdminBillSaveInput = z.infer<typeof billFormSchema>;
+
+const nullableTrimmedStringSchema = z
+  .string()
+  .trim()
+  .nullable()
+  .optional()
+  .transform((value) => (value && value.length > 0 ? value : null));
+
+const adminDraftBillApiSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    name: z.string().trim().min(1, "正式タイトルは必須です"),
+    item_type: z
+      .enum(["bill", "report", "petition", "question"])
+      .default("bill"),
+    major_category: z.enum(majorCategoryLabels),
+    status: z
+      .enum([
+        "preparing",
+        "introduced",
+        "in_originating_house",
+        "in_receiving_house",
+        "enacted",
+        "rejected",
+      ])
+      .default("preparing"),
+    publish_status: z.literal("draft").optional(),
+    diet_session_id: z.string().uuid().nullable().optional(),
+    submitted_date: nullableTrimmedStringSchema,
+    status_label: nullableTrimmedStringSchema,
+    status_note: nullableTrimmedStringSchema,
+    thumbnail_url: nullableTrimmedStringSchema,
+    share_thumbnail_url: nullableTrimmedStringSchema,
+    knowledge_source: nullableTrimmedStringSchema,
+    is_review_completed: z.literal(false).optional(),
+    is_featured: z.boolean().optional().default(false),
+    interview_enabled: z.boolean().optional().default(false),
+    use_knowledge_source_in_chat: z.boolean().optional().default(false),
+    normal_title: z.string().trim().min(1, "normalの表示タイトルは必須です"),
+    normal_summary: z.string().trim().min(1, "normalの概要は必須です"),
+    normal_content: z.string().trim().min(1, "normalの本文は必須です"),
+    hard_title: nullableTrimmedStringSchema,
+    hard_summary: nullableTrimmedStringSchema,
+    hard_content: nullableTrimmedStringSchema,
+    tag_ids: z.array(z.string().uuid()).optional().default([]),
+    new_tags: z
+      .array(
+        z.object({
+          label: z.string().trim().min(1),
+          major_category: z.enum(majorCategoryLabels),
+        })
+      )
+      .optional()
+      .default([]),
+    new_tag_labels: z.array(z.string().trim()).optional().default([]),
+    new_tag_major_categories: z
+      .array(z.enum(majorCategoryLabels))
+      .optional()
+      .default([]),
+    new_tag_major_category: z.enum(majorCategoryLabels).optional(),
+    sources: z
+      .array(
+        z.object({
+          title: z.string().trim().min(1),
+          url: nullableTrimmedStringSchema,
+          source_type: z.string().trim().min(1).default("official_page"),
+          published_at: nullableTrimmedStringSchema,
+          accessed_at: nullableTrimmedStringSchema,
+        })
+      )
+      .optional()
+      .default([]),
+  })
+  .transform((value) => {
+    const fallbackCategory = value.new_tag_major_category ?? "教育🏫";
+    const newTagsFromLabels = value.new_tag_labels
+      .map((label, index) => ({
+        label: label.trim(),
+        major_category:
+          value.new_tag_major_categories[index] ?? fallbackCategory,
+      }))
+      .filter((tag) => tag.label.length > 0);
+
+    const dedupedNewTags = new Map<string, NewTagInput>();
+    for (const tag of [...value.new_tags, ...newTagsFromLabels]) {
+      if (!dedupedNewTags.has(tag.label)) {
+        dedupedNewTags.set(tag.label, tag);
+      }
+    }
+
+    return {
+      id: value.id,
+      name: value.name,
+      item_type: value.item_type,
+      major_category: value.major_category,
+      status: value.status,
+      publish_status: "draft" as const,
+      diet_session_id: value.diet_session_id ?? null,
+      submitted_date: value.submitted_date,
+      status_label: value.status_label,
+      status_note: value.status_note,
+      thumbnail_url: value.thumbnail_url,
+      share_thumbnail_url: value.share_thumbnail_url,
+      knowledge_source: value.knowledge_source,
+      is_review_completed: false,
+      is_featured: value.is_featured,
+      interview_enabled: value.interview_enabled,
+      use_knowledge_source_in_chat: value.use_knowledge_source_in_chat,
+      normal_title: value.normal_title,
+      normal_summary: value.normal_summary,
+      normal_content: value.normal_content,
+      hard_title: value.hard_title,
+      hard_summary: value.hard_summary,
+      hard_content: value.hard_content,
+      tag_ids: value.tag_ids,
+      new_tags: Array.from(dedupedNewTags.values()),
+      sources: value.sources,
+    } satisfies AdminBillSaveInput;
   });
 
 function nullableString(value: FormDataEntryValue | null): string | null {
@@ -596,7 +730,10 @@ export async function getAdminBillFormData(
   };
 }
 
-export async function ensurePreviewToken(billId: string): Promise<string> {
+export async function ensurePreviewToken(
+  billId: string,
+  createdBy = "admin"
+): Promise<string> {
   if (isSetagayaMockMode) {
     return "mock-preview-token";
   }
@@ -605,9 +742,8 @@ export async function ensurePreviewToken(billId: string): Promise<string> {
   const now = new Date();
   const { data: existing, error: existingError } = await supabase
     .from("preview_tokens")
-    .select("token, expires_at")
+    .select("id, token, expires_at")
     .eq("bill_id", billId)
-    .gt("expires_at", now.toISOString())
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -615,16 +751,30 @@ export async function ensurePreviewToken(billId: string): Promise<string> {
   if (existingError) {
     throw new Error(`Failed to fetch preview token: ${existingError.message}`);
   }
-  if (existing) return existing.token;
-
   const expiresAt = new Date(now);
   expiresAt.setDate(expiresAt.getDate() + 30);
+
+  if (existing) {
+    if (new Date(existing.expires_at) <= now) {
+      const { error } = await supabase
+        .from("preview_tokens")
+        .update({ expires_at: expiresAt.toISOString() })
+        .eq("id", existing.id);
+
+      if (error) {
+        throw new Error(`Failed to extend preview token: ${error.message}`);
+      }
+    }
+
+    return existing.token;
+  }
+
   const token = nanoid(32);
   const { error } = await supabase.from("preview_tokens").insert({
     bill_id: billId,
     token,
     expires_at: expiresAt.toISOString(),
-    created_by: "admin",
+    created_by: createdBy,
   });
 
   if (error) {
@@ -634,10 +784,13 @@ export async function ensurePreviewToken(billId: string): Promise<string> {
   return token;
 }
 
-async function resolveTagIds(tagIds: string[], newTags: NewTagInput[]) {
+async function resolveTagIds(
+  supabase: AdminSupabaseClient,
+  tagIds: string[],
+  newTags: NewTagInput[]
+) {
   if (newTags.length === 0) return Array.from(new Set(tagIds));
 
-  const supabase = createAdminClient();
   const newLabels = Array.from(new Set(newTags.map((tag) => tag.label)));
   // UIを経由しない送信でも、既存タグ名を新規タグとして作れないようにする。
   const { data: existingTags, error: existingError } = await supabase
@@ -679,22 +832,401 @@ async function resolveTagIds(tagIds: string[], newTags: NewTagInput[]) {
   return Array.from(new Set([...tagIds, ...(data ?? []).map((tag) => tag.id)]));
 }
 
-export async function saveAdminBill(formData: FormData) {
-  await requireAdmin();
-  if (isSetagayaMockMode) {
-    const id = nullableString(formData.get("id"));
-    const target = id ? `/admin/bills/${id}/edit` : "/admin/bills/new";
-    redirect(
-      `${target}?error=${encodeURIComponent(
-        "現在はローカルのモック表示中です。保存するにはSupabase接続を設定してください。"
-      )}` as Route
+type SaveAdminBillInputOptions = {
+  thumbnailFile?: File | null;
+  requireExistingDraft?: boolean;
+  previewCreatedBy?: string;
+  now?: string;
+};
+
+export type SaveAdminBillInputResult = {
+  billId: string;
+  mode: "created" | "updated";
+  previewToken: string;
+  unknownCouncilorNames: string[];
+};
+
+export type SaveAdminDraftBillApiResponse = {
+  success: true;
+  mode: "created" | "updated";
+  billId: string;
+  adminEditUrl: string;
+  previewUrl: string;
+  unknownCouncilorNames: string[];
+  forcedFields: {
+    publish_status: "draft";
+    is_review_completed: false;
+  };
+};
+
+function getFirstZodIssueMessage(error: z.ZodError): string {
+  return error.issues[0]?.message ?? "入力内容を確認してください。";
+}
+
+function assertDraftApiStateIsSafe(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return;
+  const value = input as Record<string, unknown>;
+
+  if (
+    "publish_status" in value &&
+    value.publish_status !== undefined &&
+    value.publish_status !== "draft"
+  ) {
+    throw new AdminBillSaveError(
+      "AI下書き保存APIではpublish_statusはdraftのみ指定できます。",
+      400,
+      "publish_status_not_allowed"
     );
   }
 
-  const parsed = parseBillFormDataOrRedirect(formData);
+  if (value.is_review_completed === true) {
+    throw new AdminBillSaveError(
+      "AI下書き保存APIではレビュー完了にはできません。",
+      400,
+      "review_completed_not_allowed"
+    );
+  }
+}
+
+function parseAdminDraftBillApiInput(input: unknown): AdminBillSaveInput {
+  assertDraftApiStateIsSafe(input);
+  const result = adminDraftBillApiSchema.safeParse(input);
+
+  if (!result.success) {
+    throw new AdminBillSaveError(
+      getFirstZodIssueMessage(result.error),
+      400,
+      "invalid_request"
+    );
+  }
+
+  const formResult = billFormSchema.safeParse(result.data);
+  if (!formResult.success) {
+    throw new AdminBillSaveError(
+      getFirstZodIssueMessage(formResult.error),
+      400,
+      "invalid_request"
+    );
+  }
+
+  return formResult.data;
+}
+
+export async function saveAdminBillInput(
+  input: AdminBillSaveInput,
+  options: SaveAdminBillInputOptions = {}
+): Promise<SaveAdminBillInputResult> {
+  if (isSetagayaMockMode) {
+    throw new AdminBillSaveError(
+      "現在はローカルのモック表示中です。保存するにはSupabase接続を設定してください。",
+      503,
+      "mock_mode"
+    );
+  }
+
   const supabase = createAdminClient();
-  const now = new Date().toISOString();
-  const isPublishing = parsed.publish_status === "published";
+  const now = options.now ?? new Date().toISOString();
+  const isPublishing = input.publish_status === "published";
+  const mode = input.id ? "updated" : "created";
+  let billId = input.id;
+  let thumbnailUrl = input.thumbnail_url;
+
+  if (options.requireExistingDraft && billId) {
+    const { data: existingBill, error: existingBillError } = await supabase
+      .from("bills")
+      .select("id, publish_status")
+      .eq("id", billId)
+      .maybeSingle();
+
+    if (existingBillError) {
+      throw new AdminBillSaveError(
+        `更新対象の確認に失敗しました: ${existingBillError.message}`,
+        500,
+        "bill_lookup_failed",
+        billId
+      );
+    }
+
+    if (!existingBill) {
+      throw new AdminBillSaveError(
+        "更新対象の案件が見つかりません。",
+        404,
+        "bill_not_found",
+        billId
+      );
+    }
+
+    if (existingBill.publish_status !== "draft") {
+      throw new AdminBillSaveError(
+        "AI下書き保存APIではdraft以外の案件は更新できません。",
+        409,
+        "non_draft_update_not_allowed",
+        billId
+      );
+    }
+  }
+
+  if (billId && options.thumbnailFile) {
+    try {
+      thumbnailUrl = await uploadBillThumbnail(
+        supabase,
+        billId,
+        options.thumbnailFile
+      );
+    } catch (error) {
+      throw new AdminBillSaveError(
+        error instanceof Error
+          ? error.message
+          : "サムネイルのアップロードに失敗しました。",
+        500,
+        "thumbnail_upload_failed",
+        billId
+      );
+    }
+  }
+
+  const billPayload = {
+    name: input.name,
+    item_type: input.item_type,
+    major_category: input.major_category,
+    status: input.status,
+    status_label: input.status_label,
+    status_note: input.status_note,
+    publish_status: input.publish_status,
+    originating_house: "HR" as const,
+    diet_session_id: input.diet_session_id,
+    submitted_date: dateToTimestamp(input.submitted_date),
+    published_at: isPublishing ? now : null,
+    thumbnail_url: thumbnailUrl,
+    share_thumbnail_url: input.share_thumbnail_url,
+    sources: input.sources,
+    knowledge_source: input.knowledge_source,
+    use_knowledge_source_in_chat: input.use_knowledge_source_in_chat,
+    is_review_completed: input.is_review_completed,
+    is_featured: input.is_featured,
+    interview_enabled: input.interview_enabled,
+    updated_at: now,
+  };
+
+  if (billId) {
+    const updatePayload = { ...billPayload };
+    if (!isPublishing) {
+      updatePayload.published_at = null;
+    }
+
+    const { error } = await supabase
+      .from("bills")
+      .update(updatePayload)
+      .eq("id", billId);
+
+    if (error) {
+      throw new AdminBillSaveError(
+        error.message,
+        500,
+        "bill_update_failed",
+        billId
+      );
+    }
+  } else {
+    const { data, error } = await supabase
+      .from("bills")
+      .insert(billPayload)
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      throw new AdminBillSaveError(
+        error?.message ?? "保存に失敗しました",
+        500,
+        "bill_insert_failed"
+      );
+    }
+
+    billId = data.id;
+
+    if (options.thumbnailFile) {
+      try {
+        thumbnailUrl = await uploadBillThumbnail(
+          supabase,
+          billId,
+          options.thumbnailFile
+        );
+      } catch (error) {
+        throw new AdminBillSaveError(
+          error instanceof Error
+            ? error.message
+            : "サムネイルのアップロードに失敗しました。",
+          500,
+          "thumbnail_upload_failed",
+          billId
+        );
+      }
+
+      const { error: thumbnailUpdateError } = await supabase
+        .from("bills")
+        .update({ thumbnail_url: thumbnailUrl, updated_at: now })
+        .eq("id", billId);
+
+      if (thumbnailUpdateError) {
+        throw new AdminBillSaveError(
+          thumbnailUpdateError.message,
+          500,
+          "thumbnail_update_failed",
+          billId
+        );
+      }
+    }
+  }
+
+  const hardTitle = input.hard_title || input.normal_title;
+  const hardSummary = input.hard_summary || input.normal_summary;
+  const hardContent = input.hard_content || input.normal_content;
+
+  const { error: contentsError } = await supabase.from("bill_contents").upsert(
+    [
+      {
+        bill_id: billId,
+        difficulty_level: "normal" as const,
+        title: input.normal_title,
+        summary: input.normal_summary,
+        content: input.normal_content,
+        updated_at: now,
+      },
+      {
+        bill_id: billId,
+        difficulty_level: "hard" as const,
+        title: hardTitle,
+        summary: hardSummary,
+        content: hardContent,
+        updated_at: now,
+      },
+    ],
+    { onConflict: "bill_id,difficulty_level" }
+  );
+
+  if (contentsError) {
+    throw new AdminBillSaveError(
+      contentsError.message,
+      500,
+      "bill_contents_upsert_failed",
+      billId
+    );
+  }
+
+  try {
+    await syncCouncilorBillStatements({
+      supabase,
+      billId,
+      normalContent: input.normal_content,
+      now,
+    });
+  } catch (error) {
+    throw new AdminBillSaveError(
+      error instanceof Error ? error.message : "議員発言の保存に失敗しました",
+      500,
+      "councilor_statement_sync_failed",
+      billId
+    );
+  }
+
+  let resolvedTagIds: string[];
+  try {
+    resolvedTagIds = await resolveTagIds(
+      supabase,
+      input.tag_ids,
+      input.new_tags
+    );
+  } catch (error) {
+    throw new AdminBillSaveError(
+      error instanceof Error ? error.message : "タグの保存に失敗しました",
+      400,
+      "tag_resolution_failed",
+      billId
+    );
+  }
+
+  const { error: deleteTagsError } = await supabase
+    .from("bills_tags")
+    .delete()
+    .eq("bill_id", billId);
+
+  if (deleteTagsError) {
+    throw new AdminBillSaveError(
+      deleteTagsError.message,
+      500,
+      "bill_tags_delete_failed",
+      billId
+    );
+  }
+
+  if (resolvedTagIds.length > 0) {
+    const { error: insertTagsError } = await supabase.from("bills_tags").insert(
+      resolvedTagIds.map((tagId) => ({
+        bill_id: billId,
+        tag_id: tagId,
+      }))
+    );
+
+    if (insertTagsError) {
+      throw new AdminBillSaveError(
+        insertTagsError.message,
+        500,
+        "bill_tags_insert_failed",
+        billId
+      );
+    }
+  }
+
+  const previewToken = await ensurePreviewToken(
+    billId,
+    options.previewCreatedBy ?? "admin"
+  );
+  const unknownCouncilorNames = await findUnknownCouncilorNamesByBillId(billId);
+
+  revalidateTag(CACHE_TAGS.BILLS);
+  revalidateTag(CACHE_TAGS.COUNCILOR_STATEMENTS);
+
+  return {
+    billId,
+    mode,
+    previewToken,
+    unknownCouncilorNames,
+  };
+}
+
+export async function saveAdminDraftBillFromJson(
+  input: unknown
+): Promise<SaveAdminDraftBillApiResponse> {
+  const parsed = parseAdminDraftBillApiInput(input);
+  const result = await saveAdminBillInput(parsed, {
+    requireExistingDraft: true,
+    previewCreatedBy: "admin-api",
+  });
+
+  return {
+    success: true,
+    mode: result.mode,
+    billId: result.billId,
+    adminEditUrl: new URL(
+      routes.adminBillEdit(result.billId),
+      env.webUrl
+    ).toString(),
+    previewUrl: new URL(
+      routes.previewBillDetail(result.billId, result.previewToken),
+      env.webUrl
+    ).toString(),
+    unknownCouncilorNames: result.unknownCouncilorNames,
+    forcedFields: {
+      publish_status: "draft",
+      is_review_completed: false,
+    },
+  };
+}
+
+export async function saveAdminBill(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = parseBillFormDataOrRedirect(formData);
   const thumbnailFile = (() => {
     try {
       return thumbnailFileFromFormData(formData);
@@ -728,187 +1260,24 @@ export async function saveAdminBill(formData: FormData) {
     }
   })();
 
-  let billId = parsed.id;
-  let thumbnailUrl = parsed.thumbnail_url;
-
-  if (billId && thumbnailFile) {
-    try {
-      thumbnailUrl = await uploadBillThumbnail(supabase, billId, thumbnailFile);
-    } catch (error) {
-      redirectToAdminBillFormError(
-        billId,
-        error instanceof Error
-          ? error.message
-          : "サムネイルのアップロードに失敗しました。"
-      );
-    }
-  }
-
-  const billPayload = {
-    name: parsed.name,
-    item_type: parsed.item_type,
-    major_category: parsed.major_category,
-    status: parsed.status,
-    status_label: parsed.status_label,
-    status_note: parsed.status_note,
-    publish_status: parsed.publish_status,
-    originating_house: "HR" as const,
-    diet_session_id: parsed.diet_session_id,
-    submitted_date: dateToTimestamp(parsed.submitted_date),
-    published_at: isPublishing ? now : null,
-    thumbnail_url: thumbnailUrl,
-    share_thumbnail_url: parsed.share_thumbnail_url,
-    sources: parsed.sources,
-    knowledge_source: knowledgeSource,
-    use_knowledge_source_in_chat: parsed.use_knowledge_source_in_chat,
-    is_review_completed: parsed.is_review_completed,
-    is_featured: parsed.is_featured,
-    interview_enabled: parsed.interview_enabled,
-    updated_at: now,
-  };
-
-  if (billId) {
-    const updatePayload = { ...billPayload };
-    if (!isPublishing) {
-      updatePayload.published_at = null;
-    }
-
-    const { error } = await supabase
-      .from("bills")
-      .update(updatePayload)
-      .eq("id", billId);
-    if (error) {
-      redirect(
-        `/admin/bills/${billId}/edit?error=${encodeURIComponent(error.message)}` as Route
-      );
-    }
-  } else {
-    const { data, error } = await supabase
-      .from("bills")
-      .insert(billPayload)
-      .select("id")
-      .single();
-    if (error || !data) {
-      redirect(
-        `/admin/bills/new?error=${encodeURIComponent(error?.message ?? "保存に失敗しました")}` as Route
-      );
-    }
-    billId = data.id;
-
-    if (thumbnailFile) {
-      try {
-        thumbnailUrl = await uploadBillThumbnail(
-          supabase,
-          billId,
-          thumbnailFile
-        );
-      } catch (error) {
-        redirectToAdminBillFormError(
-          billId,
-          error instanceof Error
-            ? error.message
-            : "サムネイルのアップロードに失敗しました。"
-        );
-      }
-
-      const { error: thumbnailUpdateError } = await supabase
-        .from("bills")
-        .update({ thumbnail_url: thumbnailUrl, updated_at: now })
-        .eq("id", billId);
-
-      if (thumbnailUpdateError) {
-        redirectToAdminBillFormError(billId, thumbnailUpdateError.message);
-      }
-    }
-  }
-
-  const hardTitle = parsed.hard_title || parsed.normal_title;
-  const hardSummary = parsed.hard_summary || parsed.normal_summary;
-  const hardContent = parsed.hard_content || parsed.normal_content;
-
-  const { error: contentsError } = await supabase.from("bill_contents").upsert(
-    [
-      {
-        bill_id: billId,
-        difficulty_level: "normal" as const,
-        title: parsed.normal_title,
-        summary: parsed.normal_summary,
-        content: parsed.normal_content,
-        updated_at: now,
-      },
-      {
-        bill_id: billId,
-        difficulty_level: "hard" as const,
-        title: hardTitle,
-        summary: hardSummary,
-        content: hardContent,
-        updated_at: now,
-      },
-    ],
-    { onConflict: "bill_id,difficulty_level" }
-  );
-
-  if (contentsError) {
-    redirect(
-      `/admin/bills/${billId}/edit?error=${encodeURIComponent(contentsError.message)}` as Route
-    );
-  }
-
+  let result: SaveAdminBillInputResult;
   try {
-    await syncCouncilorBillStatements({
-      supabase,
+    result = await saveAdminBillInput(
+      { ...parsed, knowledge_source: knowledgeSource },
+      { thumbnailFile, previewCreatedBy: "admin" }
+    );
+  } catch (error) {
+    const billId =
+      error instanceof AdminBillSaveError
+        ? (error.billId ?? parsed.id)
+        : parsed.id;
+    redirectToAdminBillFormError(
       billId,
-      normalContent: parsed.normal_content,
-      now,
-    });
-  } catch (error) {
-    redirect(
-      `/admin/bills/${billId}/edit?error=${encodeURIComponent(
-        error instanceof Error ? error.message : "議員発言の保存に失敗しました"
-      )}` as Route
+      error instanceof Error ? error.message : "保存に失敗しました。"
     );
   }
 
-  let resolvedTagIds: string[];
-  try {
-    resolvedTagIds = await resolveTagIds(parsed.tag_ids, parsed.new_tags);
-  } catch (error) {
-    redirect(
-      `/admin/bills/${billId}/edit?error=${encodeURIComponent(
-        error instanceof Error ? error.message : "タグの保存に失敗しました"
-      )}` as Route
-    );
-  }
-  const { error: deleteTagsError } = await supabase
-    .from("bills_tags")
-    .delete()
-    .eq("bill_id", billId);
-
-  if (deleteTagsError) {
-    redirect(
-      `/admin/bills/${billId}/edit?error=${encodeURIComponent(deleteTagsError.message)}` as Route
-    );
-  }
-
-  if (resolvedTagIds.length > 0) {
-    const { error: insertTagsError } = await supabase.from("bills_tags").insert(
-      resolvedTagIds.map((tagId) => ({
-        bill_id: billId,
-        tag_id: tagId,
-      }))
-    );
-
-    if (insertTagsError) {
-      redirect(
-        `/admin/bills/${billId}/edit?error=${encodeURIComponent(insertTagsError.message)}` as Route
-      );
-    }
-  }
-
-  await ensurePreviewToken(billId);
-  revalidateTag(CACHE_TAGS.BILLS);
-  revalidateTag(CACHE_TAGS.COUNCILOR_STATEMENTS);
-  redirect(`/admin/bills/${billId}/edit?saved=1` as Route);
+  redirect(`/admin/bills/${result.billId}/edit?saved=1` as Route);
 }
 
 export async function deleteAdminBill(formData: FormData) {

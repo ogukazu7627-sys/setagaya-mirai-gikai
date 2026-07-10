@@ -65,6 +65,7 @@ export const env = {
   supabasePublishableKey:
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "setagaya-mock-key",
   revalidateSecret: process.env.REVALIDATE_SECRET,
+  adminApiToken: process.env.ADMIN_API_TOKEN,
   analytics: {
     gaTrackingId: process.env.NEXT_PUBLIC_GA_TRACKING_ID,
   },
