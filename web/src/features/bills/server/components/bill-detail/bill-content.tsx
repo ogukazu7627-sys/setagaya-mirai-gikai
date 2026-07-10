@@ -15,10 +15,11 @@ const HEADING_REPLACEMENTS: Array<[RegExp, string]> = [
     /^(#{1,6})\s+影響を受ける(?:可能性がある)?人(?:・団体)?\s*$/gm,
     "$1 関係する人・地域",
   ],
+  [/^(#{1,6})\s+意見が分かれるところ\s*$/gm, "$1 考えておきたいこと"],
   [/^(#{1,6})\s+チームみらいの賛否\s*$/gm, "$1 議会での結果"],
 ];
 
-function normalizeSetagayaHeadings(markdown: string): string {
+export function normalizeSetagayaHeadings(markdown: string): string {
   return HEADING_REPLACEMENTS.reduce(
     (current, [pattern, replacement]) => current.replace(pattern, replacement),
     markdown
