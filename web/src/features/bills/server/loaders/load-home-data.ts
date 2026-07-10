@@ -155,13 +155,28 @@ async function buildBillsWithContent(
     const { bill_contents, tags: _joinedTags, ...bill } = item;
     return {
       ...bill,
-      bill_content: Array.isArray(bill_contents)
-        ? bill_contents[0]
-        : (bill_contents ?? undefined),
+      bill_content: toHomeBillContent(bill_contents),
       tags: tagsByBillId.get(item.id) ?? [],
       hasPublicInterview: interviewBillIds.has(item.id),
     };
   }) as BillWithContent[];
+}
+
+function toHomeBillContent(
+  billContents: BillContent[] | BillContent | null
+): BillContent | undefined {
+  const billContent = Array.isArray(billContents)
+    ? billContents[0]
+    : (billContents ?? undefined);
+
+  if (!billContent) {
+    return undefined;
+  }
+
+  return {
+    ...billContent,
+    content: "",
+  };
 }
 
 function uniqueYearsFromSessions(
