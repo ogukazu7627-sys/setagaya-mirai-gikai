@@ -49,6 +49,11 @@ export default async function AdminBillsPage({
             <Button variant="outline" asChild>
               <Link href={routes.adminDietSessions() as Route}>会期管理</Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link href={routes.adminIssueReports() as Route}>
+                問い合わせ管理
+              </Link>
+            </Button>
             <Button asChild>
               <Link href={routes.adminBillNew() as Route}>
                 新しい案件を追加
