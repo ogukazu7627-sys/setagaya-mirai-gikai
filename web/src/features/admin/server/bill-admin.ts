@@ -425,9 +425,9 @@ async function uploadBillThumbnail(
   return data.publicUrl;
 }
 
-function dateToTimestamp(value: string | null): string | null {
+function submittedDateToDbValue(value: string | null): string | null {
   if (!value) return null;
-  return `${value}T00:00:00+09:00`;
+  return value.slice(0, 10);
 }
 
 function sourcesFromFormData(formData: FormData): BillSource[] {
@@ -995,7 +995,7 @@ export async function saveAdminBillInput(
     publish_status: input.publish_status,
     originating_house: "HR" as const,
     diet_session_id: input.diet_session_id,
-    submitted_date: dateToTimestamp(input.submitted_date),
+    submitted_date: submittedDateToDbValue(input.submitted_date),
     published_at: isPublishing ? now : null,
     thumbnail_url: thumbnailUrl,
     share_thumbnail_url: input.share_thumbnail_url,

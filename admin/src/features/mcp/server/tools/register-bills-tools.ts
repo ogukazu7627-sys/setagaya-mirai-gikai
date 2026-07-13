@@ -106,9 +106,7 @@ export function registerBillsTools(server: McpServer): void {
     async (input) => {
       const inserted = await createBillRecord({
         ...input,
-        submitted_date: input.submitted_date
-          ? `${input.submitted_date}T00:00:00+09:00`
-          : null,
+        submitted_date: input.submitted_date || null,
       });
       await invalidateBillsCache();
       return jsonResult({ ok: true, bill: inserted });
