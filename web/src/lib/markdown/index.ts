@@ -12,6 +12,7 @@ import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 import { LongPressSection } from "@/features/bills/client/components/bill-detail/long-press-section";
 import { DifficultyInfoCard } from "@/features/bills/server/components/bill-detail/difficulty-info-card";
+import { COUNCILOR_OPINION_SECTION_TITLE } from "./councilor-opinion-section";
 import { rehypeCouncilorOpinionIcons } from "./rehype-councilor-opinion-icons";
 import { rehypeEmbedYouTube } from "./rehype-embed-youtube";
 import { rehypeExternalLinks } from "./rehype-external-links";
@@ -81,7 +82,7 @@ export async function parseMarkdown(markdown: string): Promise<ReactElement> {
     .use(rehypeInjectElement, {
       injections: [
         {
-          targetHeadingText: "関係する人・地域",
+          targetHeadingText: COUNCILOR_OPINION_SECTION_TITLE,
           tagName: "LongPressSection",
         },
         {

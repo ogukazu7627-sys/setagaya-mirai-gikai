@@ -62,7 +62,7 @@ function validDraftBody(overrides: Record<string, unknown> = {}) {
     normal_title: `AI下書きタイトル ${suffix}`,
     normal_summary: "AI下書きの概要です。",
     normal_content:
-      "# 概要\n\n本文です。\n\n# 議員の意見\n\n## 公明党世田谷区議団\n\n防災について確認しました。",
+      "# 概要\n\n本文です。\n\n# 議員、会派の意見\n\n## 公明党世田谷区議団\n\n防災について確認しました。",
     sources: [
       {
         title: "公式資料",
@@ -202,7 +202,7 @@ describe("POST /api/admin/bills/draft", () => {
     ).toHaveBeenCalledWith(
       expect.objectContaining({
         billId: body.billId,
-        normalContent: expect.stringContaining("# 議員の意見"),
+        normalContent: expect.stringContaining("# 議員、会派の意見"),
       })
     );
   });

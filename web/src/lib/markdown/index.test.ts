@@ -50,7 +50,7 @@ https://www.youtube.com/watch?v=safe123`;
 
 本文。
 
-# 議員の意見
+# 議員、会派の意見
 
 ## 福田たえ美議員
 

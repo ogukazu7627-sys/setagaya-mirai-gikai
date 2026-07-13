@@ -17,4 +17,10 @@ describe("normalizeSetagayaHeadings", () => {
       "## 考えておきたいこと"
     );
   });
+
+  it("renames the legacy councilor opinion heading", () => {
+    expect(normalizeSetagayaHeadings(`# 議員の意見`)).toBe(
+      "# 議員、会派の意見"
+    );
+  });
 });

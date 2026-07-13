@@ -5,6 +5,7 @@ import {
   DEFAULT_COUNCILOR_ICON_URL,
   getCouncilorIconUrl,
 } from "./councilor-icon-config";
+import { isCouncilorOpinionSectionTitle } from "./councilor-opinion-section";
 
 export interface RehypeCouncilorOpinionIconsOptions {
   iconUrlByName?: Record<string, string>;
@@ -142,7 +143,9 @@ export const rehypeCouncilorOpinionIcons: Plugin<
       }
 
       if (child.tagName === "h1") {
-        inCouncilorOpinionSection = getElementText(child) === "議員の意見";
+        inCouncilorOpinionSection = isCouncilorOpinionSectionTitle(
+          getElementText(child)
+        );
         continue;
       }
 

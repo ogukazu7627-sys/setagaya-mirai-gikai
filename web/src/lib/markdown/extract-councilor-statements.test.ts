@@ -9,7 +9,7 @@ describe("extractCouncilorStatementsFromMarkdown", () => {
 
 本文。
 
-# 議員の意見
+# 議員、会派の意見
 
 ## 福田たえ美議員（公明党世田谷区議団）
 
@@ -36,7 +36,7 @@ A. いいえ。`);
         partyOrGroup: "公明党世田谷区議団",
         contentMd: "子育て支援について質問しました。\n\n- 保育枠\n- 相談体制",
         contentText: "子育て支援について質問しました。 保育枠 相談体制",
-        sourceSectionTitle: "議員の意見",
+        sourceSectionTitle: "議員、会派の意見",
       },
       {
         statementIndex: 1,
@@ -45,13 +45,14 @@ A. いいえ。`);
         partyOrGroup: null,
         contentMd: "防災体制について確認しました。",
         contentText: "防災体制について確認しました。",
-        sourceSectionTitle: "議員の意見",
+        sourceSectionTitle: "議員、会派の意見",
       },
     ]);
   });
 
   it("matches suffixes, parties, spaces, and unicode variants", () => {
-    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+    const statements =
+      extractCouncilorStatementsFromMarkdown(`# 議員、会派の意見
 
 ## 石原せいじ 議員（会派）
 
@@ -62,7 +63,8 @@ A. いいえ。`);
   });
 
   it("keeps faction headings as statement actors", () => {
-    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+    const statements =
+      extractCouncilorStatementsFromMarkdown(`# 議員、会派の意見
 
 ## 公明党世田谷区議団
 
@@ -88,7 +90,8 @@ A. いいえ。`);
   });
 
   it("stops content before the next h2 or h1 heading", () => {
-    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+    const statements =
+      extractCouncilorStatementsFromMarkdown(`# 議員、会派の意見
 
 ## 福田たえ美議員
 
@@ -115,7 +118,8 @@ A. いいえ。`);
   });
 
   it("skips empty councilor headings", () => {
-    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+    const statements =
+      extractCouncilorStatementsFromMarkdown(`# 議員、会派の意見
 
 ## 福田たえ美議員
 
@@ -126,5 +130,20 @@ A. いいえ。`);
     expect(statements).toHaveLength(1);
     expect(statements[0]?.councilorName).toBe("山田太郎");
     expect(statements[0]?.statementIndex).toBe(0);
+  });
+
+  it("accepts the legacy councilor opinion section heading", () => {
+    const statements = extractCouncilorStatementsFromMarkdown(`# 議員の意見
+
+## 福田たえ美議員
+
+発言内容。`);
+
+    expect(statements).toMatchObject([
+      {
+        councilorName: "福田たえ美",
+        sourceSectionTitle: "議員、会派の意見",
+      },
+    ]);
   });
 });
