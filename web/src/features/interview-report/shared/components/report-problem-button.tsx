@@ -1,12 +1,12 @@
+import type { Route } from "next";
 import Image from "next/image";
-import { EXTERNAL_LINKS } from "@/config/external-links";
+import Link from "next/link";
+import { routes } from "@/lib/routes";
 
 export function ReportProblemButton() {
   return (
-    <a
-      href={EXTERNAL_LINKS.REPORT}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      href={routes.reportProblem() as Route}
       className="flex items-center justify-center gap-1.5 py-2 text-base font-bold"
     >
       <Image
@@ -17,6 +17,6 @@ export function ReportProblemButton() {
         className="shrink-0"
       />
       問題を報告する
-    </a>
+    </Link>
   );
 }

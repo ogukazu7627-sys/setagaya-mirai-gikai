@@ -34,6 +34,12 @@ export function AdminShell({ user, children }: AdminShellProps) {
               >
                 会期
               </Link>
+              <Link
+                href={routes.adminIssueReports() as Route}
+                className="hover:underline"
+              >
+                問い合わせ
+              </Link>
             </nav>
             <span className="hidden text-xs text-mirai-text-secondary sm:inline">
               {user.email}

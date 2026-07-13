@@ -11,6 +11,8 @@ export const routes = {
   home: () => "/" as const,
   terms: () => "/terms" as const,
   privacy: () => "/privacy" as const,
+  reportProblem: () => "/report-problem" as const,
+  reportProblemThanks: () => "/report-problem/thanks" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
@@ -21,6 +23,7 @@ export const routes = {
   adminDietSessions: () => "/admin/diet-sessions" as const,
   adminDietSessionEdit: (sessionId: string) =>
     `/admin/diet-sessions/${sessionId}/edit` as const,
+  adminIssueReports: () => "/admin/reports" as const,
 
   // ── 議案 ──────────────────────────────────────────
   billDetail: (billId: string) => `/bills/${billId}` as const,
