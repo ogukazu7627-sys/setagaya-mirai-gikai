@@ -159,11 +159,12 @@ describe("POST /api/admin/bills/draft", () => {
 
     const { data: bill } = await adminClient
       .from("bills")
-      .select("publish_status, is_review_completed, sources")
+      .select("publish_status, is_review_completed, sources, submitted_date")
       .eq("id", body.billId)
       .single();
     expect(bill?.publish_status).toBe("draft");
     expect(bill?.is_review_completed).toBe(false);
+    expect(bill?.submitted_date?.slice(0, 10)).toBe("2026-02-15");
     expect(bill?.sources).toEqual([
       {
         title: "公式資料",

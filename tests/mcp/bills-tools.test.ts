@@ -129,7 +129,7 @@ describe("MCP bills tools", () => {
   });
 
   describe("create_bill", () => {
-    it("submitted_date が指定されると日本時刻 ISO に変換して保存する", async () => {
+    it("submitted_date が指定されると日付として保存する", async () => {
       const result = await registry.callTool<{
         ok: boolean;
         bill: { id: string };
@@ -153,10 +153,7 @@ describe("MCP bills tools", () => {
         .select("submitted_date")
         .eq("id", result.bill.id)
         .single();
-      // Postgres は timestamptz を UTC 正規化して返すため、瞬間時刻として比較する。
-      expect(new Date(data?.submitted_date ?? "").toISOString()).toBe(
-        new Date("2025-04-01T00:00:00+09:00").toISOString()
-      );
+      expect(data?.submitted_date?.slice(0, 10)).toBe("2025-04-01");
     });
 
     it("submitted_date が空文字の場合は null として保存する", async () => {
@@ -273,7 +270,7 @@ describe("MCP bills tools", () => {
       await adminClient
         .from("bills")
         .update({
-          submitted_date: "2025-04-01T00:00:00+09:00",
+          submitted_date: "2025-04-01",
           status_note: "初期備考",
         })
         .eq("id", bill.id);
@@ -296,9 +293,7 @@ describe("MCP bills tools", () => {
       expect(data?.originating_house).toBe("HR");
       expect(data?.is_featured).toBe(false);
       expect(data?.status_note).toBe("初期備考");
-      expect(new Date(data?.submitted_date ?? "").toISOString()).toBe(
-        new Date("2025-04-01T00:00:00+09:00").toISOString()
-      );
+      expect(data?.submitted_date?.slice(0, 10)).toBe("2025-04-01");
     });
 
     it("submitted_date に空文字を指定すると null に更新される", async () => {
@@ -306,7 +301,7 @@ describe("MCP bills tools", () => {
       billIds.push(bill.id);
       await adminClient
         .from("bills")
-        .update({ submitted_date: "2025-04-01T00:00:00+09:00" })
+        .update({ submitted_date: "2025-04-01" })
         .eq("id", bill.id);
 
       const result = await registry.callTool<{ ok: boolean }>("update_bill", {

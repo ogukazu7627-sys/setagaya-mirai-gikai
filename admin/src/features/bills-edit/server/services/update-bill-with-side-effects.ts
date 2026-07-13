@@ -27,9 +27,7 @@ export async function updateBillWithSideEffects(
   await updateBillRecord(id, {
     ...definedFields,
     ...(submitted_date !== undefined && {
-      submitted_date: submitted_date
-        ? `${submitted_date}T00:00:00+09:00`
-        : null,
+      submitted_date: submitted_date || null,
     }),
     updated_at: new Date().toISOString(),
   });
