@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { requireAdmin } from "@/features/admin/server/auth";
 import { routes } from "@/lib/routes";
 
 const ISSUE_REPORT_CATEGORIES = [
@@ -95,4 +96,28 @@ export async function createIssueReportAction(formData: FormData) {
   }
 
   redirect(routes.reportProblemThanks() as Route);
+}
+
+export async function resolveIssueReportAction(formData: FormData) {
+  await requireAdmin(routes.adminIssueReports());
+
+  const reportId = z
+    .string()
+    .uuid()
+    .parse(String(formData.get("report_id") ?? ""));
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("issue_reports")
+    .update({
+      status: "resolved",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", reportId);
+
+  if (error) {
+    redirect(`${routes.adminIssueReports()}?error=resolve_failed` as Route);
+  }
+
+  redirect(`${routes.adminIssueReports()}?resolved=1` as Route);
 }

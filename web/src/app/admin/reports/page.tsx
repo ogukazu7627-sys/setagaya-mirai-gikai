@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
+import { resolveIssueReportAction } from "@/features/issue-report/server/actions";
 import {
   type AdminIssueReport,
   listAdminIssueReports,
@@ -43,6 +45,8 @@ function formatDateTime(value: string) {
 }
 
 function IssueReportCard({ report }: { report: AdminIssueReport }) {
+  const isResolved = report.status === "resolved";
+
   return (
     <Card>
       <CardHeader>
@@ -52,7 +56,7 @@ function IssueReportCard({ report }: { report: AdminIssueReport }) {
               <Badge variant="secondary">
                 {CATEGORY_LABELS[report.category] ?? report.category}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant={isResolved ? "default" : "outline"}>
                 {STATUS_LABELS[report.status] ?? report.status}
               </Badge>
             </div>
@@ -63,14 +67,24 @@ function IssueReportCard({ report }: { report: AdminIssueReport }) {
               {formatDateTime(report.created_at)}
             </CardDescription>
           </div>
-          {report.bill && (
-            <Link
-              href={routes.adminBillEdit(report.bill.id) as Route}
-              className="text-sm font-bold text-mirai-primary hover:underline"
-            >
-              案件を編集
-            </Link>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {report.bill && (
+              <Link
+                href={routes.adminBillEdit(report.bill.id) as Route}
+                className="text-sm font-bold text-mirai-primary hover:underline"
+              >
+                案件を編集
+              </Link>
+            )}
+            {!isResolved && (
+              <form action={resolveIssueReportAction}>
+                <input type="hidden" name="report_id" value={report.id} />
+                <Button type="submit" size="sm" variant="outline">
+                  対応完了
+                </Button>
+              </form>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -107,8 +121,18 @@ function IssueReportCard({ report }: { report: AdminIssueReport }) {
   );
 }
 
-export default async function AdminReportsPage() {
-  const [user, reports] = await Promise.all([
+interface AdminReportsPageProps {
+  searchParams?: Promise<{
+    error?: string;
+    resolved?: string;
+  }>;
+}
+
+export default async function AdminReportsPage({
+  searchParams,
+}: AdminReportsPageProps) {
+  const [params, user, reports] = await Promise.all([
+    searchParams,
     requireAdmin(routes.adminIssueReports()),
     listAdminIssueReports(),
   ]);
@@ -122,6 +146,23 @@ export default async function AdminReportsPage() {
             公開画面の「問題を報告する」フォームから届いた内容を確認します。
           </p>
         </div>
+
+        {params?.resolved === "1" && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
+            対応済みにしました。
+          </div>
+        )}
+        {params?.error === "resolve_failed" && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            対応状態の更新に失敗しました。
+          </div>
+        )}
+
+        {reports.length > 0 && (
+          <p className="text-sm text-mirai-text-secondary">
+            未対応のカードは「対応完了」を押すと、ラベルが対応済みに変わります。
+          </p>
+        )}
 
         {reports.length === 0 ? (
           <Card>
