@@ -22,7 +22,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年7月8日
+          最終更新日：2026年7月14日
         </p>
 
         <section className="space-y-4">
@@ -51,6 +51,7 @@ export default function PrivacyPage() {
               "本サービスの安全な運営に必要な不正対策",
               "Googleログインを利用した本人確認、AIチャット利用者の識別、利用上限の管理",
               "AIチャットに入力された内容への回答生成、品質改善、不正利用・過剰利用の防止",
+              "問題報告・お問い合わせへの対応、掲載内容や表示不具合の確認・改善",
               "本サービスの改善・新規開発",
               "上記の各利用目的に必要な各種調査・分析",
               "「3. 第三者への情報提供について」に定める場合における第三者への開示・提供",
@@ -58,6 +59,9 @@ export default function PrivacyPage() {
           />
           <LegalParagraph>
             AIチャットを利用する場合、Googleアカウントから提供されるメールアドレス、プロフィール情報、ユーザーID、チャットに入力された内容、利用日時、利用量、技術的なログを取得することがあります。Gmail送信やGmail下書き作成の権限は、現時点では取得しません。
+          </LegalParagraph>
+          <LegalParagraph>
+            問題報告・お問い合わせフォームを利用する場合、入力された本文、任意で入力された氏名・メールアドレス、対象ページURL、対象案件ID、送信時の技術的なログを取得することがあります。
           </LegalParagraph>
         </section>
 

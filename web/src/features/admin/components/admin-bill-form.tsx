@@ -387,7 +387,7 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
         <CardHeader>
           <CardTitle>タグ・出典・チャット情報</CardTitle>
           <CardDescription>
-            タグは案件編集の中で選択・追加します。出典は詳細ページ下部に表示されます。
+            タグは案件編集の中で選択・追加します。出典は公開詳細ページの補足資料として表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">

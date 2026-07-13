@@ -16,6 +16,7 @@ export async function BillShareButtons({
   return (
     <div className={`flex flex-col gap-3 ${className || ""}`}>
       <BillShareButtonsClient
+        billId={bill.id}
         shareMessage={shareMessage}
         shareUrl={shareUrl}
         thumbnailUrl={thumbnailUrl}

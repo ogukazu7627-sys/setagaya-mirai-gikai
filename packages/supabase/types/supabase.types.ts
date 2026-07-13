@@ -898,6 +898,56 @@ export type Database = {
           },
         ]
       }
+      issue_reports: {
+        Row: {
+          bill_id: string | null
+          category: string
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          message: string
+          page_url: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          bill_id?: string | null
+          category?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          page_url?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          bill_id?: string | null
+          category?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_reports_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_reactions: {
         Row: {
           created_at: string

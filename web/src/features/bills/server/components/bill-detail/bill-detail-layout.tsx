@@ -12,6 +12,7 @@ import { BillShareButtons } from "../share/bill-share-buttons";
 import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
 import { CouncilVoteResultCard } from "./council-vote-result-card";
+import { OfficialSourcesSection } from "./official-sources-section";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
@@ -64,6 +65,8 @@ export async function BillDetailLayout({
           <div className="my-8">
             <CouncilVoteResultCard bill={bill} />
           </div>
+
+          <OfficialSourcesSection bill={bill} />
         </Container>
       </BillDetailClient>
 
