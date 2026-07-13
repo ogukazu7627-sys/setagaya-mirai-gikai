@@ -37,7 +37,7 @@ describe("rehypeCouncilorOpinionIcons", () => {
 
 本文。
 
-# 議員の意見
+# 議員、会派の意見
 
 ## 福田たえ美議員（公明党世田谷区議団）
 
@@ -90,7 +90,7 @@ A. いいえ。`);
         .use(rehypeWrapSections)
         .use(rehypeCouncilorOpinionIcons)
         .use(rehypeStringify)
-        .process(`# 議員の意見
+        .process(`# 議員、会派の意見
 
 ## 福田たえ美議員
 
@@ -98,6 +98,17 @@ A. いいえ。`);
     );
 
     expect(html).toContain('src="/icons/councilors/fukuda-taemi.jpg"');
+  });
+
+  it("keeps decorating legacy councilor opinion sections", async () => {
+    const html = await renderMarkdown(`# 議員の意見
+
+## 福田たえ美議員
+
+発言内容。`);
+
+    expect(html).toContain("councilor-opinion-heading");
+    expect(html).toContain('src="/icons/councilors/fukuda-taemi.png"');
   });
 
   it("has icon files for all configured Setagaya councilors", () => {

@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { unified } from "unified";
+import rehypeStringify from "rehype-stringify";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
+import { unified } from "unified";
+import { describe, expect, it } from "vitest";
 import { rehypeInjectElement } from "./rehype-inject-element";
 
 describe("rehypeInjectElement", () => {
@@ -256,9 +256,9 @@ Point.
 
 Background.
 
-# 関係する人・地域
+# 議員、会派の意見
 
-People.
+Opinions.
 
 # 主な論点
 
@@ -278,7 +278,7 @@ Answer.`;
       .use(rehypeInjectElement, {
         injections: [
           {
-            targetHeadingText: "関係する人・地域",
+            targetHeadingText: "議員、会派の意見",
             tagName: "LongPressSection",
           },
           {
@@ -293,7 +293,7 @@ Answer.`;
     const html = String(result);
 
     expect(html.indexOf("<LongPressSection")).toBeLessThan(
-      html.indexOf("<h1>関係する人・地域</h1>")
+      html.indexOf("<h1>議員、会派の意見</h1>")
     );
     expect(html.indexOf("<DifficultyInfoCard")).toBeLessThan(
       html.indexOf("<h1>よくある質問</h1>")

@@ -5,8 +5,10 @@ import {
   normalizeCouncilorName,
   normalizeCouncilorText,
 } from "./councilor-icon-config";
-
-const COUNCILOR_OPINION_SECTION_TITLE = "議員の意見";
+import {
+  COUNCILOR_OPINION_SECTION_TITLE,
+  isCouncilorOpinionSectionTitle,
+} from "./councilor-opinion-section";
 
 type MarkdownNode = {
   type: string;
@@ -80,9 +82,7 @@ export function extractCouncilorStatementsFromMarkdown(
   const nodes = root.children ?? [];
   const sectionStartIndex = nodes.findIndex(
     (node) =>
-      isHeading(node, 1) &&
-      normalizeCouncilorText(getNodeText(node)) ===
-        COUNCILOR_OPINION_SECTION_TITLE
+      isHeading(node, 1) && isCouncilorOpinionSectionTitle(getNodeText(node))
   );
 
   if (sectionStartIndex === -1) {

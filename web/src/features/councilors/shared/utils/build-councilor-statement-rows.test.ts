@@ -15,7 +15,7 @@ describe("buildCouncilorStatementRows", () => {
           partyOrGroup: null,
           contentMd: "発言内容A",
           contentText: "発言内容A",
-          sourceSectionTitle: "議員の意見",
+          sourceSectionTitle: "議員、会派の意見",
         },
         {
           statementIndex: 1,
@@ -24,7 +24,7 @@ describe("buildCouncilorStatementRows", () => {
           partyOrGroup: "会派",
           contentMd: "発言内容B",
           contentText: "発言内容B",
-          sourceSectionTitle: "議員の意見",
+          sourceSectionTitle: "議員、会派の意見",
         },
       ],
     });
@@ -71,7 +71,7 @@ describe("buildCouncilorStatementRows", () => {
           partyOrGroup: null,
           contentMd: "発言内容A",
           contentText: "発言内容A",
-          sourceSectionTitle: "議員の意見",
+          sourceSectionTitle: "議員、会派の意見",
         },
         {
           statementIndex: 1,
@@ -80,7 +80,7 @@ describe("buildCouncilorStatementRows", () => {
           partyOrGroup: null,
           contentMd: "発言内容B",
           contentText: "発言内容B",
-          sourceSectionTitle: "議員の意見",
+          sourceSectionTitle: "議員、会派の意見",
         },
       ],
     });
@@ -101,7 +101,7 @@ describe("buildCouncilorStatementRows", () => {
           partyOrGroup: null,
           contentMd: "会派としての意見本文。",
           contentText: "会派としての意見本文。",
-          sourceSectionTitle: "議員の意見",
+          sourceSectionTitle: "議員、会派の意見",
         },
       ],
     });
