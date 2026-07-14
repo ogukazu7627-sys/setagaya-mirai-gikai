@@ -51,6 +51,7 @@ const THUMBNAIL_EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
+export const ADMIN_BILLS_PER_PAGE = 20;
 
 export const BILL_ITEM_TYPE_OPTIONS: Array<{
   value: BillItemType;
@@ -616,29 +617,63 @@ function mockFormData(billId?: string): AdminBillFormData {
   };
 }
 
-export async function listAdminBills(): Promise<AdminBillListItem[]> {
+interface ListAdminBillsOptions {
+  page?: number;
+  perPage?: number;
+}
+
+export interface AdminBillListPage {
+  bills: AdminBillListItem[];
+  totalCount: number;
+  page: number;
+  perPage: number;
+}
+
+export async function listAdminBills({
+  page = 1,
+  perPage = ADMIN_BILLS_PER_PAGE,
+}: ListAdminBillsOptions = {}): Promise<AdminBillListPage> {
   await requireAdmin("/admin/bills");
+  const safePage = Math.max(1, Math.floor(page));
+  const safePerPage = Math.max(1, Math.floor(perPage));
+
   if (isSetagayaMockMode) {
-    return getSetagayaMockBills().map(mockBillToAdminListItem);
+    const allBills = getSetagayaMockBills().map(mockBillToAdminListItem);
+    const from = (safePage - 1) * safePerPage;
+    return {
+      bills: allBills.slice(from, from + safePerPage),
+      totalCount: allBills.length,
+      page: safePage,
+      perPage: safePerPage,
+    };
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  const from = (safePage - 1) * safePerPage;
+  const to = from + safePerPage - 1;
+  const { data, error, count } = await supabase
     .from("bills")
     .select(
       `
       *,
       bill_contents(title, summary, difficulty_level),
       bills_tags(tags(id, label, major_category))
-    `
+    `,
+      { count: "exact" }
     )
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
     throw new Error(`Failed to fetch admin bills: ${error.message}`);
   }
 
-  return (data ?? []) as AdminBillListItem[];
+  return {
+    bills: (data ?? []) as AdminBillListItem[],
+    totalCount: count ?? 0,
+    page: safePage,
+    perPage: safePerPage,
+  };
 }
 
 export async function getAdminBillFormData(
