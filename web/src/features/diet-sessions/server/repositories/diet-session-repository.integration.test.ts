@@ -77,6 +77,30 @@ describe("diet-session-repository 統合テスト", () => {
       expect(result?.id).toBe(session.id);
     });
 
+    it("同じ日に複数の会期があっても該当会期を返す", async () => {
+      const timestamp = Date.now();
+      const first = await createTestDietSession({
+        name: "テスト同日会期A",
+        start_date: "2034-05-27",
+        end_date: "2034-05-27",
+        slug: `test-overlap-a-${timestamp}`,
+        is_active: false,
+      });
+      const second = await createTestDietSession({
+        name: "テスト同日会期B",
+        start_date: "2034-05-27",
+        end_date: "2034-05-27",
+        slug: `test-overlap-b-${timestamp}`,
+        is_active: false,
+      });
+      sessionIds.push(first.id, second.id);
+
+      const result = await findCurrentDietSession("2034-05-27");
+
+      expect(result).not.toBeNull();
+      expect([first.id, second.id]).toContain(result?.id);
+    });
+
     it("範囲外の日付では該当会期を返さない", async () => {
       const session = await createTestDietSession({
         start_date: "2032-04-01",
