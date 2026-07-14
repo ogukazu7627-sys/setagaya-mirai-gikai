@@ -3,16 +3,20 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBillItemTypeLabel } from "@/features/bills/shared/types";
+import { routes } from "@/lib/routes";
+import { deleteAdminBillAction } from "../server/actions";
 import {
   type AdminBillListItem,
   formatAdminDate,
   getPreviewPath,
 } from "../server/bill-admin";
-import { deleteAdminBillAction } from "../server/actions";
 import { AdminDeleteBillButton } from "./admin-delete-bill-button";
 
 interface AdminBillListProps {
   bills: Array<AdminBillListItem & { previewToken?: string | null }>;
+  currentPage: number;
+  perPage: number;
+  totalCount: number;
 }
 
 function publishStatusLabel(status: string) {
@@ -24,7 +28,41 @@ function publishStatusLabel(status: string) {
   }
 }
 
-export function AdminBillList({ bills }: AdminBillListProps) {
+function adminBillsPageHref(page: number): Route {
+  if (page <= 1) {
+    return routes.adminBills() as Route;
+  }
+
+  return `${routes.adminBills()}?page=${page}` as Route;
+}
+
+function buildPageNumbers(currentPage: number, totalPages: number) {
+  const maxVisiblePages = 5;
+  const halfVisiblePages = Math.floor(maxVisiblePages / 2);
+  const startPage = Math.max(
+    1,
+    Math.min(currentPage - halfVisiblePages, totalPages - maxVisiblePages + 1)
+  );
+  const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+  return Array.from(
+    { length: endPage - startPage + 1 },
+    (_, index) => startPage + index
+  );
+}
+
+export function AdminBillList({
+  bills,
+  currentPage,
+  perPage,
+  totalCount,
+}: AdminBillListProps) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+  const startIndex = totalCount === 0 ? 0 : (currentPage - 1) * perPage + 1;
+  const endIndex =
+    totalCount === 0 ? 0 : Math.min(startIndex + bills.length - 1, totalCount);
+  const pageNumbers = buildPageNumbers(currentPage, totalPages);
+
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
       <div className="overflow-x-auto">
@@ -130,6 +168,49 @@ export function AdminBillList({ bills }: AdminBillListProps) {
       {bills.length === 0 && (
         <div className="px-4 py-10 text-center text-sm text-mirai-text-secondary">
           まだ案件がありません。
+        </div>
+      )}
+      {totalCount > 0 && (
+        <div className="flex flex-col gap-3 border-t px-4 py-4 text-sm text-mirai-text-secondary md:flex-row md:items-center md:justify-between">
+          <span>
+            全 {totalCount} 件中 {startIndex}〜{endIndex} 件を表示
+          </span>
+          {totalPages > 1 && (
+            <nav
+              aria-label="案件一覧ページ"
+              className="flex flex-wrap items-center gap-2"
+            >
+              {currentPage > 1 ? (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={adminBillsPageHref(currentPage - 1)}>前へ</Link>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  前へ
+                </Button>
+              )}
+              {pageNumbers.map((page) =>
+                page === currentPage ? (
+                  <Button key={page} size="sm" aria-current="page">
+                    {page}
+                  </Button>
+                ) : (
+                  <Button key={page} variant="outline" size="sm" asChild>
+                    <Link href={adminBillsPageHref(page)}>{page}</Link>
+                  </Button>
+                )
+              )}
+              {currentPage < totalPages ? (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={adminBillsPageHref(currentPage + 1)}>次へ</Link>
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  次へ
+                </Button>
+              )}
+            </nav>
+          )}
         </div>
       )}
     </div>

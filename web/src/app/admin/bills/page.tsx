@@ -1,10 +1,12 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AdminBillList } from "@/features/admin/components/admin-bill-list";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
 import {
+  ADMIN_BILLS_PER_PAGE,
   ensurePreviewToken,
   listAdminBills,
 } from "@/features/admin/server/bill-admin";
@@ -16,20 +18,37 @@ interface AdminBillsPageProps {
   searchParams?: Promise<{
     deleted?: string;
     error?: string;
+    page?: string;
   }>;
+}
+
+function parseAdminBillPage(page: string | undefined) {
+  const parsed = Number.parseInt(page ?? "1", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
 }
 
 export default async function AdminBillsPage({
   searchParams,
 }: AdminBillsPageProps) {
-  const [params, user, bills] = await Promise.all([
-    searchParams,
+  const params = await searchParams;
+  const currentPage = parseAdminBillPage(params?.page);
+  const [user, billPage] = await Promise.all([
     requireAdmin("/admin/bills"),
-    listAdminBills(),
+    listAdminBills({
+      page: currentPage,
+      perPage: ADMIN_BILLS_PER_PAGE,
+    }),
   ]);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(billPage.totalCount / billPage.perPage)
+  );
+  if (billPage.totalCount > 0 && currentPage > totalPages) {
+    redirect(`${routes.adminBills()}?page=${totalPages}` as Route);
+  }
 
   const billsWithPreviewTokens = await Promise.all(
-    bills.map(async (bill) => ({
+    billPage.bills.map(async (bill) => ({
       ...bill,
       previewToken: await ensurePreviewToken(bill.id),
     }))
@@ -71,7 +90,12 @@ export default async function AdminBillsPage({
             削除しました。
           </div>
         )}
-        <AdminBillList bills={billsWithPreviewTokens} />
+        <AdminBillList
+          bills={billsWithPreviewTokens}
+          currentPage={billPage.page}
+          perPage={billPage.perPage}
+          totalCount={billPage.totalCount}
+        />
       </div>
     </AdminShell>
   );
