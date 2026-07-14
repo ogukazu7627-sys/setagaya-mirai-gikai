@@ -33,7 +33,7 @@ export default async function AdminDietSessionsPage({
           <div>
             <h1 className="text-2xl font-bold">会期管理</h1>
             <p className="mt-1 text-sm text-mirai-text-secondary">
-              案件に紐づける会期の追加・編集・検索を行います。
+              案件に紐づける会期の追加・編集・検索を行います。同じ日程の会期や委員会も登録できます。
             </p>
           </div>
           <Button variant="outline" asChild>

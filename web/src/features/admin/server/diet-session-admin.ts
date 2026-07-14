@@ -79,41 +79,6 @@ function parseDietSessionFormDataOrRedirect(formData: FormData) {
   }
 }
 
-async function ensureDietSessionDateRangeDoesNotOverlap(
-  supabase: ReturnType<typeof createAdminClient>,
-  parsed: z.infer<typeof dietSessionFormSchema>
-) {
-  let overlapQuery = supabase
-    .from("diet_sessions")
-    .select("id, name, start_date, end_date")
-    .lte("start_date", parsed.end_date)
-    .gte("end_date", parsed.start_date);
-
-  if (parsed.id) {
-    overlapQuery = overlapQuery.neq("id", parsed.id);
-  }
-
-  const { data, error } = await overlapQuery.limit(1).maybeSingle();
-
-  if (error) {
-    redirect(
-      buildAdminDietSessionErrorPath(
-        parsed.id,
-        `会期の日程確認に失敗しました: ${error.message}`
-      )
-    );
-  }
-
-  if (data) {
-    redirect(
-      buildAdminDietSessionErrorPath(
-        parsed.id,
-        `入力した日程は「${data.name}」（${data.start_date} - ${data.end_date}）と重複しています。会期の日程が重ならないようにしてください。`
-      )
-    );
-  }
-}
-
 function mockDietSessions(): AdminDietSession[] {
   return [getSetagayaMockSession() as AdminDietSession];
 }
@@ -178,7 +143,6 @@ export async function saveAdminDietSession(formData: FormData) {
   }
 
   const supabase = createAdminClient();
-  await ensureDietSessionDateRangeDoesNotOverlap(supabase, parsed);
 
   const now = new Date().toISOString();
   const payload = {
