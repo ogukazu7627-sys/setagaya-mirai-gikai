@@ -894,8 +894,102 @@ export type SaveAdminDraftBillApiResponse = {
   };
 };
 
+type AdminDraftBillApiTag = {
+  id: string;
+  label: string;
+  major_category: string | null;
+};
+
+export type AdminDraftBillApiPayload = {
+  id: string;
+  name: string;
+  item_type: BillItemType;
+  major_category: MajorCategoryLabel;
+  diet_session_id: string | null;
+  submitted_date: string | null;
+  status: BillStatusEnum;
+  status_label: string | null;
+  status_note: string | null;
+  publish_status: "draft";
+  is_review_completed: false;
+  is_featured: boolean;
+  interview_enabled: boolean;
+  use_knowledge_source_in_chat: boolean;
+  thumbnail_url: string | null;
+  share_thumbnail_url: string | null;
+  normal_title: string;
+  normal_summary: string;
+  normal_content: string;
+  hard_title: string | null;
+  hard_summary: string | null;
+  hard_content: string | null;
+  tag_ids: string[];
+  tags: AdminDraftBillApiTag[];
+  sources: BillSource[];
+  knowledge_source: string | null;
+};
+
+export type GetAdminDraftBillApiResponse = {
+  success: true;
+  billId: string;
+  adminEditUrl: string;
+  previewUrl: string;
+  draft: AdminDraftBillApiPayload;
+  unknownCouncilorNames: string[];
+  forcedFields: {
+    publish_status: "draft";
+    is_review_completed: false;
+  };
+};
+
+type BillTagJoinRow = {
+  tag_id: string;
+  tags: AdminDraftBillApiTag | AdminDraftBillApiTag[] | null;
+};
+
 function getFirstZodIssueMessage(error: z.ZodError): string {
   return error.issues[0]?.message ?? "入力内容を確認してください。";
+}
+
+function isMajorCategoryLabel(
+  value: string | null
+): value is MajorCategoryLabel {
+  return majorCategoryLabels.includes(value as MajorCategoryLabel);
+}
+
+function selectBillContent(
+  contents: BillContentRow[] | null | undefined,
+  difficultyLevel: "normal" | "hard"
+): BillContentRow | null {
+  return (
+    contents?.find((content) => content.difficulty_level === difficultyLevel) ??
+    null
+  );
+}
+
+function normalizeBillSourcesForApi(sources: unknown): BillSource[] {
+  if (!Array.isArray(sources)) return [];
+  return sources
+    .filter(
+      (source): source is BillSource =>
+        typeof source === "object" &&
+        source !== null &&
+        "title" in source &&
+        typeof source.title === "string"
+    )
+    .map((source) => ({
+      title: source.title,
+      url: source.url ?? null,
+      source_type: source.source_type ?? "official_page",
+      published_at: source.published_at ?? null,
+      accessed_at: source.accessed_at ?? null,
+    }));
+}
+
+function normalizeJoinedTag(
+  tag: BillTagJoinRow["tags"]
+): AdminDraftBillApiTag | null {
+  return Array.isArray(tag) ? (tag[0] ?? null) : tag;
 }
 
 function assertDraftApiStateIsSafe(input: unknown) {
@@ -1251,6 +1345,148 @@ export async function saveAdminDraftBillFromJson(
       env.webUrl
     ).toString(),
     unknownCouncilorNames: result.unknownCouncilorNames,
+    forcedFields: {
+      publish_status: "draft",
+      is_review_completed: false,
+    },
+  };
+}
+
+export async function getAdminDraftBillForApi(
+  billId: string
+): Promise<GetAdminDraftBillApiResponse> {
+  const billIdResult = z.string().uuid().safeParse(billId);
+  if (!billIdResult.success) {
+    throw new AdminBillSaveError(
+      "idはUUID形式で指定してください。",
+      400,
+      "invalid_id",
+      billId
+    );
+  }
+
+  if (isSetagayaMockMode) {
+    throw new AdminBillSaveError(
+      "現在はローカルのモック表示中です。読み取るにはSupabase接続を設定してください。",
+      503,
+      "mock_mode",
+      billId
+    );
+  }
+
+  const supabase = createAdminClient();
+  const [billResult, contentsResult, billTagsResult, unknownCouncilorNames] =
+    await Promise.all([
+      supabase
+        .from("bills")
+        .select("*")
+        .eq("id", billIdResult.data)
+        .maybeSingle(),
+      supabase
+        .from("bill_contents")
+        .select("*")
+        .eq("bill_id", billIdResult.data),
+      supabase
+        .from("bills_tags")
+        .select("tag_id, tags(id, label, major_category)")
+        .eq("bill_id", billIdResult.data),
+      findUnknownCouncilorNamesByBillId(billIdResult.data),
+    ]);
+
+  if (billResult.error) {
+    throw new AdminBillSaveError(
+      `読み取り対象の確認に失敗しました: ${billResult.error.message}`,
+      500,
+      "bill_lookup_failed",
+      billId
+    );
+  }
+
+  if (!billResult.data) {
+    throw new AdminBillSaveError(
+      "読み取り対象の案件が見つかりません。",
+      404,
+      "bill_not_found",
+      billId
+    );
+  }
+
+  if (billResult.data.publish_status !== "draft") {
+    throw new AdminBillSaveError(
+      "AI下書き読み取りAPIではdraft以外の案件は読み取れません。",
+      409,
+      "non_draft_read_not_allowed",
+      billId
+    );
+  }
+
+  if (contentsResult.error) {
+    throw new AdminBillSaveError(
+      `本文の読み取りに失敗しました: ${contentsResult.error.message}`,
+      500,
+      "bill_contents_lookup_failed",
+      billId
+    );
+  }
+
+  if (billTagsResult.error) {
+    throw new AdminBillSaveError(
+      `タグの読み取りに失敗しました: ${billTagsResult.error.message}`,
+      500,
+      "bill_tags_lookup_failed",
+      billId
+    );
+  }
+
+  const bill = billResult.data;
+  const normalContent = selectBillContent(contentsResult.data, "normal");
+  const hardContent = selectBillContent(contentsResult.data, "hard");
+  const tagRows = (billTagsResult.data ?? []) as BillTagJoinRow[];
+  const tags = tagRows
+    .map((row) => normalizeJoinedTag(row.tags))
+    .filter((tag): tag is AdminDraftBillApiTag => Boolean(tag));
+  const previewToken = await ensurePreviewToken(bill.id, "admin-api");
+  const majorCategory = isMajorCategoryLabel(bill.major_category)
+    ? bill.major_category
+    : "教育🏫";
+
+  return {
+    success: true,
+    billId: bill.id,
+    adminEditUrl: new URL(routes.adminBillEdit(bill.id), env.webUrl).toString(),
+    previewUrl: new URL(
+      routes.previewBillDetail(bill.id, previewToken),
+      env.webUrl
+    ).toString(),
+    draft: {
+      id: bill.id,
+      name: bill.name,
+      item_type: bill.item_type,
+      major_category: majorCategory,
+      diet_session_id: bill.diet_session_id,
+      submitted_date: toDateInputValue(bill.submitted_date) || null,
+      status: bill.status,
+      status_label: bill.status_label,
+      status_note: bill.status_note,
+      publish_status: "draft",
+      is_review_completed: false,
+      is_featured: bill.is_featured,
+      interview_enabled: bill.interview_enabled,
+      use_knowledge_source_in_chat: bill.use_knowledge_source_in_chat,
+      thumbnail_url: bill.thumbnail_url,
+      share_thumbnail_url: bill.share_thumbnail_url,
+      normal_title: normalContent?.title ?? bill.name,
+      normal_summary: normalContent?.summary ?? "",
+      normal_content: normalContent?.content ?? "",
+      hard_title: hardContent?.title ?? null,
+      hard_summary: hardContent?.summary ?? null,
+      hard_content: hardContent?.content ?? null,
+      tag_ids: tagRows.map((row) => row.tag_id),
+      tags,
+      sources: normalizeBillSourcesForApi(bill.sources),
+      knowledge_source: bill.knowledge_source,
+    },
+    unknownCouncilorNames,
     forcedFields: {
       publish_status: "draft",
       is_review_completed: false,
