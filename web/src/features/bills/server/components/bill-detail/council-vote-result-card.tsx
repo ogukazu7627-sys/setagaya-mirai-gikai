@@ -55,7 +55,6 @@ function getResultRows(bill: BillWithContent): Array<[string, string]> {
         ["扱い", "採決対象ではありません"],
         ["状況", bill.status_label ?? "本会議で質問・答弁済み"],
       ];
-    case "bill":
     default:
       return [
         ["結果", statusLabel],
