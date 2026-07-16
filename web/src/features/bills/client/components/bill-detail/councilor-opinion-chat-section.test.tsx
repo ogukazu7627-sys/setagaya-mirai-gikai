@@ -3,7 +3,10 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CouncilorOpinionChatSection as CouncilorOpinionChatSectionData } from "@/lib/markdown/extract-councilor-opinion-chat-section";
-import { CouncilorOpinionChatSection } from "./councilor-opinion-chat-section";
+import {
+  CouncilorOpinionChatSection,
+  shouldHandleCouncilorCarouselDrag,
+} from "./councilor-opinion-chat-section";
 
 const baseSection: CouncilorOpinionChatSectionData = {
   title: "議員、会派の意見",
@@ -118,13 +121,7 @@ describe("CouncilorOpinionChatSection", () => {
       />
     );
 
-    expect(screen.queryByText("1 / 2")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "中里光夫議員を表示" })
-    ).toHaveAttribute("aria-current", "true");
-    expect(
-      screen.getByRole("button", { name: "田中優子議員を表示" })
-    ).toBeInTheDocument();
+    expect(screen.getByText("1 / 2")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "前の議員・会派を見る" })
     ).toBeInTheDocument();
@@ -132,5 +129,26 @@ describe("CouncilorOpinionChatSection", () => {
       screen.getByRole("button", { name: "次の議員・会派を見る" })
     ).toBeInTheDocument();
     expect(screen.getByText("別の質問本文です。")).toBeInTheDocument();
+  });
+
+  it("does not start carousel drag from inside chat bubbles", () => {
+    const bubble = document.createElement("div");
+    bubble.setAttribute("data-councilor-chat-bubble", "true");
+    const bubbleText = document.createElement("span");
+    bubble.appendChild(bubbleText);
+    const outside = document.createElement("div");
+
+    expect(
+      shouldHandleCouncilorCarouselDrag(
+        {} as never,
+        { target: bubbleText } as unknown as MouseEvent
+      )
+    ).toBe(false);
+    expect(
+      shouldHandleCouncilorCarouselDrag(
+        {} as never,
+        { target: outside } as unknown as MouseEvent
+      )
+    ).toBe(true);
   });
 });
