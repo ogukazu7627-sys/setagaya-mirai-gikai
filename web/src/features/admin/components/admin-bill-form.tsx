@@ -387,14 +387,13 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
         <CardHeader>
           <CardTitle>タグ・出典・チャット情報</CardTitle>
           <CardDescription>
-            タグは案件編集の中で選択・追加します。出典は公開詳細ページの補足資料として表示されます。
+            小分類タグは案件ごとに入力します。出典は公開詳細ページの補足資料として表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <AdminTagSelector
             tags={data.tags}
             selectedTagIds={data.selectedTagIds}
-            defaultMajorCategory={bill?.major_category}
           />
           <Field
             label="ナレッジソース"

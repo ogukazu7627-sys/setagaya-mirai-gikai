@@ -261,6 +261,7 @@ const adminDraftBillApiSchema = z
     hard_summary: nullableTrimmedStringSchema,
     hard_content: nullableTrimmedStringSchema,
     tag_ids: z.array(z.string().uuid()).optional().default([]),
+    tag_labels: z.array(z.string().trim()).optional().default([]),
     new_tags: z
       .array(
         z.object({
@@ -289,8 +290,34 @@ const adminDraftBillApiSchema = z
       .optional()
       .default([]),
   })
+  .superRefine((value, ctx) => {
+    const labelCount = new Set([
+      ...value.tag_labels.map((label) => label.trim()).filter(Boolean),
+      ...value.new_tag_labels.map((label) => label.trim()).filter(Boolean),
+      ...value.new_tags.map((tag) => tag.label.trim()).filter(Boolean),
+    ]).size;
+    const totalTagCount = labelCount > 0 ? labelCount : value.tag_ids.length;
+    if (totalTagCount > 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tag_labels"],
+        message: "タグは最大3つまでです",
+      });
+    }
+  })
   .transform((value) => {
-    const fallbackCategory = value.new_tag_major_category ?? "教育🏫";
+    const fallbackCategory =
+      value.new_tag_major_category ?? value.major_category;
+    const hasTagLabelInput =
+      value.tag_labels.some((label) => label.trim().length > 0) ||
+      value.new_tag_labels.some((label) => label.trim().length > 0) ||
+      value.new_tags.some((tag) => tag.label.trim().length > 0);
+    const tagsFromLabels = value.tag_labels
+      .map((label) => ({
+        label: label.trim(),
+        major_category: fallbackCategory,
+      }))
+      .filter((tag) => tag.label.length > 0);
     const newTagsFromLabels = value.new_tag_labels
       .map((label, index) => ({
         label: label.trim(),
@@ -300,7 +327,11 @@ const adminDraftBillApiSchema = z
       .filter((tag) => tag.label.length > 0);
 
     const dedupedNewTags = new Map<string, NewTagInput>();
-    for (const tag of [...value.new_tags, ...newTagsFromLabels]) {
+    for (const tag of [
+      ...value.new_tags,
+      ...newTagsFromLabels,
+      ...tagsFromLabels,
+    ]) {
       if (!dedupedNewTags.has(tag.label)) {
         dedupedNewTags.set(tag.label, tag);
       }
@@ -330,7 +361,7 @@ const adminDraftBillApiSchema = z
       hard_title: value.hard_title,
       hard_summary: value.hard_summary,
       hard_content: value.hard_content,
-      tag_ids: value.tag_ids,
+      tag_ids: hasTagLabelInput ? [] : value.tag_ids,
       new_tags: Array.from(dedupedNewTags.values()),
       sources: value.sources,
     } satisfies AdminBillSaveInput;
@@ -455,30 +486,32 @@ function sourcesFromFormData(formData: FormData): BillSource[] {
   return sources;
 }
 
-function newTagsFromFormData(formData: FormData): NewTagInput[] {
-  const fallbackCategory =
-    nullableString(formData.get("new_tag_major_category")) ?? "教育🏫";
+function splitTagLabelInput(value: string): string[] {
+  return value
+    .split(/[,\n、]/)
+    .map((label) => label.trim())
+    .filter(Boolean);
+}
+
+function newTagsFromFormData(
+  formData: FormData,
+  fallbackCategory: MajorCategoryLabel
+): NewTagInput[] {
   const labels = formData.getAll("new_tag_labels");
-  const categories = formData.getAll("new_tag_major_categories");
   const seenLabels = new Set<string>();
   const tags: NewTagInput[] = [];
 
-  labels.forEach((entry, index) => {
+  labels.forEach((entry) => {
     if (typeof entry !== "string") return;
-    const label = entry.trim();
-    if (!label || seenLabels.has(label)) return;
+    for (const label of splitTagLabelInput(entry)) {
+      if (seenLabels.has(label)) continue;
 
-    const categoryEntry = categories[index];
-    const majorCategory =
-      typeof categoryEntry === "string" && categoryEntry.trim()
-        ? categoryEntry.trim()
-        : fallbackCategory;
-
-    seenLabels.add(label);
-    tags.push({
-      label,
-      major_category: majorCategory as MajorCategoryLabel,
-    });
+      seenLabels.add(label);
+      tags.push({
+        label,
+        major_category: fallbackCategory,
+      });
+    }
   });
 
   return tags;
@@ -486,11 +519,14 @@ function newTagsFromFormData(formData: FormData): NewTagInput[] {
 
 function parseBillFormData(formData: FormData) {
   const id = nullableString(formData.get("id")) ?? undefined;
+  const majorCategory =
+    (nullableString(formData.get("major_category")) as MajorCategoryLabel) ??
+    "教育🏫";
   return billFormSchema.parse({
     id,
     name: formData.get("name"),
     item_type: formData.get("item_type"),
-    major_category: formData.get("major_category"),
+    major_category: majorCategory,
     status: formData.get("status"),
     publish_status: formData.get("publish_status"),
     diet_session_id: nullableString(formData.get("diet_session_id")),
@@ -512,7 +548,7 @@ function parseBillFormData(formData: FormData) {
     hard_summary: nullableString(formData.get("hard_summary")),
     hard_content: nullableString(formData.get("hard_content")),
     tag_ids: formData.getAll("tag_ids"),
-    new_tags: newTagsFromFormData(formData),
+    new_tags: newTagsFromFormData(formData, majorCategory),
     sources: sourcesFromFormData(formData),
   });
 }
@@ -826,24 +862,13 @@ async function resolveTagIds(
   tagIds: string[],
   newTags: NewTagInput[]
 ) {
-  if (newTags.length === 0) return Array.from(new Set(tagIds));
+  const normalizedTagIds = Array.from(new Set(tagIds));
+  if (newTags.length === 0) return normalizedTagIds;
 
-  const newLabels = Array.from(new Set(newTags.map((tag) => tag.label)));
-  // UIを経由しない送信でも、既存タグ名を新規タグとして作れないようにする。
-  const { data: existingTags, error: existingError } = await supabase
-    .from("tags")
-    .select("label")
-    .in("label", newLabels);
-
-  if (existingError) {
-    throw new Error(`Failed to check tags: ${existingError.message}`);
-  }
-
-  if ((existingTags ?? []).length > 0) {
-    throw new Error(
-      `既存の小分類タグ「${existingTags?.map((tag) => tag.label).join("、")}」は新規追加できません。上の一覧から選択してください。`
-    );
-  }
+  const newLabels = Array.from(
+    new Set(newTags.map((tag) => tag.label).filter(Boolean))
+  );
+  if (newLabels.length === 0) return normalizedTagIds;
 
   const { error: upsertError } = await supabase.from("tags").upsert(
     newTags.map((tag) => ({
@@ -866,7 +891,9 @@ async function resolveTagIds(
     throw new Error(`Failed to fetch created tags: ${error.message}`);
   }
 
-  return Array.from(new Set([...tagIds, ...(data ?? []).map((tag) => tag.id)]));
+  return Array.from(
+    new Set([...normalizedTagIds, ...(data ?? []).map((tag) => tag.id)])
+  );
 }
 
 type SaveAdminBillInputOptions = {
@@ -926,6 +953,7 @@ export type AdminDraftBillApiPayload = {
   hard_summary: string | null;
   hard_content: string | null;
   tag_ids: string[];
+  tag_labels: string[];
   tags: AdminDraftBillApiTag[];
   sources: BillSource[];
   knowledge_source: string | null;
@@ -1515,6 +1543,7 @@ export async function getAdminDraftBillForApi(
       hard_summary: hardContent?.summary ?? null,
       hard_content: hardContent?.content ?? null,
       tag_ids: tagRows.map((row) => row.tag_id),
+      tag_labels: tags.map((tag) => tag.label),
       tags,
       sources: normalizeBillSourcesForApi(bill.sources),
       knowledge_source: bill.knowledge_source,

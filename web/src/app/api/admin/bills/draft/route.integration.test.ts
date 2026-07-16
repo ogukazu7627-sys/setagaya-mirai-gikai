@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 import {
   adminClient,
   cleanupTestBill,
+  cleanupTestTag,
   createTestBill,
   createTestPreviewToken,
+  createTestTag,
 } from "@test-utils/utils";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { env } from "@/lib/env";
@@ -73,6 +75,7 @@ type DraftReadApiResponse = DraftApiResponse & {
     hard_summary: string | null;
     hard_content: string | null;
     tag_ids: string[];
+    tag_labels: string[];
     tags: Array<{ id: string; label: string; major_category: string | null }>;
     sources: Array<{
       title: string;
@@ -123,6 +126,7 @@ type KnowledgeSourceExportApiResponse = {
 };
 
 const billIds: string[] = [];
+const tagIds: string[] = [];
 
 function validDraftBody(overrides: Record<string, unknown> = {}) {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -213,7 +217,10 @@ describe("/api/admin/bills/draft", () => {
   });
 
   afterAll(async () => {
-    await Promise.all(billIds.map((billId) => cleanupTestBill(billId)));
+    await Promise.all([
+      ...billIds.map((billId) => cleanupTestBill(billId)),
+      ...tagIds.map((tagId) => cleanupTestTag(tagId)),
+    ]);
   });
 
   it("ADMIN_API_TOKEN 未設定時は500を返す", async () => {
@@ -427,6 +434,47 @@ describe("/api/admin/bills/draft", () => {
     expect(res.status).toBe(400);
   });
 
+  it("タグ名の直接入力では既存タグを再利用し、ないタグは作成して紐づける", async () => {
+    const existingTag = await createTestTag({
+      label: `既存直接入力タグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      major_category: "防災☔",
+    });
+    tagIds.push(existingTag.id);
+    const newLabel = `新規直接入力タグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const res = await postDraft(
+      validDraftBody({
+        major_category: "防災☔",
+        tag_labels: [existingTag.label, newLabel],
+      })
+    );
+    const body = (await res.json()) as DraftApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    if (!body.billId) throw new Error("billId was not returned");
+    billIds.push(body.billId);
+
+    const { data: billTags } = await adminClient
+      .from("bills_tags")
+      .select("tag_id, tags(id, label, major_category)")
+      .eq("bill_id", body.billId);
+    const tags = (billTags ?? []).map((row) =>
+      Array.isArray(row.tags) ? row.tags[0] : row.tags
+    );
+    const labels = tags.map((tag) => tag?.label);
+
+    expect(labels).toContain(existingTag.label);
+    expect(labels).toContain(newLabel);
+    expect(billTags?.map((row) => row.tag_id)).toContain(existingTag.id);
+
+    const createdTag = tags.find((tag) => tag?.label === newLabel);
+    expect(createdTag).toMatchObject({
+      label: newLabel,
+      major_category: "防災☔",
+    });
+    if (createdTag?.id) tagIds.push(createdTag.id);
+  });
+
   it("GETでもADMIN_API_TOKEN未設定時は500を返す", async () => {
     (env as { adminApiToken?: string }).adminApiToken = undefined;
 
@@ -522,6 +570,7 @@ describe("/api/admin/bills/draft", () => {
         hard_summary: "詳しい読み取り対象概要",
         hard_content: "# 詳細\n\n詳しい読み取り対象本文です。",
         tag_ids: [],
+        tag_labels: [],
         tags: [],
         sources: [
           {
