@@ -31,6 +31,8 @@ interface AdminBillsPageProps {
     status_label?: string;
     date_from?: string;
     date_to?: string;
+    bulk_status?: string;
+    bulk_updated?: string;
     page?: string;
   }>;
 }
@@ -78,6 +80,17 @@ function hasDetailedFilters(filters: AdminBillSearchFilters) {
       filters.submittedDateFrom ||
       filters.submittedDateTo
   );
+}
+
+function bulkStatusLabel(status: string | undefined) {
+  switch (status) {
+    case "published":
+      return "公開";
+    case "draft":
+      return "下書き";
+    default:
+      return "指定した公開状態";
+  }
 }
 
 function AdminBillSearchForm({ filters }: { filters: AdminBillSearchFilters }) {
@@ -259,6 +272,13 @@ export default async function AdminBillsPage({
         {params?.deleted === "1" && (
           <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
             削除しました。
+          </div>
+        )}
+        {params?.bulk_updated && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
+            {params.bulk_updated}件を
+            {bulkStatusLabel(params.bulk_status)}
+            にしました。
           </div>
         )}
         <AdminBillSearchForm filters={filters} />

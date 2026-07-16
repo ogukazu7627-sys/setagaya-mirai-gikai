@@ -4,13 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBillItemTypeLabel } from "@/features/bills/shared/types";
 import { routes } from "@/lib/routes";
-import { deleteAdminBillAction } from "../server/actions";
+import {
+  bulkUpdateAdminBillPublishStatusAction,
+  deleteAdminBillAction,
+} from "../server/actions";
 import {
   type AdminBillListItem,
   type AdminBillSearchFilters,
   formatAdminDate,
   getPreviewPath,
 } from "../server/bill-admin";
+import { AdminBillBulkSelectAll } from "./admin-bill-bulk-select-all";
 import { AdminDeleteBillButton } from "./admin-delete-bill-button";
 
 interface AdminBillListProps {
@@ -94,18 +98,56 @@ export function AdminBillList({
   perPage,
   totalCount,
 }: AdminBillListProps) {
+  const bulkFormId = "admin-bill-bulk-publish-status-form";
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
   const startIndex = totalCount === 0 ? 0 : (currentPage - 1) * perPage + 1;
   const endIndex =
     totalCount === 0 ? 0 : Math.min(startIndex + bills.length - 1, totalCount);
   const pageNumbers = buildPageNumbers(currentPage, totalPages);
+  const returnPath = adminBillsPageHref(currentPage, filters);
 
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
+      <form
+        id={bulkFormId}
+        action={bulkUpdateAdminBillPublishStatusAction}
+        className="flex flex-col gap-3 border-b bg-mirai-surface px-4 py-3 text-sm md:flex-row md:items-center md:justify-between"
+      >
+        <input type="hidden" name="return_path" value={returnPath} />
+        <span className="font-bold">選択した案件を一斉編集</span>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="submit"
+            name="bulk_publish_status"
+            value="published"
+            variant="outline"
+            size="sm"
+            disabled={bills.length === 0}
+          >
+            公開にする
+          </Button>
+          <Button
+            type="submit"
+            name="bulk_publish_status"
+            value="draft"
+            variant="outline"
+            size="sm"
+            disabled={bills.length === 0}
+          >
+            下書きにする
+          </Button>
+        </div>
+      </form>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[920px] border-collapse text-sm">
+        <table className="w-full min-w-[980px] border-collapse text-sm">
           <thead className="bg-mirai-surface">
             <tr className="text-left">
+              <th className="w-12 px-4 py-3 font-bold">
+                <AdminBillBulkSelectAll
+                  disabled={bills.length === 0}
+                  formId={bulkFormId}
+                />
+              </th>
               <th className="px-4 py-3 font-bold">案件</th>
               <th className="px-4 py-3 font-bold">種別</th>
               <th className="px-4 py-3 font-bold">大分類</th>
@@ -123,6 +165,17 @@ export function AdminBillList({
                 )?.title ?? bill.name;
               return (
                 <tr key={bill.id} className="border-t align-top">
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      name="bulk_bill_ids"
+                      value={bill.id}
+                      form={bulkFormId}
+                      data-admin-bill-bulk-checkbox={bulkFormId}
+                      aria-label={`${title}を選択`}
+                      className="h-4 w-4 accent-primary"
+                    />
+                  </td>
                   <td className="max-w-[360px] px-4 py-4">
                     <p className="font-bold leading-relaxed">{title}</p>
                     <p className="mt-1 line-clamp-2 text-xs text-mirai-text-secondary">
