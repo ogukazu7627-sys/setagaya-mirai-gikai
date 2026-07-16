@@ -118,7 +118,13 @@ describe("CouncilorOpinionChatSection", () => {
       />
     );
 
-    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+    expect(screen.queryByText("1 / 2")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "中里光夫議員を表示" })
+    ).toHaveAttribute("aria-current", "true");
+    expect(
+      screen.getByRole("button", { name: "田中優子議員を表示" })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "前の議員・会派を見る" })
     ).toBeInTheDocument();

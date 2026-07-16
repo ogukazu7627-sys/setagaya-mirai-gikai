@@ -16,8 +16,12 @@ export function saveScrollDistanceFromBottom() {
 /**
  * 画面下端からの距離を復元してスクロール位置を調整するフック
  */
-export function useRestoreScrollFromBottom(enabled: boolean) {
+export function useRestoreScrollFromBottom(
+  enabled: boolean,
+  restoreKey?: string
+) {
   useEffect(() => {
+    void restoreKey;
     if (!enabled) return;
 
     const savedDistance = sessionStorage.getItem(STORAGE_KEY);
@@ -36,5 +40,5 @@ export function useRestoreScrollFromBottom(enabled: boolean) {
       // 使用後は削除
       sessionStorage.removeItem(STORAGE_KEY);
     }
-  }, [enabled]);
+  }, [enabled, restoreKey]);
 }

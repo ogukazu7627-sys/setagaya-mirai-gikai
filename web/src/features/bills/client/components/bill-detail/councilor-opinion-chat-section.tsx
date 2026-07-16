@@ -32,6 +32,15 @@ export function CouncilorOpinionChatSection({
   const [canScrollNext, setCanScrollNext] = useState(false);
   const hasMultipleGroups = section.groups.length > 1;
   const currentGroup = section.groups[currentIndex] ?? section.groups[0];
+  const groupSignature = section.groups
+    .map((group) => `${group.groupIndex}:${group.rawHeading}`)
+    .join("|");
+
+  useEffect(() => {
+    void groupSignature;
+    setCurrentIndex(0);
+    api?.scrollTo(0, true);
+  }, [api, groupSignature]);
 
   useEffect(() => {
     if (!api) {
@@ -73,9 +82,11 @@ export function CouncilorOpinionChatSection({
                 </span>
               </span>
               {hasMultipleGroups && (
-                <span className="text-xs font-bold text-mirai-text-secondary">
-                  {currentIndex + 1} / {section.groups.length}
-                </span>
+                <CouncilorCarouselDots
+                  currentIndex={currentIndex}
+                  groups={section.groups}
+                  onSelect={(index) => api?.scrollTo(index)}
+                />
               )}
             </div>
           )}
@@ -110,31 +121,100 @@ export function CouncilorOpinionChatSection({
       </div>
 
       {hasMultipleGroups ? (
-        <Carousel opts={CAROUSEL_OPTIONS} setApi={setApi}>
-          <CarouselContent>
-            {section.groups.map((group) => (
-              <CarouselItem key={`${group.groupIndex}-${group.rawHeading}`}>
-                <CouncilorOpinionChatGroupView group={group} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+        <div className="relative -mx-1">
+          <Carousel className="px-1" opts={CAROUSEL_OPTIONS} setApi={setApi}>
+            <CarouselContent className="-ml-3">
+              {section.groups.map((group, index) => (
+                <CarouselItem
+                  aria-label={`${group.rawHeading} ${index + 1} / ${
+                    section.groups.length
+                  }`}
+                  className="basis-[92%] pl-3 md:basis-[88%]"
+                  key={`${group.groupIndex}-${group.rawHeading}`}
+                >
+                  <CouncilorOpinionChatGroupView
+                    group={group}
+                    isActive={index === currentIndex}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-y-0 left-1 z-10 w-8 rounded-l-md bg-gradient-to-r from-white via-white/80 to-transparent transition-opacity",
+              canScrollPrev ? "opacity-100" : "opacity-0"
+            )}
+          />
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-y-0 right-1 z-10 w-10 rounded-r-md bg-gradient-to-l from-white via-white/80 to-transparent transition-opacity",
+              canScrollNext ? "opacity-100" : "opacity-0"
+            )}
+          />
+        </div>
       ) : (
         section.groups[0] && (
-          <CouncilorOpinionChatGroupView group={section.groups[0]} />
+          <CouncilorOpinionChatGroupView
+            group={section.groups[0]}
+            isActive={true}
+          />
         )
       )}
     </section>
   );
 }
 
-function CouncilorOpinionChatGroupView({
-  group,
+function CouncilorCarouselDots({
+  groups,
+  currentIndex,
+  onSelect,
 }: {
-  group: CouncilorOpinionChatGroup;
+  groups: CouncilorOpinionChatGroup[];
+  currentIndex: number;
+  onSelect: (index: number) => void;
 }) {
   return (
-    <div className="rounded-md bg-mirai-surface-gray px-3 py-4 md:px-4">
+    <div
+      aria-label="議員・会派の表示位置"
+      className="flex items-center gap-1"
+      role="group"
+    >
+      {groups.map((group, index) => (
+        <button
+          aria-current={index === currentIndex ? "true" : undefined}
+          aria-label={`${group.rawHeading}を表示`}
+          className={cn(
+            "h-2 rounded-full transition-all",
+            index === currentIndex
+              ? "w-5 bg-primary"
+              : "w-2 bg-mirai-border hover:bg-primary/50"
+          )}
+          key={`${group.groupIndex}-${group.rawHeading}-dot`}
+          onClick={() => onSelect(index)}
+          type="button"
+        />
+      ))}
+    </div>
+  );
+}
+
+function CouncilorOpinionChatGroupView({
+  group,
+  isActive,
+}: {
+  group: CouncilorOpinionChatGroup;
+  isActive: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-md bg-mirai-surface-gray px-3 py-4 transition-all md:px-4",
+        isActive ? "opacity-100" : "scale-[0.98] opacity-70"
+      )}
+    >
       <div className="space-y-4">
         {group.messages.map((message) => (
           <CouncilorOpinionChatMessageView
