@@ -19,6 +19,18 @@ jobs:
       # config.toml は Auth URL も本番へ反映するため、ローカルURLの混入をCIで止める。
       - name: Validate Supabase Auth URLs
         run: |
+          trim_env() {
+            local name="$1"
+            local value="${!name:-}"
+            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            printf -v "$name" '%s' "$value"
+            export "$name"
+          }
+
+          trim_env SUPABASE_AUTH_SITE_URL
+          trim_env SUPABASE_AUTH_REDIRECT_URL
+          trim_env SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
+
           if [ -z "$SUPABASE_AUTH_SITE_URL" ]; then
             echo "::error::SUPABASE_AUTH_SITE_URL is required"
             exit 1
@@ -87,9 +99,9 @@ jobs:
         run: |
           ruby <<'RUBY'
           path = "supabase/config.toml"
-          site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL")
-          redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL")
-          google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s
+          site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL").strip
+          redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL").strip
+          google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s.strip
           google_secret = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET"].to_s
           google_enabled = !google_client_id.empty? && !google_secret.empty?
           config = File.read(path)
@@ -125,6 +137,18 @@ jobs:
 
       - name: Supabase config push
         run: |
+          trim_env() {
+            local name="$1"
+            local value="${!name:-}"
+            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            printf -v "$name" '%s' "$value"
+            export "$name"
+          }
+
+          trim_env SUPABASE_AUTH_SITE_URL
+          trim_env SUPABASE_AUTH_REDIRECT_URL
+          trim_env SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
+
           supabase config push --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -139,6 +163,17 @@ jobs:
           WEB_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.WEB_VERCEL_DEPLOY_HOOK_URL }}
           ADMIN_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.ADMIN_VERCEL_DEPLOY_HOOK_URL }}
         run: |
+          trim_env() {
+            local name="$1"
+            local value="${!name:-}"
+            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            printf -v "$name" '%s' "$value"
+            export "$name"
+          }
+
+          trim_env WEB_VERCEL_DEPLOY_HOOK_URL
+          trim_env ADMIN_VERCEL_DEPLOY_HOOK_URL
+
           if [ -z "$WEB_VERCEL_DEPLOY_HOOK_URL" ]; then
             echo "::error::WEB_VERCEL_DEPLOY_HOOK_URL is required"
             exit 1
