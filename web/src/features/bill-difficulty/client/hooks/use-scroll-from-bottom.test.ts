@@ -151,4 +151,37 @@ describe("useRestoreScrollFromBottom", () => {
       behavior: "instant",
     });
   });
+
+  it("restoreKey変更時にスクロール復元が再実行される", () => {
+    sessionStorage.setItem(STORAGE_KEY, "200");
+    Object.defineProperty(document.documentElement, "scrollHeight", {
+      value: 1600,
+      configurable: true,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      value: 800,
+      configurable: true,
+    });
+
+    const { rerender } = renderHook(
+      ({ restoreKey }) => useRestoreScrollFromBottom(true, restoreKey),
+      { initialProps: { restoreKey: "normal" } }
+    );
+
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 600,
+      behavior: "instant",
+    });
+
+    sessionStorage.setItem(STORAGE_KEY, "100");
+
+    act(() => {
+      rerender({ restoreKey: "hard" });
+    });
+
+    expect(window.scrollTo).toHaveBeenLastCalledWith({
+      top: 700,
+      behavior: "instant",
+    });
+  });
 });
