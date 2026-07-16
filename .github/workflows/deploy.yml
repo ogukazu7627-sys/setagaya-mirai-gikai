@@ -19,18 +19,6 @@ jobs:
       # config.toml は Auth URL も本番へ反映するため、ローカルURLの混入をCIで止める。
       - name: Validate Supabase Auth URLs
         run: |
-          trim_env() {
-            local name="$1"
-            local value="${!name:-}"
-            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            printf -v "$name" '%s' "$value"
-            export "$name"
-          }
-
-          trim_env SUPABASE_AUTH_SITE_URL
-          trim_env SUPABASE_AUTH_REDIRECT_URL
-          trim_env SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
-
           if [ -z "$SUPABASE_AUTH_SITE_URL" ]; then
             echo "::error::SUPABASE_AUTH_SITE_URL is required"
             exit 1
@@ -99,9 +87,9 @@ jobs:
         run: |
           ruby <<'RUBY'
           path = "supabase/config.toml"
-          site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL").strip
-          redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL").strip
-          google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s.strip
+          site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL")
+          redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL")
+          google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s
           google_secret = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET"].to_s
           google_enabled = !google_client_id.empty? && !google_secret.empty?
           config = File.read(path)
@@ -137,18 +125,6 @@ jobs:
 
       - name: Supabase config push
         run: |
-          trim_env() {
-            local name="$1"
-            local value="${!name:-}"
-            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            printf -v "$name" '%s' "$value"
-            export "$name"
-          }
-
-          trim_env SUPABASE_AUTH_SITE_URL
-          trim_env SUPABASE_AUTH_REDIRECT_URL
-          trim_env SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID
-
           supabase config push --yes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -163,72 +139,15 @@ jobs:
           WEB_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.WEB_VERCEL_DEPLOY_HOOK_URL }}
           ADMIN_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.ADMIN_VERCEL_DEPLOY_HOOK_URL }}
         run: |
-          trim_env() {
-            local name="$1"
-            local value="${!name:-}"
-            value="$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            printf -v "$name" '%s' "$value"
-            export "$name"
-          }
-
-          trim_env WEB_VERCEL_DEPLOY_HOOK_URL
-          trim_env ADMIN_VERCEL_DEPLOY_HOOK_URL
-
           if [ -z "$WEB_VERCEL_DEPLOY_HOOK_URL" ]; then
             echo "::error::WEB_VERCEL_DEPLOY_HOOK_URL is required"
             exit 1
           fi
 
-          trigger_deploy_hook() {
-            local name="$1"
-            local url="$2"
-            local max_attempts=4
-            local attempt
-            local http_code
-            local response_file
-
-            response_file="$(mktemp)"
-
-            for attempt in $(seq 1 "$max_attempts"); do
-              echo "Triggering ${name} Vercel Deploy Hook (attempt ${attempt}/${max_attempts})..."
-              http_code="$(
-                curl -sS -o "$response_file" -w "%{http_code}" \
-                  --connect-timeout 10 \
-                  --max-time 45 \
-                  -X POST \
-                  "$url" || true
-              )"
-              if ! [[ "$http_code" =~ ^[0-9]{3}$ ]]; then
-                http_code="000"
-              fi
-
-              if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-                echo "${name} Vercel Deploy Hook accepted."
-                rm -f "$response_file"
-                return 0
-              fi
-
-              if [ "$http_code" -ge 400 ] && [ "$http_code" -lt 500 ]; then
-                echo "::error::${name} Vercel Deploy Hook returned HTTP ${http_code}. Recreate the deploy hook in Vercel and update the GitHub secret."
-                rm -f "$response_file"
-                return 1
-              fi
-
-              echo "::warning::${name} Vercel Deploy Hook returned HTTP ${http_code}; retrying."
-              if [ "$attempt" -lt "$max_attempts" ]; then
-                sleep $((attempt * 15))
-              fi
-            done
-
-            echo "::error::${name} Vercel Deploy Hook did not return success after ${max_attempts} attempts."
-            rm -f "$response_file"
-            return 1
-          }
-
-          trigger_deploy_hook "web" "$WEB_VERCEL_DEPLOY_HOOK_URL"
+          curl -fsS -X POST "$WEB_VERCEL_DEPLOY_HOOK_URL"
 
           if [ -n "$ADMIN_VERCEL_DEPLOY_HOOK_URL" ]; then
-            trigger_deploy_hook "admin" "$ADMIN_VERCEL_DEPLOY_HOOK_URL"
+            curl -fsS -X POST "$ADMIN_VERCEL_DEPLOY_HOOK_URL"
           else
             echo "ADMIN_VERCEL_DEPLOY_HOOK_URL is not set; skipping admin deploy hook."
           fi
