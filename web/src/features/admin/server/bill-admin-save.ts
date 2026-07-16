@@ -7,6 +7,7 @@ import type { Route } from "next";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import type { BillPublishStatus } from "@/features/bills/shared/types";
 import {
   findUnknownCouncilorNamesByBillId,
   syncCouncilorBillStatements,
@@ -48,6 +49,28 @@ const THUMBNAIL_EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
+const bulkPublishStatusSchema = z.enum(["draft", "published"]);
+const bulkBillIdsSchema = z
+  .array(z.string().uuid())
+  .min(1, "一斉編集する案件を選択してください。")
+  .max(100, "一度に編集できる案件は100件までです。");
+
+function adminBillsReturnPathFromFormData(formData: FormData) {
+  const rawPath = nullableString(formData.get("return_path"));
+  return rawPath?.startsWith("/admin/bills") ? rawPath : "/admin/bills";
+}
+
+function redirectToAdminBillsWithParams(
+  returnPath: string,
+  params: Record<string, string>
+): never {
+  const url = new URL(returnPath, "http://localhost");
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+
+  redirect(`${url.pathname}?${url.searchParams.toString()}` as Route);
+}
 
 function thumbnailFileFromFormData(formData: FormData): File | null {
   const file = formData.get("thumbnail_file");
@@ -487,6 +510,73 @@ export async function deleteAdminBill(formData: FormData) {
 
   revalidateTag(CACHE_TAGS.BILLS);
   redirect("/admin/bills?deleted=1" as Route);
+}
+
+export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
+  await requireAdmin("/admin/bills");
+
+  const returnPath = adminBillsReturnPathFromFormData(formData);
+  const targetStatusResult = bulkPublishStatusSchema.safeParse(
+    nullableString(formData.get("bulk_publish_status"))
+  );
+  if (!targetStatusResult.success) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error: "一斉編集の公開状態を確認できませんでした。",
+    });
+  }
+
+  const billIdsResult = bulkBillIdsSchema.safeParse(
+    Array.from(new Set(formData.getAll("bulk_bill_ids"))).filter(
+      (value): value is string => typeof value === "string"
+    )
+  );
+  if (!billIdsResult.success) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error:
+        billIdsResult.error.issues[0]?.message ??
+        "一斉編集する案件を選択してください。",
+    });
+  }
+
+  if (isSetagayaMockMode) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error:
+        "現在はローカルのモック表示中です。一斉編集するにはSupabase接続を設定してください。",
+    });
+  }
+
+  const targetStatus: BillPublishStatus = targetStatusResult.data;
+  const now = new Date().toISOString();
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .update({
+      publish_status: targetStatus,
+      published_at: targetStatus === "published" ? now : null,
+      updated_at: now,
+    })
+    .in("id", billIdsResult.data)
+    .select("id");
+
+  if (error) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error: `一斉編集に失敗しました: ${error.message}`,
+    });
+  }
+
+  const updatedCount = data?.length ?? 0;
+  if (updatedCount === 0) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error: "一斉編集する案件が見つかりませんでした。",
+    });
+  }
+
+  revalidateTag(CACHE_TAGS.BILLS);
+
+  redirectToAdminBillsWithParams(returnPath, {
+    bulk_updated: String(updatedCount),
+    bulk_status: targetStatus,
+  });
 }
 
 export function getInitialAdminBillValues(data: AdminBillFormData) {

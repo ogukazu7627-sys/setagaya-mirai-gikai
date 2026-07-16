@@ -7,7 +7,11 @@ import {
   isAdminAuthBypassed,
   isAdminUser,
 } from "./auth";
-import { deleteAdminBill, saveAdminBill } from "./bill-admin";
+import {
+  bulkUpdateAdminBillPublishStatus,
+  deleteAdminBill,
+  saveAdminBill,
+} from "./bill-admin";
 import { saveAdminDietSession } from "./diet-session-admin";
 import { buildAdminLoginErrorPath } from "./login-errors";
 
@@ -58,6 +62,12 @@ export async function saveAdminBillAction(formData: FormData) {
 
 export async function deleteAdminBillAction(formData: FormData) {
   await deleteAdminBill(formData);
+}
+
+export async function bulkUpdateAdminBillPublishStatusAction(
+  formData: FormData
+) {
+  await bulkUpdateAdminBillPublishStatus(formData);
 }
 
 export async function saveAdminDietSessionAction(formData: FormData) {
