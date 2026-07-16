@@ -98,6 +98,19 @@ export type AdminBillSearchFilters = {
   submittedDateTo: string;
 };
 
+export type AdminBillSortKey =
+  | "item_type"
+  | "major_category"
+  | "publish_status"
+  | "updated_at";
+
+export type AdminBillSortDirection = "asc" | "desc";
+
+export type AdminBillSort = {
+  key: AdminBillSortKey;
+  direction: AdminBillSortDirection;
+};
+
 export type AdminBillFormData = {
   bill: BillRow | null;
   contents: {

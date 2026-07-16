@@ -8,11 +8,13 @@ import { requireAdmin } from "@/features/admin/server/auth";
 import {
   ADMIN_BILLS_PER_PAGE,
   type AdminBillSearchFilters,
+  type AdminBillSort,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
   ensurePreviewToken,
   listAdminBills,
   normalizeAdminBillSearchFilters,
+  normalizeAdminBillSort,
   PUBLISH_STATUS_OPTIONS,
 } from "@/features/admin/server/bill-admin";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
@@ -34,6 +36,8 @@ interface AdminBillsPageProps {
     bulk_status?: string;
     bulk_updated?: string;
     page?: string;
+    sort_by?: string;
+    sort_order?: string;
   }>;
 }
 
@@ -52,11 +56,17 @@ function setSearchParamIfPresent(
   }
 }
 
-function adminBillsHref(filters: AdminBillSearchFilters, page?: number): Route {
+function adminBillsHref(
+  filters: AdminBillSearchFilters,
+  sort: AdminBillSort,
+  page?: number
+): Route {
   const params = new URLSearchParams();
   if (page && page > 1) {
     params.set("page", String(page));
   }
+  params.set("sort_by", sort.key);
+  params.set("sort_order", sort.direction);
   setSearchParamIfPresent(params, "q", filters.query);
   setSearchParamIfPresent(params, "publish_status", filters.publishStatus);
   setSearchParamIfPresent(params, "item_type", filters.itemType);
@@ -93,7 +103,13 @@ function bulkStatusLabel(status: string | undefined) {
   }
 }
 
-function AdminBillSearchForm({ filters }: { filters: AdminBillSearchFilters }) {
+function AdminBillSearchForm({
+  filters,
+  sort,
+}: {
+  filters: AdminBillSearchFilters;
+  sort: AdminBillSort;
+}) {
   const inputClassName =
     "h-10 w-full rounded-md border border-input bg-white px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
@@ -103,6 +119,8 @@ function AdminBillSearchForm({ filters }: { filters: AdminBillSearchFilters }) {
       method="get"
       className="rounded-xl border bg-white p-4"
     >
+      <input type="hidden" name="sort_by" value={sort.key} />
+      <input type="hidden" name="sort_order" value={sort.direction} />
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
         <label className="grid gap-1.5">
           <span className="text-sm font-bold">キーワード検索</span>
@@ -215,12 +233,14 @@ export default async function AdminBillsPage({
   const params = await searchParams;
   const currentPage = parseAdminBillPage(params?.page);
   const filters = normalizeAdminBillSearchFilters(params);
+  const sort = normalizeAdminBillSort(params);
   const [user, billPage] = await Promise.all([
     requireAdmin("/admin/bills"),
     listAdminBills({
       page: currentPage,
       perPage: ADMIN_BILLS_PER_PAGE,
       filters,
+      sort,
     }),
   ]);
   const totalPages = Math.max(
@@ -228,7 +248,7 @@ export default async function AdminBillsPage({
     Math.ceil(billPage.totalCount / billPage.perPage)
   );
   if (billPage.totalCount > 0 && currentPage > totalPages) {
-    redirect(adminBillsHref(filters, totalPages));
+    redirect(adminBillsHref(filters, sort, totalPages));
   }
 
   const billsWithPreviewTokens = await Promise.all(
@@ -281,12 +301,13 @@ export default async function AdminBillsPage({
             にしました。
           </div>
         )}
-        <AdminBillSearchForm filters={filters} />
+        <AdminBillSearchForm filters={filters} sort={sort} />
         <AdminBillList
           bills={billsWithPreviewTokens}
           currentPage={billPage.page}
           filters={filters}
           perPage={billPage.perPage}
+          sort={sort}
           totalCount={billPage.totalCount}
         />
       </div>
