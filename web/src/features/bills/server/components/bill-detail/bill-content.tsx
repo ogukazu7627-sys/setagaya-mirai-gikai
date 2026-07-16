@@ -1,4 +1,7 @@
 import { parseMarkdown } from "@/lib/markdown";
+import { splitMarkdownByCouncilorOpinionChatSection } from "@/lib/markdown/extract-councilor-opinion-chat-section";
+import { CouncilorOpinionChatSection } from "../../../client/components/bill-detail/councilor-opinion-chat-section";
+import { LongPressSection } from "../../../client/components/bill-detail/long-press-section";
 import type { BillWithContent } from "../../../shared/types";
 
 interface BillContentProps {
@@ -34,8 +37,22 @@ export async function BillContent({ bill }: BillContentProps) {
     return null;
   }
 
-  const content = await parseMarkdown(
-    normalizeSetagayaHeadings(markdownContent)
+  const normalizedMarkdown = normalizeSetagayaHeadings(markdownContent);
+  const chatSplit =
+    splitMarkdownByCouncilorOpinionChatSection(normalizedMarkdown);
+  const content = chatSplit ? (
+    <>
+      {chatSplit.beforeMarkdown
+        ? await parseMarkdown(chatSplit.beforeMarkdown)
+        : null}
+      <LongPressSection />
+      <CouncilorOpinionChatSection section={chatSplit.chatSection} />
+      {chatSplit.afterMarkdown
+        ? await parseMarkdown(chatSplit.afterMarkdown)
+        : null}
+    </>
+  ) : (
+    await parseMarkdown(normalizedMarkdown)
   );
 
   return (
