@@ -5,26 +5,22 @@ import {
 } from "./extract-councilor-opinion-chat-section";
 
 describe("extractCouncilorOpinionChatSection", () => {
-  it("extracts one speaker group with multiple questions stacked vertically", () => {
+  it("extracts one speaker group as continuous chat messages", () => {
     const section = extractCouncilorOpinionChatSection(`# 議員、会派の意見
 
 ## 中里光夫議員
 
-### 成果指標の数字は、どう考えればいいのか？
-
-#### 中里光夫議員
+### 中里光夫議員
 行政の成果指標は企業の利益目標とは違うものです。
 どう考えればいいのでしょうか。
 
-#### 市民活動推進課長・伊藤
+### 市民活動推進課長・伊藤
 課題として受け止め、今後の計画に反映します。
 
-### 数字を変えるだけでなく、行政サービスの中身を見直すべきでは？
-
-#### 中里光夫・委員
+### 中里光夫・委員
 区民ニーズに対して体制が合っていなかった可能性もあります。
 
-#### 市民活動推進課長・伊藤
+### 市民活動推進課長・伊藤
 原因や理由を検証しながら改善に努めます。`);
 
     expect(section?.groups).toHaveLength(1);
@@ -34,12 +30,7 @@ describe("extractCouncilorOpinionChatSection", () => {
       councilorName: "中里光夫",
       iconUrl: "/icons/councilors/nakazato-mitsuo.jpg",
     });
-    expect(section?.groups[0]?.questions).toHaveLength(2);
-    expect(section?.groups[0]?.questions[0]).toMatchObject({
-      questionIndex: 0,
-      title: "成果指標の数字は、どう考えればいいのか?",
-    });
-    expect(section?.groups[0]?.questions[0]?.messages).toMatchObject([
+    expect(section?.groups[0]?.messages).toMatchObject([
       {
         messageIndex: 0,
         rawSpeaker: "中里光夫議員",
@@ -52,44 +43,48 @@ describe("extractCouncilorOpinionChatSection", () => {
         speakerName: "市民活動推進課長・伊藤",
         side: "answerer",
       },
+      {
+        messageIndex: 2,
+        rawSpeaker: "中里光夫・委員",
+        speakerName: "中里光夫・委員",
+        side: "questioner",
+      },
+      {
+        messageIndex: 3,
+        rawSpeaker: "市民活動推進課長・伊藤",
+        speakerName: "市民活動推進課長・伊藤",
+        side: "answerer",
+      },
     ]);
-    expect(section?.groups[0]?.questions[1]?.messages[0]?.side).toBe(
-      "questioner"
-    );
   });
 
-  it("extracts multiple speaker groups separated by thematic breaks", () => {
+  it("extracts multiple speaker groups and ignores thematic breaks", () => {
     const section = extractCouncilorOpinionChatSection(`# 議員、会派の意見
 
 ## 中里光夫議員
 
-### 質問A
-
-#### 中里光夫議員
+### 中里光夫議員
 質問です。
 
-#### 課長
+### 課長
 答弁です。
 
 ---
 
 ## 田中優子議員
 
-### 質問B
-
-#### 田中優子・委員
+### 田中優子・委員
 質問です。
 
-#### 部長
+### 部長
 答弁です。`);
 
     expect(section?.groups.map((group) => group.rawHeading)).toEqual([
       "中里光夫議員",
       "田中優子議員",
     ]);
-    expect(section?.groups[1]?.questions[0]?.messages[0]?.side).toBe(
-      "questioner"
-    );
+    expect(section?.groups[0]?.messages[1]?.bodyText).toBe("答弁です。");
+    expect(section?.groups[1]?.messages[0]?.side).toBe("questioner");
   });
 
   it("returns null for the old plain statement format", () => {
@@ -102,16 +97,34 @@ describe("extractCouncilorOpinionChatSection", () => {
     ).toBeNull();
   });
 
-  it("returns null for empty chat headings", () => {
+  it("returns null for the old question-title chat format", () => {
     expect(
       extractCouncilorOpinionChatSection(`# 議員、会派の意見
 
 ## 中里光夫議員
 
-### 質問
+### 成果指標の数字は、どう考えればいいのか？
 
-#### 中里光夫議員`)
+#### 中里光夫議員
+質問です。
+
+#### 課長
+答弁です。`)
     ).toBeNull();
+  });
+
+  it("ignores empty speaker headings", () => {
+    const section = extractCouncilorOpinionChatSection(`# 議員、会派の意見
+
+## 中里光夫議員
+
+### 中里光夫議員
+
+### 課長
+答弁です。`);
+
+    expect(section?.groups[0]?.messages).toHaveLength(1);
+    expect(section?.groups[0]?.messages[0]?.rawSpeaker).toBe("課長");
   });
 });
 
@@ -125,12 +138,10 @@ describe("splitMarkdownByCouncilorOpinionChatSection", () => {
 
 ## 中里光夫議員
 
-### 質問
-
-#### 中里光夫議員
+### 中里光夫議員
 質問です。
 
-#### 課長
+### 課長
 答弁です。
 
 # よくある質問

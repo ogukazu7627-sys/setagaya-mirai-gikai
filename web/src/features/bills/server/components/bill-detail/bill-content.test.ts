@@ -63,12 +63,10 @@ describe("normalizeSetagayaHeadings", () => {
 
 ## 中里光夫議員
 
-### 成果指標の数字は、どう考えればいいのか？
-
-#### 中里光夫議員
+### 中里光夫議員
 質問本文です。
 
-#### 市民活動推進課長・伊藤
+### 市民活動推進課長・伊藤
 答弁本文です。
 
 # 議会での結果
@@ -84,7 +82,6 @@ describe("normalizeSetagayaHeadings", () => {
     const html = await renderSuspenseToHtml(result as ReactElement);
     expect(html).toContain("data-councilor-opinion-chat");
     expect(html).toContain("わからない言葉を");
-    expect(html).toContain("成果指標の数字は、どう考えればいいのか?");
     expect(html).toContain("質問本文です。");
     expect(html).toContain("答弁本文です。");
     expect(html).toContain("結果本文です。");
