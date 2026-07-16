@@ -137,6 +137,8 @@ const majorCategoryLabels = MAJOR_CATEGORY_OPTIONS.map(
   (category) => category.label
 ) as [MajorCategoryLabel, ...MajorCategoryLabel[]];
 
+const billItemTypeSchema = z.enum(["bill", "report", "petition", "question"]);
+
 type NewTagInput = {
   label: string;
   major_category: MajorCategoryLabel;
@@ -942,6 +944,37 @@ export type GetAdminDraftBillApiResponse = {
   };
 };
 
+export type AdminBillKnowledgeSourceExportItem = {
+  id: string;
+  name: string;
+  item_type: BillItemType;
+  publish_status: string;
+  submitted_date: string | null;
+  major_category: string | null;
+  status: string;
+  status_label: string | null;
+  status_note: string | null;
+  knowledge_source: string | null;
+  use_knowledge_source_in_chat: boolean;
+  sources: BillSource[];
+  updated_at: string | null;
+  diet_session_id: string | null;
+  diet_session: {
+    id: string;
+    name: string;
+    slug: string | null;
+    start_date: string | null;
+    end_date: string | null;
+  } | null;
+};
+
+export type ListAdminBillKnowledgeSourcesApiResponse = {
+  success: true;
+  item_type: BillItemType;
+  count: number;
+  records: AdminBillKnowledgeSourceExportItem[];
+};
+
 type BillTagJoinRow = {
   tag_id: string;
   tags: AdminDraftBillApiTag | AdminDraftBillApiTag[] | null;
@@ -1491,6 +1524,143 @@ export async function getAdminDraftBillForApi(
       publish_status: "draft",
       is_review_completed: false,
     },
+  };
+}
+
+type AdminBillKnowledgeSourceExportRow = Pick<
+  BillRow,
+  | "id"
+  | "name"
+  | "item_type"
+  | "publish_status"
+  | "submitted_date"
+  | "major_category"
+  | "status"
+  | "status_label"
+  | "status_note"
+  | "knowledge_source"
+  | "use_knowledge_source_in_chat"
+  | "sources"
+  | "updated_at"
+  | "diet_session_id"
+> & {
+  diet_sessions:
+    | Pick<DietSessionRow, "id" | "name" | "slug" | "start_date" | "end_date">
+    | Array<
+        Pick<DietSessionRow, "id" | "name" | "slug" | "start_date" | "end_date">
+      >
+    | null;
+};
+
+function normalizeJoinedDietSession(
+  session: AdminBillKnowledgeSourceExportRow["diet_sessions"]
+): AdminBillKnowledgeSourceExportItem["diet_session"] {
+  if (!session) {
+    return null;
+  }
+  return Array.isArray(session) ? (session[0] ?? null) : session;
+}
+
+function normalizeKnowledgeSourceExportRow(
+  row: AdminBillKnowledgeSourceExportRow
+): AdminBillKnowledgeSourceExportItem {
+  return {
+    id: row.id,
+    name: row.name,
+    item_type: row.item_type as BillItemType,
+    publish_status: row.publish_status,
+    submitted_date: toDateInputValue(row.submitted_date) || null,
+    major_category: row.major_category,
+    status: row.status,
+    status_label: row.status_label,
+    status_note: row.status_note,
+    knowledge_source: row.knowledge_source,
+    use_knowledge_source_in_chat: row.use_knowledge_source_in_chat,
+    sources: normalizeBillSourcesForApi(row.sources),
+    updated_at: row.updated_at,
+    diet_session_id: row.diet_session_id,
+    diet_session: normalizeJoinedDietSession(row.diet_sessions),
+  };
+}
+
+export async function listAdminBillKnowledgeSourcesForApi(
+  itemTypeInput: string | null = "report"
+): Promise<ListAdminBillKnowledgeSourcesApiResponse> {
+  const itemTypeResult = billItemTypeSchema.safeParse(
+    itemTypeInput ?? "report"
+  );
+  if (!itemTypeResult.success) {
+    throw new AdminBillSaveError(
+      "item_typeはbill, report, petition, questionのいずれかを指定してください。",
+      400,
+      "invalid_item_type"
+    );
+  }
+
+  if (isSetagayaMockMode) {
+    throw new AdminBillSaveError(
+      "現在はローカルのモック表示中です。読み取るにはSupabase接続を設定してください。",
+      503,
+      "mock_mode"
+    );
+  }
+
+  const supabase = createAdminClient();
+  const pageSize = 1000;
+  let from = 0;
+  let totalCount: number | null = null;
+  const rows: AdminBillKnowledgeSourceExportRow[] = [];
+
+  while (totalCount === null || rows.length < totalCount) {
+    const { data, error, count } = await supabase
+      .from("bills")
+      .select(
+        `
+        id,
+        name,
+        item_type,
+        publish_status,
+        submitted_date,
+        major_category,
+        status,
+        status_label,
+        status_note,
+        knowledge_source,
+        use_knowledge_source_in_chat,
+        sources,
+        updated_at,
+        diet_session_id,
+        diet_sessions(id, name, slug, start_date, end_date)
+      `,
+        { count: "exact" }
+      )
+      .eq("item_type", itemTypeResult.data)
+      .order("submitted_date", { ascending: false, nullsFirst: false })
+      .order("name", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      throw new AdminBillSaveError(
+        `ナレッジソース一覧の読み取りに失敗しました: ${error.message}`,
+        500,
+        "knowledge_sources_lookup_failed"
+      );
+    }
+
+    totalCount = count ?? rows.length + (data?.length ?? 0);
+    rows.push(...((data ?? []) as AdminBillKnowledgeSourceExportRow[]));
+
+    if (!data || data.length < pageSize) {
+      break;
+    }
+    from += pageSize;
+  }
+
+  return {
+    success: true,
+    item_type: itemTypeResult.data,
+    count: totalCount ?? rows.length,
+    records: rows.map(normalizeKnowledgeSourceExportRow),
   };
 }
 

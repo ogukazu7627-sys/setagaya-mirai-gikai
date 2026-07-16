@@ -85,6 +85,43 @@ type DraftReadApiResponse = DraftApiResponse & {
   };
 };
 
+type KnowledgeSourceExportApiResponse = {
+  success: boolean;
+  item_type?: string;
+  count?: number;
+  records?: Array<{
+    id: string;
+    name: string;
+    item_type: string;
+    publish_status: string;
+    submitted_date: string | null;
+    major_category: string | null;
+    status: string;
+    status_label: string | null;
+    status_note: string | null;
+    knowledge_source: string | null;
+    use_knowledge_source_in_chat: boolean;
+    sources: Array<{
+      title: string;
+      url: string | null;
+      source_type: string;
+      published_at: string | null;
+      accessed_at: string | null;
+    }>;
+    updated_at: string | null;
+    diet_session_id: string | null;
+    diet_session: {
+      id: string;
+      name: string;
+      slug: string | null;
+      start_date: string | null;
+      end_date: string | null;
+    } | null;
+  }>;
+  error?: string;
+  code?: string;
+};
+
 const billIds: string[] = [];
 
 function validDraftBody(overrides: Record<string, unknown> = {}) {
@@ -137,6 +174,23 @@ async function getDraft(
   const url = id
     ? `http://localhost/api/admin/bills/draft?id=${encodeURIComponent(id)}`
     : "http://localhost/api/admin/bills/draft";
+  return GET(
+    new Request(url, {
+      method: "GET",
+      headers,
+    })
+  );
+}
+
+async function getKnowledgeSourcesExport(
+  itemType = "report",
+  token: string | null = ADMIN_API_TOKEN
+): Promise<Response> {
+  const headers = new Headers();
+  if (token) headers.set("authorization", `Bearer ${token}`);
+  const url = new URL("http://localhost/api/admin/bills/draft");
+  url.searchParams.set("export", "knowledge_sources");
+  url.searchParams.set("item_type", itemType);
   return GET(
     new Request(url, {
       method: "GET",
@@ -494,6 +548,91 @@ describe("/api/admin/bills/draft", () => {
       mode: "updated",
       billId: createBody.billId,
       previewUrl: createBody.previewUrl,
+    });
+  });
+
+  it("GETで報告事項のナレッジソース一覧をdraft以外も含めて読み取れる", async () => {
+    const draftReportRes = await postDraft(
+      validDraftBody({
+        item_type: "report",
+        name: "ナレッジソース出力対象draft報告",
+        knowledge_source: "draft報告事項のナレッジソースです。",
+      })
+    );
+    const draftReportBody = (await draftReportRes.json()) as DraftApiResponse;
+    expect(draftReportRes.status, JSON.stringify(draftReportBody)).toBe(200);
+    if (!draftReportBody.billId) throw new Error("billId was not returned");
+    billIds.push(draftReportBody.billId);
+
+    const publishedReportRes = await postDraft(
+      validDraftBody({
+        item_type: "report",
+        name: "ナレッジソース出力対象published報告",
+        knowledge_source: "published報告事項のナレッジソースです。",
+      })
+    );
+    const publishedReportBody =
+      (await publishedReportRes.json()) as DraftApiResponse;
+    expect(publishedReportRes.status, JSON.stringify(publishedReportBody)).toBe(
+      200
+    );
+    if (!publishedReportBody.billId) throw new Error("billId was not returned");
+    billIds.push(publishedReportBody.billId);
+    await adminClient
+      .from("bills")
+      .update({ publish_status: "published" })
+      .eq("id", publishedReportBody.billId);
+
+    const questionRes = await postDraft(
+      validDraftBody({
+        item_type: "question",
+        name: "ナレッジソース出力対象外の質問",
+        knowledge_source: "質問のナレッジソースです。",
+      })
+    );
+    const questionBody = (await questionRes.json()) as DraftApiResponse;
+    expect(questionRes.status, JSON.stringify(questionBody)).toBe(200);
+    if (!questionBody.billId) throw new Error("billId was not returned");
+    billIds.push(questionBody.billId);
+
+    const exportRes = await getKnowledgeSourcesExport("report");
+    const exportBody =
+      (await exportRes.json()) as KnowledgeSourceExportApiResponse;
+
+    expect(exportRes.status, JSON.stringify(exportBody)).toBe(200);
+    expect(exportBody).toMatchObject({
+      success: true,
+      item_type: "report",
+    });
+    const records = exportBody.records ?? [];
+    const ids = new Set(records.map((record) => record.id));
+    expect(ids.has(draftReportBody.billId)).toBe(true);
+    expect(ids.has(publishedReportBody.billId)).toBe(true);
+    expect(ids.has(questionBody.billId)).toBe(false);
+
+    expect(
+      records.find((record) => record.id === draftReportBody.billId)
+    ).toMatchObject({
+      item_type: "report",
+      publish_status: "draft",
+      knowledge_source: "draft報告事項のナレッジソースです。",
+    });
+    expect(
+      records.find((record) => record.id === publishedReportBody.billId)
+    ).toMatchObject({
+      item_type: "report",
+      publish_status: "published",
+      knowledge_source: "published報告事項のナレッジソースです。",
+    });
+  });
+
+  it("GETのナレッジソース一覧で不正なitem_typeは400を返す", async () => {
+    const res = await getKnowledgeSourcesExport("invalid");
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "invalid_item_type",
     });
   });
 

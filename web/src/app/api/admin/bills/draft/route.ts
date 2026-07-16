@@ -1,6 +1,7 @@
 import {
   AdminBillSaveError,
   getAdminDraftBillForApi,
+  listAdminBillKnowledgeSourcesForApi,
   saveAdminDraftBillFromJson,
 } from "@/features/admin/server/bill-admin";
 import { jsonResponse } from "@/lib/api/response";
@@ -61,7 +62,23 @@ export async function GET(request: Request) {
   const authError = authenticateAdminDraftApiRequest(request);
   if (authError) return authError;
 
-  const billId = new URL(request.url).searchParams.get("id");
+  const searchParams = new URL(request.url).searchParams;
+  const billId = searchParams.get("id");
+  const exportType = searchParams.get("export");
+  if (exportType === "knowledge_sources") {
+    try {
+      const result = await listAdminBillKnowledgeSourcesForApi(
+        searchParams.get("item_type") ?? "report"
+      );
+      return jsonResponse(result, 200);
+    } catch (error) {
+      return handleAdminDraftApiError(
+        error,
+        "Failed to read bill knowledge sources"
+      );
+    }
+  }
+
   if (!billId) {
     return jsonResponse(
       {
