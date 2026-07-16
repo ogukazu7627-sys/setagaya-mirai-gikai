@@ -21,7 +21,7 @@ type CouncilorOpinionChatSectionProps = {
   section: CouncilorOpinionChatSectionData;
 };
 
-const CAROUSEL_OPTIONS = { align: "start" } as const;
+const CAROUSEL_OPTIONS = { align: "start", watchDrag: false } as const;
 
 export function CouncilorOpinionChatSection({
   section,
@@ -67,13 +67,7 @@ export function CouncilorOpinionChatSection({
           {currentGroup != null && (
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface-gray px-3 py-1 text-sm font-bold text-mirai-text">
-                <Image
-                  src={currentGroup.iconUrl}
-                  alt=""
-                  width={24}
-                  height={30}
-                  className="h-[30px] w-6 shrink-0 rounded-md object-cover"
-                />
+                <CouncilorAvatar group={currentGroup} size="sm" />
                 <span className="min-w-0 truncate">
                   {currentGroup.rawHeading}
                 </span>
@@ -184,13 +178,7 @@ function CouncilorOpinionChatMessageView({
       )}
     >
       {isQuestioner ? (
-        <Image
-          src={group.iconUrl}
-          alt=""
-          width={36}
-          height={45}
-          className="h-[45px] w-9 shrink-0 rounded-md object-cover"
-        />
+        <CouncilorAvatar group={group} size="md" />
       ) : (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-mirai-border bg-white text-mirai-text-secondary">
           <Building2 className="size-5" />
@@ -217,5 +205,32 @@ function CouncilorOpinionChatMessageView({
         </div>
       </div>
     </div>
+  );
+}
+
+function CouncilorAvatar({
+  group,
+  size,
+}: {
+  group: CouncilorOpinionChatGroup;
+  size: "sm" | "md";
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "relative inline-flex shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white",
+        size === "sm" ? "size-8" : "size-11"
+      )}
+      data-councilor-avatar
+    >
+      <Image
+        src={group.iconUrl}
+        alt=""
+        fill
+        sizes={size === "sm" ? "32px" : "44px"}
+        className="object-cover object-top"
+      />
+    </span>
   );
 }
