@@ -25,7 +25,6 @@ export function ReactionButtonsInline({
   return (
     <div className="flex items-center gap-4">
       <InlineReactionButton
-        type="helpful"
         label="参考になる"
         count={data.counts.helpful}
         isActive={data.userReaction === "helpful"}
@@ -37,7 +36,6 @@ export function ReactionButtonsInline({
 }
 
 interface InlineReactionButtonProps {
-  type: ReactionType;
   label: string;
   count: number;
   isActive: boolean;
@@ -46,7 +44,6 @@ interface InlineReactionButtonProps {
 }
 
 function InlineReactionButton({
-  type,
   label,
   count,
   isActive,
