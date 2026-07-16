@@ -16,42 +16,30 @@ const baseSection: CouncilorOpinionChatSectionData = {
       councilorName: "中里光夫",
       partyOrGroup: null,
       iconUrl: "/icons/councilors/nakazato-mitsuo.jpg",
-      questions: [
+      messages: [
         {
-          questionIndex: 0,
-          title: "成果指標の数字は、どう考えればいいのか?",
-          messages: [
-            {
-              messageIndex: 0,
-              rawSpeaker: "中里光夫議員",
-              speakerName: "中里光夫",
-              partyOrGroup: null,
-              bodyText: "質問本文です。",
-              side: "questioner",
-            },
-            {
-              messageIndex: 1,
-              rawSpeaker: "市民活動推進課長・伊藤",
-              speakerName: "市民活動推進課長・伊藤",
-              partyOrGroup: null,
-              bodyText: "答弁本文です。",
-              side: "answerer",
-            },
-          ],
+          messageIndex: 0,
+          rawSpeaker: "中里光夫議員",
+          speakerName: "中里光夫",
+          partyOrGroup: null,
+          bodyText: "質問本文です。",
+          side: "questioner",
         },
         {
-          questionIndex: 1,
-          title: "行政サービスの中身を見直すべきでは?",
-          messages: [
-            {
-              messageIndex: 0,
-              rawSpeaker: "中里光夫議員",
-              speakerName: "中里光夫",
-              partyOrGroup: null,
-              bodyText: "2つめの質問本文です。",
-              side: "questioner",
-            },
-          ],
+          messageIndex: 1,
+          rawSpeaker: "市民活動推進課長・伊藤",
+          speakerName: "市民活動推進課長・伊藤",
+          partyOrGroup: null,
+          bodyText: "答弁本文です。",
+          side: "answerer",
+        },
+        {
+          messageIndex: 2,
+          rawSpeaker: "中里光夫議員",
+          speakerName: "中里光夫",
+          partyOrGroup: null,
+          bodyText: "2つめの質問本文です。",
+          side: "questioner",
         },
       ],
     },
@@ -85,21 +73,17 @@ describe("CouncilorOpinionChatSection", () => {
     }));
   });
 
-  it("renders one councilor group without carousel controls", () => {
+  it("renders one councilor group as continuous messages without carousel controls", () => {
     render(<CouncilorOpinionChatSection section={baseSection} />);
 
     expect(
       screen.getByRole("heading", { name: "議員、会派の意見" })
     ).toBeInTheDocument();
     expect(screen.getAllByText("中里光夫議員").length).toBeGreaterThan(0);
-    expect(
-      screen.getByText("成果指標の数字は、どう考えればいいのか?")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("行政サービスの中身を見直すべきでは?")
-    ).toBeInTheDocument();
     expect(screen.getByText("質問本文です。")).toBeInTheDocument();
     expect(screen.getByText("答弁本文です。")).toBeInTheDocument();
+    expect(screen.getByText("2つめの質問本文です。")).toBeInTheDocument();
+    expect(screen.queryByText("成果指標の数字")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "次の議員・会派を見る" })
     ).not.toBeInTheDocument();
@@ -118,20 +102,14 @@ describe("CouncilorOpinionChatSection", () => {
               rawHeading: "田中優子議員",
               councilorName: "田中優子",
               iconUrl: "/icons/councilors/tanaka-yuko.png",
-              questions: [
+              messages: [
                 {
-                  questionIndex: 0,
-                  title: "別の質問ですか?",
-                  messages: [
-                    {
-                      messageIndex: 0,
-                      rawSpeaker: "田中優子・委員",
-                      speakerName: "田中優子・委員",
-                      partyOrGroup: null,
-                      bodyText: "別の質問本文です。",
-                      side: "questioner",
-                    },
-                  ],
+                  messageIndex: 0,
+                  rawSpeaker: "田中優子・委員",
+                  speakerName: "田中優子・委員",
+                  partyOrGroup: null,
+                  bodyText: "別の質問本文です。",
+                  side: "questioner",
                 },
               ],
             },
@@ -147,6 +125,6 @@ describe("CouncilorOpinionChatSection", () => {
     expect(
       screen.getByRole("button", { name: "次の議員・会派を見る" })
     ).toBeInTheDocument();
-    expect(screen.getByText("別の質問ですか?")).toBeInTheDocument();
+    expect(screen.getByText("別の質問本文です。")).toBeInTheDocument();
   });
 });

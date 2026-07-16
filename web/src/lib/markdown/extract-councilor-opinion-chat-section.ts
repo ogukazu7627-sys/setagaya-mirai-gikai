@@ -33,19 +33,13 @@ export type CouncilorOpinionChatMessage = {
   side: CouncilorOpinionChatMessageSide;
 };
 
-export type CouncilorOpinionChatQuestion = {
-  questionIndex: number;
-  title: string;
-  messages: CouncilorOpinionChatMessage[];
-};
-
 export type CouncilorOpinionChatGroup = {
   groupIndex: number;
   rawHeading: string;
   councilorName: string;
   partyOrGroup: string | null;
   iconUrl: string;
-  questions: CouncilorOpinionChatQuestion[];
+  messages: CouncilorOpinionChatMessage[];
 };
 
 export type CouncilorOpinionChatSection = {
@@ -67,6 +61,16 @@ function parseMarkdown(markdown: string): MarkdownNode {
 
 function isHeading(node: MarkdownNode, depth: number): boolean {
   return node.type === "heading" && node.depth === depth;
+}
+
+function isNestedMessageHeading(node: MarkdownNode): boolean {
+  return (
+    node.type === "heading" && typeof node.depth === "number" && node.depth > 3
+  );
+}
+
+function isThematicBreak(node: MarkdownNode): boolean {
+  return node.type === "thematicBreak";
 }
 
 function getNodeText(node: MarkdownNode): string {
@@ -135,23 +139,44 @@ function findNextHeadingIndex(
     : startIndex + 1 + nextHeadingOffset;
 }
 
-function extractMessagesFromQuestion(
+function findNextMessageBoundaryIndex(
+  nodes: MarkdownNode[],
+  startIndex: number
+): number {
+  const nextBoundaryOffset = nodes
+    .slice(startIndex + 1)
+    .findIndex(
+      (candidate) => isHeading(candidate, 3) || isThematicBreak(candidate)
+    );
+
+  return nextBoundaryOffset === -1
+    ? nodes.length
+    : startIndex + 1 + nextBoundaryOffset;
+}
+
+function extractMessagesFromGroup(
   markdown: string,
-  questionNodes: MarkdownNode[],
+  groupNodes: MarkdownNode[],
   groupHeading: string
 ): CouncilorOpinionChatMessage[] {
   const messages: CouncilorOpinionChatMessage[] = [];
 
-  questionNodes.forEach((node, index) => {
-    if (!isHeading(node, 4)) {
+  groupNodes.forEach((node, index) => {
+    if (!isHeading(node, 3)) {
       return;
     }
 
-    const nextHeadingIndex = findNextHeadingIndex(questionNodes, index, 4);
-    const nextHeading = questionNodes[nextHeadingIndex];
+    const nextBoundaryIndex = findNextMessageBoundaryIndex(groupNodes, index);
+    const nextBoundary = groupNodes[nextBoundaryIndex];
+    const messageNodes = groupNodes.slice(index + 1, nextBoundaryIndex);
+
+    if (messageNodes.some(isNestedMessageHeading)) {
+      return;
+    }
+
     const endOffset =
-      getStartOffset(nextHeading) ??
-      getNodesEndOffset(questionNodes, getEndOffset(node) ?? 0);
+      getStartOffset(nextBoundary) ??
+      getNodesEndOffset(messageNodes, getEndOffset(node) ?? 0);
     const bodyText = sliceMarkdown(markdown, getEndOffset(node), endOffset);
 
     if (!bodyText) {
@@ -172,40 +197,6 @@ function extractMessagesFromQuestion(
   });
 
   return messages;
-}
-
-function extractQuestionsFromGroup(
-  markdown: string,
-  groupNodes: MarkdownNode[],
-  groupHeading: string
-): CouncilorOpinionChatQuestion[] {
-  const questions: CouncilorOpinionChatQuestion[] = [];
-
-  groupNodes.forEach((node, index) => {
-    if (!isHeading(node, 3)) {
-      return;
-    }
-
-    const nextHeadingIndex = findNextHeadingIndex(groupNodes, index, 3);
-    const questionNodes = groupNodes.slice(index + 1, nextHeadingIndex);
-    const messages = extractMessagesFromQuestion(
-      markdown,
-      questionNodes,
-      groupHeading
-    );
-
-    if (messages.length === 0) {
-      return;
-    }
-
-    questions.push({
-      questionIndex: questions.length,
-      title: normalizeCouncilorText(getNodeText(node)),
-      messages,
-    });
-  });
-
-  return questions;
 }
 
 export function extractCouncilorOpinionChatSection(
@@ -238,13 +229,9 @@ export function extractCouncilorOpinionChatSection(
     const nextHeadingIndex = findNextHeadingIndex(sectionNodes, index, 2);
     const groupNodes = sectionNodes.slice(index + 1, nextHeadingIndex);
     const rawHeading = normalizeCouncilorText(getNodeText(node));
-    const questions = extractQuestionsFromGroup(
-      markdown,
-      groupNodes,
-      rawHeading
-    );
+    const messages = extractMessagesFromGroup(markdown, groupNodes, rawHeading);
 
-    if (questions.length === 0) {
+    if (messages.length === 0) {
       return;
     }
 
@@ -254,7 +241,7 @@ export function extractCouncilorOpinionChatSection(
       councilorName: normalizeCouncilorName(rawHeading),
       partyOrGroup: getCouncilorPartyOrGroup(rawHeading),
       iconUrl: getCouncilorIconUrl(rawHeading),
-      questions,
+      messages,
     });
   });
 

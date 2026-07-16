@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Building2, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -134,29 +134,16 @@ function CouncilorOpinionChatGroupView({
   group: CouncilorOpinionChatGroup;
 }) {
   return (
-    <div className="space-y-5">
-      {group.questions.map((question) => (
-        <div
-          className="rounded-md bg-mirai-surface-gray px-3 py-4 md:px-4"
-          key={`${question.questionIndex}-${question.title}`}
-        >
-          <div className="flex items-start gap-2 text-mirai-text">
-            <MessageCircle className="mt-1 size-5 shrink-0 text-primary" />
-            <h2 className="!mb-0 min-w-0 text-lg font-bold leading-7">
-              {question.title}
-            </h2>
-          </div>
-          <div className="mt-5 space-y-4">
-            {question.messages.map((message) => (
-              <CouncilorOpinionChatMessageView
-                group={group}
-                key={`${message.messageIndex}-${message.rawSpeaker}`}
-                message={message}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="rounded-md bg-mirai-surface-gray px-3 py-4 md:px-4">
+      <div className="space-y-4">
+        {group.messages.map((message) => (
+          <CouncilorOpinionChatMessageView
+            group={group}
+            key={`${message.messageIndex}-${message.rawSpeaker}`}
+            message={message}
+          />
+        ))}
+      </div>
     </div>
   );
 }
