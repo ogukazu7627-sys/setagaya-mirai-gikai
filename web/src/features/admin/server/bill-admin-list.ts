@@ -13,6 +13,9 @@ import {
   ADMIN_BILLS_PER_PAGE,
   type AdminBillListItem,
   type AdminBillSearchFilters,
+  type AdminBillSort,
+  type AdminBillSortDirection,
+  type AdminBillSortKey,
   type AdminSupabaseClient,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
@@ -23,6 +26,7 @@ interface ListAdminBillsOptions {
   page?: number;
   perPage?: number;
   filters?: AdminBillSearchFilters;
+  sort?: AdminBillSort;
 }
 
 export interface AdminBillListPage {
@@ -42,12 +46,31 @@ type AdminBillSearchParamInput = {
   date_to?: string;
 };
 
+type AdminBillSortParamInput = {
+  sort_by?: string;
+  sort_order?: string;
+};
+
 const publishStatusFilterValues = new Set(["draft", "published"]);
 const itemTypeFilterValues = new Set<string>(
   BILL_ITEM_TYPE_OPTIONS.map((option) => option.value)
 );
 const statusLabelFilterValues = new Set<string>(BILL_STATUS_LABEL_OPTIONS);
 const adminBillDateFilterPattern = /^\d{4}-\d{2}-\d{2}$/;
+const adminBillSortKeys = new Set<AdminBillSortKey>([
+  "item_type",
+  "major_category",
+  "publish_status",
+  "updated_at",
+]);
+const adminBillSortDirections = new Set<AdminBillSortDirection>([
+  "asc",
+  "desc",
+]);
+const adminBillSortCollator = new Intl.Collator("ja-JP", {
+  numeric: true,
+  sensitivity: "base",
+});
 
 function normalizeShortSearchText(value: string | undefined) {
   return (value ?? "").trim().slice(0, 200);
@@ -86,6 +109,21 @@ export function normalizeAdminBillSearchFilters(
     submittedDateFrom: normalizeDateFilter(input.date_from),
     submittedDateTo: normalizeDateFilter(input.date_to),
   };
+}
+
+export function normalizeAdminBillSort(
+  input: AdminBillSortParamInput = {}
+): AdminBillSort {
+  const key = adminBillSortKeys.has(input.sort_by as AdminBillSortKey)
+    ? (input.sort_by as AdminBillSortKey)
+    : "updated_at";
+  const direction = adminBillSortDirections.has(
+    input.sort_order as AdminBillSortDirection
+  )
+    ? (input.sort_order as AdminBillSortDirection)
+    : "desc";
+
+  return { key, direction };
 }
 
 function adminBillMatchesSearchFilters(
@@ -223,10 +261,43 @@ async function collectAdminBillIdsByKeyword(
   return Array.from(billIds);
 }
 
+function getAdminBillSortValue(bill: AdminBillListItem, key: AdminBillSortKey) {
+  switch (key) {
+    case "item_type":
+      return bill.item_type;
+    case "major_category":
+      return bill.major_category ?? "";
+    case "publish_status":
+      return bill.publish_status;
+    case "updated_at":
+      return bill.updated_at ?? "";
+  }
+}
+
+function sortAdminBillListItems(
+  bills: AdminBillListItem[],
+  sort: AdminBillSort
+) {
+  return [...bills].sort((a, b) => {
+    const aValue = getAdminBillSortValue(a, sort.key);
+    const bValue = getAdminBillSortValue(b, sort.key);
+    const compared = adminBillSortCollator.compare(aValue, bValue);
+    if (compared !== 0) {
+      return sort.direction === "asc" ? compared : -compared;
+    }
+
+    return adminBillSortCollator.compare(
+      b.updated_at ?? "",
+      a.updated_at ?? ""
+    );
+  });
+}
+
 export async function listAdminBills({
   page = 1,
   perPage = ADMIN_BILLS_PER_PAGE,
   filters = normalizeAdminBillSearchFilters(),
+  sort = normalizeAdminBillSort(),
 }: ListAdminBillsOptions = {}): Promise<AdminBillListPage> {
   await requireAdmin("/admin/bills");
   const safePage = Math.max(1, Math.floor(page));
@@ -236,10 +307,11 @@ export async function listAdminBills({
     const allBills = getSetagayaMockBills()
       .map(mockBillToAdminListItem)
       .filter((bill) => adminBillMatchesSearchFilters(bill, filters));
+    const sortedBills = sortAdminBillListItems(allBills, sort);
     const from = (safePage - 1) * safePerPage;
     return {
-      bills: allBills.slice(from, from + safePerPage),
-      totalCount: allBills.length,
+      bills: sortedBills.slice(from, from + safePerPage),
+      totalCount: sortedBills.length,
       page: safePage,
       perPage: safePerPage,
     };
@@ -292,9 +364,15 @@ export async function listAdminBills({
     query = query.lte("submitted_date", filters.submittedDateTo);
   }
 
-  const { data, error, count } = await query
-    .order("updated_at", { ascending: false })
-    .range(from, to);
+  query = query.order(sort.key, {
+    ascending: sort.direction === "asc",
+    nullsFirst: false,
+  });
+  if (sort.key !== "updated_at") {
+    query = query.order("updated_at", { ascending: false, nullsFirst: false });
+  }
+
+  const { data, error, count } = await query.range(from, to);
 
   if (error) {
     throw new Error(`Failed to fetch admin bills: ${error.message}`);

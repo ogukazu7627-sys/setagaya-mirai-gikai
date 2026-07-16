@@ -11,7 +11,10 @@ import {
 import {
   type AdminBillListItem,
   type AdminBillSearchFilters,
-  formatAdminDate,
+  type AdminBillSort,
+  type AdminBillSortDirection,
+  type AdminBillSortKey,
+  formatAdminDateTime,
   getPreviewPath,
 } from "../server/bill-admin";
 import { AdminBillBulkSelectAll } from "./admin-bill-bulk-select-all";
@@ -22,6 +25,7 @@ interface AdminBillListProps {
   currentPage: number;
   filters: AdminBillSearchFilters;
   perPage: number;
+  sort: AdminBillSort;
   totalCount: number;
 }
 
@@ -46,12 +50,15 @@ function setSearchParamIfPresent(
 
 function adminBillsPageHref(
   page: number,
-  filters: AdminBillSearchFilters
+  filters: AdminBillSearchFilters,
+  sort: AdminBillSort
 ): Route {
   const params = new URLSearchParams();
   if (page > 1) {
     params.set("page", String(page));
   }
+  params.set("sort_by", sort.key);
+  params.set("sort_order", sort.direction);
   setSearchParamIfPresent(params, "q", filters.query);
   setSearchParamIfPresent(params, "publish_status", filters.publishStatus);
   setSearchParamIfPresent(params, "item_type", filters.itemType);
@@ -91,11 +98,64 @@ function buildPageNumbers(currentPage: number, totalPages: number) {
   );
 }
 
+function nextSortDirection(
+  sortKey: AdminBillSortKey,
+  currentSort: AdminBillSort
+): AdminBillSortDirection {
+  if (currentSort.key === sortKey) {
+    return currentSort.direction === "asc" ? "desc" : "asc";
+  }
+
+  return sortKey === "updated_at" ? "desc" : "asc";
+}
+
+function sortIndicator(sortKey: AdminBillSortKey, currentSort: AdminBillSort) {
+  if (currentSort.key !== sortKey) {
+    return "↕";
+  }
+
+  return currentSort.direction === "asc" ? "↑" : "↓";
+}
+
+function SortableHeader({
+  filters,
+  label,
+  sort,
+  sortKey,
+}: {
+  filters: AdminBillSearchFilters;
+  label: string;
+  sort: AdminBillSort;
+  sortKey: AdminBillSortKey;
+}) {
+  const isActive = sort.key === sortKey;
+  const nextSort: AdminBillSort = {
+    key: sortKey,
+    direction: nextSortDirection(sortKey, sort),
+  };
+
+  return (
+    <Link
+      href={adminBillsPageHref(1, filters, nextSort)}
+      className="inline-flex items-center gap-1 rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      aria-label={`${label}を${
+        nextSort.direction === "asc" ? "昇順" : "降順"
+      }で並び替え`}
+    >
+      <span>{label}</span>
+      <span aria-hidden="true" className={isActive ? "" : "text-gray-400"}>
+        {sortIndicator(sortKey, sort)}
+      </span>
+    </Link>
+  );
+}
+
 export function AdminBillList({
   bills,
   currentPage,
   filters,
   perPage,
+  sort,
   totalCount,
 }: AdminBillListProps) {
   const bulkFormId = "admin-bill-bulk-publish-status-form";
@@ -104,7 +164,7 @@ export function AdminBillList({
   const endIndex =
     totalCount === 0 ? 0 : Math.min(startIndex + bills.length - 1, totalCount);
   const pageNumbers = buildPageNumbers(currentPage, totalPages);
-  const returnPath = adminBillsPageHref(currentPage, filters);
+  const returnPath = adminBillsPageHref(currentPage, filters, sort);
 
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
@@ -149,11 +209,39 @@ export function AdminBillList({
                 />
               </th>
               <th className="px-4 py-3 font-bold">案件</th>
-              <th className="px-4 py-3 font-bold">種別</th>
-              <th className="px-4 py-3 font-bold">大分類</th>
+              <th className="px-4 py-3 font-bold">
+                <SortableHeader
+                  filters={filters}
+                  label="種別"
+                  sort={sort}
+                  sortKey="item_type"
+                />
+              </th>
+              <th className="px-4 py-3 font-bold">
+                <SortableHeader
+                  filters={filters}
+                  label="大分類"
+                  sort={sort}
+                  sortKey="major_category"
+                />
+              </th>
               <th className="px-4 py-3 font-bold">状態</th>
-              <th className="px-4 py-3 font-bold">公開</th>
-              <th className="px-4 py-3 font-bold">更新日</th>
+              <th className="px-4 py-3 font-bold">
+                <SortableHeader
+                  filters={filters}
+                  label="公開"
+                  sort={sort}
+                  sortKey="publish_status"
+                />
+              </th>
+              <th className="px-4 py-3 font-bold">
+                <SortableHeader
+                  filters={filters}
+                  label="更新日時"
+                  sort={sort}
+                  sortKey="updated_at"
+                />
+              </th>
               <th className="px-4 py-3 font-bold">操作</th>
             </tr>
           </thead>
@@ -208,7 +296,7 @@ export function AdminBillList({
                     </Badge>
                   </td>
                   <td className="px-4 py-4">
-                    {formatAdminDate(bill.updated_at)}
+                    {formatAdminDateTime(bill.updated_at)}
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-2">
@@ -274,7 +362,9 @@ export function AdminBillList({
             >
               {currentPage > 1 ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={adminBillsPageHref(currentPage - 1, filters)}>
+                  <Link
+                    href={adminBillsPageHref(currentPage - 1, filters, sort)}
+                  >
                     前へ
                   </Link>
                 </Button>
@@ -290,13 +380,17 @@ export function AdminBillList({
                   </Button>
                 ) : (
                   <Button key={page} variant="outline" size="sm" asChild>
-                    <Link href={adminBillsPageHref(page, filters)}>{page}</Link>
+                    <Link href={adminBillsPageHref(page, filters, sort)}>
+                      {page}
+                    </Link>
                   </Button>
                 )
               )}
               {currentPage < totalPages ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={adminBillsPageHref(currentPage + 1, filters)}>
+                  <Link
+                    href={adminBillsPageHref(currentPage + 1, filters, sort)}
+                  >
                     次へ
                   </Link>
                 </Button>

@@ -45,6 +45,35 @@ export function formatAdminDate(value: string | null): string {
   return value.slice(0, 10);
 }
 
+export function formatAdminDateTime(value: string | null): string {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 16).replace("T", " ");
+  }
+
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    minute: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+  })
+    .formatToParts(date)
+    .reduce<Record<string, string>>((acc, part) => {
+      if (part.type !== "literal") {
+        acc[part.type] = part.value;
+      }
+      return acc;
+    }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
+}
+
 export function getFirstZodIssueMessage(error: ZodError): string {
   return error.issues[0]?.message ?? "入力内容を確認してください。";
 }
