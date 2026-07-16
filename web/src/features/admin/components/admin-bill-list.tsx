@@ -7,6 +7,7 @@ import { routes } from "@/lib/routes";
 import { deleteAdminBillAction } from "../server/actions";
 import {
   type AdminBillListItem,
+  type AdminBillSearchFilters,
   formatAdminDate,
   getPreviewPath,
 } from "../server/bill-admin";
@@ -15,6 +16,7 @@ import { AdminDeleteBillButton } from "./admin-delete-bill-button";
 interface AdminBillListProps {
   bills: Array<AdminBillListItem & { previewToken?: string | null }>;
   currentPage: number;
+  filters: AdminBillSearchFilters;
   perPage: number;
   totalCount: number;
 }
@@ -28,12 +30,46 @@ function publishStatusLabel(status: string) {
   }
 }
 
-function adminBillsPageHref(page: number): Route {
+function setSearchParamIfPresent(
+  params: URLSearchParams,
+  key: string,
+  value: string
+) {
+  if (value) {
+    params.set(key, value);
+  }
+}
+
+function adminBillsPageHref(
+  page: number,
+  filters: AdminBillSearchFilters
+): Route {
+  const params = new URLSearchParams();
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+  setSearchParamIfPresent(params, "q", filters.query);
+  setSearchParamIfPresent(params, "publish_status", filters.publishStatus);
+  setSearchParamIfPresent(params, "item_type", filters.itemType);
+  setSearchParamIfPresent(params, "major_category", filters.majorCategory);
+  setSearchParamIfPresent(params, "status_label", filters.statusLabel);
+  setSearchParamIfPresent(params, "date_from", filters.submittedDateFrom);
+  setSearchParamIfPresent(params, "date_to", filters.submittedDateTo);
+
+  const query = params.toString();
+  if (query) {
+    return `${routes.adminBills()}?${query}` as Route;
+  }
+
   if (page <= 1) {
     return routes.adminBills() as Route;
   }
 
   return `${routes.adminBills()}?page=${page}` as Route;
+}
+
+function hasActiveFilters(filters: AdminBillSearchFilters) {
+  return Object.values(filters).some((value) => value !== "");
 }
 
 function buildPageNumbers(currentPage: number, totalPages: number) {
@@ -54,6 +90,7 @@ function buildPageNumbers(currentPage: number, totalPages: number) {
 export function AdminBillList({
   bills,
   currentPage,
+  filters,
   perPage,
   totalCount,
 }: AdminBillListProps) {
@@ -167,7 +204,9 @@ export function AdminBillList({
       </div>
       {bills.length === 0 && (
         <div className="px-4 py-10 text-center text-sm text-mirai-text-secondary">
-          まだ案件がありません。
+          {hasActiveFilters(filters)
+            ? "条件に一致する案件がありません。"
+            : "まだ案件がありません。"}
         </div>
       )}
       {totalCount > 0 && (
@@ -182,7 +221,9 @@ export function AdminBillList({
             >
               {currentPage > 1 ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={adminBillsPageHref(currentPage - 1)}>前へ</Link>
+                  <Link href={adminBillsPageHref(currentPage - 1, filters)}>
+                    前へ
+                  </Link>
                 </Button>
               ) : (
                 <Button variant="outline" size="sm" disabled>
@@ -196,13 +237,15 @@ export function AdminBillList({
                   </Button>
                 ) : (
                   <Button key={page} variant="outline" size="sm" asChild>
-                    <Link href={adminBillsPageHref(page)}>{page}</Link>
+                    <Link href={adminBillsPageHref(page, filters)}>{page}</Link>
                   </Button>
                 )
               )}
               {currentPage < totalPages ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={adminBillsPageHref(currentPage + 1)}>次へ</Link>
+                  <Link href={adminBillsPageHref(currentPage + 1, filters)}>
+                    次へ
+                  </Link>
                 </Button>
               ) : (
                 <Button variant="outline" size="sm" disabled>
