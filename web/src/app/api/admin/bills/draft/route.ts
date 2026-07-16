@@ -1,11 +1,13 @@
 import {
   AdminBillSaveError,
+  getAdminDraftBillForApi,
+  listAdminBillKnowledgeSourcesForApi,
   saveAdminDraftBillFromJson,
 } from "@/features/admin/server/bill-admin";
 import { jsonResponse } from "@/lib/api/response";
 import { env } from "@/lib/env";
 
-export async function POST(request: Request) {
+function authenticateAdminDraftApiRequest(request: Request): Response | null {
   if (!env.adminApiToken) {
     return jsonResponse(
       {
@@ -29,6 +31,77 @@ export async function POST(request: Request) {
     );
   }
 
+  return null;
+}
+
+function handleAdminDraftApiError(error: unknown, fallbackMessage: string) {
+  if (error instanceof AdminBillSaveError) {
+    return jsonResponse(
+      {
+        success: false,
+        error: error.message,
+        code: error.code,
+        billId: error.billId,
+      },
+      error.status
+    );
+  }
+
+  console.error("Admin draft bill API error:", error);
+  return jsonResponse(
+    {
+      success: false,
+      error: fallbackMessage,
+      code: "internal_error",
+    },
+    500
+  );
+}
+
+export async function GET(request: Request) {
+  const authError = authenticateAdminDraftApiRequest(request);
+  if (authError) return authError;
+
+  const searchParams = new URL(request.url).searchParams;
+  const billId = searchParams.get("id");
+  const exportType = searchParams.get("export");
+  if (exportType === "knowledge_sources") {
+    try {
+      const result = await listAdminBillKnowledgeSourcesForApi(
+        searchParams.get("item_type") ?? "report"
+      );
+      return jsonResponse(result, 200);
+    } catch (error) {
+      return handleAdminDraftApiError(
+        error,
+        "Failed to read bill knowledge sources"
+      );
+    }
+  }
+
+  if (!billId) {
+    return jsonResponse(
+      {
+        success: false,
+        error: "id is required",
+        code: "missing_id",
+      },
+      400
+    );
+  }
+
+  try {
+    const result = await getAdminDraftBillForApi(billId);
+    return jsonResponse(result, 200);
+  } catch (error) {
+    return handleAdminDraftApiError(error, "Failed to read draft bill");
+  }
+}
+
+export async function POST(request: Request) {
+  const authError = authenticateAdminDraftApiRequest(request);
+  if (authError) return authError;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -47,26 +120,6 @@ export async function POST(request: Request) {
     const result = await saveAdminDraftBillFromJson(body);
     return jsonResponse(result, 200);
   } catch (error) {
-    if (error instanceof AdminBillSaveError) {
-      return jsonResponse(
-        {
-          success: false,
-          error: error.message,
-          code: error.code,
-          billId: error.billId,
-        },
-        error.status
-      );
-    }
-
-    console.error("Admin draft bill API error:", error);
-    return jsonResponse(
-      {
-        success: false,
-        error: "Failed to save draft bill",
-        code: "internal_error",
-      },
-      500
-    );
+    return handleAdminDraftApiError(error, "Failed to save draft bill");
   }
 }

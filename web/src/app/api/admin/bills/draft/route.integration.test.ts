@@ -7,7 +7,7 @@ import {
 } from "@test-utils/utils";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { env } from "@/lib/env";
-import { POST } from "./route";
+import { GET, POST } from "./route";
 
 const councilorRepositoryMock = vi.hoisted(() => ({
   findUnknownCouncilorNamesByBillId: vi.fn(),
@@ -44,6 +44,80 @@ type DraftApiResponse = {
     publish_status: "draft";
     is_review_completed: false;
   };
+  error?: string;
+  code?: string;
+};
+
+type DraftReadApiResponse = DraftApiResponse & {
+  draft?: {
+    id: string;
+    name: string;
+    item_type: string;
+    major_category: string;
+    diet_session_id: string | null;
+    submitted_date: string | null;
+    status: string;
+    status_label: string | null;
+    status_note: string | null;
+    publish_status: "draft";
+    is_review_completed: false;
+    is_featured: boolean;
+    interview_enabled: boolean;
+    use_knowledge_source_in_chat: boolean;
+    thumbnail_url: string | null;
+    share_thumbnail_url: string | null;
+    normal_title: string;
+    normal_summary: string;
+    normal_content: string;
+    hard_title: string | null;
+    hard_summary: string | null;
+    hard_content: string | null;
+    tag_ids: string[];
+    tags: Array<{ id: string; label: string; major_category: string | null }>;
+    sources: Array<{
+      title: string;
+      url: string | null;
+      source_type: string;
+      published_at: string | null;
+      accessed_at: string | null;
+    }>;
+    knowledge_source: string | null;
+  };
+};
+
+type KnowledgeSourceExportApiResponse = {
+  success: boolean;
+  item_type?: string;
+  count?: number;
+  records?: Array<{
+    id: string;
+    name: string;
+    item_type: string;
+    publish_status: string;
+    submitted_date: string | null;
+    major_category: string | null;
+    status: string;
+    status_label: string | null;
+    status_note: string | null;
+    knowledge_source: string | null;
+    use_knowledge_source_in_chat: boolean;
+    sources: Array<{
+      title: string;
+      url: string | null;
+      source_type: string;
+      published_at: string | null;
+      accessed_at: string | null;
+    }>;
+    updated_at: string | null;
+    diet_session_id: string | null;
+    diet_session: {
+      id: string;
+      name: string;
+      slug: string | null;
+      start_date: string | null;
+      end_date: string | null;
+    } | null;
+  }>;
   error?: string;
   code?: string;
 };
@@ -91,7 +165,41 @@ async function postDraft(
   );
 }
 
-describe("POST /api/admin/bills/draft", () => {
+async function getDraft(
+  id: string | null,
+  token: string | null = ADMIN_API_TOKEN
+): Promise<Response> {
+  const headers = new Headers();
+  if (token) headers.set("authorization", `Bearer ${token}`);
+  const url = id
+    ? `http://localhost/api/admin/bills/draft?id=${encodeURIComponent(id)}`
+    : "http://localhost/api/admin/bills/draft";
+  return GET(
+    new Request(url, {
+      method: "GET",
+      headers,
+    })
+  );
+}
+
+async function getKnowledgeSourcesExport(
+  itemType = "report",
+  token: string | null = ADMIN_API_TOKEN
+): Promise<Response> {
+  const headers = new Headers();
+  if (token) headers.set("authorization", `Bearer ${token}`);
+  const url = new URL("http://localhost/api/admin/bills/draft");
+  url.searchParams.set("export", "knowledge_sources");
+  url.searchParams.set("item_type", itemType);
+  return GET(
+    new Request(url, {
+      method: "GET",
+      headers,
+    })
+  );
+}
+
+describe("/api/admin/bills/draft", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (env as { adminApiToken?: string }).adminApiToken = ADMIN_API_TOKEN;
@@ -317,5 +425,238 @@ describe("POST /api/admin/bills/draft", () => {
     );
 
     expect(res.status).toBe(400);
+  });
+
+  it("GETでもADMIN_API_TOKEN未設定時は500を返す", async () => {
+    (env as { adminApiToken?: string }).adminApiToken = undefined;
+
+    const res = await getDraft(randomUUID());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "admin_api_token_not_configured",
+    });
+  });
+
+  it("GETのtokenなし・不一致は401を返す", async () => {
+    const missingTokenRes = await getDraft(randomUUID(), null);
+    expect(missingTokenRes.status).toBe(401);
+
+    const badTokenRes = await getDraft(randomUUID(), "bad-token");
+    expect(badTokenRes.status).toBe(401);
+  });
+
+  it("GETでidなし・不正idは400を返す", async () => {
+    const missingIdRes = await getDraft(null);
+    expect(missingIdRes.status).toBe(400);
+    await expect(missingIdRes.json()).resolves.toMatchObject({
+      success: false,
+      code: "missing_id",
+    });
+
+    const invalidIdRes = await getDraft("not-a-uuid");
+    expect(invalidIdRes.status).toBe(400);
+    await expect(invalidIdRes.json()).resolves.toMatchObject({
+      success: false,
+      code: "invalid_id",
+    });
+  });
+
+  it("GETで既存draft案件をPOSTへ再利用しやすいJSONとして読み取れる", async () => {
+    const createRes = await postDraft(
+      validDraftBody({
+        name: "読み取り対象AI下書き",
+        status_note: "区から追加説明あり",
+        thumbnail_url: "https://example.com/thumb.jpg",
+        share_thumbnail_url: "https://example.com/share.jpg",
+        knowledge_source: "AIチャット用の補足資料本文です。",
+        is_featured: true,
+        interview_enabled: true,
+        use_knowledge_source_in_chat: true,
+        normal_title: "読み取り対象タイトル",
+        normal_summary: "読み取り対象概要",
+        normal_content: "# 概要\n\n読み取り対象本文です。",
+        hard_title: "詳しい読み取り対象タイトル",
+        hard_summary: "詳しい読み取り対象概要",
+        hard_content: "# 詳細\n\n詳しい読み取り対象本文です。",
+      })
+    );
+    const createBody = (await createRes.json()) as DraftApiResponse;
+    expect(createRes.status, JSON.stringify(createBody)).toBe(200);
+    if (!createBody.billId) throw new Error("billId was not returned");
+    billIds.push(createBody.billId);
+
+    const readRes = await getDraft(createBody.billId);
+    const readBody = (await readRes.json()) as DraftReadApiResponse;
+
+    expect(readRes.status, JSON.stringify(readBody)).toBe(200);
+    expect(readBody).toMatchObject({
+      success: true,
+      billId: createBody.billId,
+      previewUrl: createBody.previewUrl,
+      forcedFields: {
+        publish_status: "draft",
+        is_review_completed: false,
+      },
+      draft: {
+        id: createBody.billId,
+        name: "読み取り対象AI下書き",
+        item_type: "question",
+        major_category: "防災☔",
+        submitted_date: "2026-02-15",
+        status: "introduced",
+        status_label: "質問・答弁済み",
+        status_note: "区から追加説明あり",
+        publish_status: "draft",
+        is_review_completed: false,
+        is_featured: true,
+        interview_enabled: true,
+        use_knowledge_source_in_chat: true,
+        thumbnail_url: "https://example.com/thumb.jpg",
+        share_thumbnail_url: "https://example.com/share.jpg",
+        normal_title: "読み取り対象タイトル",
+        normal_summary: "読み取り対象概要",
+        normal_content: "# 概要\n\n読み取り対象本文です。",
+        hard_title: "詳しい読み取り対象タイトル",
+        hard_summary: "詳しい読み取り対象概要",
+        hard_content: "# 詳細\n\n詳しい読み取り対象本文です。",
+        tag_ids: [],
+        tags: [],
+        sources: [
+          {
+            title: "公式資料",
+            url: "https://example.com/source",
+            source_type: "official_page",
+            published_at: "2026-02-01",
+            accessed_at: "2026-02-15",
+          },
+        ],
+        knowledge_source: "AIチャット用の補足資料本文です。",
+      },
+    });
+
+    const updateRes = await postDraft({
+      ...readBody.draft,
+      normal_summary: "読み取り後に追記した概要",
+    });
+    const updateBody = (await updateRes.json()) as DraftApiResponse;
+
+    expect(updateRes.status, JSON.stringify(updateBody)).toBe(200);
+    expect(updateBody).toMatchObject({
+      success: true,
+      mode: "updated",
+      billId: createBody.billId,
+      previewUrl: createBody.previewUrl,
+    });
+  });
+
+  it("GETで報告事項のナレッジソース一覧をdraft以外も含めて読み取れる", async () => {
+    const draftReportRes = await postDraft(
+      validDraftBody({
+        item_type: "report",
+        name: "ナレッジソース出力対象draft報告",
+        knowledge_source: "draft報告事項のナレッジソースです。",
+      })
+    );
+    const draftReportBody = (await draftReportRes.json()) as DraftApiResponse;
+    expect(draftReportRes.status, JSON.stringify(draftReportBody)).toBe(200);
+    if (!draftReportBody.billId) throw new Error("billId was not returned");
+    billIds.push(draftReportBody.billId);
+
+    const publishedReportRes = await postDraft(
+      validDraftBody({
+        item_type: "report",
+        name: "ナレッジソース出力対象published報告",
+        knowledge_source: "published報告事項のナレッジソースです。",
+      })
+    );
+    const publishedReportBody =
+      (await publishedReportRes.json()) as DraftApiResponse;
+    expect(publishedReportRes.status, JSON.stringify(publishedReportBody)).toBe(
+      200
+    );
+    if (!publishedReportBody.billId) throw new Error("billId was not returned");
+    billIds.push(publishedReportBody.billId);
+    await adminClient
+      .from("bills")
+      .update({ publish_status: "published" })
+      .eq("id", publishedReportBody.billId);
+
+    const questionRes = await postDraft(
+      validDraftBody({
+        item_type: "question",
+        name: "ナレッジソース出力対象外の質問",
+        knowledge_source: "質問のナレッジソースです。",
+      })
+    );
+    const questionBody = (await questionRes.json()) as DraftApiResponse;
+    expect(questionRes.status, JSON.stringify(questionBody)).toBe(200);
+    if (!questionBody.billId) throw new Error("billId was not returned");
+    billIds.push(questionBody.billId);
+
+    const exportRes = await getKnowledgeSourcesExport("report");
+    const exportBody =
+      (await exportRes.json()) as KnowledgeSourceExportApiResponse;
+
+    expect(exportRes.status, JSON.stringify(exportBody)).toBe(200);
+    expect(exportBody).toMatchObject({
+      success: true,
+      item_type: "report",
+    });
+    const records = exportBody.records ?? [];
+    const ids = new Set(records.map((record) => record.id));
+    expect(ids.has(draftReportBody.billId)).toBe(true);
+    expect(ids.has(publishedReportBody.billId)).toBe(true);
+    expect(ids.has(questionBody.billId)).toBe(false);
+
+    expect(
+      records.find((record) => record.id === draftReportBody.billId)
+    ).toMatchObject({
+      item_type: "report",
+      publish_status: "draft",
+      knowledge_source: "draft報告事項のナレッジソースです。",
+    });
+    expect(
+      records.find((record) => record.id === publishedReportBody.billId)
+    ).toMatchObject({
+      item_type: "report",
+      publish_status: "published",
+      knowledge_source: "published報告事項のナレッジソースです。",
+    });
+  });
+
+  it("GETのナレッジソース一覧で不正なitem_typeは400を返す", async () => {
+    const res = await getKnowledgeSourcesExport("invalid");
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "invalid_item_type",
+    });
+  });
+
+  it("GETでdraft以外の既存案件読み取りは409で拒否する", async () => {
+    const publishedBill = await createTestBill({ publish_status: "published" });
+    billIds.push(publishedBill.id);
+
+    const res = await getDraft(publishedBill.id);
+
+    expect(res.status).toBe(409);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "non_draft_read_not_allowed",
+      billId: publishedBill.id,
+    });
+  });
+
+  it("GETで存在しないidは404を返す", async () => {
+    const res = await getDraft(randomUUID());
+
+    expect(res.status).toBe(404);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "bill_not_found",
+    });
   });
 });
