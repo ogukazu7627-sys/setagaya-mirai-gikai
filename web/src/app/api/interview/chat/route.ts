@@ -1,10 +1,11 @@
-import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import {
   checkSystemDailyCostLimit,
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
 import { chatErrorToResponse } from "@/features/chat/server/utils/chat-error-response";
+import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
+import { resolveInterviewRuntimeAccess } from "@/features/interview-session/server/services/resolve-interview-runtime-access";
 import { jsonResponse } from "@/lib/api/response";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
@@ -19,11 +20,13 @@ export async function POST(req: Request) {
     billId,
     currentStage,
     isRetry,
+    previewToken,
   }: {
     messages: Array<{ role: string; content: string }>;
     billId: string;
     currentStage: "chat" | "summary" | "summary_complete";
     isRetry?: boolean;
+    previewToken?: string;
   } = body;
 
   const {
@@ -32,7 +35,7 @@ export async function POST(req: Request) {
   } = await getChatSupabaseUser();
 
   if (getUserError || !user) {
-    return jsonResponse({ error: "Anonymous session required" }, 401);
+    return jsonResponse({ error: "Googleログインが必要です" }, 401);
   }
 
   if (!billId) {
@@ -44,12 +47,24 @@ export async function POST(req: Request) {
     await checkSystemDailyCostLimit();
     await checkSystemMonthlyCostLimit();
 
+    const access = await resolveInterviewRuntimeAccess({
+      billId,
+      previewToken,
+    });
+    if (!access) {
+      return jsonResponse({ error: "Interview config not found" }, 404);
+    }
+
     return await handleInterviewChatRequest({
       messages,
       billId,
       currentStage,
       isRetry,
       userId: user.id,
+      deps: {
+        getBill: async () => access.bill,
+        getInterviewConfig: async () => access.interviewConfig,
+      },
     });
   } catch (error) {
     console.error("Interview chat request error:", error);

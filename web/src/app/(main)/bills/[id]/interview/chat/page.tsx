@@ -26,7 +26,7 @@ export default async function InterviewChatPage({
     getInterviewConfig(billId),
   ]);
 
-  if (!bill || !interviewConfig) {
+  if (!bill || bill.interview_enabled !== true || !interviewConfig) {
     notFound();
   }
 

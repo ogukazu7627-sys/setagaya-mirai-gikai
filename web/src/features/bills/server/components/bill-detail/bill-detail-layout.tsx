@@ -29,6 +29,8 @@ export async function BillDetailLayout({
       getPublicReportsByBillId(bill.id),
       getPublicTopicAnalysis(bill.id),
     ]);
+  const canUseInterview =
+    bill.interview_enabled === true && interviewConfig != null;
 
   return (
     <div className="container mx-auto pb-8 max-w-4xl">
@@ -41,11 +43,11 @@ export async function BillDetailLayout({
       <BillDetailClient
         bill={bill}
         currentDifficulty={currentDifficulty}
-        hasInterviewConfig={interviewConfig != null}
+        hasInterviewConfig={canUseInterview}
       >
         <BillDetailHeader
           bill={bill}
-          hasInterviewConfig={interviewConfig != null}
+          hasInterviewConfig={canUseInterview}
           opinionCount={topicAnalysis?.total_opinions ?? 0}
           topicCount={topicAnalysis?.topics.length ?? 0}
         />
@@ -80,7 +82,7 @@ export async function BillDetailLayout({
           />
         </div>
 
-        {interviewConfig != null && (
+        {canUseInterview && (
           <div className="my-8">
             <InterviewLandingSection billId={bill.id} />
           </div>
