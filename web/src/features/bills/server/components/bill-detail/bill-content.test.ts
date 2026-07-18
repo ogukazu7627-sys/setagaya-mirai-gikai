@@ -37,12 +37,19 @@ describe("normalizeSetagayaHeadings", () => {
 # 意見が分かれるところ
 
 本文です。`)
-    ).toContain("# 考えておきたいこと");
+    ).toContain("# 重要な論点");
   });
 
   it("keeps the heading level when renaming", () => {
     expect(normalizeSetagayaHeadings(`## 意見が分かれるところ`)).toBe(
-      "## 考えておきたいこと"
+      "## 重要な論点"
+    );
+  });
+
+  it("renames the legacy concern headings", () => {
+    expect(normalizeSetagayaHeadings(`# 気になること`)).toBe("# 重要な論点");
+    expect(normalizeSetagayaHeadings(`# 考えておきたいこと`)).toBe(
+      "# 重要な論点"
     );
   });
 
