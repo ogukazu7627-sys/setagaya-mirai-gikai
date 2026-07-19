@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatWindow } from "./chat-window";
 
 vi.mock("@/hooks/use-is-desktop", () => ({
@@ -26,6 +27,30 @@ vi.mock("./user-message", () => ({
   UserMessage: () => <div>ユーザー質問</div>,
 }));
 
+vi.mock(
+  "@/features/interview-session/client/components/interview-side-panel",
+  () => ({
+    InterviewSidePanel: ({
+      authStatus,
+      onSignInWithGoogle,
+    }: {
+      authStatus: string;
+      onSignInWithGoogle: () => Promise<void>;
+    }) => (
+      <div>
+        {authStatus !== "authenticated" && (
+          <>
+            <p>AIインタビューを使うにはGoogleログインが必要です</p>
+            <button type="button" onClick={onSignInWithGoogle}>
+              Google でログイン
+            </button>
+          </>
+        )}
+      </div>
+    ),
+  })
+);
+
 beforeAll(() => {
   global.ResizeObserver = class {
     observe() {}
@@ -44,6 +69,19 @@ function createChatState(sendMessage = vi.fn()) {
 }
 
 type ChatWindowPropsForTest = Parameters<typeof ChatWindow>[0];
+
+function createBillContext(
+  overrides: Partial<BillWithContent> = {}
+): BillWithContent {
+  return {
+    id: "bill-1",
+    name: "テスト案件",
+    item_type: "question",
+    interview_enabled: true,
+    tags: [],
+    ...overrides,
+  } as unknown as BillWithContent;
+}
 
 describe("ChatWindow auth gate", () => {
   it("未ログイン時はGoogleログインゲートを表示し、送信入口を止める", async () => {
@@ -115,5 +153,84 @@ describe("ChatWindow auth gate", () => {
         text: "みらい議会って何？",
       })
     );
+  });
+
+  it("公開インタビュー設定がある案件では質問とAIインタビューを切り替えられる", async () => {
+    const onActiveModeChange = vi.fn();
+
+    render(
+      <ChatWindow
+        activeMode="question"
+        authStatus="authenticated"
+        billContext={createBillContext()}
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        hasInterviewConfig
+        isOpen
+        onActiveModeChange={onActiveModeChange}
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    expect(
+      await screen.findByRole("tab", { name: "質問" })
+    ).toBeInTheDocument();
+    const interviewTab = screen.getByRole("tab", {
+      name: "AIインタビュー",
+    });
+
+    fireEvent.click(interviewTab);
+
+    expect(onActiveModeChange).toHaveBeenCalledWith("interview");
+  });
+
+  it("interview_enabled=falseの案件ではAIインタビュータブを表示しない", () => {
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        billContext={createBillContext({ interview_enabled: false })}
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        hasInterviewConfig
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    expect(
+      screen.queryByRole("tab", { name: "AIインタビュー" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("未ログインでAIインタビューを開くとGoogleログインゲートを表示する", async () => {
+    const signInWithGoogle = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ChatWindow
+        activeMode="interview"
+        authStatus="unauthenticated"
+        billContext={createBillContext()}
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        hasInterviewConfig
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={signInWithGoogle}
+        sessionId="session-1"
+      />
+    );
+
+    expect(
+      await screen.findByText(
+        "AIインタビューを使うにはGoogleログインが必要です"
+      )
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1);
   });
 });

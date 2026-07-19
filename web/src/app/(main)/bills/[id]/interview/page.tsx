@@ -66,7 +66,7 @@ export default async function InterviewPage({ params }: InterviewPageProps) {
     getInterviewConfig(id),
   ]);
 
-  if (!bill) {
+  if (!bill || bill.interview_enabled !== true) {
     notFound();
   }
 

@@ -12,7 +12,7 @@ import {
 } from "react";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { useChatAuth } from "../hooks/use-chat-auth";
-import { ChatWindow } from "./chat-window";
+import { ChatWindow, type ChatWindowMode } from "./chat-window";
 
 // アニメーション定数
 const ANIMATION_DURATION = {
@@ -60,6 +60,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     const [isCompact, setIsCompact] = useState(false);
     const [showText, setShowText] = useState(true);
     const [openedWithText, setOpenedWithText] = useState(false);
+    const [activeMode, setActiveMode] = useState<ChatWindowMode>("question");
     const pathname = usePathname();
     const chatAuth = useChatAuth({ disabled: isSetagayaChatPreview });
 
@@ -74,12 +75,14 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     useImperativeHandle(ref, () => ({
       openWithText: (selectedText: string) => {
         if (isSetagayaChatPreview) {
+          setActiveMode("question");
           setOpenedWithText(true);
           setIsOpen(true);
           return;
         }
 
         if (chatAuth.status !== "authenticated") {
+          setActiveMode("question");
           setOpenedWithText(true);
           setIsOpen(true);
           return;
@@ -94,6 +97,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
         }
 
         const questionText = `「${selectedText}」について教えてください。`;
+        setActiveMode("question");
         setOpenedWithText(true);
         setIsOpen(true);
         chatState.sendMessage({
@@ -210,6 +214,8 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
           authUserEmail={chatAuth.userEmail}
           authError={chatAuth.error}
           onSignInWithGoogle={chatAuth.signInWithGoogle}
+          activeMode={activeMode}
+          onActiveModeChange={setActiveMode}
         />
       </>
     );

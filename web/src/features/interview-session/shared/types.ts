@@ -33,4 +33,5 @@ export interface InterviewChatRequestParams {
   currentStage: "chat" | "summary" | "summary_complete";
   isRetry?: boolean;
   nextQuestionId?: string;
+  previewToken?: string;
 }

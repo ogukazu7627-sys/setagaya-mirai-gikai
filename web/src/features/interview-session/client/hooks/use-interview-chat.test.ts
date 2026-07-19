@@ -197,6 +197,27 @@ describe("useInterviewChat", () => {
       );
     });
 
+    it("previewTokenが指定されている場合はsubmitに渡される", () => {
+      const { result } = renderHook(() =>
+        useInterviewChat({
+          billId: DEFAULT_BILL_ID,
+          initialMessages: [],
+          previewToken: "preview-token-1",
+        })
+      );
+
+      act(() => {
+        result.current.handleSubmit({ text: "テスト入力" });
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          billId: DEFAULT_BILL_ID,
+          previewToken: "preview-token-1",
+        })
+      );
+    });
+
     it("有効なテキスト: submitのmessagesにユーザーメッセージが含まれる", () => {
       const { result } = renderHook(() =>
         useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
