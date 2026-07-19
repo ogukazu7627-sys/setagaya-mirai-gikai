@@ -51,7 +51,7 @@ export function InterviewSidePanel({
   const isLocked = !previewOnly && authStatus !== "authenticated";
 
   useEffect(() => {
-    if (!isActive || previewOnly || isLocked || data || isInitializing) {
+    if (!isActive || previewOnly || isLocked || data || initializeError) {
       return;
     }
 
@@ -99,7 +99,7 @@ export function InterviewSidePanel({
     return () => {
       cancelled = true;
     };
-  }, [billId, data, isActive, isInitializing, isLocked, previewOnly]);
+  }, [billId, data, initializeError, isActive, isLocked, previewOnly]);
 
   if (previewOnly) {
     return (
