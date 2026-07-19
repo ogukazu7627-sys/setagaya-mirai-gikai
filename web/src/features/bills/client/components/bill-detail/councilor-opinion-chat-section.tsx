@@ -146,7 +146,7 @@ export function CouncilorOpinionChatSection({
           <CarouselContent>
             {section.groups.map((group) => (
               <CarouselItem key={`${group.groupIndex}-${group.rawHeading}`}>
-                <CouncilorOpinionChatGroupView group={group} />
+                <CouncilorOpinionChatGroupView group={group} isScrollRegion />
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -162,11 +162,21 @@ export function CouncilorOpinionChatSection({
 
 function CouncilorOpinionChatGroupView({
   group,
+  isScrollRegion = false,
 }: {
   group: CouncilorOpinionChatGroup;
+  isScrollRegion?: boolean;
 }) {
   return (
-    <div className="rounded-md bg-mirai-surface-gray px-3 py-4 md:px-4">
+    <div
+      className={cn(
+        "rounded-md bg-mirai-surface-gray",
+        isScrollRegion
+          ? "h-[560px] max-h-[72vh] overflow-y-auto overscroll-contain px-3 py-4 touch-pan-y [scrollbar-gutter:stable] md:h-[620px] md:px-4"
+          : "px-3 py-4 md:px-4"
+      )}
+      data-councilor-chat-scroll-region={isScrollRegion ? "true" : undefined}
+    >
       <div className="space-y-4">
         {group.messages.map((message) => (
           <CouncilorOpinionChatMessageView
