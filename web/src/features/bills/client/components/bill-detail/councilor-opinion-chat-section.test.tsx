@@ -77,7 +77,9 @@ describe("CouncilorOpinionChatSection", () => {
   });
 
   it("renders one councilor group as continuous messages without carousel controls", () => {
-    render(<CouncilorOpinionChatSection section={baseSection} />);
+    const { container } = render(
+      <CouncilorOpinionChatSection section={baseSection} />
+    );
 
     expect(
       screen.getByRole("heading", { name: "議員、会派の意見" })
@@ -90,10 +92,13 @@ describe("CouncilorOpinionChatSection", () => {
     expect(
       screen.queryByRole("button", { name: "次の議員・会派を見る" })
     ).not.toBeInTheDocument();
+    expect(
+      container.querySelector("[data-councilor-chat-scroll-region]")
+    ).not.toBeInTheDocument();
   });
 
   it("renders carousel controls for multiple councilor groups", () => {
-    render(
+    const { container } = render(
       <CouncilorOpinionChatSection
         section={{
           ...baseSection,
@@ -129,6 +134,16 @@ describe("CouncilorOpinionChatSection", () => {
       screen.getByRole("button", { name: "次の議員・会派を見る" })
     ).toBeInTheDocument();
     expect(screen.getByText("別の質問本文です。")).toBeInTheDocument();
+
+    const scrollRegions = container.querySelectorAll(
+      "[data-councilor-chat-scroll-region='true']"
+    );
+    expect(scrollRegions).toHaveLength(2);
+    expect(scrollRegions[0]).toHaveClass(
+      "h-[560px]",
+      "max-h-[72vh]",
+      "overflow-y-auto"
+    );
   });
 
   it("does not start carousel drag from inside chat bubbles", () => {
