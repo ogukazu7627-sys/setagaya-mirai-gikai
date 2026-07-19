@@ -10,6 +10,7 @@ import { PublicStatusSection } from "@/features/interview-report/client/componen
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
+import { PetitionGoogleDocsSection } from "@/features/petition-google-docs/client/components/petition-google-docs-section";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
 import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
@@ -19,10 +20,14 @@ import { getExpertRegistrationStatus } from "../loaders/get-expert-registration-
 
 interface ReportCompletePageProps {
   reportId: string;
+  petitionDocUrl?: string | null;
+  petitionDocError?: string | null;
 }
 
 export async function ReportCompletePage({
   reportId,
+  petitionDocUrl,
+  petitionDocError,
 }: ReportCompletePageProps) {
   // レポートIDから全ての情報を取得
   // 完了ページなので、所有者のみが閲覧できるように制限する
@@ -116,6 +121,11 @@ export async function ReportCompletePage({
             roleDescription={report.role_description}
             opinions={opinions}
           >
+            <PetitionGoogleDocsSection
+              reportId={reportId}
+              documentUrl={petitionDocUrl}
+              errorCode={petitionDocError}
+            />
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
               <ExpertRegistrationSection />

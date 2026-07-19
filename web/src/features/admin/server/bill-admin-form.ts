@@ -97,7 +97,7 @@ function parseBillFormData(formData: FormData) {
     knowledge_source: nullableString(formData.get("knowledge_source")),
     is_review_completed: formData.get("is_review_completed") === "on",
     is_featured: formData.get("is_featured") === "on",
-    interview_enabled: formData.get("interview_enabled") === "on",
+    interview_enabled: true,
     use_knowledge_source_in_chat:
       formData.get("use_knowledge_source_in_chat") === "on",
     normal_title: formData.get("normal_title"),

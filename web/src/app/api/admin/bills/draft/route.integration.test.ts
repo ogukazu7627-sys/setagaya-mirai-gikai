@@ -8,6 +8,10 @@ import {
   createTestTag,
 } from "@test-utils/utils";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  DEFAULT_PETITION_INTERVIEW_CONFIG_NAME,
+  DEFAULT_PETITION_INTERVIEW_QUESTIONS,
+} from "@/features/interview-config/shared/default-petition-interview-template";
 import { env } from "@/lib/env";
 import { GET, POST } from "./route";
 
@@ -45,6 +49,7 @@ type DraftApiResponse = {
   forcedFields?: {
     publish_status: "draft";
     is_review_completed: false;
+    interview_enabled: true;
   };
   error?: string;
   code?: string;
@@ -264,6 +269,7 @@ describe("/api/admin/bills/draft", () => {
       forcedFields: {
         publish_status: "draft",
         is_review_completed: false,
+        interview_enabled: true,
       },
     });
     expect(body.billId).toBeTruthy();
@@ -274,11 +280,14 @@ describe("/api/admin/bills/draft", () => {
 
     const { data: bill } = await adminClient
       .from("bills")
-      .select("publish_status, is_review_completed, sources, submitted_date")
+      .select(
+        "publish_status, is_review_completed, sources, submitted_date, interview_enabled"
+      )
       .eq("id", body.billId)
       .single();
     expect(bill?.publish_status).toBe("draft");
     expect(bill?.is_review_completed).toBe(false);
+    expect(bill?.interview_enabled).toBe(true);
     expect(bill?.submitted_date?.slice(0, 10)).toBe("2026-02-15");
     expect(bill?.sources).toEqual([
       {
@@ -312,6 +321,23 @@ describe("/api/admin/bills/draft", () => {
       .select("token")
       .eq("bill_id", body.billId);
     expect(tokens).toHaveLength(1);
+
+    const { data: interviewConfig } = await adminClient
+      .from("interview_configs")
+      .select("id, name, status, interview_questions(question, question_order)")
+      .eq("bill_id", body.billId)
+      .eq("status", "public")
+      .single();
+    expect(interviewConfig).toMatchObject({
+      name: DEFAULT_PETITION_INTERVIEW_CONFIG_NAME,
+      status: "public",
+    });
+    const questions = [...(interviewConfig?.interview_questions ?? [])].sort(
+      (a, b) => a.question_order - b.question_order
+    );
+    expect(questions.map((question) => question.question)).toEqual(
+      DEFAULT_PETITION_INTERVIEW_QUESTIONS.map((question) => question.question)
+    );
 
     expect(
       councilorRepositoryMock.syncCouncilorBillStatements
@@ -546,6 +572,7 @@ describe("/api/admin/bills/draft", () => {
       forcedFields: {
         publish_status: "draft",
         is_review_completed: false,
+        interview_enabled: true,
       },
       draft: {
         id: createBody.billId,

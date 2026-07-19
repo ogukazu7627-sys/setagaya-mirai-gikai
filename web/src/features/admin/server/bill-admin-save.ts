@@ -12,6 +12,7 @@ import {
   findUnknownCouncilorNamesByBillId,
   syncCouncilorBillStatements,
 } from "@/features/councilors/server/repositories/councilor-statement-repository";
+import { ensureDefaultPetitionInterviewConfig } from "@/features/interview-config/server/services/ensure-default-petition-interview-config";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import { requireAdmin } from "./auth";
@@ -227,7 +228,7 @@ export async function saveAdminBillInput(
     use_knowledge_source_in_chat: input.use_knowledge_source_in_chat,
     is_review_completed: input.is_review_completed,
     is_featured: input.is_featured,
-    interview_enabled: input.interview_enabled,
+    interview_enabled: true,
     updated_at: now,
   };
 
@@ -400,6 +401,19 @@ export async function saveAdminBillInput(
     }
   }
 
+  try {
+    await ensureDefaultPetitionInterviewConfig({ supabase, billId, now });
+  } catch (error) {
+    throw new AdminBillSaveError(
+      error instanceof Error
+        ? error.message
+        : "AIインタビュー設定の自動作成に失敗しました",
+      500,
+      "interview_config_sync_failed",
+      billId
+    );
+  }
+
   const previewToken = await ensurePreviewToken(
     billId,
     options.previewCreatedBy ?? "admin"
@@ -407,6 +421,7 @@ export async function saveAdminBillInput(
   const unknownCouncilorNames = await findUnknownCouncilorNamesByBillId(billId);
 
   revalidateTag(CACHE_TAGS.BILLS);
+  revalidateTag(CACHE_TAGS.INTERVIEW_CONFIGS);
   revalidateTag(CACHE_TAGS.COUNCILOR_STATEMENTS);
 
   return {

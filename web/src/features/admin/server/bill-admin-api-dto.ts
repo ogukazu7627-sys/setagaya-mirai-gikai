@@ -109,6 +109,7 @@ export async function saveAdminDraftBillFromJson(
     forcedFields: {
       publish_status: "draft",
       is_review_completed: false,
+      interview_enabled: true,
     },
   };
 }
@@ -232,7 +233,7 @@ export async function getAdminDraftBillForApi(
       publish_status: "draft",
       is_review_completed: false,
       is_featured: bill.is_featured,
-      interview_enabled: bill.interview_enabled,
+      interview_enabled: true,
       use_knowledge_source_in_chat: bill.use_knowledge_source_in_chat,
       thumbnail_url: bill.thumbnail_url,
       share_thumbnail_url: bill.share_thumbnail_url,
@@ -252,6 +253,7 @@ export async function getAdminDraftBillForApi(
     forcedFields: {
       publish_status: "draft",
       is_review_completed: false,
+      interview_enabled: true,
     },
   };
 }
