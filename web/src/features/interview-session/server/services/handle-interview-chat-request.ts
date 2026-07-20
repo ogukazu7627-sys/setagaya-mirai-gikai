@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   convertToModelMessages,
+  generateText,
   type LanguageModel,
   type LanguageModelUsage,
   Output,
@@ -250,17 +251,15 @@ async function generateStreamingResponse({
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
-  const handleError = (error: unknown) => {
+  const handleStreamError = ({ error }: { error: unknown }) => {
     console.error("LLM generation error:", error);
-    throw new Error(
-      `LLM generation failed: ${error instanceof Error ? error.message : String(error)}`
-    );
   };
 
-  const handleFinish = async (event: {
+  const persistAssistantAndUsage = async (event: {
     text?: string;
     totalUsage: LanguageModelUsage;
     providerMetadata?: unknown;
+    finishReason?: unknown;
   }) => {
     try {
       if (event.text) {
@@ -287,7 +286,8 @@ async function generateStreamingResponse({
         metadata: {
           pageType: "interview",
           billId,
-          finishReason: null,
+          finishReason:
+            typeof event.finishReason === "string" ? event.finishReason : null,
           stepCount: 0,
         },
       });
@@ -313,12 +313,10 @@ async function generateStreamingResponse({
 
   const functionId = isSummaryPhase ? "interview-summary" : "interview-chat";
 
-  const streamParams = {
+  const modelCallParams = {
     model,
     system: systemPrompt,
     messages: await convertToModelMessages(uiMessages),
-    onError: handleError,
-    onFinish: handleFinish,
     experimental_telemetry: telemetry
       ? {
           isEnabled: true as const,
@@ -333,31 +331,42 @@ async function generateStreamingResponse({
       : undefined,
   } as const;
 
-  try {
-    let textStream: ReadableStream<string>;
+  const streamParams = {
+    ...modelCallParams,
+    onError: handleStreamError,
+    onFinish: persistAssistantAndUsage,
+  } as const;
 
-    if (isSummaryPhase) {
-      const result = streamText({
-        ...streamParams,
-        output: Output.object({ schema: interviewChatWithReportSchema }),
-      });
-      textStream = result.textStream;
-    } else {
-      const result = streamText({
-        ...streamParams,
-        output: Output.object({ schema: interviewChatTextSchema }),
-      });
-      textStream = result.textStream;
-    }
+  if (isSummaryPhase) {
+    // summary は chat→summary の自動遷移で呼ばれるため、ここでAI Gatewayの
+    // 429等が起きるとユーザーには「5問目後に500」と見える。非ストリーミングで
+    // 先に完了させ、失敗時は route.ts の chatErrorToResponse へ戻す。
+    const result = await generateText({
+      ...modelCallParams,
+      output: Output.object({ schema: interviewChatWithReportSchema }),
+    });
 
-    // LLMがnext_stageを直接出力するため、ストリームをそのまま返す
-    return new Response(textStream.pipeThrough(new TextEncoderStream()), {
+    await persistAssistantAndUsage({
+      text: result.text,
+      totalUsage: result.totalUsage,
+      providerMetadata: result.providerMetadata,
+      finishReason: result.finishReason,
+    });
+
+    return new Response(result.text, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
-  } catch (error) {
-    handleError(error);
-    throw error;
   }
+
+  const result = streamText({
+    ...streamParams,
+    output: Output.object({ schema: interviewChatTextSchema }),
+  });
+
+  // LLMがnext_stageを直接出力するため、ストリームをそのまま返す
+  return new Response(result.textStream.pipeThrough(new TextEncoderStream()), {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
 
 function extractGatewayCost(event: {

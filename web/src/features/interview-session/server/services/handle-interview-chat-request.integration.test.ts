@@ -6,10 +6,13 @@ import {
   createTestUser,
   type TestUser,
 } from "@test-utils/utils";
-import { convertArrayToReadableStream, MockLanguageModelV3 } from "ai/test";
+import { MockLanguageModelV3 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
-import { createStreamMock } from "@/test-utils/mock-language-model";
+import {
+  createGenerateMock,
+  createStreamMock,
+} from "@/test-utils/mock-language-model";
 import type { InterviewSession } from "../../shared/types";
 import { findInterviewMessagesBySessionId } from "../repositories/interview-session-repository";
 import { handleInterviewChatRequest } from "./handle-interview-chat-request";
@@ -17,37 +20,30 @@ import { handleInterviewChatRequest } from "./handle-interview-chat-request";
 type CapturedPrompt = Array<{ role: string; content?: unknown }>;
 
 /**
- * モデルが受け取った prompt（変換後のメッセージ列）を記録する streamText 用モック。
+ * モデルが受け取った prompt（変換後のメッセージ列）を記録する generateText 用モック。
  * 末尾が user メッセージで終わっているか・履歴が二重送信されていないかの検証に使う。
  */
-function createCapturingStreamMock(text: string): {
+function createCapturingGenerateMock(text: string): {
   model: MockLanguageModelV3;
   prompts: CapturedPrompt[];
 } {
   const prompts: CapturedPrompt[] = [];
   const model = new MockLanguageModelV3({
-    doStream: async (options) => {
+    doGenerate: async (options) => {
       prompts.push(options.prompt as CapturedPrompt);
       return {
-        stream: convertArrayToReadableStream([
-          { type: "stream-start" as const, warnings: [] as [] },
-          { type: "text-start" as const, id: "text-1" },
-          { type: "text-delta" as const, id: "text-1", delta: text },
-          { type: "text-end" as const, id: "text-1" },
-          {
-            type: "finish" as const,
-            usage: {
-              inputTokens: {
-                total: 0,
-                noCache: 0,
-                cacheRead: 0,
-                cacheWrite: 0,
-              },
-              outputTokens: { total: 0, text: 0, reasoning: 0 },
-            },
-            finishReason: { unified: "stop" as const, raw: undefined },
+        content: [{ type: "text" as const, text }],
+        finishReason: { unified: "stop" as const, raw: undefined },
+        usage: {
+          inputTokens: {
+            total: 0,
+            noCache: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
           },
-        ]),
+          outputTokens: { total: 0, text: 0, reasoning: 0 },
+        },
+        warnings: [],
       };
     },
   });
@@ -93,6 +89,10 @@ const validSummaryResponse = JSON.stringify({
       {
         title: "賛成の理由",
         content: "社会全体の利益になると考える",
+        source_message_id: null,
+        contextual_quote: null,
+        bill_sentiment: "期待",
+        richness: 70,
       },
     ],
     content_richness: {
@@ -233,7 +233,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
 
   describe("summaryフェーズ", () => {
     it("ユーザーメッセージとassistantメッセージがDBに保存される", async () => {
-      const mockModel = createStreamMock([validSummaryResponse]);
+      const mockModel = createGenerateMock(validSummaryResponse);
 
       const response = await handleInterviewChatRequest({
         messages: [{ role: "user", content: "まとめてください" }],
@@ -267,7 +267,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
       // クライアントの自動サマリーリクエストを再現：新しい user メッセージなしで
       // 末尾が assistant のメッセージ列を送る。Anthropic 系は user で終わる必要がある。
       const { model, prompts } =
-        createCapturingStreamMock(validSummaryResponse);
+        createCapturingGenerateMock(validSummaryResponse);
 
       const response = await handleInterviewChatRequest({
         messages: [
@@ -308,7 +308,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
 
     it("レポート修正依頼（末尾が user）では末尾の user メッセージのみをモデルへ渡す", async () => {
       const { model, prompts } =
-        createCapturingStreamMock(validSummaryResponse);
+        createCapturingGenerateMock(validSummaryResponse);
 
       const response = await handleInterviewChatRequest({
         messages: [
@@ -357,7 +357,7 @@ describe("handleInterviewChatRequest 統合テスト", () => {
     });
 
     it("summaryフェーズではsummaryModelが使用される（chatModelは無視される）", async () => {
-      const summaryMock = createStreamMock([validSummaryResponse]);
+      const summaryMock = createGenerateMock(validSummaryResponse);
       // chatModel は summary フェーズでは使用されないはずだが注入する
       const chatMock = createStreamMock([
         '{"text":"これは呼ばれてはいけない"}',
@@ -386,6 +386,33 @@ describe("handleInterviewChatRequest 統合テスト", () => {
       // summaryModel の出力が保存されていること
       expect(messages).toHaveLength(2);
       expect(messages[1].content).toBe(validSummaryResponse);
+    });
+
+    it("summaryフェーズのモデルエラーはレスポンス生成前にthrowされる", async () => {
+      const summaryMock = new MockLanguageModelV3({
+        doGenerate: async () => {
+          throw new Error("Free tier requests on this model are rate-limited.");
+        },
+      });
+
+      await expect(
+        handleInterviewChatRequest({
+          messages: [
+            { role: "user", content: "賛成です" },
+            { role: "assistant", content: "まとめます。" },
+          ],
+          billId,
+          currentStage: "summary",
+          userId: testUser.id,
+          deps: {
+            summaryModel: summaryMock,
+            getBill: async () => null,
+            getInterviewConfig: async () => config,
+            getSession: async () => session,
+            getMessages: async () => [],
+          },
+        })
+      ).rejects.toThrow("Free tier requests");
     });
   });
 });
