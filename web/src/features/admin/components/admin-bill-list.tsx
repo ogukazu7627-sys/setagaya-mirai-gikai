@@ -64,6 +64,7 @@ function adminBillsPageHref(
   setSearchParamIfPresent(params, "item_type", filters.itemType);
   setSearchParamIfPresent(params, "major_category", filters.majorCategory);
   setSearchParamIfPresent(params, "status_label", filters.statusLabel);
+  setSearchParamIfPresent(params, "thumbnail", filters.thumbnail);
   setSearchParamIfPresent(params, "date_from", filters.submittedDateFrom);
   setSearchParamIfPresent(params, "date_to", filters.submittedDateTo);
 

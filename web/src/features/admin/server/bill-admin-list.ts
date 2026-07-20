@@ -42,6 +42,7 @@ type AdminBillSearchParamInput = {
   item_type?: string;
   major_category?: string;
   status_label?: string;
+  thumbnail?: string;
   date_from?: string;
   date_to?: string;
 };
@@ -56,6 +57,7 @@ const itemTypeFilterValues = new Set<string>(
   BILL_ITEM_TYPE_OPTIONS.map((option) => option.value)
 );
 const statusLabelFilterValues = new Set<string>(BILL_STATUS_LABEL_OPTIONS);
+const thumbnailFilterValues = new Set(["with", "without"]);
 const adminBillDateFilterPattern = /^\d{4}-\d{2}-\d{2}$/;
 const adminBillSortKeys = new Set<AdminBillSortKey>([
   "item_type",
@@ -99,6 +101,9 @@ export function normalizeAdminBillSearchFilters(
   const statusLabel = statusLabelFilterValues.has(input.status_label ?? "")
     ? (input.status_label ?? "")
     : "";
+  const thumbnail = thumbnailFilterValues.has(input.thumbnail ?? "")
+    ? (input.thumbnail as "with" | "without")
+    : "";
 
   return {
     query: normalizeShortSearchText(input.q),
@@ -106,6 +111,7 @@ export function normalizeAdminBillSearchFilters(
     itemType,
     majorCategory,
     statusLabel,
+    thumbnail,
     submittedDateFrom: normalizeDateFilter(input.date_from),
     submittedDateTo: normalizeDateFilter(input.date_to),
   };
@@ -140,6 +146,12 @@ function adminBillMatchesSearchFilters(
     return false;
   }
   if (filters.statusLabel && bill.status_label !== filters.statusLabel) {
+    return false;
+  }
+  if (filters.thumbnail === "with" && !bill.thumbnail_url) {
+    return false;
+  }
+  if (filters.thumbnail === "without" && bill.thumbnail_url) {
     return false;
   }
 
@@ -356,6 +368,12 @@ export async function listAdminBills({
   }
   if (filters.statusLabel) {
     query = query.eq("status_label", filters.statusLabel);
+  }
+  if (filters.thumbnail === "with") {
+    query = query.not("thumbnail_url", "is", null).neq("thumbnail_url", "");
+  }
+  if (filters.thumbnail === "without") {
+    query = query.or("thumbnail_url.is.null,thumbnail_url.eq.");
   }
   if (filters.submittedDateFrom) {
     query = query.gte("submitted_date", filters.submittedDateFrom);

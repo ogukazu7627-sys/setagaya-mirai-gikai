@@ -94,6 +94,7 @@ export type AdminBillSearchFilters = {
   itemType: "" | BillItemType;
   majorCategory: "" | MajorCategoryLabel;
   statusLabel: string;
+  thumbnail: "" | "with" | "without";
   submittedDateFrom: string;
   submittedDateTo: string;
 };
