@@ -31,6 +31,7 @@ interface AdminBillsPageProps {
     item_type?: string;
     major_category?: string;
     status_label?: string;
+    thumbnail?: string;
     date_from?: string;
     date_to?: string;
     bulk_status?: string;
@@ -72,6 +73,7 @@ function adminBillsHref(
   setSearchParamIfPresent(params, "item_type", filters.itemType);
   setSearchParamIfPresent(params, "major_category", filters.majorCategory);
   setSearchParamIfPresent(params, "status_label", filters.statusLabel);
+  setSearchParamIfPresent(params, "thumbnail", filters.thumbnail);
   setSearchParamIfPresent(params, "date_from", filters.submittedDateFrom);
   setSearchParamIfPresent(params, "date_to", filters.submittedDateTo);
 
@@ -87,6 +89,7 @@ function hasDetailedFilters(filters: AdminBillSearchFilters) {
       filters.itemType ||
       filters.majorCategory ||
       filters.statusLabel ||
+      filters.thumbnail ||
       filters.submittedDateFrom ||
       filters.submittedDateTo
   );
@@ -201,6 +204,18 @@ function AdminBillSearchForm({
                   {label}
                 </option>
               ))}
+            </select>
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-sm font-bold">サムネイル画像</span>
+            <select
+              name="thumbnail"
+              defaultValue={filters.thumbnail}
+              className={inputClassName}
+            >
+              <option value="">すべて</option>
+              <option value="with">あり</option>
+              <option value="without">なし</option>
             </select>
           </label>
           <label className="grid gap-1.5">
