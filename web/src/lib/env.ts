@@ -58,6 +58,22 @@ if (
   );
 }
 
+const interviewCompleteDailyUserLimitRaw =
+  process.env.INTERVIEW_COMPLETE_DAILY_USER_LIMIT || "10";
+
+const interviewCompleteDailyUserLimit = Number(
+  interviewCompleteDailyUserLimitRaw
+);
+
+if (
+  !Number.isInteger(interviewCompleteDailyUserLimit) ||
+  interviewCompleteDailyUserLimit <= 0
+) {
+  throw new Error(
+    "環境変数 INTERVIEW_COMPLETE_DAILY_USER_LIMIT は正の整数で指定してください"
+  );
+}
+
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   adminUrl: process.env.ADMIN_URL || "http://localhost:3001",
@@ -79,6 +95,9 @@ export const env = {
     dailyUserCostLimitUsd: chatDailyUserCostLimitUsd,
     dailyTotalCostLimitUsd: chatDailyTotalCostLimitUsd,
     monthlyTotalCostLimitUsd: chatMonthlyTotalCostLimitUsd,
+  },
+  interviewComplete: {
+    dailyUserLimit: interviewCompleteDailyUserLimit,
   },
 } as const;
 

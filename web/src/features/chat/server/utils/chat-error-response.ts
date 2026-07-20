@@ -17,6 +17,7 @@ export function chatErrorToResponse(error: unknown): Response {
   if (error instanceof ChatError) {
     switch (error.code) {
       case ChatErrorCode.DAILY_COST_LIMIT_REACHED:
+      case ChatErrorCode.DAILY_REQUEST_LIMIT_REACHED:
       case ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED:
         return textResponse(
           "本日の利用上限に達しました。明日0時以降に再度お試しください。",

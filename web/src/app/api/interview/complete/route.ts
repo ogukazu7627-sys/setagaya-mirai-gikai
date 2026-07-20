@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  checkSystemDailyCostLimit,
+  checkSystemMonthlyCostLimit,
+} from "@/features/chat/server/services/system-cost-guard";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 import {
@@ -27,14 +32,23 @@ export async function POST(req: Request) {
   }
 
   try {
+    await checkSystemDailyCostLimit();
+    await checkSystemMonthlyCostLimit();
+
     const report = await completeInterviewSession({
       sessionId,
+      userId: ownershipResult.userId,
       isPublicByUser,
     });
 
     return NextResponse.json({ report });
   } catch (error) {
     console.error("Complete interview error:", error);
+    const usageLimitResponse = toUsageLimitResponse(error);
+    if (usageLimitResponse) {
+      return usageLimitResponse;
+    }
+
     return NextResponse.json(
       {
         error:
@@ -45,4 +59,34 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+function toUsageLimitResponse(error: unknown) {
+  if (!(error instanceof ChatError)) {
+    return null;
+  }
+
+  if (error.code === ChatErrorCode.SYSTEM_MONTHLY_COST_LIMIT_REACHED) {
+    return NextResponse.json(
+      {
+        error: "今月の利用上限に達しました。来月1日以降に再度お試しください。",
+      },
+      { status: 429 }
+    );
+  }
+
+  if (
+    error.code === ChatErrorCode.DAILY_COST_LIMIT_REACHED ||
+    error.code === ChatErrorCode.DAILY_REQUEST_LIMIT_REACHED ||
+    error.code === ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED
+  ) {
+    return NextResponse.json(
+      {
+        error: "本日の利用上限に達しました。明日0時以降に再度お試しください。",
+      },
+      { status: 429 }
+    );
+  }
+
+  return null;
 }
