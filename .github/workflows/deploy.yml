@@ -89,6 +89,8 @@ jobs:
           path = "supabase/config.toml"
           site_url = ENV.fetch("SUPABASE_AUTH_SITE_URL")
           redirect_url = ENV.fetch("SUPABASE_AUTH_REDIRECT_URL")
+          google_docs_redirect_url = "#{site_url.sub(%r{/*\z}, "")}/auth/google-docs/callback"
+          redirect_urls = [redirect_url, google_docs_redirect_url].uniq
           google_client_id = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID"].to_s
           google_secret = ENV["SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET"].to_s
           google_enabled = !google_client_id.empty? && !google_secret.empty?
@@ -98,7 +100,7 @@ jobs:
           end
           unless config.sub!(
             /^additional_redirect_urls = .+$/,
-            "additional_redirect_urls = [#{redirect_url.dump}]"
+            "additional_redirect_urls = [#{redirect_urls.map(&:dump).join(", ")}]"
           )
             abort "Failed to render auth.additional_redirect_urls"
           end

@@ -44,7 +44,7 @@ function mockSession(): DietSessionRow {
 function mockBillToRow(bill: BillWithContent): BillRow {
   return {
     ...bill,
-    interview_enabled: bill.interview_enabled ?? false,
+    interview_enabled: bill.interview_enabled ?? true,
     is_review_completed: bill.is_review_completed ?? true,
     major_category: bill.major_category ?? null,
     published_at: bill.published_at ?? null,

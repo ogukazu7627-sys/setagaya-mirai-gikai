@@ -176,6 +176,7 @@ export type SaveAdminDraftBillApiResponse = {
   forcedFields: {
     publish_status: "draft";
     is_review_completed: false;
+    interview_enabled: true;
   };
 };
 
@@ -225,6 +226,7 @@ export type GetAdminDraftBillApiResponse = {
   forcedFields: {
     publish_status: "draft";
     is_review_completed: false;
+    interview_enabled: true;
   };
 };
 

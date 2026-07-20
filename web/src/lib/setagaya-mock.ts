@@ -6,8 +6,8 @@ import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/type
 import type {
   BillContent,
   BillSource,
-  BillWithContent,
   BillsByMajorCategory,
+  BillWithContent,
   ComingSoonBill,
   MiraiStance,
 } from "@/features/bills/shared/types";
@@ -100,6 +100,10 @@ function bool(value: string | undefined): boolean {
   return value === "true";
 }
 
+function boolDefaultTrue(value: string | undefined): boolean {
+  return value !== "false";
+}
+
 function parseSources(value: string | undefined): BillSource[] {
   if (!value) return [];
   try {
@@ -189,7 +193,7 @@ function loadMockData() {
       publish_status: row.publish_status as BillWithContent["publish_status"],
       is_featured: bool(row.is_featured),
       major_category: row.major_category || null,
-      interview_enabled: bool(row.interview_enabled),
+      interview_enabled: boolDefaultTrue(row.interview_enabled),
       share_thumbnail_url: row.share_thumbnail_url || null,
       shugiin_url: row.shugiin_url || null,
       diet_session_id: row.diet_session_id || null,

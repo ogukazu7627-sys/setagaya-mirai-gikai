@@ -480,11 +480,6 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
             defaultChecked={bill?.is_featured ?? false}
           />
           <ToggleField
-            name="interview_enabled"
-            label="AIインタビュー表示"
-            defaultChecked={bill?.interview_enabled ?? false}
-          />
-          <ToggleField
             name="use_knowledge_source_in_chat"
             label="チャットでナレッジを使う"
             defaultChecked={bill?.use_knowledge_source_in_chat ?? false}
