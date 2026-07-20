@@ -100,7 +100,10 @@ describe("completeInterviewSession 統合テスト", () => {
       },
     ]);
 
-    const report = await completeInterviewSession({ sessionId });
+    const report = await completeInterviewSession({
+      sessionId,
+      userId: testUser.id,
+    });
 
     // 戻り値を検証
     expect(report.interview_session_id).toBe(sessionId);
@@ -155,7 +158,10 @@ describe("completeInterviewSession 統合テスト", () => {
       ]),
     });
 
-    const report = await completeInterviewSession({ sessionId });
+    const report = await completeInterviewSession({
+      sessionId,
+      userId: testUser.id,
+    });
     const { data: first } = await adminClient
       .from("interview_opinion")
       .select("id, opinion_index")
@@ -163,7 +169,7 @@ describe("completeInterviewSession 統合テスト", () => {
       .order("opinion_index", { ascending: true });
 
     // 同じ内容で再完了（ON CONFLICT DO UPDATE で id は変わらないはず）
-    await completeInterviewSession({ sessionId });
+    await completeInterviewSession({ sessionId, userId: testUser.id });
     const { data: second } = await adminClient
       .from("interview_opinion")
       .select("id, opinion_index")
@@ -174,7 +180,7 @@ describe("completeInterviewSession 統合テスト", () => {
     expect(second?.map((o) => o.id)).toEqual(first?.map((o) => o.id));
   });
 
-  it("意見数が減った再完了で末尾の interview_opinion 行が削除される", async () => {
+  it("レポート作成済みの再完了では既存レポートを返し、意見行を再生成しない", async () => {
     // 1回目: 2件
     await adminClient.from("interview_messages").insert({
       interview_session_id: sessionId,
@@ -184,7 +190,10 @@ describe("completeInterviewSession 統合テスト", () => {
         { title: "意見B", content: "内容B", source_message_id: null },
       ]),
     });
-    const report = await completeInterviewSession({ sessionId });
+    const report = await completeInterviewSession({
+      sessionId,
+      userId: testUser.id,
+    });
     const { data: before } = await adminClient
       .from("interview_opinion")
       .select("id")
@@ -199,14 +208,14 @@ describe("completeInterviewSession 統合テスト", () => {
         { title: "意見A", content: "内容A", source_message_id: null },
       ]),
     });
-    await completeInterviewSession({ sessionId });
+    await completeInterviewSession({ sessionId, userId: testUser.id });
 
     const { data: after } = await adminClient
       .from("interview_opinion")
       .select("opinion_index")
       .eq("interview_report_id", report.id);
-    expect(after).toHaveLength(1);
-    expect(after?.[0].opinion_index).toBe(0);
+    expect(after).toHaveLength(2);
+    expect(after?.map((o) => o.opinion_index).sort()).toEqual([0, 1]);
   });
 
   it("レポートが見つからない場合はエラーを throw する", async () => {
@@ -224,9 +233,9 @@ describe("completeInterviewSession 統合テスト", () => {
       },
     ]);
 
-    await expect(completeInterviewSession({ sessionId })).rejects.toThrow(
-      "No report found in conversation messages"
-    );
+    await expect(
+      completeInterviewSession({ sessionId, userId: testUser.id })
+    ).rejects.toThrow("No report found in conversation messages");
 
     // DB 状態を検証: セッションが completed になっていないこと
     const { data: dbSession } = await adminClient
@@ -266,7 +275,10 @@ describe("completeInterviewSession 統合テスト", () => {
       },
     ]);
 
-    const report = await completeInterviewSession({ sessionId });
+    const report = await completeInterviewSession({
+      sessionId,
+      userId: testUser.id,
+    });
     expect(report.summary).toBe("テスト案件に賛成の立場");
   });
 });

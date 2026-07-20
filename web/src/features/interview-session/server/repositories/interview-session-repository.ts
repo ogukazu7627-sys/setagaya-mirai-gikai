@@ -321,6 +321,23 @@ export async function insertInterviewRatingFeedbacks(
 /**
  * インタビューレポートをUPSERT
  */
+export async function findInterviewReportBySessionId(
+  sessionId: string
+): Promise<InterviewReport | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("interview_report")
+    .select("*")
+    .eq("interview_session_id", sessionId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch interview report: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function upsertInterviewReport(
   params: InterviewReportInsert
 ): Promise<InterviewReport> {

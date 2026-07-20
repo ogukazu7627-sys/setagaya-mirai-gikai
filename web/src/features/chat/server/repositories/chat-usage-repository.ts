@@ -42,6 +42,30 @@ export async function findChatUsageEvents(
   return data ?? [];
 }
 
+export async function countChatUsageEvents(params: {
+  userId: string;
+  promptName: string;
+  fromIso: string;
+  toIso: string;
+}): Promise<number> {
+  const supabase = createAdminClient();
+  const { count, error } = await supabase
+    .from("chat_usage_events")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", params.userId)
+    .eq("prompt_name", params.promptName)
+    .gte("occurred_at", params.fromIso)
+    .lt("occurred_at", params.toIso);
+
+  if (error) {
+    throw new Error(`Failed to count chat usage: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  return count ?? 0;
+}
+
 export async function sumChatUsageCost(
   fromIso: string,
   toIso: string

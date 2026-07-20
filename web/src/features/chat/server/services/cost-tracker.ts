@@ -8,6 +8,7 @@ import { getJstDayRange } from "../../shared/utils/jst-day-range";
 
 import {
   type ChatUsageInsert,
+  countChatUsageEvents,
   findChatUsageEvents,
   insertChatUsageEvent,
   sumChatUsageCost,
@@ -82,4 +83,22 @@ export async function isWithinDailyCostLimit(
     jstDayRange.to
   );
   return usedCost < dailyCostLimitUsd;
+}
+
+/**
+ * 指定したプロンプトのユーザー単位の日次実行回数リミット内かどうかを判定
+ */
+export async function isWithinDailyPromptUsageLimit(
+  userId: string,
+  promptName: string,
+  dailyLimit: number
+): Promise<boolean> {
+  const jstDayRange = getJstDayRange();
+  const usedCount = await countChatUsageEvents({
+    userId,
+    promptName,
+    fromIso: jstDayRange.from,
+    toIso: jstDayRange.to,
+  });
+  return usedCount < dailyLimit;
 }
