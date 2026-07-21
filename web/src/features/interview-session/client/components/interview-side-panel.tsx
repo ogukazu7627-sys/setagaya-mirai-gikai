@@ -1,7 +1,7 @@
 "use client";
 
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GoogleLoginGate } from "@/features/chat/client/components/google-login-gate";
 import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
 import { InterviewChatClient } from "./interview-chat-client";
@@ -45,10 +45,34 @@ export function InterviewSidePanel({
 }: InterviewSidePanelProps) {
   const [data, setData] = useState<InitializeResponse | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isPreparingInitialQuestion, setIsPreparingInitialQuestion] =
+    useState(false);
   const [initializeError, setInitializeError] = useState<string | null>(null);
 
   const isAuthLoading = authStatus === "loading";
   const isLocked = !previewOnly && authStatus !== "authenticated";
+
+  const requestInitialize = useCallback(
+    async (deferInitialQuestion: boolean) => {
+      const res = await fetch("/api/interview/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ billId, deferInitialQuestion }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          typeof body.error === "string"
+            ? body.error
+            : "AIインタビューを開始できませんでした"
+        );
+      }
+
+      return body as InitializeResponse;
+    },
+    [billId]
+  );
 
   useEffect(() => {
     if (!isActive || previewOnly || isLocked || data || initializeError) {
@@ -61,23 +85,10 @@ export function InterviewSidePanel({
       setIsInitializing(true);
       setInitializeError(null);
       try {
-        const res = await fetch("/api/interview/initialize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ billId }),
-        });
-        const body = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(
-            typeof body.error === "string"
-              ? body.error
-              : "AIインタビューを開始できませんでした"
-          );
-        }
+        const body = await requestInitialize(true);
 
         if (!cancelled) {
-          setData(body as InitializeResponse);
+          setData(body);
         }
       } catch (error) {
         if (!cancelled) {
@@ -99,7 +110,64 @@ export function InterviewSidePanel({
     return () => {
       cancelled = true;
     };
-  }, [billId, data, initializeError, isActive, isLocked, previewOnly]);
+  }, [
+    data,
+    initializeError,
+    isActive,
+    isLocked,
+    previewOnly,
+    requestInitialize,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isActive ||
+      previewOnly ||
+      isLocked ||
+      !data ||
+      data.messages.length > 0 ||
+      initializeError
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function prepareInitialQuestion() {
+      setIsPreparingInitialQuestion(true);
+      try {
+        const hydratedBody = await requestInitialize(false);
+        if (!cancelled) {
+          setData(hydratedBody);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setInitializeError(
+            error instanceof Error
+              ? error.message
+              : "AIインタビューを開始できませんでした"
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsPreparingInitialQuestion(false);
+        }
+      }
+    }
+
+    void prepareInitialQuestion();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    data,
+    initializeError,
+    isActive,
+    isLocked,
+    previewOnly,
+    requestInitialize,
+  ]);
 
   if (previewOnly) {
     return (
@@ -139,10 +207,18 @@ export function InterviewSidePanel({
 
   if (isInitializing) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col justify-center px-6 pb-4 pt-2">
-        <p className="text-center text-sm font-bold leading-[1.8] text-mirai-text">
-          AIインタビューを準備中です...
-        </p>
+      <div className="flex min-h-0 flex-1 flex-col justify-between px-6 pb-4 pt-2">
+        <div className="flex flex-1 flex-col justify-center gap-2">
+          <p className="text-sm font-bold leading-[1.8] text-mirai-text">
+            AIインタビューを開いています。
+          </p>
+          <p className="text-xs font-medium leading-relaxed text-mirai-text-muted">
+            初回だけ接続を確認しています。
+          </p>
+        </div>
+        <div className="rounded-[50px] border border-primary/20 bg-white px-6 py-3 text-sm font-medium text-mirai-text-placeholder">
+          AIの質問に回答する
+        </div>
       </div>
     );
   }
@@ -189,6 +265,7 @@ export function InterviewSidePanel({
       sessionStartedAt={data.sessionStartedAt}
       hasRated={data.hasRated}
       layout="panel"
+      isPreparingInitialQuestion={isPreparingInitialQuestion}
     />
   );
 }
