@@ -6,8 +6,10 @@ import {
   createTestUser,
   type TestUser,
 } from "@test-utils/utils";
+import { APICallError } from "ai";
 import { convertArrayToReadableStream, MockLanguageModelV3 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { TEMPORARY_AI_UNAVAILABLE_MESSAGE } from "@/features/chat/server/utils/chat-error-response";
 import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { createStreamMock } from "@/test-utils/mock-language-model";
 import type { InterviewSession } from "../../shared/types";
@@ -52,6 +54,26 @@ function createCapturingStreamMock(text: string): {
     },
   });
   return { model, prompts };
+}
+
+function createFailingStreamMock(error: Error): MockLanguageModelV3 {
+  return new MockLanguageModelV3({
+    doStream: async () => {
+      throw error;
+    },
+  });
+}
+
+function createGatewayRateLimitError() {
+  return new APICallError({
+    message:
+      "Free tier requests on this model are rate-limited. Upgrade to paid credits.",
+    url: "https://ai-gateway.vercel.sh/v3/ai/language-model",
+    requestBodyValues: {},
+    statusCode: 429,
+    responseBody:
+      "Free tier requests on this model are rate-limited. Upgrade to paid credits.",
+  });
 }
 
 /**
@@ -386,6 +408,39 @@ describe("handleInterviewChatRequest 統合テスト", () => {
       // summaryModel の出力が保存されていること
       expect(messages).toHaveLength(2);
       expect(messages[1].content).toBe(validSummaryResponse);
+    });
+
+    it("AI Gatewayのレート制限時は500にせず、summaryフェーズ内の案内JSONを返す", async () => {
+      const failingModel = createFailingStreamMock(
+        createGatewayRateLimitError()
+      );
+
+      const response = await handleInterviewChatRequest({
+        messages: [{ role: "user", content: "まとめてください" }],
+        billId,
+        currentStage: "summary",
+        userId: testUser.id,
+        deps: {
+          summaryModel: failingModel,
+          getBill: async () => null,
+          getInterviewConfig: async () => config,
+          getSession: async () => session,
+          getMessages: async () => [],
+        },
+      });
+
+      expect(response.status).toBe(200);
+      const body = await consumeResponseStream(response);
+      expect(JSON.parse(body)).toMatchObject({
+        text: TEMPORARY_AI_UNAVAILABLE_MESSAGE,
+        report: null,
+        next_stage: "summary",
+      });
+
+      const messages = await findInterviewMessagesBySessionId(sessionId);
+      expect(messages).toHaveLength(1);
+      expect(messages[0].role).toBe("user");
+      expect(messages[0].content).toBe("まとめてください");
     });
   });
 });

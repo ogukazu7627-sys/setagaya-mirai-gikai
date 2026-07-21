@@ -13,6 +13,7 @@ import {
   isWithinDailyCostLimit,
   recordChatUsage,
 } from "@/features/chat/server/services/cost-tracker";
+import { chatStreamErrorMessage } from "@/features/chat/server/utils/chat-error-response";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import type { InterviewConfig } from "@/features/interview-config/server/loaders/get-interview-config-admin";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
@@ -250,11 +251,8 @@ async function generateStreamingResponse({
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 
-  const handleError = (error: unknown) => {
+  const handleStreamError = ({ error }: { error: unknown }) => {
     console.error("LLM generation error:", error);
-    throw new Error(
-      `LLM generation failed: ${error instanceof Error ? error.message : String(error)}`
-    );
   };
 
   const handleFinish = async (event: {
@@ -317,7 +315,7 @@ async function generateStreamingResponse({
     model,
     system: systemPrompt,
     messages: await convertToModelMessages(uiMessages),
-    onError: handleError,
+    onError: handleStreamError,
     onFinish: handleFinish,
     experimental_telemetry: telemetry
       ? {
@@ -341,13 +339,19 @@ async function generateStreamingResponse({
         ...streamParams,
         output: Output.object({ schema: interviewChatWithReportSchema }),
       });
-      textStream = result.textStream;
+      textStream = createStreamWithErrorFallback(
+        result.textStream,
+        isSummaryPhase
+      );
     } else {
       const result = streamText({
         ...streamParams,
         output: Output.object({ schema: interviewChatTextSchema }),
       });
-      textStream = result.textStream;
+      textStream = createStreamWithErrorFallback(
+        result.textStream,
+        isSummaryPhase
+      );
     }
 
     // LLMがnext_stageを直接出力するため、ストリームをそのまま返す
@@ -355,9 +359,56 @@ async function generateStreamingResponse({
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (error) {
-    handleError(error);
-    throw error;
+    console.error("LLM generation setup error:", error);
+    throw new ChatError(
+      ChatErrorCode.LLM_GENERATION_FAILED,
+      error instanceof Error ? error.message : String(error)
+    );
   }
+}
+
+function createStreamWithErrorFallback(
+  textStream: AsyncIterable<string>,
+  isSummaryPhase: boolean
+): ReadableStream<string> {
+  return new ReadableStream<string>({
+    async start(controller) {
+      let hasSentChunk = false;
+
+      try {
+        for await (const chunk of textStream) {
+          hasSentChunk = true;
+          controller.enqueue(chunk);
+        }
+      } catch (error) {
+        console.error("LLM generation stream error:", error);
+
+        if (!hasSentChunk) {
+          controller.enqueue(
+            JSON.stringify(
+              buildInterviewStreamErrorObject(error, isSummaryPhase)
+            )
+          );
+        }
+      } finally {
+        controller.close();
+      }
+    },
+  });
+}
+
+function buildInterviewStreamErrorObject(
+  error: unknown,
+  isSummaryPhase: boolean
+) {
+  return {
+    text: chatStreamErrorMessage(error),
+    report: null,
+    quick_replies: [],
+    question_id: null,
+    topic_title: null,
+    next_stage: isSummaryPhase ? "summary" : "chat",
+  };
 }
 
 function extractGatewayCost(event: {
