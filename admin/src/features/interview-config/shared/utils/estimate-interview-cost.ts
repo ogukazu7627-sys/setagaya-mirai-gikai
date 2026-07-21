@@ -21,6 +21,7 @@ const ESTIMATED_OUTPUT_TOKENS = 3_000;
  */
 const MODEL_PRICING: Record<string, ModelPricing> = {
   // --- OpenAI ---
+  "openai/gpt-4o": { inputPerMillion: 2.5, outputPerMillion: 10 },
   "openai/gpt-4o-mini": { inputPerMillion: 0.15, outputPerMillion: 0.6 },
   "openai/gpt-5": { inputPerMillion: 1.25, outputPerMillion: 10 },
   "openai/gpt-5-mini": { inputPerMillion: 0.25, outputPerMillion: 2 },

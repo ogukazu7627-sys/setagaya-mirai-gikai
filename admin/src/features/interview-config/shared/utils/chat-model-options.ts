@@ -21,6 +21,7 @@ export type ChatModelGroup = {
 };
 
 const OPENAI_MODELS = [
+  { value: "openai/gpt-4o", label: "GPT-4o" },
   { value: "openai/gpt-4o-mini", label: "GPT-4o mini" },
   { value: "openai/gpt-5", label: "GPT-5" },
   { value: "openai/gpt-5-mini", label: "GPT-5 mini" },
