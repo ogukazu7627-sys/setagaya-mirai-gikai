@@ -7,6 +7,7 @@ type DeleteBillAction = (formData: FormData) => Promise<void>;
 
 interface AdminDeleteBillButtonProps {
   billId: string;
+  returnPath: string;
   title: string;
   action: DeleteBillAction;
 }
@@ -29,6 +30,7 @@ function DeleteSubmitButton() {
 
 export function AdminDeleteBillButton({
   billId,
+  returnPath,
   title,
   action,
 }: AdminDeleteBillButtonProps) {
@@ -45,6 +47,7 @@ export function AdminDeleteBillButton({
       }}
     >
       <input type="hidden" name="id" value={billId} />
+      <input type="hidden" name="return_path" value={returnPath} />
       <DeleteSubmitButton />
     </form>
   );

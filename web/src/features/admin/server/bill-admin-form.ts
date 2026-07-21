@@ -3,6 +3,7 @@ import "server-only";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
 import type {
   BillSource,
   MajorCategoryLabel,
@@ -13,10 +14,16 @@ import { nullableString } from "./bill-admin-utils";
 
 export function redirectToAdminBillFormError(
   billId: string | undefined,
-  message: string
+  message: string,
+  returnPath?: string
 ): never {
   const target = billId ? `/admin/bills/${billId}/edit` : "/admin/bills/new";
-  redirect(`${target}?error=${encodeURIComponent(message)}` as Route);
+  const errorPath = `${target}?error=${encodeURIComponent(message)}`;
+  redirect(
+    (returnPath
+      ? appendAdminBillsReturnPath(errorPath, returnPath)
+      : errorPath) as Route
+  );
 }
 
 export function redirectToAdminBillsError(message: string): never {
@@ -117,11 +124,17 @@ export function parseBillFormDataOrRedirect(formData: FormData) {
     return parseBillFormData(formData);
   } catch (error) {
     const id = nullableString(formData.get("id"));
+    const returnPath = nullableString(formData.get("return_path"));
     const target = id ? `/admin/bills/${id}/edit` : "/admin/bills/new";
     const message =
       error instanceof z.ZodError
         ? (error.issues[0]?.message ?? "入力内容を確認してください")
         : "入力内容を確認してください";
-    redirect(`${target}?error=${encodeURIComponent(message)}` as Route);
+    redirect(
+      appendAdminBillsReturnPath(
+        `${target}?error=${encodeURIComponent(message)}`,
+        returnPath ?? "/admin/bills"
+      ) as Route
+    );
   }
 }

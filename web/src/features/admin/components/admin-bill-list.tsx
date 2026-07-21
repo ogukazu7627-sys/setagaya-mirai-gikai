@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
 import { getBillItemTypeLabel } from "@/features/bills/shared/types";
 import { routes } from "@/lib/routes";
 import {
@@ -302,7 +303,14 @@ export function AdminBillList({
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/bills/${bill.id}/edit` as Route}>
+                        <Link
+                          href={
+                            appendAdminBillsReturnPath(
+                              routes.adminBillEdit(bill.id),
+                              returnPath
+                            ) as Route
+                          }
+                        >
                           編集
                         </Link>
                       </Button>
@@ -333,6 +341,7 @@ export function AdminBillList({
                       )}
                       <AdminDeleteBillButton
                         billId={bill.id}
+                        returnPath={returnPath}
                         title={title}
                         action={deleteAdminBillAction}
                       />

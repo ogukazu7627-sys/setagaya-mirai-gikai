@@ -17,6 +17,7 @@ import {
   normalizeAdminBillSort,
   PUBLISH_STATUS_OPTIONS,
 } from "@/features/admin/server/bill-admin";
+import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import { routes } from "@/lib/routes";
 
@@ -272,6 +273,7 @@ export default async function AdminBillsPage({
       previewToken: await ensurePreviewToken(bill.id),
     }))
   );
+  const currentListPath = adminBillsHref(filters, sort, billPage.page);
 
   return (
     <AdminShell user={user}>
@@ -293,7 +295,14 @@ export default async function AdminBillsPage({
               </Link>
             </Button>
             <Button asChild>
-              <Link href={routes.adminBillNew() as Route}>
+              <Link
+                href={
+                  appendAdminBillsReturnPath(
+                    routes.adminBillNew(),
+                    currentListPath
+                  ) as Route
+                }
+              >
                 新しい案件を追加
               </Link>
             </Button>
