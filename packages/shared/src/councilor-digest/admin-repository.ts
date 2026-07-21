@@ -18,6 +18,7 @@ type PendingRecipientRow = {
   councilors: {
     id: string;
     display_name: string;
+    icon_url: string | null;
     councilor_contacts: Array<{
       email: string | null;
       is_delivery_enabled: boolean;
@@ -93,6 +94,7 @@ export async function listPendingCouncilorDigestGroups(params: {
       councilors(
         id,
         display_name,
+        icon_url,
         councilor_contacts(email, is_delivery_enabled)
       ),
       interview_report(
@@ -123,7 +125,7 @@ export async function listPendingCouncilorDigestGroups(params: {
 
   const groups = new Map<string, CouncilorDigestGroup>();
   for (const row of (data ?? []) as PendingRecipientRow[]) {
-    if (!row.councilors || !row.interview_report) {
+    if (!row.councilors?.icon_url || !row.interview_report) {
       continue;
     }
     const contact = row.councilors.councilor_contacts?.[0] ?? null;
@@ -169,8 +171,11 @@ export async function listCouncilorContacts(): Promise<CouncilorContactRow[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("councilors")
-    .select("id, display_name, councilor_contacts(email, is_delivery_enabled)")
+    .select(
+      "id, display_name, icon_url, councilor_contacts(email, is_delivery_enabled)"
+    )
     .eq("is_active", true)
+    .not("icon_url", "is", null)
     .order("display_name", { ascending: true });
 
   if (error) {
@@ -214,7 +219,7 @@ export async function listCommitteesWithMembers(): Promise<
   const { data, error } = await supabase
     .from("committees")
     .select(
-      "id, name, committee_councilors(sort_order, councilors(id, display_name))"
+      "id, name, committee_councilors(sort_order, councilors(id, display_name, icon_url))"
     )
     .eq("is_active", true)
     .order("name", { ascending: true });
@@ -232,7 +237,7 @@ export async function listCommitteesWithMembers(): Promise<
         const councilor = Array.isArray(membership.councilors)
           ? membership.councilors[0]
           : membership.councilors;
-        if (!councilor) {
+        if (!councilor?.icon_url) {
           return null;
         }
         return {
