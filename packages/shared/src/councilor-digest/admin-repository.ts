@@ -7,6 +7,11 @@ import {
   type DigestReportItem,
 } from "./email-body";
 
+type CouncilorContactRecord = {
+  email: string | null;
+  is_delivery_enabled: boolean;
+};
+
 type PendingRecipientRow = {
   id: string;
   interview_report_id: string;
@@ -19,10 +24,10 @@ type PendingRecipientRow = {
     id: string;
     display_name: string;
     icon_url: string | null;
-    councilor_contacts: Array<{
-      email: string | null;
-      is_delivery_enabled: boolean;
-    }> | null;
+    councilor_contacts:
+      | CouncilorContactRecord
+      | CouncilorContactRecord[]
+      | null;
   } | null;
   interview_report: {
     id: string;
@@ -128,7 +133,7 @@ export async function listPendingCouncilorDigestGroups(params: {
     if (!row.councilors?.icon_url || !row.interview_report) {
       continue;
     }
-    const contact = row.councilors.councilor_contacts?.[0] ?? null;
+    const contact = getCouncilorContact(row.councilors.councilor_contacts);
     const item = toDigestItem(row, params.webUrl);
     const existing = groups.get(row.councilor_id);
     if (existing) {
@@ -183,9 +188,7 @@ export async function listCouncilorContacts(): Promise<CouncilorContactRow[]> {
   }
 
   return (data ?? []).map((row) => {
-    const contact = Array.isArray(row.councilor_contacts)
-      ? row.councilor_contacts[0]
-      : null;
+    const contact = getCouncilorContact(row.councilor_contacts);
     return {
       councilorId: row.id,
       councilorName: row.display_name,
@@ -193,6 +196,16 @@ export async function listCouncilorContacts(): Promise<CouncilorContactRow[]> {
       isDeliveryEnabled: contact?.is_delivery_enabled ?? false,
     };
   });
+}
+
+function getCouncilorContact(
+  value: CouncilorContactRecord | CouncilorContactRecord[] | null | undefined
+) {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return value ?? null;
 }
 
 export async function upsertCouncilorContact(params: {
