@@ -124,7 +124,7 @@ describe("completeInterviewSession", () => {
       score: 12,
       status: "ok",
       reasoning: "問題なし",
-      model: "openai/gpt-5.2",
+      model: "openai/gpt-4o",
       usage: {
         inputTokens: 100,
         outputTokens: 20,
@@ -161,7 +161,7 @@ describe("completeInterviewSession", () => {
       userId: "user-1",
       sessionId: "session-1",
       promptName: "interview-complete-moderation",
-      model: "openai/gpt-5.2",
+      model: "openai/gpt-4o",
       usage: {
         inputTokens: 100,
         outputTokens: 20,

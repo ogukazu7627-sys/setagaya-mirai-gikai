@@ -5,6 +5,14 @@ import {
 } from "./estimate-interview-cost";
 
 describe("estimateInterviewCostUsd", () => {
+  it("GPT-4oの推定コストを正しく算出する", () => {
+    // input: 2.5 * 85000 / 1M = 0.2125
+    // output: 10 * 3000 / 1M = 0.03
+    // total: 0.2425
+    const cost = estimateInterviewCostUsd("openai/gpt-4o");
+    expect(cost).toBeCloseTo(0.2425, 4);
+  });
+
   it("GPT-4o miniの推定コストを正しく算出する", () => {
     // input: 0.15 * 85000 / 1M = 0.01275
     // output: 0.6 * 3000 / 1M = 0.0018

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AI_MODELS, isKnownModel } from "./models";
+import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL, isKnownModel } from "./models";
 
 describe("isKnownModel", () => {
   it("AI_MODELS に登録済みのIDは true", () => {
@@ -11,5 +11,9 @@ describe("isKnownModel", () => {
     expect(isKnownModel("openai/gpt-3.5-turbo")).toBe(false);
     expect(isKnownModel("")).toBe(false);
     expect(isKnownModel("not-a-model")).toBe(false);
+  });
+
+  it("AIインタビューのデフォルトモデルはgpt-4o", () => {
+    expect(DEFAULT_INTERVIEW_CHAT_MODEL).toBe(AI_MODELS.gpt4o);
   });
 });

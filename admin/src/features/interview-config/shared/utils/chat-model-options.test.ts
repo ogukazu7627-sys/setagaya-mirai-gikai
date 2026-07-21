@@ -64,6 +64,7 @@ describe("CHAT_MODEL_GROUPS", () => {
 
 describe("isValidChatModel", () => {
   it("有効なモデルIDに対してtrueを返す", () => {
+    expect(isValidChatModel("openai/gpt-4o")).toBe(true);
     expect(isValidChatModel("openai/gpt-4o-mini")).toBe(true);
     expect(isValidChatModel("google/gemini-3-flash")).toBe(true);
     expect(isValidChatModel("anthropic/claude-sonnet-4.6")).toBe(true);

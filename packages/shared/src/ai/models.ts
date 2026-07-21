@@ -39,4 +39,4 @@ export function isKnownModel(model: string): model is AiModel {
 }
 
 /** インタビューチャットのデフォルトモデル */
-export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt5_2;
+export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt4o;
