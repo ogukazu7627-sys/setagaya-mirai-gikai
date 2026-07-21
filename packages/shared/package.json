@@ -91,6 +91,14 @@
     "./interview-report/sync-opinions": {
       "types": "./src/interview-report/sync-opinions.ts",
       "default": "./src/interview-report/sync-opinions.ts"
+    },
+    "./councilor-digest/candidate-utils": {
+      "types": "./src/councilor-digest/candidate-utils.ts",
+      "default": "./src/councilor-digest/candidate-utils.ts"
+    },
+    "./councilor-digest/email-body": {
+      "types": "./src/councilor-digest/email-body.ts",
+      "default": "./src/councilor-digest/email-body.ts"
     }
   },
   "dependencies": {

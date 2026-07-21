@@ -5,12 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { ReportRecipientSelectionSection } from "@/features/councilor-digest/client/components/report-recipient-selection-section";
+import { getReportRecipientSelection } from "@/features/councilor-digest/server/loaders/get-report-recipient-selection";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
 import { getInterviewMessages } from "@/features/interview-session/server/loaders/get-interview-messages";
 import { getAuthenticatedUser } from "@/features/interview-session/server/utils/verify-session-ownership";
-import { PetitionGoogleDocsSection } from "@/features/petition-google-docs/client/components/petition-google-docs-section";
 import { ExpertRegistrationSection } from "../../client/components/expert-registration-section";
 import { ReportContent } from "../../shared/components/report-content";
 import { isExpertRegistrationTargetRole } from "../../shared/utils/expert-registration-validation";
@@ -20,14 +21,10 @@ import { getExpertRegistrationStatus } from "../loaders/get-expert-registration-
 
 interface ReportCompletePageProps {
   reportId: string;
-  petitionDocUrl?: string | null;
-  petitionDocError?: string | null;
 }
 
 export async function ReportCompletePage({
   reportId,
-  petitionDocUrl,
-  petitionDocError,
 }: ReportCompletePageProps) {
   // レポートIDから全ての情報を取得
   // 完了ページなので、所有者のみが閲覧できるように制限する
@@ -42,14 +39,16 @@ export async function ReportCompletePage({
   const isExpertRole = isExpertRegistrationTargetRole(report.role);
   const authResult = await getAuthenticatedUser();
 
-  // 案件・メッセージ・有識者登録状況を並列取得
-  const [bill, messages, isExpertRegistered] = await Promise.all([
-    getBillById(billId),
-    getInterviewMessages(report.interview_session_id),
-    isExpertRole && authResult.authenticated
-      ? getExpertRegistrationStatus(authResult.userId)
-      : Promise.resolve(false),
-  ]);
+  // 法案・メッセージ・有識者登録状況・議員宛候補を並列取得
+  const [bill, messages, isExpertRegistered, recipientSelection] =
+    await Promise.all([
+      getBillById(billId),
+      getInterviewMessages(report.interview_session_id),
+      isExpertRole && authResult.authenticated
+        ? getExpertRegistrationStatus(authResult.userId)
+        : Promise.resolve(false),
+      getReportRecipientSelection(reportId),
+    ]);
 
   if (!bill) {
     notFound();
@@ -121,10 +120,9 @@ export async function ReportCompletePage({
             roleDescription={report.role_description}
             opinions={opinions}
           >
-            <PetitionGoogleDocsSection
+            <ReportRecipientSelectionSection
               reportId={reportId}
-              documentUrl={petitionDocUrl}
-              errorCode={petitionDocError}
+              selection={recipientSelection}
             />
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
