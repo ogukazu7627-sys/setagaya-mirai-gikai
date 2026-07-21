@@ -3,12 +3,14 @@ import "server-only";
 import {
   type CandidateSource,
   extractCommitteeName,
-  extractQuestionerName,
   normalizeJapaneseName,
   uniqueById,
 } from "@mirai-gikai/shared/councilor-digest/candidate-utils";
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { CouncilorRecipientCandidate } from "../../shared/types";
+import type {
+  CouncilorRecipientCandidate,
+  ReportRecipientSelection,
+} from "../../shared/types";
 
 type ReportWithSession = {
   id: string;
@@ -29,6 +31,17 @@ type RecipientRow = {
   councilor_id: string;
   share_contact: boolean;
   status: string;
+  councilors: CouncilorRow | CouncilorRow[] | null;
+};
+
+type CommitteeCouncilorRow = {
+  sort_order: number | null;
+  councilors: CouncilorRow | CouncilorRow[] | null;
+};
+
+type CommitteeRow = {
+  normalized_name: string;
+  committee_councilors: CommitteeCouncilorRow[] | null;
 };
 
 const SOURCE_LABELS: Record<CandidateSource, string> = {
@@ -66,79 +79,58 @@ export async function findReportOwnerAndBill(reportId: string) {
 
 export async function listRecipientCandidates(billId: string) {
   const supabase = createAdminClient();
-  const [{ data: bill }, { data: councilors }, { data: committeeRows }] =
-    await Promise.all([
-      supabase
-        .from("bills")
-        .select("id, status_note")
-        .eq("id", billId)
-        .maybeSingle(),
-      supabase
-        .from("councilors")
-        .select("id, display_name, normalized_name, icon_url")
-        .eq("is_active", true)
-        .not("icon_url", "is", null)
-        .order("display_name", { ascending: true }),
-      supabase
-        .from("committees")
-        .select(
-          "id, normalized_name, committee_councilors(sort_order, councilors(id, display_name, normalized_name, icon_url))"
-        )
-        .eq("is_active", true),
-    ]);
-
-  const allCouncilors = ((councilors ?? []) as CouncilorRow[]).map((row) =>
-    toCandidate(row, "manual", false)
-  );
-  const recommended: CouncilorRecipientCandidate[] = [];
-
-  const questionerName = extractQuestionerName(bill?.status_note);
-  if (questionerName) {
-    const match = allCouncilors.find(
-      (candidate) =>
-        normalizeJapaneseName(candidate.displayName) === questionerName
-    );
-    if (match) {
-      recommended.push({
-        ...match,
-        source: "questioner",
-        sourceLabel: "質問者",
-        recommended: true,
-      });
-    }
-  }
+  const [{ data: bill }, { data: committeeRows }] = await Promise.all([
+    supabase
+      .from("bills")
+      .select("id, status_note")
+      .eq("id", billId)
+      .maybeSingle(),
+    supabase
+      .from("committees")
+      .select(
+        "id, normalized_name, committee_councilors(sort_order, councilors(id, display_name, normalized_name, icon_url))"
+      )
+      .eq("is_active", true),
+  ]);
 
   const committeeName = extractCommitteeName(bill?.status_note);
-  if (committeeName) {
-    const normalizedCommitteeName = normalizeJapaneseName(committeeName);
-    const committee = (committeeRows ?? []).find(
-      (row) =>
-        normalizeJapaneseName(String(row.normalized_name)) ===
-        normalizedCommitteeName
-    );
-    const memberRows = Array.isArray(committee?.committee_councilors)
-      ? committee.committee_councilors
-      : [];
-    for (const member of memberRows) {
-      const councilor = Array.isArray(member.councilors)
-        ? member.councilors[0]
-        : member.councilors;
-      if (councilor?.icon_url) {
-        recommended.push(
-          toCandidate(councilor as CouncilorRow, "committee_member", true)
-        );
-      }
+  if (!committeeName) {
+    return [];
+  }
+
+  const normalizedCommitteeName = normalizeJapaneseName(committeeName);
+  const committee = ((committeeRows ?? []) as CommitteeRow[]).find(
+    (row) =>
+      normalizeJapaneseName(String(row.normalized_name)) ===
+      normalizedCommitteeName
+  );
+  const memberRows = Array.isArray(committee?.committee_councilors)
+    ? [...committee.committee_councilors].sort(
+        (a, b) => (a.sort_order ?? 100) - (b.sort_order ?? 100)
+      )
+    : [];
+  const candidates: CouncilorRecipientCandidate[] = [];
+  for (const member of memberRows) {
+    const councilor = Array.isArray(member.councilors)
+      ? member.councilors[0]
+      : member.councilors;
+    if (councilor?.icon_url) {
+      candidates.push(
+        toCandidate(councilor as CouncilorRow, "committee_member", true)
+      );
     }
   }
 
-  return uniqueById([...recommended, ...allCouncilors]);
+  return uniqueById(candidates);
 }
 
 export async function listReportRecipients(reportId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("interview_report_recipients")
-    .select("councilor_id, share_contact, status")
+    .select(
+      "councilor_id, share_contact, status, councilors(id, display_name, normalized_name, icon_url)"
+    )
     .eq("interview_report_id", reportId);
 
   if (error) {
@@ -146,6 +138,36 @@ export async function listReportRecipients(reportId: string) {
   }
 
   return (data ?? []) as RecipientRow[];
+}
+
+export async function getReportRecipientSelectionData(params: {
+  reportId: string;
+  billId: string;
+}): Promise<ReportRecipientSelection> {
+  const [candidates, recipients] = await Promise.all([
+    listRecipientCandidates(params.billId),
+    listReportRecipients(params.reportId),
+  ]);
+
+  const selectedCouncilors = recipients.flatMap((recipient) => {
+    const councilor = Array.isArray(recipient.councilors)
+      ? recipient.councilors[0]
+      : recipient.councilors;
+    if (!councilor?.id) {
+      return [];
+    }
+    return [toCandidate(councilor, "committee_member", true)];
+  });
+
+  return {
+    candidates,
+    selectedCouncilorIds: recipients.map((recipient) => recipient.councilor_id),
+    selectedCouncilors,
+    shareContact: recipients.some((recipient) => recipient.share_contact),
+    alreadySentCouncilorIds: recipients
+      .filter((recipient) => recipient.status === "sent")
+      .map((recipient) => recipient.councilor_id),
+  };
 }
 
 export async function replacePendingReportRecipients(params: {
@@ -182,7 +204,8 @@ export async function replacePendingReportRecipients(params: {
       interview_report_id: params.reportId,
       councilor_id: councilorId,
       user_id: params.userId,
-      candidate_source: params.sourceByCouncilorId.get(councilorId) ?? "manual",
+      candidate_source:
+        params.sourceByCouncilorId.get(councilorId) ?? "committee_member",
       share_contact: params.shareContact,
       contact_name: params.shareContact ? params.contactName : null,
       contact_email: params.shareContact ? params.contactEmail : null,

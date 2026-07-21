@@ -27,6 +27,44 @@ describe("callCompleteApi", () => {
     expect(result).toEqual({ report: { id: "report-123" } });
   });
 
+  it("正常レスポンス: 議員選択情報をそのまま返す", async () => {
+    const recipientSelection = {
+      candidates: [
+        {
+          id: "councilor-1",
+          displayName: "世田谷 花子",
+          iconUrl: "https://example.com/icon.jpg",
+          source: "committee_member",
+          sourceLabel: "委員会メンバー",
+          recommended: true,
+        },
+      ],
+      selectedCouncilorIds: [],
+      selectedCouncilors: [],
+      shareContact: false,
+      alreadySentCouncilorIds: [],
+    };
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          report: { id: "report-123" },
+          recipientSelection,
+        }),
+        { status: 200 }
+      )
+    );
+
+    const result = await callCompleteApi({
+      sessionId: "session-1",
+      isPublic: false,
+    });
+
+    expect(result).toEqual({
+      report: { id: "report-123" },
+      recipientSelection,
+    });
+  });
+
   it("エラーレスポンス(res.ok=false): data.errorメッセージでError throw", async () => {
     vi.mocked(globalThis.fetch).mockResolvedValue(
       new Response(JSON.stringify({ error: "Session not found" }), {

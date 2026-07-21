@@ -12,6 +12,7 @@ export type CouncilorRecipientCandidate = {
 export type ReportRecipientSelection = {
   candidates: CouncilorRecipientCandidate[];
   selectedCouncilorIds: string[];
+  selectedCouncilors: CouncilorRecipientCandidate[];
   shareContact: boolean;
   alreadySentCouncilorIds: string[];
 };

@@ -28,6 +28,10 @@ export async function saveReportRecipients(
     return { success: false, message: "伝えたい議員を1人以上選んでください。" };
   }
 
+  if (councilorIds.length > 1) {
+    return { success: false, message: "議員は1人だけ選択してください。" };
+  }
+
   const {
     data: { user },
     error,
@@ -53,9 +57,26 @@ export async function saveReportRecipients(
   }
 
   const candidates = await listRecipientCandidates(report.billId);
+  if (candidates.length === 0) {
+    return {
+      success: false,
+      message:
+        "この案件では委員会メンバー候補を確認できませんでした。管理画面で委員会情報を確認してください。",
+    };
+  }
+
   const sourceByCouncilorId = new Map(
     candidates.map((candidate) => [candidate.id, candidate.source])
   );
+  const invalidCouncilorId = councilorIds.find(
+    (councilorId) => !sourceByCouncilorId.has(councilorId)
+  );
+  if (invalidCouncilorId) {
+    return {
+      success: false,
+      message: "この案件で選択できる委員会メンバーから選んでください。",
+    };
+  }
 
   try {
     await replacePendingReportRecipients({

@@ -5,8 +5,7 @@ import { getAuthenticatedUser } from "@/features/interview-session/server/utils/
 import type { ReportRecipientSelection } from "../../shared/types";
 import {
   findReportOwnerAndBill,
-  listRecipientCandidates,
-  listReportRecipients,
+  getReportRecipientSelectionData,
 } from "../repositories/report-recipient-repository";
 
 export async function getReportRecipientSelection(
@@ -22,17 +21,8 @@ export async function getReportRecipientSelection(
     notFound();
   }
 
-  const [candidates, recipients] = await Promise.all([
-    listRecipientCandidates(report.billId),
-    listReportRecipients(reportId),
-  ]);
-
-  return {
-    candidates,
-    selectedCouncilorIds: recipients.map((recipient) => recipient.councilor_id),
-    shareContact: recipients.some((recipient) => recipient.share_contact),
-    alreadySentCouncilorIds: recipients
-      .filter((recipient) => recipient.status === "sent")
-      .map((recipient) => recipient.councilor_id),
-  };
+  return getReportRecipientSelectionData({
+    reportId,
+    billId: report.billId,
+  });
 }
