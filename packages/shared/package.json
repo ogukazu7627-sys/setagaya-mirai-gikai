@@ -99,6 +99,10 @@
     "./councilor-digest/email-body": {
       "types": "./src/councilor-digest/email-body.ts",
       "default": "./src/councilor-digest/email-body.ts"
+    },
+    "./councilor-digest/admin-repository": {
+      "types": "./src/councilor-digest/admin-repository.ts",
+      "default": "./src/councilor-digest/admin-repository.ts"
     }
   },
   "dependencies": {

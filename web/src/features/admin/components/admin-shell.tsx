@@ -40,6 +40,12 @@ export function AdminShell({ user, children }: AdminShellProps) {
               >
                 問い合わせ
               </Link>
+              <Link
+                href={routes.adminCouncilorDigests() as Route}
+                className="hover:underline"
+              >
+                議員宛レポート
+              </Link>
             </nav>
             <span className="hidden text-xs text-mirai-text-secondary sm:inline">
               {user.email}
