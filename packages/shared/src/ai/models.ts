@@ -17,6 +17,7 @@ export const AI_MODELS = {
   gpt5_1_instant: "openai/gpt-5.1-instant",
   gpt5_1_thinking: "openai/gpt-5.1-thinking",
   gpt5_2: "openai/gpt-5.2",
+  gpt5_6_luna: "openai/gpt-5.6-luna",
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",
   gemini3_flash_preview: "google/gemini-3-flash-preview",
@@ -39,4 +40,4 @@ export function isKnownModel(model: string): model is AiModel {
 }
 
 /** インタビューチャットのデフォルトモデル */
-export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt4o;
+export const DEFAULT_INTERVIEW_CHAT_MODEL = AI_MODELS.gpt5_6_luna;

@@ -112,7 +112,7 @@ export async function handleChatRequest({
     promptProvider
   );
   // Model configuration
-  const model = deps?.model ?? AI_MODELS.gpt4o;
+  const model = deps?.model ?? AI_MODELS.gpt5_6_luna;
   const modelName =
     typeof model === "string" ? model : (model.modelId ?? "unknown");
 

@@ -38,6 +38,8 @@ describe("calculateUsageCostUsd", () => {
 
     // GPT-5.2: $1.75 input + $14.00 output = $15.75
     expect(calculateUsageCostUsd(AI_MODELS.gpt5_2, usage)).toBeCloseTo(15.75);
+    // GPT-5.6 Luna: $1.00 input + $6.00 output = $7.00
+    expect(calculateUsageCostUsd(AI_MODELS.gpt5_6_luna, usage)).toBeCloseTo(7);
     // Claude Sonnet 4.6: $3.00 input + $15.00 output = $18.00
     expect(
       calculateUsageCostUsd(AI_MODELS.claude_sonnet_4_6, usage)

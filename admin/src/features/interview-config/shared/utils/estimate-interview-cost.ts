@@ -30,6 +30,7 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
   "openai/gpt-5.1-instant": { inputPerMillion: 1.25, outputPerMillion: 10 },
   "openai/gpt-5.1-thinking": { inputPerMillion: 1.25, outputPerMillion: 10 },
   "openai/gpt-5.2": { inputPerMillion: 1.75, outputPerMillion: 14 },
+  "openai/gpt-5.6-luna": { inputPerMillion: 1, outputPerMillion: 6 },
   // --- Google ---
   "google/gemini-3-flash": { inputPerMillion: 0.5, outputPerMillion: 3 },
   "google/gemini-3.1-pro-preview": {

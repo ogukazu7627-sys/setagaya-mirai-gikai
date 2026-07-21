@@ -3,7 +3,7 @@
  * Vercel AI Gateway（https://vercel.com/ai-gateway/models）で利用可能なモデル
  */
 
-import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import {
   estimateInterviewCostUsd,
   formatEstimatedCost,
@@ -21,15 +21,16 @@ export type ChatModelGroup = {
 };
 
 const OPENAI_MODELS = [
-  { value: "openai/gpt-4o", label: "GPT-4o" },
-  { value: "openai/gpt-4o-mini", label: "GPT-4o mini" },
-  { value: "openai/gpt-5", label: "GPT-5" },
-  { value: "openai/gpt-5-mini", label: "GPT-5 mini" },
-  { value: "openai/gpt-5-nano", label: "GPT-5 nano" },
-  { value: "openai/gpt-5-chat", label: "GPT-5 Chat" },
-  { value: "openai/gpt-5.1-instant", label: "GPT-5.1 Instant" },
-  { value: "openai/gpt-5.1-thinking", label: "GPT-5.1 Thinking" },
-  { value: "openai/gpt-5.2", label: "GPT-5.2" },
+  { value: AI_MODELS.gpt4o, label: "GPT-4o" },
+  { value: AI_MODELS.gpt4o_mini, label: "GPT-4o mini" },
+  { value: AI_MODELS.gpt5, label: "GPT-5" },
+  { value: AI_MODELS.gpt5_mini, label: "GPT-5 mini" },
+  { value: AI_MODELS.gpt5_nano, label: "GPT-5 nano" },
+  { value: AI_MODELS.gpt5_chat, label: "GPT-5 Chat" },
+  { value: AI_MODELS.gpt5_1_instant, label: "GPT-5.1 Instant" },
+  { value: AI_MODELS.gpt5_1_thinking, label: "GPT-5.1 Thinking" },
+  { value: AI_MODELS.gpt5_2, label: "GPT-5.2" },
+  { value: AI_MODELS.gpt5_6_luna, label: "GPT-5.6 Luna" },
 ] as const;
 
 const GOOGLE_MODELS = [
