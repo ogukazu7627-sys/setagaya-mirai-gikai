@@ -15,7 +15,7 @@ vi.mock("./interview-chat-client", () => ({
     <div>
       <p>初期化完了:</p>
       <p>{initialMessages[0]?.content ?? "メッセージなし"}</p>
-      <p>準備中:{String(isPreparingInitialQuestion)}</p>
+      <p>{`準備中:${String(isPreparingInitialQuestion)}`}</p>
     </div>
   ),
 }));
@@ -117,7 +117,9 @@ describe("InterviewSidePanel", () => {
       expect(screen.getByText("初期化完了:")).toBeInTheDocument();
     });
     expect(screen.getByText("メッセージなし")).toBeInTheDocument();
-    expect(screen.getByText("準備中:true")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("準備中:true")).toBeInTheDocument();
+    });
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/interview/initialize",
