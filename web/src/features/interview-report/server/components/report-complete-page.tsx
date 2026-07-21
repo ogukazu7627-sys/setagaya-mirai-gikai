@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { ReportRecipientSelectionSection } from "@/features/councilor-digest/client/components/report-recipient-selection-section";
+import { getReportRecipientSelection } from "@/features/councilor-digest/server/loaders/get-report-recipient-selection";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { PublicStatusSection } from "@/features/interview-report/client/components/public-status-section";
 import { getInterviewReportById } from "@/features/interview-report/server/loaders/get-interview-report-by-id";
@@ -37,14 +39,16 @@ export async function ReportCompletePage({
   const isExpertRole = isExpertRegistrationTargetRole(report.role);
   const authResult = await getAuthenticatedUser();
 
-  // 法案・メッセージ・有識者登録状況を並列取得
-  const [bill, messages, isExpertRegistered] = await Promise.all([
-    getBillById(billId),
-    getInterviewMessages(report.interview_session_id),
-    isExpertRole && authResult.authenticated
-      ? getExpertRegistrationStatus(authResult.userId)
-      : Promise.resolve(false),
-  ]);
+  // 法案・メッセージ・有識者登録状況・議員宛候補を並列取得
+  const [bill, messages, isExpertRegistered, recipientSelection] =
+    await Promise.all([
+      getBillById(billId),
+      getInterviewMessages(report.interview_session_id),
+      isExpertRole && authResult.authenticated
+        ? getExpertRegistrationStatus(authResult.userId)
+        : Promise.resolve(false),
+      getReportRecipientSelection(reportId),
+    ]);
 
   if (!bill) {
     notFound();
@@ -116,6 +120,10 @@ export async function ReportCompletePage({
             roleDescription={report.role_description}
             opinions={opinions}
           >
+            <ReportRecipientSelectionSection
+              reportId={reportId}
+              selection={recipientSelection}
+            />
             {/* 有識者リスト登録バナー */}
             {isExpertRole && !isExpertRegistered && (
               <ExpertRegistrationSection />

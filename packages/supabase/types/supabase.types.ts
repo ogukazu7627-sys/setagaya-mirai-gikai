@@ -271,6 +271,220 @@ export type Database = {
           },
         ]
       }
+      committees: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          normalized_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          normalized_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          normalized_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      committee_councilors: {
+        Row: {
+          committee_id: string
+          councilor_id: string
+          created_at: string
+          role: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          committee_id: string
+          councilor_id: string
+          created_at?: string
+          role?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          committee_id?: string
+          councilor_id?: string
+          created_at?: string
+          role?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_councilors_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "committees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "committee_councilors_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilor_contacts: {
+        Row: {
+          councilor_id: string
+          created_at: string
+          email: string | null
+          is_delivery_enabled: boolean
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          councilor_id: string
+          created_at?: string
+          email?: string | null
+          is_delivery_enabled?: boolean
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          councilor_id?: string
+          created_at?: string
+          email?: string | null
+          is_delivery_enabled?: boolean
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_contacts_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: true
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilor_digest_batch_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          recipient_id: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          recipient_id: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_digest_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "councilor_digest_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "councilor_digest_batch_items_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: true
+            referencedRelation: "interview_report_recipients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilor_digest_batches: {
+        Row: {
+          body: string
+          councilor_id: string
+          created_at: string
+          id: string
+          marked_sent_at: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          councilor_id: string
+          created_at?: string
+          id?: string
+          marked_sent_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          councilor_id?: string
+          created_at?: string
+          id?: string
+          marked_sent_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_digest_batches_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilors: {
+        Row: {
+          created_at: string
+          display_name: string
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          normalized_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          normalized_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          normalized_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       diet_sessions: {
         Row: {
           created_at: string
@@ -619,6 +833,66 @@ export type Database = {
             columns: ["interview_session_id"]
             isOneToOne: true
             referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_report_recipients: {
+        Row: {
+          candidate_source: string
+          contact_email: string | null
+          contact_name: string | null
+          councilor_id: string
+          created_at: string
+          id: string
+          interview_report_id: string
+          sent_at: string | null
+          share_contact: boolean
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_source?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          councilor_id: string
+          created_at?: string
+          id?: string
+          interview_report_id: string
+          sent_at?: string | null
+          share_contact?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_source?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          councilor_id?: string
+          created_at?: string
+          id?: string
+          interview_report_id?: string
+          sent_at?: string | null
+          share_contact?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_report_recipients_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_report_recipients_interview_report_id_fkey"
+            columns: ["interview_report_id"]
+            isOneToOne: false
+            referencedRelation: "interview_report"
             referencedColumns: ["id"]
           },
         ]
