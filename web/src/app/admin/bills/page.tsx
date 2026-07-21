@@ -294,6 +294,11 @@ export default async function AdminBillsPage({
                 問い合わせ管理
               </Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link href={routes.adminCouncilorDigests() as Route}>
+                議員宛レポート
+              </Link>
+            </Button>
             <Button asChild>
               <Link
                 href={

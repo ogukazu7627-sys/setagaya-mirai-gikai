@@ -24,6 +24,7 @@ export const routes = {
   adminDietSessionEdit: (sessionId: string) =>
     `/admin/diet-sessions/${sessionId}/edit` as const,
   adminIssueReports: () => "/admin/reports" as const,
+  adminCouncilorDigests: () => "/admin/councilor-digests" as const,
 
   // ── 議案 ──────────────────────────────────────────
   billDetail: (billId: string) => `/bills/${billId}` as const,
