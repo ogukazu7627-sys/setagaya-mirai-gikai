@@ -1,4 +1,5 @@
 import { simulateReadableStream, type UIMessage } from "ai";
+import { isGoogleAuthUser } from "@/features/chat/shared/auth";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import {
   type ChatMessageMetadata,
@@ -61,8 +62,8 @@ export async function POST(req: Request) {
     error: getUserError,
   } = await getChatSupabaseUser();
 
-  if (getUserError || !user) {
-    return jsonResponse({ error: "Anonymous session required" }, 401);
+  if (getUserError || !user || !isGoogleAuthUser(user)) {
+    return jsonResponse({ error: "Googleログインが必要です" }, 401);
   }
 
   try {

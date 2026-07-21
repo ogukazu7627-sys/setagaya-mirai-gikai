@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
+import { BillItemTypeBadge } from "./bill-item-type-badge";
 import { BillStatusBadge } from "./bill-status-badge";
 
 interface CompactBillCardProps {
@@ -11,12 +12,12 @@ interface CompactBillCardProps {
 }
 
 /**
- * コンパクトな水平レイアウトの法案カード
- * 過去国会セクションや過去国会議案一覧ページで使用
+ * コンパクトな水平レイアウトの議案カード
+ * 過去の区議会定例会セクションや議案一覧ページで使用
  */
 export function CompactBillCard({ bill, className }: CompactBillCardProps) {
   const displayTitle = bill.bill_content?.title || bill.name;
-  const statusLabel = bill.status === "enacted" ? "成立" : "提出";
+  const statusLabel = bill.status === "enacted" ? "可決" : "提出";
 
   return (
     <Card
@@ -25,6 +26,7 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
       <div className="flex">
         {/* コンテンツエリア */}
         <div className="flex-1 p-4 flex flex-col gap-2">
+          <BillItemTypeBadge itemType={bill.item_type} className="w-fit" />
           <h3 className="font-bold text-[15px] leading-[1.6] line-clamp-2">
             {displayTitle}
             {bill.is_review_completed && (
@@ -35,7 +37,11 @@ export function CompactBillCard({ bill, className }: CompactBillCardProps) {
             )}
           </h3>
           <div className="flex items-center gap-3">
-            <BillStatusBadge status={bill.status} className="w-fit" />
+            <BillStatusBadge
+              status={bill.status}
+              statusLabel={bill.status_label}
+              className="w-fit"
+            />
             {bill.submitted_date && (
               <span className="text-xs text-muted-foreground">
                 {formatDateWithDots(bill.submitted_date)} {statusLabel}

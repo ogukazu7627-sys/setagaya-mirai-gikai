@@ -14,6 +14,10 @@ describe("formatDate", () => {
   it("formats an ISO datetime string", () => {
     expect(formatDate("2025-03-05T10:00:00Z")).toBe("2025年3月5日");
   });
+
+  it("formats a JST midnight datetime as its calendar date", () => {
+    expect(formatDate("2026-05-28T00:00:00+09:00")).toBe("2026年5月28日");
+  });
 });
 
 describe("formatDateWithDots", () => {
@@ -27,6 +31,10 @@ describe("formatDateWithDots", () => {
 
   it("formats double-digit month and day", () => {
     expect(formatDateWithDots("2025-12-31")).toBe("2025.12.31");
+  });
+
+  it("formats a JST midnight datetime without shifting to the previous UTC date", () => {
+    expect(formatDateWithDots("2026-05-28T00:00:00+09:00")).toBe("2026.5.28");
   });
 });
 

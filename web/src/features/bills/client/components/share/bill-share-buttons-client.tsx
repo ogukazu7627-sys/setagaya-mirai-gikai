@@ -3,16 +3,18 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { EXTERNAL_LINKS } from "@/config/external-links";
+import { routes } from "@/lib/routes";
 import { BillShareModal } from "./bill-share-modal";
 
 interface BillShareButtonsClientProps {
+  billId: string;
   shareMessage: string;
   shareUrl: string;
   thumbnailUrl?: string | null;
 }
 
 export function BillShareButtonsClient({
+  billId,
   shareMessage,
   shareUrl,
   thumbnailUrl,
@@ -28,7 +30,11 @@ export function BillShareButtonsClient({
   };
 
   const handleReport = () => {
-    window.open(EXTERNAL_LINKS.REPORT, "_blank");
+    const params = new URLSearchParams({
+      billId,
+      pageUrl: window.location.href,
+    });
+    window.location.href = `${routes.reportProblem()}?${params.toString()}`;
   };
 
   return (
@@ -46,7 +52,7 @@ export function BillShareButtonsClient({
             height={28}
             className="shrink-0"
           />
-          記事を共有する
+          SNSで共有する
         </Button>
         <Button
           variant="outline"

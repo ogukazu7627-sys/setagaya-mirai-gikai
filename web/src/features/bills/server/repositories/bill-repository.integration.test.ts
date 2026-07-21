@@ -1,32 +1,34 @@
-import { describe, it, expect, afterEach } from "vitest";
 import {
-  createTestBill,
   cleanupTestBill,
-  createTestBillContent,
-  createTestTag,
+  cleanupTestDietSession,
   cleanupTestTag,
+  createTestBill,
+  createTestBillContent,
   createTestBillTag,
+  createTestDietSession,
   createTestMiraiStance,
   createTestPreviewToken,
-  createTestDietSession,
-  cleanupTestDietSession,
+  createTestTag,
 } from "@test-utils/utils";
+import { afterEach, describe, expect, it } from "vitest";
 import {
-  findPublishedBillsWithContents,
-  findPublishedBillById,
-  findBillById,
-  findMiraiStanceByBillId,
-  findTagsByBillId,
-  findBillContentByDifficulty,
-  findTagsByBillIds,
-  findPublishedBillsByDietSession,
-  findPreviousSessionBills,
   countPublishedBillsByDietSession,
-  findFeaturedTags,
-  findPublishedBillsByTag,
-  findFeaturedBillsWithContents,
+  findBillById,
+  findBillContentByDifficulty,
   findComingSoonBills,
+  findFeaturedBillsByDietSessionIds,
+  findFeaturedBillsWithContents,
+  findFeaturedTags,
+  findMiraiStanceByBillId,
   findPreviewToken,
+  findPreviousSessionBills,
+  findPublishedBillById,
+  findPublishedBillsByDietSession,
+  findPublishedBillsByDietSessionIds,
+  findPublishedBillsByTag,
+  findPublishedBillsWithContents,
+  findTagsByBillId,
+  findTagsByBillIds,
 } from "./bill-repository";
 
 describe("bill-repository 統合テスト", () => {
@@ -296,7 +298,7 @@ describe("bill-repository 統合テスト", () => {
   // ============================================================
 
   describe("findPublishedBillsByDietSession", () => {
-    it("国会会期IDに紐づく公開済み議案を取得できる", async () => {
+    it("世田谷区議会会期IDに紐づく公開済み議案を取得できる", async () => {
       const session = await createTestDietSession();
       dietSessionIds.push(session.id);
 
@@ -345,11 +347,60 @@ describe("bill-repository 統合テスト", () => {
   });
 
   // ============================================================
+  // findPublishedBillsByDietSessionIds
+  // ============================================================
+
+  describe("findPublishedBillsByDietSessionIds", () => {
+    it("指定した複数会期IDに紐づく公開済み案件だけを取得できる", async () => {
+      const currentSession = await createTestDietSession({
+        start_date: "2034-04-01",
+        end_date: "2034-06-30",
+      });
+      const pastSession = await createTestDietSession({
+        start_date: "2033-04-01",
+        end_date: "2033-06-30",
+      });
+      dietSessionIds.push(currentSession.id, pastSession.id);
+
+      const currentBill = await createTestBill({
+        publish_status: "published",
+        diet_session_id: currentSession.id,
+        submitted_date: "2034-05-01T00:00:00.000Z",
+      });
+      const pastBill = await createTestBill({
+        publish_status: "published",
+        diet_session_id: pastSession.id,
+        submitted_date: "2033-05-01T00:00:00.000Z",
+      });
+      const draftBill = await createTestBill({
+        publish_status: "draft",
+        diet_session_id: currentSession.id,
+        submitted_date: "2034-05-02T00:00:00.000Z",
+      });
+      billIds.push(currentBill.id, pastBill.id, draftBill.id);
+      await createTestBillContent(currentBill.id, {
+        difficulty_level: "normal",
+      });
+      await createTestBillContent(pastBill.id, { difficulty_level: "normal" });
+      await createTestBillContent(draftBill.id, { difficulty_level: "normal" });
+
+      const result = await findPublishedBillsByDietSessionIds(
+        [currentSession.id],
+        "normal"
+      );
+
+      expect(result.map((bill) => bill.id)).toContain(currentBill.id);
+      expect(result.map((bill) => bill.id)).not.toContain(pastBill.id);
+      expect(result.map((bill) => bill.id)).not.toContain(draftBill.id);
+    });
+  });
+
+  // ============================================================
   // findPreviousSessionBills
   // ============================================================
 
   describe("findPreviousSessionBills", () => {
-    it("前回の国会会期の公開済み議案を件数制限ありで取得できる", async () => {
+    it("前回の世田谷区議会会期の公開済み議案を件数制限ありで取得できる", async () => {
       const session = await createTestDietSession();
       dietSessionIds.push(session.id);
 
@@ -561,6 +612,21 @@ describe("bill-repository 統合テスト", () => {
       expect(found).toBeUndefined();
     });
 
+    it("下書きの注目議案は含まれない", async () => {
+      const bill = await createTestBill({
+        publish_status: "draft",
+        is_featured: true,
+        submitted_date: new Date().toISOString(),
+      });
+      billIds.push(bill.id);
+      await createTestBillContent(bill.id, { difficulty_level: "normal" });
+
+      const result = await findFeaturedBillsWithContents("normal", null);
+
+      const found = result.find((b) => b.id === bill.id);
+      expect(found).toBeUndefined();
+    });
+
     it("dietSessionIdがnullの場合は全会期から取得できる", async () => {
       const bill = await createTestBill({
         publish_status: "published",
@@ -574,6 +640,45 @@ describe("bill-repository 統合テスト", () => {
 
       const found = result.find((b) => b.id === bill.id);
       expect(found).toBeDefined();
+    });
+  });
+
+  // ============================================================
+  // findFeaturedBillsByDietSessionIds
+  // ============================================================
+
+  describe("findFeaturedBillsByDietSessionIds", () => {
+    it("指定した会期IDに紐づく公開済み注目案件だけを取得できる", async () => {
+      const session = await createTestDietSession();
+      dietSessionIds.push(session.id);
+
+      const publishedFeaturedBill = await createTestBill({
+        publish_status: "published",
+        is_featured: true,
+        diet_session_id: session.id,
+        submitted_date: new Date().toISOString(),
+      });
+      const draftFeaturedBill = await createTestBill({
+        publish_status: "draft",
+        is_featured: true,
+        diet_session_id: session.id,
+        submitted_date: new Date().toISOString(),
+      });
+      billIds.push(publishedFeaturedBill.id, draftFeaturedBill.id);
+      await createTestBillContent(publishedFeaturedBill.id, {
+        difficulty_level: "normal",
+      });
+      await createTestBillContent(draftFeaturedBill.id, {
+        difficulty_level: "normal",
+      });
+
+      const result = await findFeaturedBillsByDietSessionIds(
+        [session.id],
+        "normal"
+      );
+
+      expect(result.map((bill) => bill.id)).toContain(publishedFeaturedBill.id);
+      expect(result.map((bill) => bill.id)).not.toContain(draftFeaturedBill.id);
     });
   });
 

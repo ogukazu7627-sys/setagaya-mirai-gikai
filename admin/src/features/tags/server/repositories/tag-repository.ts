@@ -34,6 +34,7 @@ export async function createTagRecord(input: {
   label: string;
   description?: string | null;
   featured_priority?: number | null;
+  major_category?: string | null;
 }) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -42,6 +43,7 @@ export async function createTagRecord(input: {
       label: input.label,
       description: input.description ?? null,
       featured_priority: input.featured_priority ?? null,
+      major_category: input.major_category ?? "教育🏫",
     })
     .select()
     .single();

@@ -3,13 +3,14 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   experimental: {
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
     serverSourceMaps: true,
   },
   typedRoutes: true,
-  turbopack: {
-    root: "../",
-  },
   images: {
     remotePatterns: [
       {

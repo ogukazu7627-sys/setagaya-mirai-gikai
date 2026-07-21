@@ -3,6 +3,7 @@
  */
 export const CACHE_TAGS = {
   BILLS: "bills",
+  COUNCILOR_STATEMENTS: "councilor-statements",
   DIET_SESSIONS: "diet-sessions",
   INTERVIEW_CONFIGS: "interview-configs",
 } as const;

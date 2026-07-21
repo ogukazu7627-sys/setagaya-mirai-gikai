@@ -1,13 +1,11 @@
 import { Container } from "@/components/layouts/container";
 import { About } from "@/components/top/about";
-import { ComingSoonSection } from "@/components/top/coming-soon-section";
 import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import { BillDisclaimer } from "@/features/bills/client/components/bill-detail/bill-disclaimer";
-import { BillsByTagSection } from "@/features/bills/server/components/bills-by-tag-section";
+import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
-import { PreviousSessionSection } from "@/features/bills/server/components/previous-session-section";
+import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
@@ -15,13 +13,24 @@ import { CurrentDietSession } from "@/features/diet-sessions/client/components/c
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { getJapanTime } from "@/lib/utils/date";
 
-export default async function Home() {
-  const { billsByTag, featuredBills, comingSoonBills, previousSessionData } =
-    await loadHomeData();
+type HomeProps = {
+  searchParams?: Promise<{
+    archive_year?: string | string[];
+  }>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const now = getJapanTime();
+  const { billsByMajorCategory, featuredBills, archiveData } =
+    await loadHomeData({
+      currentDate: now,
+      archiveYear: params?.archive_year,
+    });
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
   const [currentSession, currentDifficulty] = await Promise.all([
-    getCurrentDietSession(getJapanTime()),
+    getCurrentDietSession(now),
     getDifficultyLevel(),
   ]);
 
@@ -33,39 +42,42 @@ export default async function Home() {
       isFeatured: featuredBills.some((b) => b.id === bill.id),
     };
   };
+  const uniqueBillsForChat = Array.from(
+    new Map(
+      billsByMajorCategory
+        .flatMap((category) => category.bills)
+        .concat(featuredBills)
+        .map((bill) => [bill.id, bill])
+    ).values()
+  );
 
   return (
     <>
       <Hero />
 
-      {/* 本日の国会セクション */}
+      {/* 本日の世田谷区議会セクション */}
       <CurrentDietSession session={currentSession} />
 
       {/* 議案一覧セクション */}
       <Container className="">
         <div className="py-10">
           <main className="flex flex-col gap-16">
-            {/* 注目の法案セクション */}
+            {/* 注目の案件セクション */}
             <FeaturedBillSection bills={featuredBills} />
 
-            {/* タグ別議案一覧セクション */}
-            <BillsByTagSection billsByTag={billsByTag} />
-
-            {/* Coming soonセクション */}
-            <ComingSoonSection bills={comingSoonBills} />
+            {/* テーマ別案件一覧セクション */}
+            <BillsByMajorCategorySection
+              billsByMajorCategory={billsByMajorCategory}
+            />
           </main>
         </div>
       </Container>
 
-      {/* 前回の国会セクション（Archive） */}
-      {previousSessionData && (
+      {/* 前年以前の世田谷区議会セクション */}
+      {archiveData.years.length > 0 && (
         <div className="bg-mirai-surface-muted py-10">
           <Container>
-            <PreviousSessionSection
-              session={previousSessionData.session}
-              bills={previousSessionData.bills}
-              totalBillCount={previousSessionData.totalBillCount}
-            />
+            <YearArchiveSection archiveData={archiveData} />
           </Container>
         </div>
       )}
@@ -74,20 +86,14 @@ export default async function Home() {
         {/* みらい議会とは セクション */}
         <About />
 
-        {/* チームみらいについて セクション */}
+        {/* みらい議会 セクション */}
         <TeamMirai />
-
-        {/* 免責事項 */}
-        <BillDisclaimer />
       </Container>
 
       {/* チャット機能 */}
       <HomeChatClient
         currentDifficulty={currentDifficulty}
-        bills={billsByTag
-          .flatMap((x) => x.bills)
-          .concat(featuredBills)
-          .map(toBillChatContext)}
+        bills={uniqueBillsForChat.map(toBillChatContext)}
       />
     </>
   );

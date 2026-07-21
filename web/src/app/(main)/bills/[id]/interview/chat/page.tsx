@@ -20,13 +20,13 @@ export default async function InterviewChatPage({
 }: InterviewChatPageProps) {
   const { id: billId } = await params;
 
-  // 法案とインタビュー設定を取得
+  // 案件とインタビュー設定を取得
   const [bill, interviewConfig] = await Promise.all([
     getBillById(billId),
     getInterviewConfig(billId),
   ]);
 
-  if (!bill || !interviewConfig) {
+  if (!bill || bill.interview_enabled !== true || !interviewConfig) {
     notFound();
   }
 

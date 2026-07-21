@@ -66,7 +66,7 @@ export async function PublicOpinionsPage({
       )}
 
       <Container>
-        {/* 法案タイトル（法案詳細へのリンク） */}
+        {/* 案件タイトル（案件詳細へのリンク） */}
         <div className="py-6">
           <Link href={routes.billDetail(billId)}>
             <h1 className="text-2xl font-bold leading-[1.5] text-black hover:underline">

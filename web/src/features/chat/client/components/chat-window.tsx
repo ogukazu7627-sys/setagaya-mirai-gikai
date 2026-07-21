@@ -20,10 +20,15 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import { InterviewSidePanel } from "@/features/interview-session/client/components/interview-side-panel";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
+import type { ChatAuthStatus } from "../hooks/use-chat-auth";
+import { GoogleLoginGate } from "./google-login-gate";
 import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
+
+export type ChatWindowMode = "question" | "interview";
 
 interface ChatWindowProps {
   billContext?: BillWithContent;
@@ -43,6 +48,37 @@ interface ChatWindowProps {
   };
   disableAutoFocus?: boolean;
   sessionId: string;
+  previewOnly?: boolean;
+  authStatus: ChatAuthStatus;
+  authUserEmail?: string;
+  authError?: string;
+  onSignInWithGoogle: () => Promise<void>;
+  activeMode?: ChatWindowMode;
+  onActiveModeChange?: (mode: ChatWindowMode) => void;
+}
+
+const COMMON_BILL_QUESTIONS = [
+  "この案件のポイントは？",
+  "自分にどんな影響がある？",
+  "議員に聞くなら何を聞けばいい？",
+  "公式資料のどこを見ればいい？",
+  "賛成・反対の論点は？",
+];
+
+function getBillSampleQuestions(bill: BillWithContent): string[] {
+  const itemTypeQuestions: Partial<
+    Record<NonNullable<BillWithContent["item_type"]>, string[]>
+  > = {
+    bill: ["この議案で何が変わる？", "なぜこの条例改正が必要？"],
+    report: ["この報告は今後どう進む？", "これは将来、議案になる？"],
+    petition: ["この陳情は今どういう状態？", "採択されると何が起きる？"],
+    question: ["議員は何を問題視した？", "区の答弁は十分？"],
+  };
+
+  return [
+    ...COMMON_BILL_QUESTIONS,
+    ...(itemTypeQuestions[bill.item_type] ?? []),
+  ];
 }
 
 /**
@@ -58,6 +94,8 @@ function ChatMessages({
   status,
   pageContext,
   sessionId,
+  previewOnly,
+  authStatus,
 }: {
   billContext?: BillWithContent;
   hasInterviewConfig?: boolean;
@@ -67,10 +105,16 @@ function ChatMessages({
   status: ChatWindowProps["chatState"]["status"];
   pageContext?: ChatWindowProps["pageContext"];
   sessionId: string;
+  previewOnly?: boolean;
+  authStatus: ChatAuthStatus;
 }) {
   const { scrollToBottom } = useStickToBottomContext();
-  const userMessageLength = messages.filter((x) => x.role === "user").length;
+  const safeMessages = messages ?? [];
+  const userMessageLength = safeMessages.filter(
+    (x) => x.role === "user"
+  ).length;
   const isResponding = status === "streaming" || status === "submitted";
+  const isChatLocked = !previewOnly && authStatus !== "authenticated";
 
   // メッセージが追加されたら自動的にスクロール
   useEffect(() => {
@@ -85,7 +129,7 @@ function ChatMessages({
         {/* 初期メッセージ */}
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold leading-[1.8] text-mirai-text">
-            国会や法案について、気になることをAIに質問してください。
+            世田谷区議会の案件について、気になることをAIに質問してください。
           </p>
           {billContext && (
             <p className="text-sm font-bold leading-[1.8] text-mirai-text">
@@ -97,20 +141,21 @@ function ChatMessages({
         {/* サンプル質問チップ */}
         <div className="flex flex-wrap gap-3">
           {(billContext
-            ? [`この法案のポイントは？`, "この法案は私にどんな影響がある？"]
+            ? getBillSampleQuestions(billContext)
             : [
                 "みらい議会って何？",
-                "国会って何をするところ？",
-                "注目の法案について教えて",
+                "世田谷区議会って何をするところ？",
+                "注目の案件について教えて",
               ]
           ).map((question) => {
             return (
               <button
                 key={question}
                 type="button"
-                disabled={isResponding}
+                disabled={isResponding || previewOnly || isChatLocked}
                 className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => {
+                  if (previewOnly || isChatLocked) return;
                   sendMessage({
                     text: question,
                     metadata: {
@@ -128,10 +173,16 @@ function ChatMessages({
             );
           })}
         </div>
+        {previewOnly && (
+          <p className="text-xs font-medium leading-relaxed text-mirai-text-muted">
+            このプレビューではAI回答は準備中です。見た目のみ確認できます。
+          </p>
+        )}
       </div>
-      {messages.map((message) => {
+      {safeMessages.map((message) => {
         const isStreaming =
-          status === "streaming" && message.id === messages.at(-1)?.id;
+          status === "streaming" &&
+          message.id === safeMessages[safeMessages.length - 1]?.id;
 
         return message.role === "user" ? (
           <UserMessage key={message.id} message={message} />
@@ -162,26 +213,51 @@ export function ChatWindow({
   pageContext,
   disableAutoFocus = false,
   sessionId,
+  previewOnly = false,
+  authStatus,
+  authError,
+  onSignInWithGoogle,
+  activeMode = "question",
+  onActiveModeChange,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const { messages, sendMessage, status, error } = chatState;
+  const safeMessages = messages ?? [];
   const isDesktop = useIsDesktop();
   const viewportHeight = useViewportHeight();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isResponding = status === "streaming" || status === "submitted";
+  const isAuthLoading = authStatus === "loading";
+  const isChatLocked = !previewOnly && authStatus !== "authenticated";
+  const isInputDisabled = previewOnly || isChatLocked;
+  const canUseInterview =
+    billContext?.interview_enabled === true && hasInterviewConfig === true;
+  const resolvedMode =
+    canUseInterview && activeMode === "interview" ? "interview" : "question";
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!canUseInterview && activeMode === "interview") {
+      onActiveModeChange?.("question");
+    }
+  }, [activeMode, canUseInterview, onActiveModeChange]);
+
   // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
   useEffect(() => {
-    if (isOpen && textareaRef.current && !disableAutoFocus) {
+    if (
+      isOpen &&
+      resolvedMode === "question" &&
+      textareaRef.current &&
+      !disableAutoFocus
+    ) {
       textareaRef.current?.focus();
     }
-  }, [isOpen, disableAutoFocus]);
+  }, [isOpen, disableAutoFocus, resolvedMode]);
 
   // Auto-resize textarea based on content
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -196,7 +272,12 @@ export function ChatWindow({
   const handleSubmit = async (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
 
-    if (!hasText || isResponding) {
+    if (
+      !hasText ||
+      isResponding ||
+      isInputDisabled ||
+      resolvedMode !== "question"
+    ) {
       return;
     }
 
@@ -253,58 +334,135 @@ export function ChatWindow({
         >
           <X className="h-5 w-5" />
         </button>
-        {/* メッセージエリア（スクロール可能） */}
-        <Conversation className="flex-1 min-h-0">
-          <ConversationContent className="p-0 flex flex-col gap-3 pc:pt-6 pb-2 px-6">
-            <ChatMessages
-              billContext={billContext}
-              hasInterviewConfig={hasInterviewConfig}
-              difficultyLevel={difficultyLevel}
-              messages={messages}
-              sendMessage={sendMessage}
-              status={status}
-              pageContext={pageContext}
-              sessionId={sessionId}
-            />
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
-
-        {/* 入力エリア（固定下部） */}
-        <div className="px-6 pb-4 pt-2">
-          <PromptInput
-            onSubmit={handleSubmit}
-            className="flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
-          >
-            <PromptInputBody className="flex-1">
-              <PromptInputTextarea
-                ref={textareaRef}
-                onChange={handleInputChange}
-                value={input}
-                placeholder="わからないことをAIに質問する"
-                rows={1}
-                submitOnEnter={isDesktop}
-                // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
-              />
-            </PromptInputBody>
-            <button
-              type="submit"
-              disabled={!input || isResponding}
-              className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
+        {canUseInterview && (
+          <div className="px-6 pb-2 pc:pt-6">
+            <div
+              aria-label="チャットモード"
+              className="grid h-10 grid-cols-2 rounded-full border border-primary/25 bg-mirai-surface-light p-1"
+              role="tablist"
             >
-              <Image
-                src="/icons/send-button-icon.svg"
-                alt="送信"
-                width={40}
-                height={40}
-                className="w-full h-full"
+              {(
+                [
+                  ["question", "質問"],
+                  ["interview", "AIインタビュー"],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  aria-selected={resolvedMode === mode}
+                  onClick={() => onActiveModeChange?.(mode)}
+                  className={`rounded-full text-sm font-bold leading-none transition-colors ${
+                    resolvedMode === mode
+                      ? "bg-white text-mirai-text shadow-sm"
+                      : "text-mirai-text-muted hover:text-mirai-text"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div
+          className="flex min-h-0 flex-1 flex-col"
+          hidden={resolvedMode !== "question"}
+        >
+          {/* メッセージエリア（スクロール可能） */}
+          <Conversation className="flex-1 min-h-0">
+            <ConversationContent
+              className={`p-0 flex flex-col gap-3 pb-2 px-6 ${
+                canUseInterview ? "pc:pt-0" : "pc:pt-6"
+              }`}
+            >
+              <ChatMessages
+                billContext={billContext}
+                hasInterviewConfig={hasInterviewConfig}
+                difficultyLevel={difficultyLevel}
+                messages={safeMessages}
+                sendMessage={sendMessage}
+                status={status}
+                pageContext={pageContext}
+                sessionId={sessionId}
+                previewOnly={previewOnly}
+                authStatus={authStatus}
               />
-            </button>
-          </PromptInput>
-          <PromptInputError status={status} error={error} />
-          {messages.length > 0 && <PromptInputHint />}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          {/* 入力エリア（固定下部） */}
+          <div className="px-6 pb-4 pt-2">
+            <div className="relative">
+              <PromptInput
+                onSubmit={handleSubmit}
+                className={`flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0 ${
+                  isChatLocked ? "pointer-events-none opacity-40" : ""
+                }`}
+              >
+                <PromptInputBody className="flex-1">
+                  <PromptInputTextarea
+                    ref={textareaRef}
+                    onChange={handleInputChange}
+                    value={input}
+                    placeholder="わからないことをAIに質問する"
+                    disabled={isInputDisabled}
+                    rows={1}
+                    submitOnEnter={isDesktop}
+                    // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
+                    className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
+                  />
+                </PromptInputBody>
+                <button
+                  type="submit"
+                  disabled={!input || isResponding || isInputDisabled}
+                  className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
+                >
+                  <Image
+                    src="/icons/send-button-icon.svg"
+                    alt="送信"
+                    width={40}
+                    height={40}
+                    className="w-full h-full"
+                  />
+                </button>
+              </PromptInput>
+              {isChatLocked && (
+                <GoogleLoginGate
+                  message="AIチャットを使うにはGoogleログインが必要です"
+                  isAuthLoading={isAuthLoading}
+                  onSignInWithGoogle={onSignInWithGoogle}
+                  className="absolute inset-0 rounded-[50px] border border-primary/30 bg-white/95 px-4 shadow-sm"
+                />
+              )}
+            </div>
+            <PromptInputError status={status} error={error} />
+            {authError && (
+              <p className="mt-2 text-xs font-medium text-red-600">
+                {authError}
+              </p>
+            )}
+            {safeMessages.length > 0 && <PromptInputHint />}
+          </div>
         </div>
+
+        {canUseInterview && (
+          <div
+            className="flex min-h-0 flex-1 flex-col"
+            hidden={resolvedMode !== "interview"}
+          >
+            <InterviewSidePanel
+              billId={billContext.id}
+              isActive={resolvedMode === "interview"}
+              previewOnly={previewOnly}
+              authStatus={authStatus}
+              authError={authError}
+              onSignInWithGoogle={onSignInWithGoogle}
+            />
+          </div>
+        )}
       </div>
     </>
   );

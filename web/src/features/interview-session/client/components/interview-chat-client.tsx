@@ -39,6 +39,7 @@ interface InterviewChatClientProps {
   sessionStartedAt?: string;
   hasRated?: boolean;
   previewToken?: string;
+  layout?: "page" | "panel";
 }
 
 export function InterviewChatClient({
@@ -52,6 +53,7 @@ export function InterviewChatClient({
   sessionStartedAt,
   hasRated,
   previewToken,
+  layout = "page",
 }: InterviewChatClientProps) {
   const {
     input,
@@ -72,6 +74,7 @@ export function InterviewChatClient({
   } = useInterviewChat({
     billId,
     initialMessages,
+    previewToken,
   });
 
   const { remainingMinutes, isTimeUp } = useInterviewTimer({
@@ -101,6 +104,7 @@ export function InterviewChatClient({
       : null;
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
+  const isPanelLayout = layout === "panel";
 
   // チャット操作時にタイムアップアラートを自動非表示にする
   const dismissTimeUpIfNeeded = useCallback(() => {
@@ -159,10 +163,22 @@ export function InterviewChatClient({
   );
 
   return (
-    <div className="h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light">
-      <div className="flex flex-col h-full pt-23 md:pt-10 bg-white md:rounded-t-[36px] md:px-12">
+    <div
+      className={
+        isPanelLayout
+          ? "flex h-full min-h-0 flex-col bg-white"
+          : "h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light"
+      }
+    >
+      <div
+        className={
+          isPanelLayout
+            ? "flex min-h-0 flex-1 flex-col bg-white"
+            : "flex flex-col h-full pt-23 md:pt-10 bg-white md:rounded-t-[36px] md:px-12"
+        }
+      >
         {showProgressBar && progress && (
-          <div className="px-4 pb-1">
+          <div className={isPanelLayout ? "px-6 pb-1" : "px-4 pb-1"}>
             <InterviewProgressBar
               percentage={progress.percentage}
               currentTopic={progress.currentTopic}
@@ -171,12 +187,14 @@ export function InterviewChatClient({
           </div>
         )}
         <Conversation className="min-h-0 flex-1 overflow-y-auto">
-          <ConversationContent className="flex flex-col gap-4">
+          <ConversationContent
+            className={`flex flex-col gap-4 ${isPanelLayout ? "px-6 py-2" : ""}`}
+          >
             {/* 初期表示メッセージ */}
             {messages.length === 0 && !object && (
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-bold leading-[1.8] text-mirai-text">
-                  法案についてのAIインタビューを開始します。
+                  案件についてのAIインタビューを開始します。
                 </p>
                 <p className="text-sm text-gray-600">
                   あなたの意見や経験をお聞かせください。
@@ -193,7 +211,7 @@ export function InterviewChatClient({
                 !isLoading &&
                 !showStreamingMessage;
 
-              // 最初のAIメッセージの法案名をリンクに変換
+              // 最初のAIメッセージの案件名をリンクに変換
               const content =
                 index === 0 && message.role === "assistant"
                   ? embedBillLink(message.content, billTitle, billDetailLink)
@@ -270,7 +288,9 @@ export function InterviewChatClient({
 
         {/* 評価ウィジェット */}
         {showRating && (
-          <div className="shrink-0 py-2">
+          <div
+            className={isPanelLayout ? "shrink-0 px-6 py-2" : "shrink-0 py-2"}
+          >
             <InterviewRatingWidget
               sessionId={sessionId}
               onDismiss={handleRatingDismiss}
@@ -288,7 +308,7 @@ export function InterviewChatClient({
         )}
 
         {/* 入力エリア */}
-        <div className="px-6 pt-2">
+        <div className="px-6 pb-4 pt-2">
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
               sessionId={sessionId}

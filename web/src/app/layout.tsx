@@ -24,33 +24,37 @@ const notoSerifJP = Noto_Serif_JP({
   weight: ["500", "600"],
 });
 
-const isDev = process.env.NODE_ENV === "development";
-const isStaging = process.env.VERCEL_TARGET_ENV === "staging";
-const siteTitle = "みらい議会｜チームみらい";
+const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
-  "国会で今どんな法案が検討されているか、わかりやすく伝えるプラットフォーム";
-const siteName = "みらい議会";
+  "世田谷区議会の議案や質問を、公式資料に戻れる形でわかりやすく確認するための情報整理サイト";
+const siteName = "みらい議会＠世田谷区";
+const themeColor = "#38bdf8";
 const ogImage = {
   url: "/ogp.jpg",
   width: 1200,
   height: 630,
-  alt: "みらい議会のOGPイメージ",
+  alt: "みらい議会＠世田谷区のOGPイメージ",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.webUrl),
   title: siteTitle,
   description: siteDescription,
-  keywords: [siteName, "議案", "政治", "日本", "政策", "解説", "チームみらい"],
+  keywords: [
+    siteName,
+    "世田谷区議会",
+    "議案",
+    "区議会",
+    "条例",
+    "政策",
+    "解説",
+  ],
   icons: {
-    icon: isDev
-      ? "/icons/pwa/icon_dev_192_v3.png"
-      : isStaging
-        ? "/icons/pwa/icon_staging_192.png"
-        : "/icons/pwa/icon_android_192.png",
-    apple: isStaging
-      ? "/icons/pwa/icon_staging_ios.png"
-      : "/icons/pwa/icon_ios.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/pwa/icon_android_192.png", sizes: "192x192" },
+    ],
+    apple: "/icons/pwa/icon_ios.png",
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -64,6 +68,9 @@ export const metadata: Metadata = {
     title: siteTitle,
     description: siteDescription,
     images: [ogImage.url],
+  },
+  verification: {
+    google: "hK_0xS4nS3d8J-yTeVT1b12Y8zIer6r_yEurc_RJ300",
   },
   robots: {
     index: true,
@@ -82,7 +89,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#2aa693",
+  themeColor,
 };
 
 export default function RootLayout({
@@ -95,7 +102,7 @@ export default function RootLayout({
       <body
         className={`${notoSansJP.variable} ${lexendGiga.variable} ${notoSerifJP.variable} font-sans antialiased bg-mirai-surface-light`}
       >
-        <NextTopLoader showSpinner={false} color="#2aa693" />
+        <NextTopLoader showSpinner={false} color={themeColor} />
         {children}
       </body>
     </html>

@@ -47,7 +47,7 @@ export function BillListWithStatusFilter({ bills }: Props) {
 
   const filters: { key: FilterType; label: string; count: number }[] = [
     { key: "all", label: "ALL", count: counts.all },
-    { key: "enacted", label: "成立", count: counts.enacted },
+    { key: "enacted", label: "可決", count: counts.enacted },
     { key: "rejected", label: "否決", count: counts.rejected },
     { key: "other", label: "その他", count: counts.other },
   ];
@@ -72,10 +72,10 @@ export function BillListWithStatusFilter({ bills }: Props) {
         ))}
       </div>
 
-      {/* 法案リスト */}
+      {/* 案件リスト */}
       {filteredBills.length === 0 ? (
         <p className="text-center py-12 text-muted-foreground">
-          該当する法案がありません
+          該当する議案がありません
         </p>
       ) : (
         <div className="flex flex-col gap-3">

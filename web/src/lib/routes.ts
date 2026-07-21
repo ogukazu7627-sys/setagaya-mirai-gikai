@@ -11,6 +11,19 @@ export const routes = {
   home: () => "/" as const,
   terms: () => "/terms" as const,
   privacy: () => "/privacy" as const,
+  reportProblem: () => "/report-problem" as const,
+  reportProblemThanks: () => "/report-problem/thanks" as const,
+
+  // ── 管理画面 ──────────────────────────────────────
+  adminHome: () => "/admin" as const,
+  adminLogin: () => "/admin/login" as const,
+  adminBills: () => "/admin/bills" as const,
+  adminBillNew: () => "/admin/bills/new" as const,
+  adminBillEdit: (billId: string) => `/admin/bills/${billId}/edit` as const,
+  adminDietSessions: () => "/admin/diet-sessions" as const,
+  adminDietSessionEdit: (sessionId: string) =>
+    `/admin/diet-sessions/${sessionId}/edit` as const,
+  adminIssueReports: () => "/admin/reports" as const,
 
   // ── 議案 ──────────────────────────────────────────
   billDetail: (billId: string) => `/bills/${billId}` as const,
@@ -43,6 +56,6 @@ export const routes = {
   legacyReportChatLog: (reportId: string) =>
     `/report/${reportId}/chat-log` as const,
 
-  // ── 国会セッション ────────────────────────────────
+  // ── 世田谷区議会セッション ────────────────────────────────
   kokkaiSessionBills: (slug: string) => `/kokkai/${slug}/bills` as const,
 } as const;

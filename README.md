@@ -1,4 +1,8 @@
-# みらい議会
+# みらい議会＠世田谷区
+
+本リポジトリは、`team-mirai/mirai-gikai` をもとにした世田谷区議会向けの非公式Fork MVPです。これは政党チームみらいが運営しているものではありません。
+
+初期MVPでは、令和7年第4回区議会定例会から、議案・報告事項・請願/陳情・質問を1件ずつ表示対象にしています。AIチャット、AIインタビュー、意見分析は補助機能として扱います。
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/team-mirai-volunteer/mirai-gikai)
 [![codecov](https://codecov.io/gh/team-mirai/mirai-gikai/branch/develop/graph/badge.svg)](https://codecov.io/gh/team-mirai/mirai-gikai)
@@ -20,6 +24,20 @@ pnpm db:reset
 
 # サーバー起動
 pnpm dev
+```
+
+## 世田谷区議会MVP用CSV
+
+現在の4件サンプルからseed用CSVを再生成する場合は、Vault直下の `tools/mirai-gikai-setagaya` で以下を実行します。
+
+```bash
+pnpm --filter @mirai-gikai/seed generate:setagaya-csv
+```
+
+生成先は `packages/seed/csv/data/` です。CSVをSupabaseへ投入するには、`.env` に `SUPABASE_URL` と `SUPABASE_SECRET_KEY` を設定し、ローカルSupabaseを起動したうえで以下を実行します。
+
+```bash
+pnpm seed:csv
 ```
 
 ## マイグレーション

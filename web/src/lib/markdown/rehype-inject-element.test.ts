@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { unified } from "unified";
+import rehypeStringify from "rehype-stringify";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
+import { unified } from "unified";
+import { describe, expect, it } from "vitest";
 import { rehypeInjectElement } from "./rehype-inject-element";
 
 describe("rehypeInjectElement", () => {
@@ -245,5 +245,64 @@ Content 3`;
     const lastElementIndex = html.indexOf("<LastElement");
     const section3Index = html.indexOf("<h2>Section 3</h2>");
     expect(lastElementIndex).toBeLessThan(section3Index);
+  });
+
+  it("should inject before a named top-level heading without targeting nested FAQ headings", async () => {
+    const markdown = `# この質問のポイント
+
+Point.
+
+# この質問が出てきた背景
+
+Background.
+
+# 議員、会派の意見
+
+Opinions.
+
+# 主な論点
+
+## 教員体制は十分か
+
+Issue.
+
+# よくある質問
+
+## Q. これは議案ですか？
+
+Answer.`;
+
+    const result = await unified()
+      .use(remarkParse)
+      .use(remarkRehype)
+      .use(rehypeInjectElement, {
+        injections: [
+          {
+            targetHeadingText: "議員、会派の意見",
+            tagName: "LongPressSection",
+          },
+          {
+            targetHeadingText: "よくある質問",
+            tagName: "DifficultyInfoCard",
+          },
+        ],
+      })
+      .use(rehypeStringify)
+      .process(markdown);
+
+    const html = String(result);
+
+    expect(html.indexOf("<LongPressSection")).toBeLessThan(
+      html.indexOf("<h1>議員、会派の意見</h1>")
+    );
+    expect(html.indexOf("<DifficultyInfoCard")).toBeLessThan(
+      html.indexOf("<h1>よくある質問</h1>")
+    );
+    expect(html.indexOf("<DifficultyInfoCard")).toBeGreaterThan(
+      html.indexOf("<h1>主な論点</h1>")
+    );
+    expect(html.indexOf("<DifficultyInfoCard")).toBeLessThan(
+      html.indexOf("<h2>Q. これは議案ですか？</h2>")
+    );
   });
 });

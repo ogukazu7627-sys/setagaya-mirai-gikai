@@ -1,14 +1,16 @@
 "use client";
 
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState, useTransition } from "react";
 import { Switch } from "@/components/ui/switch";
 import { setDifficultyLevel } from "../../server/actions/set-difficulty-level";
+import type { DifficultyLevelEnum } from "../../shared/types";
 import {
   saveScrollDistanceFromBottom,
   useRestoreScrollFromBottom,
 } from "../hooks/use-scroll-from-bottom";
-import type { DifficultyLevelEnum } from "../../shared/types";
 
 interface DifficultySelectorProps {
   currentLevel: DifficultyLevelEnum;
@@ -25,13 +27,19 @@ export function DifficultySelector({
   scrollToTop,
   maintainScrollFromBottom,
 }: DifficultySelectorProps) {
+  const router = useRouter();
   const [selectedLevel, setSelectedLevel] =
     useState<DifficultyLevelEnum>(currentLevel);
   const uniqueId = useId();
   const [isChanging, setIsChanging] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // ページロード時にスクロール位置を復元
-  useRestoreScrollFromBottom(maintainScrollFromBottom ?? false);
+  useRestoreScrollFromBottom(maintainScrollFromBottom ?? false, currentLevel);
+
+  useEffect(() => {
+    setSelectedLevel(currentLevel);
+  }, [currentLevel]);
 
   const handleToggle = async (checked: boolean) => {
     const newLevel = checked ? "hard" : "normal";
@@ -53,14 +61,17 @@ export function DifficultySelector({
       const url = new URL(window.location.href);
       if (url.searchParams.get("difficulty") !== null) {
         url.searchParams.delete("difficulty");
-        // パラメータを削除したURLでリロード
-        // ただし、スクロール位置は維持されない
-        window.location.replace(url.toString());
-      } else {
-        // パラメータがない場合は通常のリロード
-        // この場合はスクロール位置は維持される
-        window.location.reload();
+        const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+        startTransition(() => {
+          router.replace(nextUrl as Route, { scroll: false });
+          router.refresh();
+        });
+        return;
       }
+
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
       console.error("Failed to update difficulty level:", error);
       // エラーの場合は元に戻す
@@ -85,7 +96,7 @@ export function DifficultySelector({
         id={`${uniqueId}-difficulty-toggle`}
         checked={selectedLevel === "hard"}
         onCheckedChange={handleToggle}
-        disabled={isChanging}
+        disabled={isChanging || isPending}
         aria-label="難易度を切り替え"
       />
     </div>

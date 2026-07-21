@@ -2,32 +2,38 @@ import { openai } from "@ai-sdk/openai";
 import type { Database } from "@mirai-gikai/supabase";
 import {
   convertToModelMessages,
+  type LanguageModel,
   streamText,
   tool,
-  type LanguageModel,
   type UIMessage,
 } from "ai";
 import { z } from "zod";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import {
+  findBillContentByDifficulty,
+  findPublishedBillById,
+} from "@/features/bills/server/repositories/bill-repository";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import {
   SUGGEST_INTERVIEW_TOOL_NAME,
   SUGGEST_INTERVIEW_TOOL_TYPE,
 } from "@/features/chat/shared/constants";
 import {
-  findBillContentByDifficulty,
-  findPublishedBillById,
-} from "@/features/bills/server/repositories/bill-repository";
+  assessChatTopicScope,
+  OFF_TOPIC_RESPONSE_TEXT,
+} from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
+import { AI_MODELS } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import {
   type CompiledPrompt,
   createPromptProvider,
   type PromptProvider,
 } from "@/lib/prompt";
-import { AI_MODELS } from "@/lib/ai/models";
+import { chatStreamErrorMessage } from "../utils/chat-error-response";
+import { recordUserChatMessageEvent } from "./chat-message-event-logger";
 import { isWithinDailyCostLimit, recordChatUsage } from "./cost-tracker";
 import {
   checkSystemDailyCostLimit,
@@ -68,10 +74,16 @@ export async function handleChatRequest({
   userId,
   deps,
 }: ChatRequestParams) {
-  const promptProvider = deps?.promptProvider ?? createPromptProvider();
-
   // Extract context from messages
   const context = extractChatContext(messages);
+  const topicScope = assessChatTopicScope(messages);
+  await recordUserChatMessageEvent({ messages, userId, context, topicScope });
+
+  if (topicScope.status === "blocked") {
+    return createStaticChatResponse(OFF_TOPIC_RESPONSE_TEXT);
+  }
+
+  const promptProvider = deps?.promptProvider ?? createPromptProvider();
 
   try {
     // Check per-user cost limit before processing
@@ -152,7 +164,9 @@ export async function handleChatRequest({
       },
     });
 
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      onError: chatStreamErrorMessage,
+    });
   } catch (error) {
     console.error("LLM generation error:", error);
     throw new ChatError(
@@ -160,6 +174,40 @@ export async function handleChatRequest({
       error instanceof Error ? error.message : String(error)
     );
   }
+}
+
+function createStaticChatResponse(text: string): Response {
+  const messageId = Math.random().toString(36).substring(2, 10);
+  const textPartId = "text-1";
+  const chunks = [
+    { type: "start", messageId },
+    { type: "text-start", id: textPartId },
+    { type: "text-delta", id: textPartId, delta: text },
+    { type: "text-end", id: textPartId },
+    { type: "finish" },
+  ].map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`);
+
+  chunks.push("data: [DONE]\n\n");
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "x-vercel-ai-ui-message-stream": "v1",
+    },
+  });
 }
 
 /**
@@ -293,27 +341,27 @@ function extractGatewayCost(event: {
 const INTERVIEW_AWARENESS_BASE = `
 
 ## AIインタビュー機能について
-みらい議会には「AIインタビュー」機能があります。これは法案ごとに提供される機能で、ユーザーがAIインタビュアーと対話形式で法案に対する意見や知見を共有できる仕組みです。インタビュー結果は分析・レポート化され、政策議論に活用されます。
+みらい議会には「AIインタビュー」機能があります。これは案件ごとに提供される機能で、ユーザーがAIインタビュアーと対話形式で案件に対する意見や知見を共有できる仕組みです。インタビュー結果は分析・レポート化され、政策議論に活用されます。
 `;
 
 const INTERVIEW_AWARENESS_PROMPT_BILL = `${INTERVIEW_AWARENESS_BASE}
-この法案のインタビュー機能が現在利用可能かどうかは状況によって異なります。インタビューについて質問された場合は、この機能の存在を説明した上で、法案詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+この案件のインタビュー機能が現在利用可能かどうかは状況によって異なります。インタビューについて質問された場合は、この機能の存在を説明した上で、案件詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
 `;
 
 const INTERVIEW_AWARENESS_PROMPT_HOME = `${INTERVIEW_AWARENESS_BASE}
-インタビューについて質問された場合は、この機能の存在を説明した上で、利用可否は法案ごとに異なるため、興味のある法案の詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
+インタビューについて質問された場合は、この機能の存在を説明した上で、利用可否は案件ごとに異なるため、興味のある案件の詳細ページでインタビューへの案内が表示されているか確認するよう案内してください。
 `;
 
 const INTERVIEW_SUGGESTION_PROMPT = `
 
 ## AIインタビュー提案について
-この法案にはAIインタビュー機能があります。以下の条件に該当する場合、通常のテキスト応答と併せて suggest_interview ツールを呼び出してください。
+この案件にはAIインタビュー機能があります。以下の条件に該当する場合、通常のテキスト応答と併せて suggest_interview ツールを呼び出してください。
 ただし、1つの会話の中で suggest_interview ツールを呼び出すのは1回のみとしてください。
 
 ### suggest_interview を呼び出す条件:
-- ユーザーがこの法案の当事者や関係者であることがわかった場合
-- ユーザーがこの法案について専門的な知識を持っていると判断できる場合
-- ユーザーがこの法案に対して具体的な提言や意見を述べた場合
+- ユーザーがこの案件の当事者や関係者であることがわかった場合
+- ユーザーがこの案件について専門的な知識を持っていると判断できる場合
+- ユーザーがこの案件に対して具体的な提言や意見を述べた場合
 - ユーザーがインタビューや意見提出について質問した場合
 - ユーザーが自分の意見を共有したい、政策に反映してほしいと表明した場合
 
@@ -326,7 +374,7 @@ const INTERVIEW_SUGGESTION_PROMPT = `
  * インタビュー提案を有効にすべきか判定
  *
  * 以下のすべてを満たす場合にtrueを返す:
- * - 法案ページである
+ * - 案件ページである
  * - サーバー側でインタビュー設定が公開状態であることを確認
  * - 会話中にまだsuggest_interviewツールが呼び出されていない
  *
@@ -391,7 +439,7 @@ function buildSystemPromptWithInterviewInstructions(
 /**
  * チャットで使用するツール一覧を構築
  */
-function buildTools(shouldSuggestInterview: boolean) {
+export function buildTools(shouldSuggestInterview: boolean) {
   // biome-ignore lint/suspicious/noExplicitAny: OpenAI web_search tool type incompatibility
   const tools: Record<string, any> = {
     web_search: openai.tools.webSearch(),
@@ -400,7 +448,7 @@ function buildTools(shouldSuggestInterview: boolean) {
   if (shouldSuggestInterview) {
     tools[SUGGEST_INTERVIEW_TOOL_NAME] = tool({
       description:
-        "ユーザーが法案の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
+        "ユーザーが案件の当事者・有識者であると判断された場合、またはインタビューについて聞かれた場合に呼び出す。通常のテキスト応答と同時に呼び出すこと。",
       inputSchema: z.object({}),
       execute: async () => ({ suggested: true }),
     });

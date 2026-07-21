@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import { getBillStatusLabel } from "./index";
+import { getBillStatusLabel, MAJOR_CATEGORY_OPTIONS } from "./index";
+
+describe("MAJOR_CATEGORY_OPTIONS", () => {
+  it("uses the Setagaya major category order", () => {
+    expect(MAJOR_CATEGORY_OPTIONS.map((category) => category.label)).toEqual([
+      "教育🏫",
+      "子育て👶",
+      "福祉🤝",
+      "まちづくり🏗️",
+      "防災☔",
+      "行財政🏛️",
+      "文化・スポーツ📚",
+      "産業💡",
+      "環境問題🌿",
+      "暮らし🙋",
+    ]);
+  });
+});
 
 describe("getBillStatusLabel", () => {
   it("returns '準備中' for preparing", () => {
@@ -11,8 +28,8 @@ describe("getBillStatusLabel", () => {
     expect(getBillStatusLabel("introduced")).toBe("提出済み");
   });
 
-  it("returns '成立' for enacted", () => {
-    expect(getBillStatusLabel("enacted")).toBe("成立");
+  it("returns '可決' for enacted", () => {
+    expect(getBillStatusLabel("enacted")).toBe("可決");
   });
 
   it("returns '否決' for rejected", () => {
@@ -20,15 +37,15 @@ describe("getBillStatusLabel", () => {
   });
 
   describe("in_originating_house", () => {
-    it("returns '衆議院審議中' when originatingHouse is HR", () => {
+    it("returns '委員会審議中' when originatingHouse is HR", () => {
       expect(getBillStatusLabel("in_originating_house", "HR")).toBe(
-        "衆議院審議中"
+        "委員会審議中"
       );
     });
 
-    it("returns '参議院審議中' when originatingHouse is HC", () => {
+    it("returns '本会議審議中' when originatingHouse is HC", () => {
       expect(getBillStatusLabel("in_originating_house", "HC")).toBe(
-        "参議院審議中"
+        "本会議審議中"
       );
     });
 
@@ -42,15 +59,15 @@ describe("getBillStatusLabel", () => {
   });
 
   describe("in_receiving_house", () => {
-    it("returns '参議院審議中' when originatingHouse is HR", () => {
+    it("returns '本会議審議中' when originatingHouse is HR", () => {
       expect(getBillStatusLabel("in_receiving_house", "HR")).toBe(
-        "参議院審議中"
+        "本会議審議中"
       );
     });
 
-    it("returns '衆議院審議中' when originatingHouse is HC", () => {
+    it("returns '委員会審議中' when originatingHouse is HC", () => {
       expect(getBillStatusLabel("in_receiving_house", "HC")).toBe(
-        "衆議院審議中"
+        "委員会審議中"
       );
     });
 

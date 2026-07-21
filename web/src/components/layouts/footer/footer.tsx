@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SETAGAYA_CONTENT_NOTICE } from "@/config/site-disclaimer";
 import { isInterviewPage } from "@/lib/page-layout-utils";
 import { routes } from "@/lib/routes";
 import { policyLinks, primaryLinks } from "./footer.config";
@@ -21,6 +22,7 @@ export function Footer() {
         <FooterLogoSection />
         <FooterPrimaryLinks />
         <FooterPolicies />
+        <FooterDisclaimer />
         <FooterCopyright />
       </div>
     </footer>
@@ -32,9 +34,9 @@ function FooterLogoSection() {
     <div className="flex flex-col items-center text-center mb-9">
       <Link href={routes.home()} aria-label="みらい議会 トップページ">
         <Image
-          src="/img/logo.svg"
-          alt="みらい議会"
-          width={150}
+          src="/img/logo-transparent.png"
+          alt="みらい議会＠世田谷区"
+          width={128}
           height={128}
           className="h-auto"
         />
@@ -93,8 +95,26 @@ function FooterPolicies() {
 
 function FooterCopyright() {
   return (
-    <div className="text-center text-sm font-medium text-slate-800">
-      © 2025 Team Mirai All rights Reserved
+    <div className="space-y-2 text-center text-xs font-medium text-slate-800">
+      <p>みらい議会＠世田谷区</p>
     </div>
+  );
+}
+
+function FooterDisclaimer() {
+  return (
+    <section
+      aria-labelledby="footer-content-notice"
+      className="mb-6 space-y-3 text-center text-xs font-medium leading-relaxed text-slate-800"
+    >
+      <h2 id="footer-content-notice" className="text-sm font-bold">
+        掲載コンテンツについて
+      </h2>
+      <div className="space-y-2">
+        {SETAGAYA_CONTENT_NOTICE.map((notice) => (
+          <p key={notice}>{notice}</p>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -2,6 +2,10 @@ import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import {
+  getSetagayaMockBillById,
+  isSetagayaMockMode,
+} from "@/lib/setagaya-mock";
 import type { BillWithContent } from "../../shared/types";
 import {
   findPublishedBillById,
@@ -13,6 +17,9 @@ import { getBillContentWithDifficulty } from "./helpers/get-bill-content";
 export async function getBillById(id: string): Promise<BillWithContent | null> {
   // キャッシュ外でcookiesにアクセス
   const difficultyLevel = await getDifficultyLevel();
+  if (isSetagayaMockMode) {
+    return getSetagayaMockBillById(id, difficultyLevel);
+  }
   return _getCachedBillById(id, difficultyLevel);
 }
 
@@ -39,8 +46,10 @@ const _getCachedBillById = unstable_cache(
     const tags =
       billTags
         ?.map((bt) => bt.tags)
-        .filter((tag): tag is { id: string; label: string } => tag !== null) ||
-      [];
+        .filter(
+          (tag): tag is { id: string; label: string; major_category: string } =>
+            tag !== null
+        ) || [];
 
     return {
       ...bill,

@@ -11,7 +11,8 @@ import {
   useState,
 } from "react";
 import type { BillWithContent } from "@/features/bills/shared/types";
-import { ChatWindow } from "./chat-window";
+import { useChatAuth } from "../hooks/use-chat-auth";
+import { ChatWindow, type ChatWindowMode } from "./chat-window";
 
 // アニメーション定数
 const ANIMATION_DURATION = {
@@ -19,6 +20,20 @@ const ANIMATION_DURATION = {
   TEXT_FADE_IN: 200, // テキストフェードイン時間（ms）
   TEXT_CHANGE_DELAY: 250, // テキスト内容変更までの待機時間（サイズアニメーション終了間際）
 } as const;
+
+const isSetagayaChatPreview =
+  process.env.NEXT_PUBLIC_SETAGAYA_MOCK_MODE === "true";
+
+function createSessionId(): string {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 interface ChatButtonProps {
   billContext?: BillWithContent;
@@ -45,7 +60,9 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     const [isCompact, setIsCompact] = useState(false);
     const [showText, setShowText] = useState(true);
     const [openedWithText, setOpenedWithText] = useState(false);
+    const [activeMode, setActiveMode] = useState<ChatWindowMode>("question");
     const pathname = usePathname();
+    const chatAuth = useChatAuth({ disabled: isSetagayaChatPreview });
 
     // Chat state をここで管理することで、モーダルが閉じても状態が保持される
     const chatState = useChat();
@@ -53,10 +70,24 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     // pathname が変わるたびに新しいセッションIDを発行
     // ページ遷移時にチャットセッションをリセット
     // biome-ignore lint/correctness/useExhaustiveDependencies: pathnameが変わるたびに新しいIDを生成するため意図的に依存配列に含めている
-    const sessionId = useMemo(() => crypto.randomUUID(), [pathname]);
+    const sessionId = useMemo(() => createSessionId(), [pathname]);
 
     useImperativeHandle(ref, () => ({
       openWithText: (selectedText: string) => {
+        if (isSetagayaChatPreview) {
+          setActiveMode("question");
+          setOpenedWithText(true);
+          setIsOpen(true);
+          return;
+        }
+
+        if (chatAuth.status !== "authenticated") {
+          setActiveMode("question");
+          setOpenedWithText(true);
+          setIsOpen(true);
+          return;
+        }
+
         // AIからの返答待ち中は新しいメッセージを送信しない
         if (
           chatState.status === "streaming" ||
@@ -66,6 +97,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
         }
 
         const questionText = `「${selectedText}」について教えてください。`;
+        setActiveMode("question");
         setOpenedWithText(true);
         setIsOpen(true);
         chatState.sendMessage({
@@ -129,7 +161,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
               style={{
                 transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
               }}
-              aria-label="議案について質問する"
+              aria-label="案件について質問する"
             >
               <span
                 className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
@@ -177,6 +209,13 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
           pageContext={pageContext}
           disableAutoFocus={openedWithText}
           sessionId={sessionId}
+          previewOnly={isSetagayaChatPreview}
+          authStatus={chatAuth.status}
+          authUserEmail={chatAuth.userEmail}
+          authError={chatAuth.error}
+          onSignInWithGoogle={chatAuth.signInWithGoogle}
+          activeMode={activeMode}
+          onActiveModeChange={setActiveMode}
         />
       </>
     );

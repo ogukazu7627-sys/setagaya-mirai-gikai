@@ -1,18 +1,50 @@
+# dependencies
 node_modules
+
+# build outputs and local caches
+.turbo
+.next
+.next-codex-*
+out
+build
+coverage
+coverage-*
+*.tsbuildinfo
 
 # misc
 .DS_Store
 .vscode
 .claude/worktrees
 *.local.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# env files
+# env files: never commit local credentials or API keys
 .env
 .env.*
 !.env.example
+!.env.*.example
+
+# generated Setagaya content cache
+packages/seed/csv/data/setagaya_ai_bill_contents.json
+
+# Supabase local state
+.supabase
+supabase/.branches
+supabase/.temp
+supabase/.env.local
+supabase/.env.*.local
+supabase/.env.keys
+
+# deployment/provider local state
+.vercel
 
 # Cloud Run infra（秘密・鍵はコミットしない）
 # config.env / config.env.<env>（環境別）をまとめて除外（config.example.env は対象外）
 infra/cloud-run/config.env
 infra/cloud-run/config.env.*
 *-key.json
+*.pem
+.env*

@@ -14,8 +14,8 @@ export function DesktopMenuLogo() {
       {/* ロゴ */}
       <div className="relative w-[116px] h-[98.38px]">
         <Image
-          src="/img/logo.svg"
-          alt="みらい議会ロゴ"
+          src="/img/logo-transparent.png"
+          alt="みらい議会＠世田谷区ロゴ"
           fill
           className="object-contain"
           priority
@@ -41,7 +41,7 @@ export function DesktopMenuLogo() {
             lineHeight: "2em",
           }}
         >
-          国会の議論をわかりやすく
+          世田谷区議会の議案をわかりやすく
         </p>
       </div>
     </Link>

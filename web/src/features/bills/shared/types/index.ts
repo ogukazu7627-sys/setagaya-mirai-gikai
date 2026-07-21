@@ -15,17 +15,84 @@ export type MiraiStance = Database["public"]["Tables"]["mirai_stances"]["Row"];
 
 // Enums
 export type HouseEnum = Database["public"]["Enums"]["house_enum"];
+export type BillItemType = Database["public"]["Enums"]["bill_item_type"];
 export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];
 export type StanceTypeEnum = Database["public"]["Enums"]["stance_type_enum"];
 
 // 公開ステータス型（議案の公開/非公開を管理）
 export type BillPublishStatus = "draft" | "published" | "coming_soon";
 
+export type BillSource = {
+  title: string;
+  url?: string | null;
+  source_type: string;
+  published_at?: string | null;
+  accessed_at?: string | null;
+};
+
+export const MAJOR_CATEGORY_OPTIONS = [
+  {
+    id: "education",
+    label: "教育🏫",
+    description: "学校、教育委員会、不登校、給食、教育環境、学びの支援",
+  },
+  {
+    id: "childcare",
+    label: "子育て👶",
+    description: "保育、学童、子育て支援、若者支援、児童、妊娠・出産",
+  },
+  {
+    id: "welfare",
+    label: "福祉🤝",
+    description: "高齢者、障害者、介護、健康、生活支援、医療、福祉施策",
+  },
+  {
+    id: "urban_planning",
+    label: "まちづくり🏗️",
+    description: "再開発、道路、公園、住宅、交通、都市計画、自転車、歩行環境",
+  },
+  {
+    id: "disaster_prevention",
+    label: "防災☔",
+    description: "災害対策、防犯、交通安全、危機管理",
+  },
+  {
+    id: "administration_finance",
+    label: "行財政🏛️",
+    description:
+      "予算、決算、基金、区債、税、契約、条例、行政改革、DX、庁舎、窓口改革",
+  },
+  {
+    id: "culture",
+    label: "文化・スポーツ📚",
+    description: "文化施設、スポーツ施設、生涯学習、図書館、地域イベント",
+  },
+  {
+    id: "industry",
+    label: "産業💡",
+    description: "商店街、産業振興、創業支援、観光、地域経済、雇用",
+  },
+  {
+    id: "environment",
+    label: "環境問題🌿",
+    description: "ごみ、清掃、リサイクル、気候変動、緑、環境政策",
+  },
+  {
+    id: "daily_life",
+    label: "暮らし🙋",
+    description: "戸籍、区民施設、地域行政、消費生活、町会、地域活動",
+  },
+] as const;
+
+export type MajorCategoryLabel =
+  (typeof MAJOR_CATEGORY_OPTIONS)[number]["label"];
+
 // Coming Soon議案の型（最小限の情報のみ）
 export type ComingSoonBill = {
   id: string;
   name: string; // 正式名称
   title: string | null; // わかりやすいタイトル（bill_contentsから）
+  item_type?: BillItemType;
   originating_house: HouseEnum;
   shugiin_url: string | null;
 };
@@ -38,7 +105,13 @@ export type BillWithStance = Bill & {
 export type BillTag = {
   id: string;
   label: string;
+  major_category?: string | null;
 };
+
+export type BillDietSession = Pick<
+  Database["public"]["Tables"]["diet_sessions"]["Row"],
+  "id" | "name" | "slug"
+>;
 
 export type FeaturedTag = {
   id: string;
@@ -46,17 +119,29 @@ export type FeaturedTag = {
   priority: number;
 };
 
-export type BillWithContent = Bill & {
+export type BillWithContent = Omit<
+  Bill,
+  "sources" | "major_category" | "interview_enabled"
+> & {
   bill_content?: BillContent;
   mirai_stance?: MiraiStance;
   tags: BillTag[];
+  sources?: unknown;
+  major_category?: MajorCategoryLabel | string | null;
+  interview_enabled?: boolean;
   featured_tag?: FeaturedTag;
+  diet_session?: BillDietSession | null;
   hasPublicInterview?: boolean;
 };
 
 // タグごとにグループ化された議案
 export type BillsByTag = {
   tag: BillTag & { description?: string; priority: number };
+  bills: BillWithContent[];
+};
+
+export type BillsByMajorCategory = {
+  category: (typeof MAJOR_CATEGORY_OPTIONS)[number];
   bills: BillWithContent[];
 };
 
@@ -72,9 +157,22 @@ export const BILL_STATUS_ORDER: Record<BillStatusEnum, number> = {
 
 // House display mapping
 export const HOUSE_LABELS: Record<HouseEnum, string> = {
-  HR: "衆議院",
-  HC: "参議院",
+  HR: "委員会",
+  HC: "本会議",
 };
+
+export const BILL_ITEM_TYPE_LABELS: Record<BillItemType, string> = {
+  bill: "議案",
+  report: "報告事項",
+  petition: "請願・陳情",
+  question: "質問",
+};
+
+export function getBillItemTypeLabel(
+  itemType: BillItemType | null | undefined
+): string {
+  return BILL_ITEM_TYPE_LABELS[itemType ?? "bill"];
+}
 
 // ステータスを日本語ラベルに変換する関数
 export function getBillStatusLabel(
@@ -98,7 +196,7 @@ export function getBillStatusLabel(
       }
       return "審議中"; // フォールバック
     case "enacted":
-      return "成立";
+      return "可決";
     case "rejected":
       return "否決";
     default:

@@ -1,8 +1,13 @@
-import type { BillStatusEnum, HouseEnum } from "../../../shared/types";
+import type {
+  BillItemType,
+  BillStatusEnum,
+  HouseEnum,
+} from "../../../shared/types";
+import { getBillItemTypeLabel } from "../../../shared/types";
 import {
   calculateProgressWidth,
+  COUNCIL_PROGRESS_STEPS,
   getCurrentStep,
-  getOrderedSteps,
   getStatusMessage,
   getStepState,
 } from "../../../shared/utils/bill-progress";
@@ -10,6 +15,7 @@ import {
 interface BillStatusProgressProps {
   status: BillStatusEnum;
   originatingHouse: HouseEnum;
+  itemType?: BillItemType | null;
   statusNote?: string | null;
 }
 
@@ -24,14 +30,6 @@ interface ProgressStepProps {
   isActive: boolean;
   isPreparing: boolean;
 }
-
-// 基本ステップ定義
-const BASE_STEPS = [
-  { label: "法案\n提出" },
-  { label: "衆議院\n審議" },
-  { label: "参議院\n審議" },
-  { label: "法案\n成立" },
-] as const;
 
 // ステータスバッジコンポーネント
 function StatusBadge({ message }: StatusBadgeProps) {
@@ -95,16 +93,16 @@ function ProgressStep({
 
 export function BillStatusProgress({
   status,
-  originatingHouse,
+  itemType,
   statusNote,
 }: BillStatusProgressProps) {
   const isPreparing = status === "preparing";
   const currentStep = getCurrentStep(status);
-
-  const orderedSteps = getOrderedSteps(originatingHouse, BASE_STEPS);
   const progressWidth = calculateProgressWidth(currentStep);
 
-  const statusMessage = getStatusMessage(status, statusNote);
+  const statusMessage = isPreparing
+    ? `${getBillItemTypeLabel(itemType)}準備中`
+    : getStatusMessage(status, statusNote);
 
   return (
     <>
@@ -129,7 +127,7 @@ export function BillStatusProgress({
 
             {/* ステップドット */}
             <div className="relative flex justify-around">
-              {orderedSteps.map((step, index) => {
+              {COUNCIL_PROGRESS_STEPS.map((step, index) => {
                 const stepNumber = index + 1;
                 const isActive =
                   getStepState(stepNumber, currentStep, isPreparing) ===

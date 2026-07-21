@@ -1,22 +1,23 @@
 import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
-import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { getJapanTime } from "@/lib/utils/date";
 import type { ComingSoonBill } from "../../shared/types";
 import { findComingSoonBills } from "../repositories/bill-repository";
 
 /**
  * Coming Soon議案を取得する
- * publish_status = 'coming_soon' でアクティブな国会会期の議案を取得
- * アクティブな国会会期がない場合は全件取得
+ * publish_status = 'coming_soon' で今日開催中の世田谷区議会会期の議案を取得
+ * 今日開催中の世田谷区議会会期がない場合は全件取得
  */
 export async function getComingSoonBills(): Promise<ComingSoonBill[]> {
   // キャッシュ外でcookiesにアクセス
   const difficultyLevel = await getDifficultyLevel();
-  const activeSession = await getActiveDietSession();
+  const currentSession = await getCurrentDietSession(getJapanTime());
 
-  return _getCachedComingSoonBills(difficultyLevel, activeSession?.id ?? null);
+  return _getCachedComingSoonBills(difficultyLevel, currentSession?.id ?? null);
 }
 
 const _getCachedComingSoonBills = unstable_cache(

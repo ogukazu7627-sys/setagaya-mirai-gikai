@@ -3,12 +3,21 @@ import "server-only";
 import { buildInterviewOpinionRows } from "@mirai-gikai/shared/interview-report/build-opinion-rows";
 import type { InterviewOpinionSource } from "@mirai-gikai/shared/interview-report/schema";
 import { syncInterviewOpinions } from "@mirai-gikai/shared/interview-report/sync-opinions";
+import {
+  isWithinDailyCostLimit,
+  isWithinDailyPromptUsageLimit,
+  recordChatUsage,
+} from "@/features/chat/server/services/cost-tracker";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import { env } from "@/lib/env";
 import type { InterviewReportData } from "../../shared/schemas";
 import type { InterviewReport } from "../../shared/types";
 import { buildCompletedInterviewReportInsert } from "../../shared/utils/complete-interview-report";
 import { extractReportFromMessage } from "../../shared/utils/report-extraction";
 import {
   findInterviewMessagesBySessionIdDesc,
+  findInterviewReportBySessionId,
+  findInterviewSessionWithConfigById,
   updateInterviewSessionCompleted,
   upsertInterviewReport,
 } from "../repositories/interview-session-repository";
@@ -16,16 +25,48 @@ import { evaluateModerationScore } from "./evaluate-moderation-score";
 
 type CompleteInterviewSessionParams = {
   sessionId: string;
+  userId: string;
   isPublicByUser?: boolean;
 };
+
+const MODERATION_PROMPT_NAME = "interview-complete-moderation";
 
 /**
  * インタビューを完了し、会話中に生成されたレポートを保存する
  */
 export async function completeInterviewSession({
   sessionId,
+  userId,
   isPublicByUser,
 }: CompleteInterviewSessionParams): Promise<InterviewReport> {
+  const session = await findInterviewSessionWithConfigById(sessionId);
+  const billId = getBillIdFromSession(session);
+
+  const existingReport = await findInterviewReportBySessionId(sessionId);
+  if (existingReport) {
+    if (!session.completed_at) {
+      await updateInterviewSessionCompleted(sessionId);
+    }
+    return existingReport;
+  }
+
+  const [isWithinCostLimit, isWithinCompletionLimit] = await Promise.all([
+    isWithinDailyCostLimit(userId, env.chat.dailyUserCostLimitUsd),
+    isWithinDailyPromptUsageLimit(
+      userId,
+      MODERATION_PROMPT_NAME,
+      env.interviewComplete.dailyUserLimit
+    ),
+  ]);
+
+  if (!isWithinCostLimit) {
+    throw new ChatError(ChatErrorCode.DAILY_COST_LIMIT_REACHED);
+  }
+
+  if (!isWithinCompletionLimit) {
+    throw new ChatError(ChatErrorCode.DAILY_REQUEST_LIMIT_REACHED);
+  }
+
   // メッセージ履歴を取得（新しい順）
   const messages = await findInterviewMessagesBySessionIdDesc(sessionId);
 
@@ -48,6 +89,7 @@ export async function completeInterviewSession({
   const MODERATION_TIMEOUT_MS = 30_000;
   let moderationScore: number | null = null;
   let moderationReasoning: string | null = null;
+  let moderationUsageRecorded = false;
   try {
     const moderation = await Promise.race([
       evaluateModerationScore({
@@ -68,7 +110,31 @@ export async function completeInterviewSession({
     ]);
     moderationScore = moderation.score;
     moderationReasoning = moderation.reasoning;
+
+    await recordChatUsage({
+      userId,
+      sessionId,
+      promptName: MODERATION_PROMPT_NAME,
+      model: moderation.model,
+      usage: moderation.usage,
+      costUsd: moderation.costUsd,
+      metadata: {
+        pageType: "interview",
+        billId,
+        finishReason: moderation.finishReason,
+        stepCount: 0,
+        moderationScore: moderation.score,
+      },
+    });
+    moderationUsageRecorded = true;
   } catch (error) {
+    if (moderationScore !== null && !moderationUsageRecorded) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      throw new Error(
+        `Failed to record interview complete moderation usage: ${message}`
+      );
+    }
+
     // モデレーション失敗はレポート保存をブロックしない
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error(
@@ -114,4 +180,15 @@ export async function completeInterviewSession({
   await updateInterviewSessionCompleted(sessionId);
 
   return report;
+}
+
+function getBillIdFromSession(
+  session: Awaited<ReturnType<typeof findInterviewSessionWithConfigById>>
+): string | null {
+  const config = session.interview_configs;
+  if (!config || Array.isArray(config)) {
+    return null;
+  }
+
+  return typeof config.bill_id === "string" ? config.bill_id : null;
 }

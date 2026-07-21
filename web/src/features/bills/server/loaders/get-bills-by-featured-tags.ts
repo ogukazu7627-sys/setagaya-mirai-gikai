@@ -1,28 +1,29 @@
 import { unstable_cache } from "next/cache";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
-import { getActiveDietSession } from "@/features/diet-sessions/server/loaders/get-active-diet-session";
+import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { getJapanTime } from "@/lib/utils/date";
 import type { BillsByTag } from "../../shared/types";
 import {
+  findBillIdsWithPublicInterview,
   findFeaturedTags,
   findPublishedBillsByTag,
-  findBillIdsWithPublicInterview,
 } from "../repositories/bill-repository";
 
 /**
  * Featured表示用の議案をタグごとにグループ化して取得
- * featured_priorityが設定されているタグを持つアクティブな国会会期の議案を優先度順に取得
- * アクティブな国会会期がない場合は全件取得
+ * featured_priorityが設定されているタグを持つ今日開催中の世田谷区議会会期の議案を優先度順に取得
+ * 今日開催中の世田谷区議会会期がない場合は全件取得
  */
 export async function getBillsByFeaturedTags(): Promise<BillsByTag[]> {
   // キャッシュ外でcookiesにアクセス
   const difficultyLevel = await getDifficultyLevel();
-  const activeSession = await getActiveDietSession();
+  const currentSession = await getCurrentDietSession(getJapanTime());
 
   return _getCachedBillsByFeaturedTags(
     difficultyLevel,
-    activeSession?.id ?? null
+    currentSession?.id ?? null
   );
 }
 

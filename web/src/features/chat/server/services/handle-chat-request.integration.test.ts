@@ -1,21 +1,24 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import type { LanguageModelUsage, UIMessage } from "ai";
 import {
   adminClient,
   cleanupTestBill,
-  createTestBill,
-  createTestUser,
   cleanupTestUser,
+  createTestBill,
+  createTestBillContent,
+  createTestUser,
   type TestUser,
 } from "@test-utils/utils";
+import type { LanguageModelUsage, UIMessage } from "ai";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { OFF_TOPIC_RESPONSE_TEXT } from "@/features/chat/shared/off-topic-guard";
+import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { createStreamMock } from "@/test-utils/mock-language-model";
 import { createMockPromptProvider } from "@/test-utils/mock-prompt-provider";
-import {
-  handleChatRequest,
-  type ChatMessageMetadata,
-} from "./handle-chat-request";
-import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { recordChatUsage } from "./cost-tracker";
+import {
+  buildTools,
+  type ChatMessageMetadata,
+  handleChatRequest,
+} from "./handle-chat-request";
 
 /**
  * Response のボディストリームを全て読み込み、テキストとして返す。
@@ -63,6 +66,10 @@ describe("handleChatRequest 統合テスト", () => {
 
   afterEach(async () => {
     await adminClient
+      .from("chat_message_events")
+      .delete()
+      .eq("user_id", testUser.id);
+    await adminClient
       .from("chat_usage_events")
       .delete()
       .eq("user_id", testUser.id);
@@ -89,6 +96,39 @@ describe("handleChatRequest 統合テスト", () => {
       const content = await consumeResponseStream(response);
       // AI SDK のストリーム形式でテキストが含まれている
       expect(content.length).toBeGreaterThan(0);
+    });
+
+    it("最新のユーザー質問を chat_message_events に保存する", async () => {
+      const mockModel = createStreamMock(["テスト応答"]);
+      const mockPromptProvider = createMockPromptProvider();
+      const messages = createTestMessages({
+        pageContext: { type: "bill" },
+        sessionId: "question-log-session",
+      });
+      messages[0].parts = [
+        { type: "text", text: "この案件のポイントを教えて" },
+      ];
+
+      const response = await handleChatRequest({
+        messages,
+        userId: testUser.id,
+        deps: { model: mockModel, promptProvider: mockPromptProvider },
+      });
+
+      await consumeResponseStream(response);
+
+      const { data, error } = await adminClient
+        .from("chat_message_events")
+        .select("message, page_type, session_id, scope_status, block_reason")
+        .eq("user_id", testUser.id)
+        .single();
+
+      expect(error).toBeNull();
+      expect(data?.message).toBe("この案件のポイントを教えて");
+      expect(data?.page_type).toBe("bill");
+      expect(data?.session_id).toBe("question-log-session");
+      expect(data?.scope_status).toBe("allowed");
+      expect(data?.block_reason).toBeNull();
     });
 
     it("billContext を持つメッセージで bill-chat-system プロンプトが選択される", async () => {
@@ -125,6 +165,7 @@ describe("handleChatRequest 統合テスト", () => {
 
     it("公開済みbillでトグルONなら knowledgeSource がサーバー側で取得されてプロンプト変数に渡る", async () => {
       const bill = await createTestBill({ publish_status: "published" });
+      await createTestBillContent(bill.id);
       await adminClient
         .from("bills")
         .update({
@@ -167,6 +208,7 @@ describe("handleChatRequest 統合テスト", () => {
 
     it("公開済みbillでトグルOFFなら knowledgeSource は空文字で渡る", async () => {
       const bill = await createTestBill({ publish_status: "published" });
+      await createTestBillContent(bill.id);
       await adminClient
         .from("bills")
         .update({
@@ -267,6 +309,101 @@ describe("handleChatRequest 統合テスト", () => {
       }
     });
 
+    it("difficultyLevel に応じてサーバー側の bill_contents が切り替わる", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      await createTestBillContent(bill.id, {
+        difficulty_level: "normal",
+        title: "ふつうタイトル",
+        summary: "ふつう要約",
+        content: "ふつう本文",
+      });
+      await createTestBillContent(bill.id, {
+        difficulty_level: "hard",
+        title: "詳しいタイトル",
+        summary: "詳しい要約",
+        content: "詳しい本文",
+      });
+
+      try {
+        const receivedPromptNames: string[] = [];
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedPromptNames.push(name);
+            receivedVariables.push(variables);
+            return { content: "テスト", metadata: "{}" };
+          },
+        };
+        const mockModel = createStreamMock(["応答"]);
+        const messages = createTestMessages({
+          difficultyLevel: "hard",
+          billContext: {
+            id: bill.id,
+            name: bill.name,
+          } as unknown as ChatMessageMetadata["billContext"],
+        });
+
+        const response = await handleChatRequest({
+          messages,
+          userId: testUser.id,
+          deps: { model: mockModel, promptProvider: trackingPromptProvider },
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedPromptNames[0]).toBe("bill-chat-system-hard");
+        expect(receivedVariables[0]?.billTitle).toBe("詳しいタイトル");
+        expect(receivedVariables[0]?.billSummary).toBe("詳しい要約");
+        expect(receivedVariables[0]?.billContent).toBe("詳しい本文");
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
+    it("本文が未登録でも公開済み bill の基本情報をプロンプト変数に渡す", async () => {
+      const bill = await createTestBill({ publish_status: "published" });
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      try {
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            _name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedVariables.push(variables);
+            return { content: "テスト", metadata: "{}" };
+          },
+        };
+        const mockModel = createStreamMock(["応答"]);
+        const messages = createTestMessages({
+          billContext: {
+            id: bill.id,
+            name: "クライアント側名称",
+          } as unknown as ChatMessageMetadata["billContext"],
+        });
+
+        const response = await handleChatRequest({
+          messages,
+          userId: testUser.id,
+          deps: { model: mockModel, promptProvider: trackingPromptProvider },
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedVariables[0]?.billName).toBe(bill.name);
+        expect(receivedVariables[0]?.billTitle).toBe("");
+        expect(receivedVariables[0]?.billSummary).toBe("");
+        expect(receivedVariables[0]?.billContent).toBe("");
+      } finally {
+        consoleErrorSpy.mockRestore();
+        await cleanupTestBill(bill.id);
+      }
+    });
+
     it("pageContext.type が home の場合は top-chat-system プロンプトが選択される", async () => {
       const receivedPromptNames: string[] = [];
       const trackingPromptProvider = {
@@ -280,7 +417,7 @@ describe("handleChatRequest 統合テスト", () => {
       const messages = createTestMessages({
         pageContext: {
           type: "home",
-          bills: [{ id: "bill-1", name: "テスト法案" }],
+          bills: [{ id: "bill-1", name: "テスト案件" }],
         },
       });
 
@@ -293,6 +430,55 @@ describe("handleChatRequest 統合テスト", () => {
       await consumeResponseStream(response);
 
       expect(receivedPromptNames[0]).toBe("top-chat-system");
+    });
+
+    it("明らかな範囲外質問はモデルに渡さず固定文で返し、blocked として保存する", async () => {
+      const receivedPromptNames: string[] = [];
+      const trackingPromptProvider = {
+        getPrompt: async (name: string) => {
+          receivedPromptNames.push(name);
+          return { content: "呼ばれないプロンプト", metadata: "{}" };
+        },
+      };
+      const mockModel = createStreamMock(["呼ばれない応答"]);
+      const messages = createTestMessages({
+        pageContext: { type: "bill" },
+      });
+      messages[0].parts = [
+        { type: "text", text: "今日の夜ご飯のメニューを考えて" },
+      ];
+
+      const response = await handleChatRequest({
+        messages,
+        userId: testUser.id,
+        deps: { model: mockModel, promptProvider: trackingPromptProvider },
+      });
+
+      const content = await consumeResponseStream(response);
+
+      expect(response.status).toBe(200);
+      expect(content).toContain(OFF_TOPIC_RESPONSE_TEXT);
+      expect(content).not.toContain("魚の照り焼き");
+      expect(receivedPromptNames).toHaveLength(0);
+
+      const { data, error } = await adminClient
+        .from("chat_message_events")
+        .select("message, scope_status, block_reason")
+        .eq("user_id", testUser.id)
+        .single();
+
+      expect(error).toBeNull();
+      expect(data?.message).toBe("今日の夜ご飯のメニューを考えて");
+      expect(data?.scope_status).toBe("blocked");
+      expect(data?.block_reason).toBe("off_topic_standalone_request");
+    });
+  });
+
+  describe("ツール構成", () => {
+    it("案件ページチャットでも web_search ツールを利用できる", () => {
+      const tools = buildTools(false);
+
+      expect(tools).toHaveProperty("web_search");
     });
   });
 

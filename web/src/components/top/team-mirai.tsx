@@ -1,16 +1,5 @@
-import Image from "next/image";
-import { ManualRuby } from "@/lib/rubyful/manual-ruby";
-import { SOCIAL_LINKS } from "@/lib/social-links";
+import { EXTERNAL_LINKS } from "@/config/external-links";
 import { LinkButton } from "./link-button";
-
-const TEAM_MIRAI_SNS_ORDER = [
-  "youtube",
-  "x",
-  "line",
-  "instagram",
-  "facebook",
-  "tiktok",
-] as const;
 
 export function TeamMirai() {
   return (
@@ -18,17 +7,11 @@ export function TeamMirai() {
       <div className="flex flex-col gap-6">
         {/* ヘッダー */}
         <div className="flex flex-col gap-4">
-          <h2>
-            <Image
-              src="/icons/team-mirai-typography.svg"
-              alt="Team Mirai"
-              width={263}
-              height={39}
-              priority
-            />
+          <h2 className="font-lexend font-bold text-[32px] leading-none text-primary-accent">
+            みらい議会
           </h2>
           <p className="text-sm font-bold text-primary-accent">
-            チームみらいについて
+            チームみらいが公開している元プロジェクト
           </p>
         </div>
 
@@ -36,16 +19,17 @@ export function TeamMirai() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <p className="text-[15px] leading-[28px] text-black">
-              参議院議員・AIエンジニアの
-              <ManualRuby ruby="あんの">安野</ManualRuby>
-              たかひろが立ち上げた政党です。テクノロジーで政治の課題を解決することを目指しています。
+              このサイトは、チームみらいが国会の法案をわかりやすく紹介するために公開している「みらい議会」をもとに、世田谷区議会向けに作っています。仕組みや考え方は参考にしつつ、掲載内容と運営は世田谷区版として独自に整理しています。
+            </p>
+            <p className="text-[15px] leading-[28px] text-black">
+              世田谷区公認のサイトではなく、世田谷区議会または政党チームみらいが運営するものでもありません。
             </p>
           </div>
 
           {/* ボタングループ */}
           <div className="flex flex-col gap-4">
             <LinkButton
-              href="https://team-mir.ai/"
+              href={EXTERNAL_LINKS.ORIGINAL_MIRAI_GIKAI}
               icon={{
                 src: "/icons/info-icon.svg",
                 alt: "",
@@ -53,48 +37,20 @@ export function TeamMirai() {
                 height: 22,
               }}
             >
-              チームみらいについて詳しく
+              みらい議会
             </LinkButton>
 
             <LinkButton
-              href="https://team-mir.ai/#donation"
+              href={EXTERNAL_LINKS.ABOUT_NOTE}
               icon={{
-                src: "/icons/heart-icon.svg",
-                alt: "",
-                width: 18,
-                height: 17,
+                src: "/icons/note-icon.png",
+                alt: "note",
+                width: 25,
+                height: 25,
               }}
             >
-              寄附で応援する
+              みらい議会の考え方
             </LinkButton>
-          </div>
-
-          {/* SNSアイコン */}
-          <div className="flex flex-wrap gap-3 items-end">
-            {TEAM_MIRAI_SNS_ORDER.map((key) => {
-              const sns = SOCIAL_LINKS[key];
-              return (
-                <a
-                  key={key}
-                  href={sns.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  <Image
-                    src={sns.iconPath}
-                    alt={sns.name}
-                    width={48}
-                    height={48}
-                    className={
-                      sns.hasBorder
-                        ? "rounded-full border border-mirai-border-light"
-                        : ""
-                    }
-                  />
-                </a>
-              );
-            })}
           </div>
         </div>
       </div>

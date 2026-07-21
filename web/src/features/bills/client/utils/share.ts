@@ -19,7 +19,7 @@ export function createBillShareUrl(
  */
 export function createShareMessage(bill: BillWithContent): string {
   const displayTitle = bill.bill_content?.title ?? bill.name;
-  return `${displayTitle} #みらい議会`;
+  return `みらい議会＠世田谷区で「${displayTitle}」を確認しました。 #みらい議会世田谷区 #世田谷区議会`;
 }
 
 /**
