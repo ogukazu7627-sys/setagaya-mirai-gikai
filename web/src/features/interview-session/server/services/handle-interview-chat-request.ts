@@ -6,6 +6,8 @@ import {
   type LanguageModelUsage,
   Output,
   streamText,
+  type TextStreamPart,
+  type ToolSet,
 } from "ai";
 import { getBillByIdAdmin } from "@/features/bills/server/loaders/get-bill-by-id-admin";
 import type { BillWithContent } from "@/features/bills/shared/types";
@@ -340,7 +342,7 @@ async function generateStreamingResponse({
         output: Output.object({ schema: interviewChatWithReportSchema }),
       });
       textStream = createStreamWithErrorFallback(
-        result.textStream,
+        result.fullStream,
         isSummaryPhase
       );
     } else {
@@ -349,7 +351,7 @@ async function generateStreamingResponse({
         output: Output.object({ schema: interviewChatTextSchema }),
       });
       textStream = createStreamWithErrorFallback(
-        result.textStream,
+        result.fullStream,
         isSummaryPhase
       );
     }
@@ -368,29 +370,43 @@ async function generateStreamingResponse({
 }
 
 function createStreamWithErrorFallback(
-  textStream: AsyncIterable<string>,
+  fullStream: AsyncIterable<TextStreamPart<ToolSet>>,
   isSummaryPhase: boolean
 ): ReadableStream<string> {
   return new ReadableStream<string>({
     async start(controller) {
       let hasSentChunk = false;
+      let streamError: unknown = null;
 
       try {
-        for await (const chunk of textStream) {
-          hasSentChunk = true;
-          controller.enqueue(chunk);
+        for await (const part of fullStream) {
+          if (part.type === "text-delta") {
+            hasSentChunk = true;
+            controller.enqueue(part.text);
+            continue;
+          }
+
+          if (part.type === "error") {
+            streamError = part.error;
+            console.error("LLM generation stream error:", part.error);
+          }
         }
       } catch (error) {
+        streamError = error;
         console.error("LLM generation stream error:", error);
-
+      } finally {
         if (!hasSentChunk) {
           controller.enqueue(
             JSON.stringify(
-              buildInterviewStreamErrorObject(error, isSummaryPhase)
+              buildInterviewStreamErrorObject(
+                streamError ??
+                  new Error("LLM generation returned empty stream"),
+                isSummaryPhase
+              )
             )
           );
         }
-      } finally {
+
         controller.close();
       }
     },
