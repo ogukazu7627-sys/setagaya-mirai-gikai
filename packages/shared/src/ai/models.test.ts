@@ -13,7 +13,7 @@ describe("isKnownModel", () => {
     expect(isKnownModel("not-a-model")).toBe(false);
   });
 
-  it("AIインタビューのデフォルトモデルはgpt-4o", () => {
-    expect(DEFAULT_INTERVIEW_CHAT_MODEL).toBe(AI_MODELS.gpt4o);
+  it("AIインタビューのデフォルトモデルはGPT-5.6 Luna", () => {
+    expect(DEFAULT_INTERVIEW_CHAT_MODEL).toBe(AI_MODELS.gpt5_6_luna);
   });
 });
