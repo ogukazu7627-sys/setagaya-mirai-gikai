@@ -12,9 +12,12 @@ import { registerNodeTelemetry } from "@/lib/telemetry/register";
 export async function POST(req: Request) {
   await registerNodeTelemetry();
 
-  let body: { billId?: unknown };
+  let body: { billId?: unknown; deferInitialQuestion?: unknown };
   try {
-    body = (await req.json()) as { billId?: unknown };
+    body = (await req.json()) as {
+      billId?: unknown;
+      deferInitialQuestion?: unknown;
+    };
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
@@ -23,6 +26,7 @@ export async function POST(req: Request) {
   if (!billId) {
     return jsonResponse({ error: "billId is required" }, 400);
   }
+  const generateInitialQuestion = body.deferInitialQuestion !== true;
 
   const {
     data: { user },
@@ -49,6 +53,7 @@ export async function POST(req: Request) {
           data: { user: { id: user.id } },
           error: null,
         }),
+        generateInitialQuestion,
       }),
     ]);
 

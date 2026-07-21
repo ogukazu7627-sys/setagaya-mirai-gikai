@@ -135,5 +135,58 @@ describe("POST /api/interview/initialize", () => {
       session: { id: "session-1" },
       messages: [{ id: "message-1" }],
     });
+    expect(mocks.initializeInterviewChat).toHaveBeenCalledWith(
+      "bill-1",
+      "config-1",
+      expect.objectContaining({
+        generateInitialQuestion: true,
+        getUser: expect.any(Function),
+      })
+    );
+  });
+
+  it("初回質問を後回しにする指定ならセッションだけ初期化する", async () => {
+    mocks.getChatSupabaseUser.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+      error: null,
+    });
+    mocks.resolveInterviewRuntimeAccess.mockResolvedValue({
+      bill: {
+        id: "bill-1",
+        name: "正式案件名",
+        bill_content: { title: "区民向けタイトル" },
+      },
+      interviewConfig: {
+        id: "config-1",
+        mode: "loop",
+        estimated_duration: 7,
+      },
+    });
+    mocks.initializeInterviewChat.mockResolvedValue({
+      session: {
+        id: "session-1",
+        started_at: "2026-07-19T00:00:00.000Z",
+        rating: null,
+      },
+      messages: [],
+    });
+
+    const res = await POST(
+      request({ billId: "bill-1", deferInitialQuestion: true })
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      session: { id: "session-1" },
+      messages: [],
+    });
+    expect(mocks.initializeInterviewChat).toHaveBeenCalledWith(
+      "bill-1",
+      "config-1",
+      expect.objectContaining({
+        generateInitialQuestion: false,
+        getUser: expect.any(Function),
+      })
+    );
   });
 });

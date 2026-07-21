@@ -49,10 +49,17 @@ export function InterviewChatInput({
     textarea.style.height = `${textarea.scrollHeight}px`;
   };
 
+  const handleSubmit = (message: PromptInputMessage) => {
+    if (isResponding) {
+      return;
+    }
+    onSubmit(message);
+  };
+
   return (
     <>
       <PromptInput
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
         className="flex items-end gap-2.5 py-1 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
       >
         <PromptInputBody className="flex-1">
@@ -63,7 +70,8 @@ export function InterviewChatInput({
             placeholder={placeholder}
             rows={1}
             submitOnEnter={isDesktop}
-            className="!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0"
+            disabled={isResponding}
+            className="!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0 disabled:cursor-not-allowed disabled:opacity-70"
           />
         </PromptInputBody>
         <button

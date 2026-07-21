@@ -40,6 +40,7 @@ interface InterviewChatClientProps {
   hasRated?: boolean;
   previewToken?: string;
   layout?: "page" | "panel";
+  isPreparingInitialQuestion?: boolean;
 }
 
 export function InterviewChatClient({
@@ -54,6 +55,7 @@ export function InterviewChatClient({
   hasRated,
   previewToken,
   layout = "page",
+  isPreparingInitialQuestion = false,
 }: InterviewChatClientProps) {
   const {
     input,
@@ -105,6 +107,7 @@ export function InterviewChatClient({
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
   const isPanelLayout = layout === "panel";
+  const isChatInputBusy = isLoading || isPreparingInitialQuestion;
 
   // チャット操作時にタイムアップアラートを自動非表示にする
   const dismissTimeUpIfNeeded = useCallback(() => {
@@ -199,6 +202,11 @@ export function InterviewChatClient({
                 <p className="text-sm text-gray-600">
                   あなたの意見や経験をお聞かせください。
                 </p>
+                {isPreparingInitialQuestion && (
+                  <p className="text-sm font-medium text-gray-500">
+                    最初の質問を準備しています...
+                  </p>
+                )}
               </div>
             )}
 
@@ -278,7 +286,7 @@ export function InterviewChatClient({
                     <QuickReplyButtons
                       replies={replies}
                       onSelect={handleChatQuickReply}
-                      disabled={isLoading}
+                      disabled={isChatInputBusy}
                     />
                   )
                 );
@@ -329,8 +337,12 @@ export function InterviewChatClient({
               input={input}
               onInputChange={setInput}
               onSubmit={handleChatSubmit}
-              placeholder="AIの質問に回答する"
-              isResponding={isLoading}
+              placeholder={
+                isPreparingInitialQuestion
+                  ? "最初の質問を準備中"
+                  : "AIの質問に回答する"
+              }
+              isResponding={isChatInputBusy}
             />
           )}
         </div>

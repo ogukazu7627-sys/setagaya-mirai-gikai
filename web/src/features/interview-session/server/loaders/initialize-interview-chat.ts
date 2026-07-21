@@ -1,8 +1,8 @@
 import "server-only";
 
+import type { LanguageModel } from "ai";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
 import { generateInitialQuestion } from "@/features/interview-session/server/services/generate-initial-question";
-import type { LanguageModel } from "ai";
 import type { InterviewMessage, InterviewSession } from "../../shared/types";
 import {
   createInterviewSessionRecord,
@@ -14,6 +14,7 @@ import type { GetUserFn } from "../utils/verify-session-ownership";
 type InitializeInterviewChatDeps = {
   getUser?: GetUserFn;
   model?: LanguageModel;
+  generateInitialQuestion?: boolean;
 };
 
 type InitializeInterviewChatResult = {
@@ -55,8 +56,9 @@ export async function initializeInterviewChat(
   // メッセージ履歴を取得
   let messages = await findInterviewMessagesBySessionId(session.id);
 
-  // メッセージ履歴が空の場合、最初の質問を生成
-  if (messages.length === 0) {
+  // メッセージ履歴が空の場合、最初の質問を生成する。
+  // サイドパネルでは体感速度を優先し、セッションだけ先に返してから裏で生成する。
+  if (messages.length === 0 && deps?.generateInitialQuestion !== false) {
     const initialQuestion = await generateInitialQuestion({
       sessionId: session.id,
       billId,
