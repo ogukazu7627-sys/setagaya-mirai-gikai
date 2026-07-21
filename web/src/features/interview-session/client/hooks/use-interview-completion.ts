@@ -17,7 +17,7 @@ export function useInterviewCompletion({
   const [isCompleting, setIsCompleting] = useState(false);
   const [completeError, setCompleteError] = useState<string | null>(null);
 
-  const handleSubmit = async (isPublic: boolean) => {
+  const completeInterview = async (isPublic: boolean) => {
     setIsCompleting(true);
     setCompleteError(null);
     try {
@@ -25,22 +25,30 @@ export function useInterviewCompletion({
         sessionId,
         isPublic,
       });
-      const reportId = result.report?.id;
-      if (reportId) {
-        window.location.href = getInterviewReportCompleteLink(reportId);
-      }
-      // 画面遷移するまで isCompleting を true のままにする
+      setIsCompleting(false);
+      return result;
     } catch (err) {
       setCompleteError(
         err instanceof Error ? err.message : "Failed to complete interview"
       );
       setIsCompleting(false);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (isPublic: boolean) => {
+    const result = await completeInterview(isPublic);
+    const reportId = result?.report?.id;
+    if (reportId) {
+      setIsCompleting(true);
+      window.location.href = getInterviewReportCompleteLink(reportId);
     }
   };
 
   return {
     isCompleting,
     completeError,
+    completeInterview,
     handleSubmit,
   };
 }

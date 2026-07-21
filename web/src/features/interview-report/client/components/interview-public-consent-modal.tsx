@@ -69,7 +69,7 @@ export function InterviewPublicConsentModal({
           </div>
 
           <p className="text-sm text-black">
-            非公開で提出した場合でも、ご意見は今後の区政に関する論点整理の参考として活用します。
+            サイト上で公開しない場合でも、ご意見は今後の区政に関する論点整理の参考として活用します。
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export function InterviewPublicConsentModal({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isSubmitting ? "送信中..." : "公開を許可して提出する"}
+            {isSubmitting ? "設定中..." : "サイト上で公開する"}
             {!isSubmitting && <ArrowRight className="ml-2 size-5" />}
           </Button>
           <Button
@@ -88,7 +88,7 @@ export function InterviewPublicConsentModal({
             disabled={isSubmitting}
             className="w-full text-gray-500"
           >
-            非公開で提出する
+            公開せず完了する
           </Button>
         </div>
       </DialogContent>

@@ -5,6 +5,8 @@ const mocks = vi.hoisted(() => ({
   checkSystemDailyCostLimit: vi.fn(),
   checkSystemMonthlyCostLimit: vi.fn(),
   completeInterviewSession: vi.fn(),
+  findReportOwnerAndBill: vi.fn(),
+  getReportRecipientSelectionData: vi.fn(),
   verifySessionOwnership: vi.fn(),
 }));
 
@@ -12,6 +14,14 @@ vi.mock("@/features/chat/server/services/system-cost-guard", () => ({
   checkSystemDailyCostLimit: mocks.checkSystemDailyCostLimit,
   checkSystemMonthlyCostLimit: mocks.checkSystemMonthlyCostLimit,
 }));
+
+vi.mock(
+  "@/features/councilor-digest/server/repositories/report-recipient-repository",
+  () => ({
+    findReportOwnerAndBill: mocks.findReportOwnerAndBill,
+    getReportRecipientSelectionData: mocks.getReportRecipientSelectionData,
+  })
+);
 
 vi.mock(
   "@/features/interview-session/server/services/complete-interview-session",
@@ -50,6 +60,18 @@ describe("POST /api/interview/complete", () => {
       id: "report-1",
       interview_session_id: "session-1",
     });
+    mocks.findReportOwnerAndBill.mockResolvedValue({
+      reportId: "report-1",
+      billId: "bill-1",
+      userId: "user-1",
+    });
+    mocks.getReportRecipientSelectionData.mockResolvedValue({
+      candidates: [],
+      selectedCouncilorIds: [],
+      selectedCouncilors: [],
+      shareContact: false,
+      alreadySentCouncilorIds: [],
+    });
   });
 
   it("所有者確認後にシステム予算ガードを通し、ユーザーID付きで完了処理を呼ぶ", async () => {
@@ -63,10 +85,21 @@ describe("POST /api/interview/complete", () => {
       userId: "user-1",
       isPublicByUser: true,
     });
+    expect(mocks.getReportRecipientSelectionData).toHaveBeenCalledWith({
+      reportId: "report-1",
+      billId: "bill-1",
+    });
     await expect(res.json()).resolves.toEqual({
       report: {
         id: "report-1",
         interview_session_id: "session-1",
+      },
+      recipientSelection: {
+        candidates: [],
+        selectedCouncilorIds: [],
+        selectedCouncilors: [],
+        shareContact: false,
+        alreadySentCouncilorIds: [],
       },
     });
   });

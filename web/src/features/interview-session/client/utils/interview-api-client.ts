@@ -1,12 +1,15 @@
+import type { ReportRecipientSelection } from "@/features/councilor-digest/shared/types";
+
 interface CompleteInterviewParams {
   sessionId: string;
   isPublic: boolean;
 }
 
-interface CompleteInterviewResult {
+export interface CompleteInterviewResult {
   report?: {
     id: string;
   };
+  recipientSelection?: ReportRecipientSelection | null;
 }
 
 /**

@@ -1,9 +1,9 @@
 "use client";
 
-import { Search, Send } from "lucide-react";
-import { useActionState, useMemo, useState } from "react";
+import { Send } from "lucide-react";
+import Image from "next/image";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { saveReportRecipients } from "../../server/actions/save-report-recipients";
 import type {
   CouncilorRecipientCandidate,
@@ -29,28 +29,12 @@ export function ReportRecipientSelectionSection({
     saveReportRecipients,
     INITIAL_STATE
   );
-  const [query, setQuery] = useState("");
-
-  const recommended = selection.candidates.filter(
-    (candidate) => candidate.recommended
-  );
-  const recommendedIds = useMemo(
-    () => new Set(recommended.map((candidate) => candidate.id)),
-    [recommended]
-  );
-  const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const candidates = selection.candidates.filter(
-      (candidate) => !recommendedIds.has(candidate.id)
+  const [selectedCouncilorId, setSelectedCouncilorId] = useState("");
+  const selectedCouncilor =
+    selection.selectedCouncilors[0] ??
+    selection.candidates.find((candidate) =>
+      selection.selectedCouncilorIds.includes(candidate.id)
     );
-    if (!normalizedQuery) {
-      return candidates;
-    }
-
-    return candidates.filter((candidate) =>
-      candidate.displayName.toLowerCase().includes(normalizedQuery)
-    );
-  }, [query, recommendedIds, selection.candidates]);
 
   return (
     <section className="rounded-lg border border-primary/20 bg-white px-5 py-5 shadow-sm">
@@ -64,6 +48,64 @@ export function ReportRecipientSelectionSection({
           </p>
         </div>
 
+        {selectedCouncilor ? (
+          <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-mirai-gradient px-4 py-4">
+            <CouncilorAvatar candidate={selectedCouncilor} />
+            <p className="text-sm font-bold leading-[1.7] text-mirai-text">
+              {selectedCouncilor.displayName}
+              議員への提出を受け付け済みです。
+            </p>
+          </div>
+        ) : selection.candidates.length === 0 ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-[1.8] text-amber-800">
+            この案件では委員会メンバー候補を確認できませんでした。管理画面で委員会情報を確認してください。
+          </p>
+        ) : (
+          <form action={formAction} className="flex flex-col gap-5">
+            <input type="hidden" name="report_id" value={reportId} />
+
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-mirai-text">
+                委員会メンバー
+              </p>
+              <div className="grid max-h-72 gap-2 overflow-y-auto rounded-lg border border-gray-200 p-2">
+                {selection.candidates.map((candidate) => (
+                  <CouncilorRadio
+                    key={candidate.id}
+                    candidate={candidate}
+                    checked={candidate.id === selectedCouncilorId}
+                    disabled={selection.alreadySentCouncilorIds.includes(
+                      candidate.id
+                    )}
+                    onChange={setSelectedCouncilorId}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-mirai-surface px-4 py-3 text-sm font-bold leading-[1.7] text-mirai-text">
+              <input
+                type="checkbox"
+                name="share_contact"
+                defaultChecked={selection.shareContact}
+                className="mt-1 size-4"
+              />
+              <span>
+                議員向けレポートにGoogleアカウントの名前・メールアドレスを含めることに同意します。
+              </span>
+            </label>
+
+            <Button
+              type="submit"
+              disabled={isPending || !selectedCouncilorId}
+              className="w-full"
+            >
+              <Send className="size-5" />
+              {isPending ? "保存しています..." : "この議員に伝える"}
+            </Button>
+          </form>
+        )}
+
         {state.message && (
           <p
             className={`rounded-lg border px-4 py-3 text-sm font-bold leading-[1.7] ${
@@ -75,115 +117,70 @@ export function ReportRecipientSelectionSection({
             {state.message}
           </p>
         )}
-
-        <form action={formAction} className="flex flex-col gap-5">
-          <input type="hidden" name="report_id" value={reportId} />
-
-          {recommended.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-sm font-bold text-mirai-text">おすすめ候補</p>
-              <div className="grid gap-2">
-                {recommended.map((candidate) => (
-                  <CouncilorCheckbox
-                    key={`recommended-${candidate.id}`}
-                    candidate={candidate}
-                    defaultChecked={selection.selectedCouncilorIds.includes(
-                      candidate.id
-                    )}
-                    disabled={selection.alreadySentCouncilorIds.includes(
-                      candidate.id
-                    )}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <label
-              htmlFor="councilor-search"
-              className="text-sm font-bold text-mirai-text"
-            >
-              全議員から検索
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-mirai-text-secondary" />
-              <Input
-                id="councilor-search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="議員名で検索"
-                className="pl-9"
-              />
-            </div>
-            <div className="grid max-h-72 gap-2 overflow-y-auto rounded-lg border border-gray-200 p-2">
-              {filtered.map((candidate) => (
-                <CouncilorCheckbox
-                  key={candidate.id}
-                  candidate={candidate}
-                  defaultChecked={selection.selectedCouncilorIds.includes(
-                    candidate.id
-                  )}
-                  disabled={selection.alreadySentCouncilorIds.includes(
-                    candidate.id
-                  )}
-                />
-              ))}
-              {filtered.length === 0 && (
-                <p className="px-3 py-4 text-sm font-bold text-mirai-text-secondary">
-                  一致する議員が見つかりません。
-                </p>
-              )}
-            </div>
-          </div>
-
-          <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-mirai-surface px-4 py-3 text-sm font-bold leading-[1.7] text-mirai-text">
-            <input
-              type="checkbox"
-              name="share_contact"
-              defaultChecked={selection.shareContact}
-              className="mt-1 size-4"
-            />
-            <span>
-              議員向けレポートにGoogleアカウントの名前・メールアドレスを含めることに同意します。
-            </span>
-          </label>
-
-          <Button type="submit" disabled={isPending} className="w-full">
-            <Send className="size-5" />
-            {isPending ? "保存しています..." : "この議員に伝える"}
-          </Button>
-        </form>
       </div>
     </section>
   );
 }
 
-function CouncilorCheckbox({
+function CouncilorRadio({
   candidate,
-  defaultChecked,
+  checked,
   disabled,
+  onChange,
 }: {
   candidate: CouncilorRecipientCandidate;
-  defaultChecked: boolean;
+  checked: boolean;
   disabled: boolean;
+  onChange: (id: string) => void;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm font-bold text-mirai-text">
+    <label
+      className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-3 text-sm font-bold text-mirai-text transition-colors ${
+        checked
+          ? "border-primary bg-primary/10"
+          : "border-gray-200 bg-white hover:bg-mirai-surface-gray"
+      } ${disabled ? "cursor-not-allowed opacity-55" : ""}`}
+    >
       <input
-        type="checkbox"
+        type="radio"
         name="councilor_id"
         value={candidate.id}
-        defaultChecked={defaultChecked}
+        checked={checked}
         disabled={disabled}
+        onChange={() => onChange(candidate.id)}
         className="size-4"
       />
+      <CouncilorAvatar candidate={candidate} />
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span>{candidate.displayName}議員</span>
+        <span className="truncate">{candidate.displayName}議員</span>
         <span className="text-xs text-mirai-text-secondary">
-          {disabled ? "送信済み" : candidate.sourceLabel}
+          {disabled ? "送信済み" : "委員会メンバー"}
         </span>
       </span>
     </label>
+  );
+}
+
+function CouncilorAvatar({
+  candidate,
+}: {
+  candidate: CouncilorRecipientCandidate;
+}) {
+  if (!candidate.iconUrl) {
+    return (
+      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-mirai-surface-muted text-xs text-mirai-text-secondary">
+        顔写真
+      </span>
+    );
+  }
+
+  return (
+    <Image
+      src={candidate.iconUrl}
+      alt=""
+      width={48}
+      height={48}
+      className="size-12 shrink-0 rounded-full object-cover"
+    />
   );
 }

@@ -4,6 +4,10 @@ import {
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import {
+  findReportOwnerAndBill,
+  getReportRecipientSelectionData,
+} from "@/features/councilor-digest/server/repositories/report-recipient-repository";
 import { completeInterviewSession } from "@/features/interview-session/server/services/complete-interview-session";
 import { verifySessionOwnership } from "@/features/interview-session/server/utils/verify-session-ownership";
 import {
@@ -41,7 +45,16 @@ export async function POST(req: Request) {
       isPublicByUser,
     });
 
-    return NextResponse.json({ report });
+    const reportOwner = await findReportOwnerAndBill(report.id);
+    const recipientSelection =
+      reportOwner && reportOwner.userId === ownershipResult.userId
+        ? await getReportRecipientSelectionData({
+            reportId: report.id,
+            billId: reportOwner.billId,
+          })
+        : null;
+
+    return NextResponse.json({ report, recipientSelection });
   } catch (error) {
     console.error("Complete interview error:", error);
     const usageLimitResponse = toUsageLimitResponse(error);
