@@ -2,6 +2,7 @@ import { AdminBillForm } from "@/features/admin/components/admin-bill-form";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
 import { getAdminBillFormData } from "@/features/admin/server/bill-admin";
+import { normalizeAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ interface AdminEditBillPageProps {
   }>;
   searchParams?: Promise<{
     error?: string;
+    return_path?: string;
     saved?: string;
   }>;
 }
@@ -30,6 +32,7 @@ export default async function AdminEditBillPage({
       <AdminBillForm
         data={data}
         error={query?.error}
+        returnPath={normalizeAdminBillsReturnPath(query?.return_path)}
         saved={query?.saved === "1"}
       />
     </AdminShell>

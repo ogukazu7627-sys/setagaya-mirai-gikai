@@ -29,6 +29,7 @@ import { AdminTagSelector } from "./admin-tag-selector";
 interface AdminBillFormProps {
   data: AdminBillFormData;
   error?: string;
+  returnPath?: string;
   saved?: boolean;
 }
 
@@ -108,7 +109,12 @@ function normalizeSources(sources: unknown): BillSource[] {
   );
 }
 
-export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
+export function AdminBillForm({
+  data,
+  error,
+  returnPath = "/admin/bills",
+  saved,
+}: AdminBillFormProps) {
   const bill = data.bill;
   const values = getInitialAdminBillValues(data);
   const sources = normalizeSources(bill?.sources);
@@ -145,6 +151,7 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
       className="flex flex-col gap-6"
     >
       {bill?.id && <input type="hidden" name="id" value={bill.id} />}
+      <input type="hidden" name="return_path" value={returnPath} />
 
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
@@ -157,7 +164,7 @@ export function AdminBillForm({ data, error, saved }: AdminBillFormProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href={"/admin/bills" as Route}>一覧へ戻る</Link>
+            <Link href={returnPath as Route}>一覧へ戻る</Link>
           </Button>
           {previewHref && (
             <Button variant="outline" asChild>

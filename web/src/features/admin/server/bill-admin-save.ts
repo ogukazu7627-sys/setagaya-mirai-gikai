@@ -7,6 +7,10 @@ import type { Route } from "next";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import {
+  appendAdminBillsReturnPath,
+  normalizeAdminBillsReturnPath,
+} from "@/features/admin/shared/admin-bill-return-path";
 import type { BillPublishStatus } from "@/features/bills/shared/types";
 import {
   findUnknownCouncilorNamesByBillId,
@@ -19,7 +23,6 @@ import { requireAdmin } from "./auth";
 import {
   parseBillFormDataOrRedirect,
   redirectToAdminBillFormError,
-  redirectToAdminBillsError,
 } from "./bill-admin-form";
 import { ensurePreviewToken } from "./bill-admin-preview";
 import type { AdminBillSaveInput } from "./bill-admin-schemas";
@@ -57,8 +60,7 @@ const bulkBillIdsSchema = z
   .max(100, "一度に編集できる案件は100件までです。");
 
 function adminBillsReturnPathFromFormData(formData: FormData) {
-  const rawPath = nullableString(formData.get("return_path"));
-  return rawPath?.startsWith("/admin/bills") ? rawPath : "/admin/bills";
+  return normalizeAdminBillsReturnPath(formData.get("return_path"));
 }
 
 function redirectToAdminBillsWithParams(
@@ -435,6 +437,7 @@ export async function saveAdminBillInput(
 export async function saveAdminBill(formData: FormData) {
   await requireAdmin();
 
+  const returnPath = adminBillsReturnPathFromFormData(formData);
   const parsed = parseBillFormDataOrRedirect(formData);
   const thumbnailFile = (() => {
     try {
@@ -444,7 +447,8 @@ export async function saveAdminBill(formData: FormData) {
         parsed.id,
         error instanceof Error
           ? error.message
-          : "サムネイル画像を確認してください。"
+          : "サムネイル画像を確認してください。",
+        returnPath
       );
     }
   })();
@@ -464,7 +468,8 @@ export async function saveAdminBill(formData: FormData) {
         parsed.id,
         error instanceof Error
           ? error.message
-          : "ナレッジソースファイルを読み取れませんでした。"
+          : "ナレッジソースファイルを読み取れませんでした。",
+        returnPath
       );
     }
   })();
@@ -482,29 +487,39 @@ export async function saveAdminBill(formData: FormData) {
         : parsed.id;
     redirectToAdminBillFormError(
       billId,
-      error instanceof Error ? error.message : "保存に失敗しました。"
+      error instanceof Error ? error.message : "保存に失敗しました。",
+      returnPath
     );
   }
 
-  redirect(`/admin/bills/${result.billId}/edit?saved=1` as Route);
+  redirect(
+    appendAdminBillsReturnPath(
+      `/admin/bills/${result.billId}/edit?saved=1`,
+      returnPath
+    ) as Route
+  );
 }
 
 export async function deleteAdminBill(formData: FormData) {
   await requireAdmin("/admin/bills");
 
+  const returnPath = adminBillsReturnPathFromFormData(formData);
   const billIdResult = z
     .string()
     .uuid()
     .safeParse(nullableString(formData.get("id")));
 
   if (!billIdResult.success) {
-    redirectToAdminBillsError("削除対象の案件を確認できませんでした。");
+    redirectToAdminBillsWithParams(returnPath, {
+      error: "削除対象の案件を確認できませんでした。",
+    });
   }
 
   if (isSetagayaMockMode) {
-    redirectToAdminBillsError(
-      "現在はローカルのモック表示中です。削除するにはSupabase接続を設定してください。"
-    );
+    redirectToAdminBillsWithParams(returnPath, {
+      error:
+        "現在はローカルのモック表示中です。削除するにはSupabase接続を設定してください。",
+    });
   }
 
   const supabase = createAdminClient();
@@ -516,15 +531,19 @@ export async function deleteAdminBill(formData: FormData) {
     .maybeSingle();
 
   if (error) {
-    redirectToAdminBillsError(`削除に失敗しました: ${error.message}`);
+    redirectToAdminBillsWithParams(returnPath, {
+      error: `削除に失敗しました: ${error.message}`,
+    });
   }
 
   if (!data) {
-    redirectToAdminBillsError("削除対象の案件が見つかりませんでした。");
+    redirectToAdminBillsWithParams(returnPath, {
+      error: "削除対象の案件が見つかりませんでした。",
+    });
   }
 
   revalidateTag(CACHE_TAGS.BILLS);
-  redirect("/admin/bills?deleted=1" as Route);
+  redirectToAdminBillsWithParams(returnPath, { deleted: "1" });
 }
 
 export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
