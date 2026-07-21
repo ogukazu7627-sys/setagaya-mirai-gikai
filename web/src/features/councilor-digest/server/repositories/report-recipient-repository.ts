@@ -77,6 +77,7 @@ export async function listRecipientCandidates(billId: string) {
         .from("councilors")
         .select("id, display_name, normalized_name, icon_url")
         .eq("is_active", true)
+        .not("icon_url", "is", null)
         .order("display_name", { ascending: true }),
       supabase
         .from("committees")
@@ -122,7 +123,7 @@ export async function listRecipientCandidates(billId: string) {
       const councilor = Array.isArray(member.councilors)
         ? member.councilors[0]
         : member.councilors;
-      if (councilor) {
+      if (councilor?.icon_url) {
         recommended.push(
           toCandidate(councilor as CouncilorRow, "committee_member", true)
         );
