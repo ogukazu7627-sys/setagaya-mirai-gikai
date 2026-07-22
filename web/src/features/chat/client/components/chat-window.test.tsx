@@ -1,12 +1,20 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatWindow } from "./chat-window";
 
+const mediaQueryMock = vi.hoisted(() => ({
+  matches: true,
+}));
+
 vi.mock("@/hooks/use-is-desktop", () => ({
   useIsDesktop: () => true,
+}));
+
+vi.mock("@/hooks/use-media-query", () => ({
+  useMediaQuery: () => mediaQueryMock.matches,
 }));
 
 vi.mock("@/hooks/use-viewport-height", () => ({
@@ -57,6 +65,10 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
+});
+
+beforeEach(() => {
+  mediaQueryMock.matches = true;
 });
 
 function createChatState(sendMessage = vi.fn()) {
@@ -204,6 +216,36 @@ describe("ChatWindow auth gate", () => {
     expect(
       screen.queryByRole("tab", { name: "AIインタビュー" })
     ).not.toBeInTheDocument();
+  });
+
+  it("スマホ幅では公開インタビュー設定があってもAIインタビュータブを表示しない", () => {
+    const onActiveModeChange = vi.fn();
+    mediaQueryMock.matches = false;
+
+    render(
+      <ChatWindow
+        activeMode="interview"
+        authStatus="authenticated"
+        billContext={createBillContext()}
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        hasInterviewConfig
+        isOpen
+        onActiveModeChange={onActiveModeChange}
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    expect(screen.queryByRole("tab", { name: "質問" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "AIインタビュー" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("わからないことをAIに質問する")
+    ).toBeInTheDocument();
+    expect(onActiveModeChange).toHaveBeenCalledWith("question");
   });
 
   it("未ログインでAIインタビューを開くとGoogleログインゲートを表示する", async () => {
