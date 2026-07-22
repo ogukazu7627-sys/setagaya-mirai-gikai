@@ -22,6 +22,7 @@ import {
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { InterviewSidePanel } from "@/features/interview-session/client/components/interview-side-panel";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
 import type { ChatAuthStatus } from "../hooks/use-chat-auth";
 import { GoogleLoginGate } from "./google-login-gate";
@@ -225,6 +226,7 @@ export function ChatWindow({
   const { messages, sendMessage, status, error } = chatState;
   const safeMessages = messages ?? [];
   const isDesktop = useIsDesktop();
+  const canShowInterviewInChatPanel = useMediaQuery("(min-width: 768px)");
   const viewportHeight = useViewportHeight();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -234,18 +236,22 @@ export function ChatWindow({
   const isInputDisabled = previewOnly || isChatLocked;
   const canUseInterview =
     billContext?.interview_enabled === true && hasInterviewConfig === true;
+  const canUseInterviewInChatPanel =
+    canUseInterview && canShowInterviewInChatPanel;
   const resolvedMode =
-    canUseInterview && activeMode === "interview" ? "interview" : "question";
+    canUseInterviewInChatPanel && activeMode === "interview"
+      ? "interview"
+      : "question";
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!canUseInterview && activeMode === "interview") {
+    if (!canUseInterviewInChatPanel && activeMode === "interview") {
       onActiveModeChange?.("question");
     }
-  }, [activeMode, canUseInterview, onActiveModeChange]);
+  }, [activeMode, canUseInterviewInChatPanel, onActiveModeChange]);
 
   useEffect(() => {
     if (!isOpen || isDesktop) {
@@ -372,7 +378,7 @@ export function ChatWindow({
         >
           <X className="h-5 w-5" />
         </button>
-        {canUseInterview && (
+        {canUseInterviewInChatPanel && (
           <div className="px-6 pb-2 pc:pt-6">
             <div
               aria-label="チャットモード"
@@ -412,7 +418,7 @@ export function ChatWindow({
           <Conversation className="flex-1 min-h-0 overscroll-contain touch-pan-y">
             <ConversationContent
               className={`p-0 flex flex-col gap-3 pb-2 px-6 ${
-                canUseInterview ? "pc:pt-0" : "pc:pt-6"
+                canUseInterviewInChatPanel ? "pc:pt-0" : "pc:pt-6"
               }`}
             >
               <ChatMessages
@@ -486,7 +492,7 @@ export function ChatWindow({
           </div>
         </div>
 
-        {canUseInterview && (
+        {canUseInterviewInChatPanel && (
           <div
             className="flex min-h-0 flex-1 flex-col overscroll-contain touch-pan-y"
             hidden={resolvedMode !== "interview"}
