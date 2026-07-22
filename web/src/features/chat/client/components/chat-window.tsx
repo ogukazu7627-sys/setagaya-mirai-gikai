@@ -2,8 +2,8 @@
 
 import { X } from "lucide-react";
 import Image from "next/image";
-import type { ChangeEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import {
@@ -23,7 +23,7 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { InterviewSidePanel } from "@/features/interview-session/client/components/interview-side-panel";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useViewportHeight } from "@/hooks/use-viewport-height";
+import { useVisualViewportFrame } from "@/hooks/use-visual-viewport-frame";
 import type { ChatAuthStatus } from "../hooks/use-chat-auth";
 import { GoogleLoginGate } from "./google-login-gate";
 import { SystemMessage } from "./system-message";
@@ -227,7 +227,7 @@ export function ChatWindow({
   const safeMessages = messages ?? [];
   const isDesktop = useIsDesktop();
   const canShowInterviewInChatPanel = useMediaQuery("(min-width: 768px)");
-  const viewportHeight = useViewportHeight();
+  const visualViewportFrame = useVisualViewportFrame(isOpen && !isDesktop);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isResponding = status === "streaming" || status === "submitted";
@@ -242,6 +242,41 @@ export function ChatWindow({
     canUseInterviewInChatPanel && activeMode === "interview"
       ? "interview"
       : "question";
+  const isMobileSheet = !isDesktop;
+  const isKeyboardOpen = visualViewportFrame.keyboardInset > 0;
+  const mobileOverlayStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!isMobileSheet) {
+      return undefined;
+    }
+
+    return {
+      height: `${visualViewportFrame.height}px`,
+      left: `${visualViewportFrame.offsetLeft}px`,
+      top: `${visualViewportFrame.offsetTop}px`,
+      width: `${visualViewportFrame.width}px`,
+    };
+  }, [isMobileSheet, visualViewportFrame]);
+  const mobileSheetStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!isMobileSheet) {
+      return undefined;
+    }
+
+    const sheetHeight = visualViewportFrame.height * 0.82;
+    const sheetTop =
+      visualViewportFrame.offsetTop + visualViewportFrame.height - sheetHeight;
+
+    return {
+      "--chat-composer-bottom-padding": isKeyboardOpen
+        ? "10px"
+        : "max(10px, env(safe-area-inset-bottom))",
+      bottom: "auto",
+      height: `${sheetHeight}px`,
+      left: `${visualViewportFrame.offsetLeft}px`,
+      right: "auto",
+      top: `${sheetTop}px`,
+      width: `${visualViewportFrame.width}px`,
+    } as CSSProperties;
+  }, [isKeyboardOpen, isMobileSheet, visualViewportFrame]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -269,7 +304,10 @@ export function ChatWindow({
       top: bodyStyle.top,
       width: bodyStyle.width,
     };
-    const previousHtmlOverscrollBehavior = htmlStyle.overscrollBehavior;
+    const previousHtml = {
+      overflow: htmlStyle.overflow,
+      overscrollBehavior: htmlStyle.overscrollBehavior,
+    };
 
     bodyStyle.position = "fixed";
     bodyStyle.top = `-${scrollY}px`;
@@ -277,6 +315,7 @@ export function ChatWindow({
     bodyStyle.right = "0";
     bodyStyle.width = "100%";
     bodyStyle.overflow = "hidden";
+    htmlStyle.overflow = "hidden";
     htmlStyle.overscrollBehavior = "none";
 
     return () => {
@@ -286,20 +325,21 @@ export function ChatWindow({
       bodyStyle.right = previousBody.right;
       bodyStyle.width = previousBody.width;
       bodyStyle.overflow = previousBody.overflow;
-      htmlStyle.overscrollBehavior = previousHtmlOverscrollBehavior;
+      htmlStyle.overflow = previousHtml.overflow;
+      htmlStyle.overscrollBehavior = previousHtml.overscrollBehavior;
       window.scrollTo(0, scrollY);
     };
   }, [isDesktop, isOpen]);
 
   // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       isOpen &&
       resolvedMode === "question" &&
       textareaRef.current &&
       !disableAutoFocus
     ) {
-      textareaRef.current?.focus();
+      textareaRef.current.focus({ preventScroll: true });
     }
   }, [isOpen, disableAutoFocus, resolvedMode]);
 
@@ -348,7 +388,8 @@ export function ChatWindow({
       {isOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity cursor-default pc:hidden"
+          className="fixed z-40 bg-black/50 transition-opacity cursor-default pc:hidden"
+          style={mobileOverlayStyle}
           onClick={onClose}
           aria-label="モーダルを閉じる"
         />
@@ -357,18 +398,16 @@ export function ChatWindow({
       {/* チャットウィンドウ */}
       <div
         // xlサイズでは、横幅1180px（メイン + チャット）の中央寄せにする
-        className={`fixed inset-x-0 bottom-0 z-50
+        className={`fixed z-50
           bg-white shadow-md rounded-t-2xl flex flex-col overscroll-contain touch-pan-y
-          md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl
-					pc:visible pc:opacity-100 h-[80vh] pc:h-[70vh]
+          md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl md:h-[80vh]
+						pc:visible pc:opacity-100 pc:h-[70vh]
           xl:right-[calc(calc(100%-1180px)/2)]
-					${isOpen ? "visible opacity-100" : "invisible opacity-0 pc:visible pc:opacity-100"}
-				`}
-        style={
-          viewportHeight && !isDesktop
-            ? { maxHeight: `${viewportHeight}px` }
-            : undefined
-        }
+          transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none
+						${isOpen ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-0 pc:visible pc:translate-y-0 pc:opacity-100"}
+					`}
+        data-testid="chat-window-sheet"
+        style={mobileSheetStyle}
       >
         <button
           type="button"
@@ -438,7 +477,10 @@ export function ChatWindow({
           </Conversation>
 
           {/* 入力エリア（固定下部） */}
-          <div className="px-6 pb-4 pt-2">
+          <div
+            className="shrink-0 bg-white px-6 pb-[var(--chat-composer-bottom-padding,1rem)] pt-2"
+            data-testid="chat-window-composer"
+          >
             <div className="relative">
               <PromptInput
                 onSubmit={handleSubmit}
@@ -456,7 +498,7 @@ export function ChatWindow({
                     rows={1}
                     submitOnEnter={isDesktop}
                     // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                    className={`!min-h-0 min-w-0 wrap-anywhere text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
+                    className={`!min-h-0 min-w-0 wrap-anywhere text-base md:text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
                   />
                 </PromptInputBody>
                 <button

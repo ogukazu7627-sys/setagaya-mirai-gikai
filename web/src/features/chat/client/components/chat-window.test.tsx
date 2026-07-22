@@ -8,17 +8,29 @@ import { ChatWindow } from "./chat-window";
 const mediaQueryMock = vi.hoisted(() => ({
   matches: true,
 }));
+const desktopMock = vi.hoisted(() => ({
+  isDesktop: true,
+}));
+const visualViewportFrameMock = vi.hoisted(() => ({
+  frame: {
+    height: 720,
+    keyboardInset: 0,
+    offsetLeft: 0,
+    offsetTop: 0,
+    width: 390,
+  },
+}));
 
 vi.mock("@/hooks/use-is-desktop", () => ({
-  useIsDesktop: () => true,
+  useIsDesktop: () => desktopMock.isDesktop,
 }));
 
 vi.mock("@/hooks/use-media-query", () => ({
   useMediaQuery: () => mediaQueryMock.matches,
 }));
 
-vi.mock("@/hooks/use-viewport-height", () => ({
-  useViewportHeight: () => null,
+vi.mock("@/hooks/use-visual-viewport-frame", () => ({
+  useVisualViewportFrame: () => visualViewportFrameMock.frame,
 }));
 
 vi.mock("next/image", () => ({
@@ -65,10 +77,22 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
+  Object.defineProperty(window, "scrollTo", {
+    configurable: true,
+    value: vi.fn(),
+  });
 });
 
 beforeEach(() => {
   mediaQueryMock.matches = true;
+  desktopMock.isDesktop = true;
+  visualViewportFrameMock.frame = {
+    height: 720,
+    keyboardInset: 0,
+    offsetLeft: 0,
+    offsetTop: 0,
+    width: 390,
+  };
 });
 
 function createChatState(sendMessage = vi.fn()) {
@@ -221,6 +245,7 @@ describe("ChatWindow auth gate", () => {
   it("スマホ幅では公開インタビュー設定があってもAIインタビュータブを表示しない", () => {
     const onActiveModeChange = vi.fn();
     mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
 
     render(
       <ChatWindow
@@ -246,6 +271,42 @@ describe("ChatWindow auth gate", () => {
       screen.getByPlaceholderText("わからないことをAIに質問する")
     ).toBeInTheDocument();
     expect(onActiveModeChange).toHaveBeenCalledWith("question");
+  });
+
+  it("スマホではvisual viewportに合わせてシートと入力欄を配置する", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+    visualViewportFrameMock.frame = {
+      height: 500,
+      keyboardInset: 280,
+      offsetLeft: 0,
+      offsetTop: 20,
+      width: 390,
+    };
+
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    const sheet = screen.getByTestId("chat-window-sheet");
+    expect(sheet).toHaveStyle({
+      height: "410px",
+      left: "0px",
+      top: "110px",
+      width: "390px",
+    });
+    expect(sheet.style.getPropertyValue("--chat-composer-bottom-padding")).toBe(
+      "10px"
+    );
+    expect(screen.getByTestId("chat-window-composer")).toBeInTheDocument();
   });
 
   it("未ログインでAIインタビューを開くとGoogleログインゲートを表示する", async () => {
