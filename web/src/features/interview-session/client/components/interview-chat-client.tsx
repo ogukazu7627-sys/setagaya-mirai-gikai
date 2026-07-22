@@ -326,6 +326,7 @@ export function InterviewChatClient({
               input={input}
               onInputChange={setInput}
               onSubmit={handleSubmit}
+              canPrefetchCompletion={stage === "summary_complete"}
               onResume={handleResumeInterview}
               isLoading={isLoading}
               error={error}

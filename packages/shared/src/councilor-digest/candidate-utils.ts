@@ -12,6 +12,33 @@ export function normalizeJapaneseName(value: string) {
     .trim();
 }
 
+export function normalizeCommitteeName(value: string) {
+  return value
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .replace(/[・･、，,／\/\\]/g, "")
+    .replace(/[()（）「」『』【】［］\[\]]/g, "")
+    .replace(/等/g, "")
+    .trim();
+}
+
+export function isCommitteeNameMatch(
+  sourceName: string,
+  candidateName: string
+) {
+  const source = normalizeCommitteeName(sourceName);
+  const candidate = normalizeCommitteeName(candidateName);
+  if (!source || !candidate) {
+    return false;
+  }
+
+  return (
+    source === candidate ||
+    source.includes(candidate) ||
+    candidate.includes(source)
+  );
+}
+
 export function extractQuestionerName(statusNote: string | null | undefined) {
   if (!statusNote) {
     return null;
@@ -32,10 +59,12 @@ export function extractCommitteeName(statusNote: string | null | undefined) {
 
   const normalized = statusNote.normalize("NFKC");
   return (
-    normalized.match(/(?:報告先|付託委員会|担当委員会)[:：]\s*([^\n、,]+)/u)
+    normalized.match(/(?:報告先|付託委員会|担当委員会)[:：]\s*([^\n、,。]+?委員会)/u)
       ?.[1] ??
     normalized.match(/(?:（|\()([^（）()]*委員会)(?:）|\))/u)?.[1] ??
-    normalized.match(/([一-龠ぁ-んァ-ヶー]+委員会)/u)?.[1] ??
+    normalized.match(
+      /([一-龠ぁ-んァ-ヶー0-9０-９A-Za-z・･／\/]+委員会)/u
+    )?.[1] ??
     null
   );
 }

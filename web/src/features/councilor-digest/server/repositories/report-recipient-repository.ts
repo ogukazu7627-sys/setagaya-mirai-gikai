@@ -3,7 +3,7 @@ import "server-only";
 import {
   type CandidateSource,
   extractCommitteeName,
-  normalizeJapaneseName,
+  isCommitteeNameMatch,
   uniqueById,
 } from "@mirai-gikai/shared/councilor-digest/candidate-utils";
 import { createAdminClient } from "@mirai-gikai/supabase";
@@ -40,6 +40,7 @@ type CommitteeCouncilorRow = {
 };
 
 type CommitteeRow = {
+  name: string;
   normalized_name: string;
   committee_councilors: CommitteeCouncilorRow[] | null;
 };
@@ -88,7 +89,7 @@ export async function listRecipientCandidates(billId: string) {
     supabase
       .from("committees")
       .select(
-        "id, normalized_name, committee_councilors(sort_order, councilors(id, display_name, normalized_name, icon_url))"
+        "id, name, normalized_name, committee_councilors(sort_order, councilors(id, display_name, normalized_name, icon_url))"
       )
       .eq("is_active", true),
   ]);
@@ -98,11 +99,10 @@ export async function listRecipientCandidates(billId: string) {
     return [];
   }
 
-  const normalizedCommitteeName = normalizeJapaneseName(committeeName);
   const committee = ((committeeRows ?? []) as CommitteeRow[]).find(
     (row) =>
-      normalizeJapaneseName(String(row.normalized_name)) ===
-      normalizedCommitteeName
+      isCommitteeNameMatch(committeeName, String(row.normalized_name)) ||
+      isCommitteeNameMatch(committeeName, String(row.name))
   );
   const memberRows = Array.isArray(committee?.committee_councilors)
     ? [...committee.committee_councilors].sort(
