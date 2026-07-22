@@ -88,7 +88,7 @@ export function InterviewPublicConsentModal({
             disabled={isSubmitting}
             className="w-full text-gray-500"
           >
-            公開せず完了する
+            {isSubmitting ? "設定中..." : "公開せず完了する"}
           </Button>
         </div>
       </DialogContent>

@@ -16,7 +16,7 @@ import {
 } from "@/features/interview-session/shared/utils/public-setting";
 
 export async function POST(req: Request) {
-  const { sessionId, isPublic } = await req.json();
+  const { sessionId, isPublic, includeRecipientSelection } = await req.json();
   const isPublicByUser = parseUserPublicSetting(isPublic);
 
   if (!sessionId) {
@@ -44,6 +44,10 @@ export async function POST(req: Request) {
       userId: ownershipResult.userId,
       isPublicByUser,
     });
+
+    if (includeRecipientSelection === false) {
+      return NextResponse.json({ report, recipientSelection: null });
+    }
 
     const reportOwner = await findReportOwnerAndBill(report.id);
     const recipientSelection =

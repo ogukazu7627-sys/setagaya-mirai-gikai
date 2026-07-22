@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
+import type { ReportRecipientSelection } from "@/features/councilor-digest/shared/types";
 import { useEndInterview } from "../hooks/use-end-interview";
 import { useInterviewCompletion } from "../hooks/use-interview-completion";
 import {
   type CompleteInterviewResult,
   callCompleteApi,
+  callRecipientCandidatesApi,
 } from "../utils/interview-api-client";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewRecipientSelectionStep } from "./interview-recipient-selection-step";
@@ -42,14 +44,21 @@ export function InterviewSummaryInput({
 }: InterviewSummaryInputProps) {
   const [completionResult, setCompletionResult] =
     useState<CompleteInterviewResult | null>(null);
+  const [recipientSelectionPreview, setRecipientSelectionPreview] =
+    useState<ReportRecipientSelection | null>(null);
   const [recipientSelectionError, setRecipientSelectionError] = useState<
     string | null
   >(null);
   const [prefetchedCompletionResult, setPrefetchedCompletionResult] =
     useState<CompleteInterviewResult | null>(null);
-  const [isWaitingForCompletion, setIsWaitingForCompletion] = useState(false);
+  const [isRecipientSelectionVisible, setIsRecipientSelectionVisible] =
+    useState(false);
+  const [isRecipientSelectionLoading, setIsRecipientSelectionLoading] =
+    useState(false);
   const completionPrefetchRef =
     useRef<Promise<CompleteInterviewResult | null> | null>(null);
+  const recipientSelectionPrefetchRef =
+    useRef<Promise<ReportRecipientSelection | null> | null>(null);
   const { isCompleting, completeError, completeInterview } =
     useInterviewCompletion({
       sessionId,
@@ -60,7 +69,8 @@ export function InterviewSummaryInput({
     previewToken
   );
   const reportId = completionResult?.report?.id;
-  const recipientSelection = completionResult?.recipientSelection;
+  const recipientSelection =
+    completionResult?.recipientSelection ?? recipientSelectionPreview;
 
   const startCompletionPrefetch = useCallback(() => {
     if (
@@ -74,9 +84,16 @@ export function InterviewSummaryInput({
       return;
     }
 
-    const promise = callCompleteApi({ sessionId, isPublic: false })
+    const promise = callCompleteApi({
+      sessionId,
+      isPublic: false,
+      includeRecipientSelection: false,
+    })
       .then((result) => {
         setPrefetchedCompletionResult(result);
+        if (isRecipientSelectionVisible) {
+          setCompletionResult(result);
+        }
         return result;
       })
       .catch((error) => {
@@ -89,25 +106,53 @@ export function InterviewSummaryInput({
     canPrefetchCompletion,
     completionResult,
     hasReport,
+    isRecipientSelectionVisible,
     isLoading,
     prefetchedCompletionResult,
     sessionId,
   ]);
 
+  const startRecipientSelectionPrefetch = useCallback(() => {
+    if (
+      !canPrefetchCompletion ||
+      !hasReport ||
+      recipientSelectionPreview ||
+      recipientSelectionPrefetchRef.current
+    ) {
+      return recipientSelectionPrefetchRef.current;
+    }
+
+    setIsRecipientSelectionLoading(true);
+    const promise = callRecipientCandidatesApi({ sessionId })
+      .then((result) => {
+        setRecipientSelectionPreview(result.recipientSelection);
+        return result.recipientSelection;
+      })
+      .catch((error) => {
+        console.error("Failed to prefetch recipient candidates:", error);
+        setRecipientSelectionError(
+          "議員候補の確認に失敗しました。時間をおいて再度お試しください。"
+        );
+        recipientSelectionPrefetchRef.current = null;
+        return null;
+      })
+      .finally(() => {
+        setIsRecipientSelectionLoading(false);
+      });
+
+    recipientSelectionPrefetchRef.current = promise;
+    return promise;
+  }, [canPrefetchCompletion, hasReport, recipientSelectionPreview, sessionId]);
+
   useEffect(() => {
     startCompletionPrefetch();
-  }, [startCompletionPrefetch]);
+    startRecipientSelectionPrefetch();
+  }, [startCompletionPrefetch, startRecipientSelectionPrefetch]);
 
-  const showRecipientSelection = (result: CompleteInterviewResult | null) => {
-    if (result?.report?.id && result.recipientSelection) {
+  const resolveCompletionResult = (result: CompleteInterviewResult | null) => {
+    if (result?.report?.id) {
       setCompletionResult(result);
       return true;
-    }
-    if (result?.report?.id) {
-      setRecipientSelectionError(
-        "議員選択の準備に失敗しました。時間をおいて再度お試しください。"
-      );
-      return false;
     }
     setRecipientSelectionError(
       "インタビュー完了処理に失敗しました。時間をおいて再度お試しください。"
@@ -116,39 +161,56 @@ export function InterviewSummaryInput({
   };
 
   const handleStartRecipientSelection = async () => {
+    setIsRecipientSelectionVisible(true);
     setRecipientSelectionError(null);
-    if (
-      prefetchedCompletionResult &&
-      showRecipientSelection(prefetchedCompletionResult)
-    ) {
+    startRecipientSelectionPrefetch();
+
+    if (prefetchedCompletionResult) {
+      resolveCompletionResult(prefetchedCompletionResult);
       return;
     }
 
-    setIsWaitingForCompletion(true);
     const prefetchedResult = completionPrefetchRef.current
       ? await completionPrefetchRef.current
       : null;
-    if (prefetchedResult && showRecipientSelection(prefetchedResult)) {
-      setIsWaitingForCompletion(false);
+    if (prefetchedResult && resolveCompletionResult(prefetchedResult)) {
       return;
     }
 
     const result = await completeInterview(false);
-    showRecipientSelection(result);
-    setIsWaitingForCompletion(false);
+    resolveCompletionResult(result);
   };
 
-  const isPreparingRecipientSelection = isCompleting || isWaitingForCompletion;
+  const isReportPreparing = isCompleting || (!reportId && !completeError);
 
   return (
     <>
-      {reportId && recipientSelection ? (
+      {isRecipientSelectionVisible ? (
         <div className="mb-3">
-          <InterviewRecipientSelectionStep
-            sessionId={sessionId}
-            reportId={reportId}
-            selection={recipientSelection}
-          />
+          {recipientSelection ? (
+            <InterviewRecipientSelectionStep
+              sessionId={sessionId}
+              reportId={reportId ?? null}
+              selection={recipientSelection}
+              isReportPreparing={isReportPreparing}
+              reportPreparationError={completeError}
+            />
+          ) : (
+            <div className="rounded-2xl border border-primary/20 bg-white px-4 py-4 text-sm font-bold leading-[1.8] text-mirai-text-secondary shadow-sm">
+              {isRecipientSelectionLoading
+                ? "議員候補を確認しています..."
+                : (recipientSelectionError ??
+                  "議員候補を確認できませんでした。時間をおいて再度お試しください。")}
+            </div>
+          )}
+          {completeError && (
+            <p className="mt-2 text-sm text-red-500">{completeError}</p>
+          )}
+          {recipientSelectionError && recipientSelection && (
+            <p className="mt-2 text-sm text-red-500">
+              {recipientSelectionError}
+            </p>
+          )}
         </div>
       ) : (
         !isLoading && (
@@ -156,11 +218,9 @@ export function InterviewSummaryInput({
             {hasReport ? (
               <Button
                 onClick={handleStartRecipientSelection}
-                disabled={isPreparingRecipientSelection}
+                disabled={isCompleting}
               >
-                {isPreparingRecipientSelection
-                  ? "準備しています..."
-                  : "内容に同意して議員を選ぶ"}
+                内容に同意して議員を選ぶ
               </Button>
             ) : (
               <>
@@ -188,7 +248,7 @@ export function InterviewSummaryInput({
           </div>
         )
       )}
-      {hasReport && !completionResult && (
+      {hasReport && !isRecipientSelectionVisible && (
         <InterviewChatInput
           input={input}
           onInputChange={onInputChange}
