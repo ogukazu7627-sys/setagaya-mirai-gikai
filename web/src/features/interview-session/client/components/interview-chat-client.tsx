@@ -1,6 +1,7 @@
 "use client";
 
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
+import type { CSSProperties } from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
   Conversation,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ai-elements/conversation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useViewportHeight } from "@/hooks/use-viewport-height";
+import { useVisualViewportFrame } from "@/hooks/use-visual-viewport-frame";
 import { isLoopFamilyMode } from "../../shared/utils/is-loop-family-mode";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -84,8 +85,11 @@ export function InterviewChatClient({
   });
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
-  const viewportHeight = useViewportHeight();
   const isMobileViewport = useMediaQuery("(max-width: 767px)");
+  const shouldUseMobileViewportFrame = layout === "page" && isMobileViewport;
+  const visualViewportFrame = useVisualViewportFrame(
+    shouldUseMobileViewportFrame
+  );
 
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
@@ -103,10 +107,34 @@ export function InterviewChatClient({
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
   const isPanelLayout = layout === "panel";
   const isChatInputBusy = isLoading || isPreparingInitialQuestion;
-  const mobileViewportStyle =
-    !isPanelLayout && isMobileViewport && viewportHeight
-      ? { height: `${viewportHeight}px` }
-      : undefined;
+  const isKeyboardOpen = visualViewportFrame.keyboardInset > 0;
+  const mobileViewportStyle = useMemo<CSSProperties | undefined>(() => {
+    if (!shouldUseMobileViewportFrame) {
+      return undefined;
+    }
+
+    return {
+      bottom: "auto",
+      height: `${visualViewportFrame.height}px`,
+      left: `${visualViewportFrame.offsetLeft}px`,
+      overflow: "hidden",
+      position: "fixed",
+      right: "auto",
+      top: `${visualViewportFrame.offsetTop}px`,
+      width: `${visualViewportFrame.width}px`,
+    };
+  }, [shouldUseMobileViewportFrame, visualViewportFrame]);
+  const inputAreaStyle = useMemo<CSSProperties | undefined>(() => {
+    if (isPanelLayout) {
+      return undefined;
+    }
+
+    return {
+      "--interview-composer-bottom-padding": isKeyboardOpen
+        ? "10px"
+        : "max(0.75rem, env(safe-area-inset-bottom))",
+    } as CSSProperties;
+  }, [isKeyboardOpen, isPanelLayout]);
 
   // チャット操作時にタイムアップアラートを自動非表示にする
   const dismissTimeUpIfNeeded = useCallback(() => {
@@ -171,6 +199,7 @@ export function InterviewChatClient({
           ? "flex h-full min-h-0 flex-col bg-white"
           : "h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light"
       }
+      data-testid="interview-chat-root"
       style={mobileViewportStyle}
     >
       <div
@@ -304,7 +333,11 @@ export function InterviewChatClient({
         )}
 
         {/* 入力エリア */}
-        <div className="bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+        <div
+          className="shrink-0 bg-white px-6 pb-[var(--interview-composer-bottom-padding,max(0.75rem,env(safe-area-inset-bottom)))] pt-2"
+          data-testid="interview-chat-composer"
+          style={inputAreaStyle}
+        >
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
               sessionId={sessionId}
