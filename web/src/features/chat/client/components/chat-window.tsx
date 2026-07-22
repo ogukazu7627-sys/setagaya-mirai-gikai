@@ -247,6 +247,44 @@ export function ChatWindow({
     }
   }, [activeMode, canUseInterview, onActiveModeChange]);
 
+  useEffect(() => {
+    if (!isOpen || isDesktop) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const { style: bodyStyle } = document.body;
+    const { style: htmlStyle } = document.documentElement;
+    const previousBody = {
+      left: bodyStyle.left,
+      overflow: bodyStyle.overflow,
+      position: bodyStyle.position,
+      right: bodyStyle.right,
+      top: bodyStyle.top,
+      width: bodyStyle.width,
+    };
+    const previousHtmlOverscrollBehavior = htmlStyle.overscrollBehavior;
+
+    bodyStyle.position = "fixed";
+    bodyStyle.top = `-${scrollY}px`;
+    bodyStyle.left = "0";
+    bodyStyle.right = "0";
+    bodyStyle.width = "100%";
+    bodyStyle.overflow = "hidden";
+    htmlStyle.overscrollBehavior = "none";
+
+    return () => {
+      bodyStyle.position = previousBody.position;
+      bodyStyle.top = previousBody.top;
+      bodyStyle.left = previousBody.left;
+      bodyStyle.right = previousBody.right;
+      bodyStyle.width = previousBody.width;
+      bodyStyle.overflow = previousBody.overflow;
+      htmlStyle.overscrollBehavior = previousHtmlOverscrollBehavior;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isDesktop, isOpen]);
+
   // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
   useEffect(() => {
     if (
@@ -314,7 +352,7 @@ export function ChatWindow({
       <div
         // xlサイズでは、横幅1180px（メイン + チャット）の中央寄せにする
         className={`fixed inset-x-0 bottom-0 z-50
-          bg-white shadow-md rounded-t-2xl flex flex-col
+          bg-white shadow-md rounded-t-2xl flex flex-col overscroll-contain touch-pan-y
           md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl
 					pc:visible pc:opacity-100 h-[80vh] pc:h-[70vh]
           xl:right-[calc(calc(100%-1180px)/2)]
@@ -367,11 +405,11 @@ export function ChatWindow({
         )}
 
         <div
-          className="flex min-h-0 flex-1 flex-col"
+          className="flex min-h-0 flex-1 flex-col overscroll-contain"
           hidden={resolvedMode !== "question"}
         >
           {/* メッセージエリア（スクロール可能） */}
-          <Conversation className="flex-1 min-h-0">
+          <Conversation className="flex-1 min-h-0 overscroll-contain touch-pan-y">
             <ConversationContent
               className={`p-0 flex flex-col gap-3 pb-2 px-6 ${
                 canUseInterview ? "pc:pt-0" : "pc:pt-6"
@@ -450,7 +488,7 @@ export function ChatWindow({
 
         {canUseInterview && (
           <div
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex min-h-0 flex-1 flex-col overscroll-contain touch-pan-y"
             hidden={resolvedMode !== "interview"}
           >
             <InterviewSidePanel

@@ -55,9 +55,11 @@ export function InterviewRecipientSelectionStep({
     [selectedCouncilorId, selection.candidates]
   );
   const hasCandidates = selection.candidates.length > 0;
+  const acceptedCandidate =
+    completionPhase === "done" && state.success ? submittedCandidate : null;
 
   useEffect(() => {
-    if (completionPhase !== "flying" || !state.message) {
+    if (completionPhase !== "flying" || isPending || !state.message) {
       return;
     }
 
@@ -77,7 +79,7 @@ export function InterviewRecipientSelectionStep({
       window.clearTimeout(doneTimer);
       window.clearTimeout(modalTimer);
     };
-  }, [completionPhase, state.message, state.success]);
+  }, [completionPhase, isPending, state.message, state.success]);
 
   const handlePublicSubmit = async (isPublic: boolean) => {
     setIsPublicSubmitting(true);
@@ -116,25 +118,61 @@ export function InterviewRecipientSelectionStep({
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-[1.8] text-amber-800">
             この案件では委員会メンバー候補を確認できませんでした。管理画面で委員会情報を確認してください。
           </p>
+        ) : acceptedCandidate ? (
+          <div className="flex flex-col gap-4">
+            <div className="animate-fade-in flex items-center gap-3 rounded-xl border border-primary/20 bg-mirai-gradient px-4 py-4">
+              {acceptedCandidate.iconUrl ? (
+                <Image
+                  src={acceptedCandidate.iconUrl}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="size-12 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white/70 text-xs text-mirai-text-secondary">
+                  顔写真
+                </span>
+              )}
+              <p className="text-sm font-bold leading-[1.7] text-mirai-text">
+                {acceptedCandidate.displayName}
+                議員への提出が完了しました。
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => setIsPublicModalOpen(true)}
+              disabled={isPublicSubmitting}
+              className="w-full"
+            >
+              このインタビュー結果の公開設定へ進む
+            </Button>
+          </div>
         ) : (
           <form
             action={formAction}
             className="flex flex-col gap-4"
-            onSubmit={() => {
+            onSubmit={(event) => {
+              if (!selectedCandidate) {
+                event.preventDefault();
+                return;
+              }
               setSubmittedCandidate(selectedCandidate);
               setCompletionPhase("flying");
             }}
           >
             <input type="hidden" name="report_id" value={reportId} />
-            <div className="grid max-h-64 gap-2 overflow-y-auto rounded-xl border border-gray-200 p-2">
+            <div className="grid max-h-64 gap-2 overflow-y-auto overscroll-contain rounded-xl border border-gray-200 p-2 touch-pan-y">
               {selection.candidates.map((candidate) => (
                 <CouncilorRadioCard
                   key={candidate.id}
                   candidate={candidate}
                   checked={candidate.id === selectedCouncilorId}
-                  disabled={selection.alreadySentCouncilorIds.includes(
-                    candidate.id
-                  )}
+                  disabled={
+                    selection.alreadySentCouncilorIds.includes(candidate.id) ||
+                    isPending ||
+                    completionPhase !== "idle"
+                  }
                   onChange={setSelectedCouncilorId}
                 />
               ))}
@@ -152,7 +190,7 @@ export function InterviewRecipientSelectionStep({
               </span>
             </label>
 
-            {state.message && (
+            {state.message && !state.success && (
               <p
                 className={`rounded-xl border px-3 py-2 text-xs font-bold leading-[1.7] ${
                   state.success
@@ -164,19 +202,10 @@ export function InterviewRecipientSelectionStep({
               </p>
             )}
 
-            {completionPhase === "done" && submittedCandidate && (
-              <p className="animate-fade-in rounded-xl border border-primary/20 bg-mirai-gradient px-4 py-3 text-sm font-bold leading-[1.7] text-mirai-text">
-                {submittedCandidate.displayName}
-                議員への提出が完了しました。
-              </p>
-            )}
-
             <Button
               type="submit"
               disabled={
-                isPending ||
-                !selectedCouncilorId ||
-                completionPhase === "flying"
+                isPending || !selectedCouncilorId || completionPhase !== "idle"
               }
               className="w-full overflow-hidden"
             >

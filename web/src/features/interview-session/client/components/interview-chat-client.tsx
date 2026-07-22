@@ -9,7 +9,6 @@ import {
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { isLoopFamilyMode } from "../../shared/utils/is-loop-family-mode";
 import { useInterviewChat } from "../hooks/use-interview-chat";
-import { useInterviewRating } from "../hooks/use-interview-rating";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { embedBillLink } from "../utils/embed-bill-link";
@@ -17,7 +16,6 @@ import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
 import { InterviewProgressBar } from "./interview-progress-bar";
-import { InterviewRatingWidget } from "./interview-rating-widget";
 import { InterviewSummaryInput } from "./interview-summary-input";
 import { QuickReplyButtons } from "./quick-reply-buttons";
 import { SkipActionPopover } from "./skip-action-popover";
@@ -52,7 +50,6 @@ export function InterviewChatClient({
   totalQuestions,
   estimatedDuration,
   sessionStartedAt,
-  hasRated,
   previewToken,
   layout = "page",
   isPreparingInitialQuestion = false,
@@ -90,12 +87,6 @@ export function InterviewChatClient({
     () => calcInterviewProgress(totalQuestions, stage, messages),
     [messages, totalQuestions, stage]
   );
-
-  const { showRating, handleRatingDismiss } = useInterviewRating({
-    mode,
-    progress,
-    hasRated,
-  });
 
   const billDetailLink = getBillDetailLink(billId, previewToken);
 
@@ -189,7 +180,7 @@ export function InterviewChatClient({
             />
           </div>
         )}
-        <Conversation className="min-h-0 flex-1 overflow-y-auto">
+        <Conversation className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y">
           <ConversationContent
             className={`flex flex-col gap-4 ${isPanelLayout ? "px-6 py-2" : ""}`}
           >
@@ -293,18 +284,6 @@ export function InterviewChatClient({
               })()}
           </ConversationContent>
         </Conversation>
-
-        {/* 評価ウィジェット */}
-        {showRating && (
-          <div
-            className={isPanelLayout ? "shrink-0 px-6 py-2" : "shrink-0 py-2"}
-          >
-            <InterviewRatingWidget
-              sessionId={sessionId}
-              onDismiss={handleRatingDismiss}
-            />
-          </div>
-        )}
 
         {/* 時間超過プロンプト */}
         {showTimeUpPrompt && (
