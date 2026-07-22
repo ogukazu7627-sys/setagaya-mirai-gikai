@@ -10,6 +10,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { useChatAuth } from "../hooks/use-chat-auth";
 import { ChatWindow, type ChatWindowMode } from "./chat-window";
@@ -152,7 +153,12 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
           >
             <button
               type="button"
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                setActiveMode("question");
+                flushSync(() => {
+                  setIsOpen(true);
+                });
+              }}
               className={`relative bg-white rounded-[50px] hover:opacity-90 flex items-center w-full py-2 transition-all ease-in-out ${
                 isCompact
                   ? "h-[35px] px-4 justify-center gap-2.5"
