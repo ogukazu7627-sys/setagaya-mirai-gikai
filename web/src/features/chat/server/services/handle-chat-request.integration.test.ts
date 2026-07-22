@@ -206,13 +206,13 @@ describe("handleChatRequest 統合テスト", () => {
       }
     });
 
-    it("公開済みbillでトグルOFFなら knowledgeSource は空文字で渡る", async () => {
+    it("公開済みbillでナレッジ本文があれば旧DB値がfalseでも knowledgeSource に渡る", async () => {
       const bill = await createTestBill({ publish_status: "published" });
       await createTestBillContent(bill.id);
       await adminClient
         .from("bills")
         .update({
-          knowledge_source: "本文があってもOFFなら無視",
+          knowledge_source: "本文があれば常に使う",
           use_knowledge_source_in_chat: false,
         })
         .eq("id", bill.id);
@@ -243,7 +243,9 @@ describe("handleChatRequest 統合テスト", () => {
         });
         await consumeResponseStream(response);
 
-        expect(receivedVariables[0]?.knowledgeSource).toBe("");
+        expect(receivedVariables[0]?.knowledgeSource).toBe(
+          "本文があれば常に使う"
+        );
       } finally {
         await cleanupTestBill(bill.id);
       }

@@ -201,9 +201,9 @@ describe("MCP bills tools", () => {
         .select("knowledge_source, use_knowledge_source_in_chat")
         .eq("id", result.bill.id)
         .single();
-      // 省略時は DB のデフォルト（NULL / false）が入る
+      // 省略時は DB のデフォルト（NULL / true）が入る
       expect(data?.knowledge_source).toBeNull();
-      expect(data?.use_knowledge_source_in_chat).toBe(false);
+      expect(data?.use_knowledge_source_in_chat).toBe(true);
     });
   });
 

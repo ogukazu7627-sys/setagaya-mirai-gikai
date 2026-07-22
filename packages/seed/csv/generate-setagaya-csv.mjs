@@ -357,7 +357,7 @@ function main() {
     diet_session_id: SESSION_ID,
     sources: stringifySources(item.sources),
     knowledge_source: `${item.summary}\n\n${item.content}`,
-    use_knowledge_source_in_chat: "false",
+    use_knowledge_source_in_chat: "true",
     interview_enabled: "false",
   }));
 
