@@ -12,7 +12,7 @@ import type {
 } from "@/features/councilor-digest/shared/types";
 import { getInterviewReportCompleteLink } from "@/features/interview-config/shared/utils/interview-links";
 import { InterviewPublicConsentModal } from "@/features/interview-report/client/components/interview-public-consent-modal";
-import { updatePublicSetting } from "@/features/interview-report/server/actions/update-public-setting";
+import { callUpdatePublicSettingApi } from "../utils/interview-api-client";
 
 type CompletionPhase = "idle" | "flying" | "done";
 
@@ -23,14 +23,18 @@ const INITIAL_STATE: SaveReportRecipientsResult = {
 
 type InterviewRecipientSelectionStepProps = {
   sessionId: string;
-  reportId: string;
+  reportId: string | null;
   selection: ReportRecipientSelection;
+  isReportPreparing?: boolean;
+  reportPreparationError?: string | null;
 };
 
 export function InterviewRecipientSelectionStep({
   sessionId,
   reportId,
   selection,
+  isReportPreparing = false,
+  reportPreparationError,
 }: InterviewRecipientSelectionStepProps) {
   const [state, formAction, isPending] = useActionState(
     saveReportRecipients,
@@ -82,16 +86,23 @@ export function InterviewRecipientSelectionStep({
   }, [completionPhase, isPending, state.message, state.success]);
 
   const handlePublicSubmit = async (isPublic: boolean) => {
+    if (!reportId) {
+      setPublicSettingError(
+        "レポート保存が完了してから公開設定へ進んでください。"
+      );
+      return;
+    }
+
     setIsPublicSubmitting(true);
     setPublicSettingError(null);
     try {
-      const result = await updatePublicSetting(sessionId, isPublic);
+      const result = await callUpdatePublicSettingApi({ sessionId, isPublic });
       if (!result.success) {
         setPublicSettingError(result.error ?? "公開設定の更新に失敗しました。");
         setIsPublicSubmitting(false);
         return;
       }
-      window.location.href = getInterviewReportCompleteLink(reportId);
+      window.location.assign(getInterviewReportCompleteLink(reportId));
     } catch (error) {
       setPublicSettingError(
         error instanceof Error
@@ -153,15 +164,22 @@ export function InterviewRecipientSelectionStep({
             action={formAction}
             className="flex flex-col gap-4"
             onSubmit={(event) => {
-              if (!selectedCandidate) {
+              if (!selectedCandidate || !reportId) {
                 event.preventDefault();
+                if (!reportId) {
+                  setPublicSettingError(
+                    "レポート保存中です。数秒後にもう一度お試しください。"
+                  );
+                }
                 return;
               }
               setSubmittedCandidate(selectedCandidate);
               setCompletionPhase("flying");
             }}
           >
-            <input type="hidden" name="report_id" value={reportId} />
+            {reportId && (
+              <input type="hidden" name="report_id" value={reportId} />
+            )}
             <div className="grid max-h-64 gap-2 overflow-y-auto overscroll-contain rounded-xl border border-gray-200 p-2 touch-pan-y">
               {selection.candidates.map((candidate) => (
                 <CouncilorRadioCard
@@ -205,7 +223,11 @@ export function InterviewRecipientSelectionStep({
             <Button
               type="submit"
               disabled={
-                isPending || !selectedCouncilorId || completionPhase !== "idle"
+                isPending ||
+                !selectedCouncilorId ||
+                completionPhase !== "idle" ||
+                isReportPreparing ||
+                !reportId
               }
               className="w-full overflow-hidden"
             >
@@ -216,9 +238,13 @@ export function InterviewRecipientSelectionStep({
                     : ""
                 }`}
               />
-              {isPending || completionPhase === "flying"
-                ? "送信しています..."
-                : "この議員に伝える"}
+              {isReportPreparing || !reportId
+                ? reportPreparationError
+                  ? "レポート保存に失敗しました"
+                  : "レポート保存中..."
+                : isPending || completionPhase === "flying"
+                  ? "送信しています..."
+                  : "この議員に伝える"}
             </Button>
           </form>
         )}

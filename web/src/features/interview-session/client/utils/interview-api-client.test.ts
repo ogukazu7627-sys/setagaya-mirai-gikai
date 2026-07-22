@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { callCompleteApi } from "./interview-api-client";
+import {
+  callCompleteApi,
+  callRecipientCandidatesApi,
+  callUpdatePublicSettingApi,
+} from "./interview-api-client";
 
 describe("callCompleteApi", () => {
   const originalFetch = globalThis.fetch;
@@ -102,5 +106,99 @@ describe("callCompleteApi", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId: "session-42", isPublic: false }),
     });
+  });
+
+  it("includeRecipientSelection=falseを完了APIへ渡せる", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify({ report: { id: "r-1" } }), { status: 200 })
+    );
+
+    await callCompleteApi({
+      sessionId: "session-42",
+      isPublic: false,
+      includeRecipientSelection: false,
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith("/api/interview/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "session-42",
+        isPublic: false,
+        includeRecipientSelection: false,
+      }),
+    });
+  });
+});
+
+describe("callRecipientCandidatesApi", () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("議員候補APIのレスポンスを返す", async () => {
+    const recipientSelection = {
+      candidates: [],
+      selectedCouncilorIds: [],
+      selectedCouncilors: [],
+      shareContact: false,
+      alreadySentCouncilorIds: [],
+    };
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify({ recipientSelection }), { status: 200 })
+    );
+
+    const result = await callRecipientCandidatesApi({
+      sessionId: "session-1",
+    });
+
+    expect(result).toEqual({ recipientSelection });
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "/api/interview/recipient-candidates",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: "session-1" }),
+      }
+    );
+  });
+});
+
+describe("callUpdatePublicSettingApi", () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("公開設定APIの成功レスポンスを返す", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify({ success: true }), { status: 200 })
+    );
+
+    const result = await callUpdatePublicSettingApi({
+      sessionId: "session-1",
+      isPublic: true,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "/api/interview/public-setting",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: "session-1", isPublic: true }),
+      }
+    );
   });
 });

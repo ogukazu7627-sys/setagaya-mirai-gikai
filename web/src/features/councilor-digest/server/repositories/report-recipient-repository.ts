@@ -124,6 +124,18 @@ export async function listRecipientCandidates(billId: string) {
   return uniqueById(candidates);
 }
 
+export async function getEmptyReportRecipientSelectionForBill(
+  billId: string
+): Promise<ReportRecipientSelection> {
+  return {
+    candidates: await listRecipientCandidates(billId),
+    selectedCouncilorIds: [],
+    selectedCouncilors: [],
+    shareContact: false,
+    alreadySentCouncilorIds: [],
+  };
+}
+
 export async function listReportRecipients(reportId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase

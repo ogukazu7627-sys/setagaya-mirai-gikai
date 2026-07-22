@@ -7,6 +7,8 @@ import {
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 import { isLoopFamilyMode } from "../../shared/utils/is-loop-family-mode";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -82,6 +84,8 @@ export function InterviewChatClient({
   });
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
+  const viewportHeight = useViewportHeight();
+  const isMobileViewport = useMediaQuery("(max-width: 767px)");
 
   const progress = useMemo(
     () => calcInterviewProgress(totalQuestions, stage, messages),
@@ -99,6 +103,10 @@ export function InterviewChatClient({
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
   const isPanelLayout = layout === "panel";
   const isChatInputBusy = isLoading || isPreparingInitialQuestion;
+  const mobileViewportStyle =
+    !isPanelLayout && isMobileViewport && viewportHeight
+      ? { height: `${viewportHeight}px` }
+      : undefined;
 
   // チャット操作時にタイムアップアラートを自動非表示にする
   const dismissTimeUpIfNeeded = useCallback(() => {
@@ -163,6 +171,7 @@ export function InterviewChatClient({
           ? "flex h-full min-h-0 flex-col bg-white"
           : "h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light"
       }
+      style={mobileViewportStyle}
     >
       <div
         className={
@@ -295,7 +304,7 @@ export function InterviewChatClient({
         )}
 
         {/* 入力エリア */}
-        <div className="px-6 pb-4 pt-2">
+        <div className="bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
               sessionId={sessionId}

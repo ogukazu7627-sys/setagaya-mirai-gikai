@@ -104,6 +104,32 @@ describe("POST /api/interview/complete", () => {
     });
   });
 
+  it("includeRecipientSelection=falseなら議員候補を取得せず返す", async () => {
+    const res = await POST(
+      request({
+        sessionId: "session-1",
+        isPublic: false,
+        includeRecipientSelection: false,
+      })
+    );
+
+    expect(res.status).toBe(200);
+    expect(mocks.completeInterviewSession).toHaveBeenCalledWith({
+      sessionId: "session-1",
+      userId: "user-1",
+      isPublicByUser: false,
+    });
+    expect(mocks.findReportOwnerAndBill).not.toHaveBeenCalled();
+    expect(mocks.getReportRecipientSelectionData).not.toHaveBeenCalled();
+    await expect(res.json()).resolves.toEqual({
+      report: {
+        id: "report-1",
+        interview_session_id: "session-1",
+      },
+      recipientSelection: null,
+    });
+  });
+
   it("システム日次上限に達している場合は429を返す", async () => {
     mocks.checkSystemDailyCostLimit.mockRejectedValue(
       new ChatError(ChatErrorCode.SYSTEM_DAILY_COST_LIMIT_REACHED)
