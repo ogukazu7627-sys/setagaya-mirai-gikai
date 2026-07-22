@@ -34,7 +34,7 @@ const baseBill: BillWithContent = {
   publish_status_order: 2,
   diet_session_id: "mock-session",
   knowledge_source: null,
-  use_knowledge_source_in_chat: false,
+  use_knowledge_source_in_chat: true,
   created_at: "2026-02-15T00:00:00Z",
   updated_at: "2026-02-15T00:00:00Z",
   bill_content: {

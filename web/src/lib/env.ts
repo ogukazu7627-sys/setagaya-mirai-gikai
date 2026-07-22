@@ -20,59 +20,81 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !isSetagayaMockMode) {
 const chatDailyUserCostLimitUsdRaw =
   process.env.CHAT_DAILY_USER_COST_LIMIT_USD ||
   process.env.CHAT_DAILY_COST_LIMIT_USD ||
-  "0.5";
+  "10";
 
-const chatDailyUserCostLimitUsd = Number(chatDailyUserCostLimitUsdRaw);
+const parsedChatDailyUserCostLimitUsd = Number(chatDailyUserCostLimitUsdRaw);
 
-if (Number.isNaN(chatDailyUserCostLimitUsd) || chatDailyUserCostLimitUsd <= 0) {
+if (
+  Number.isNaN(parsedChatDailyUserCostLimitUsd) ||
+  parsedChatDailyUserCostLimitUsd <= 0
+) {
   throw new Error(
     "環境変数 CHAT_DAILY_USER_COST_LIMIT_USD は正の数値で指定してください"
   );
 }
 
-const chatDailyTotalCostLimitUsdRaw =
-  process.env.CHAT_DAILY_TOTAL_COST_LIMIT_USD || "50";
+const chatDailyUserCostLimitUsd = Math.max(parsedChatDailyUserCostLimitUsd, 10);
 
-const chatDailyTotalCostLimitUsd = Number(chatDailyTotalCostLimitUsdRaw);
+const chatDailyTotalCostLimitUsdRaw =
+  process.env.CHAT_DAILY_TOTAL_COST_LIMIT_USD || "300";
+
+const parsedChatDailyTotalCostLimitUsd = Number(chatDailyTotalCostLimitUsdRaw);
 
 if (
-  Number.isNaN(chatDailyTotalCostLimitUsd) ||
-  chatDailyTotalCostLimitUsd <= 0
+  Number.isNaN(parsedChatDailyTotalCostLimitUsd) ||
+  parsedChatDailyTotalCostLimitUsd <= 0
 ) {
   throw new Error(
     "環境変数 CHAT_DAILY_TOTAL_COST_LIMIT_USD は正の数値で指定してください"
   );
 }
 
-const chatMonthlyTotalCostLimitUsdRaw =
-  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "20";
+const chatDailyTotalCostLimitUsd = Math.max(
+  parsedChatDailyTotalCostLimitUsd,
+  300
+);
 
-const chatMonthlyTotalCostLimitUsd = Number(chatMonthlyTotalCostLimitUsdRaw);
+const chatMonthlyTotalCostLimitUsdRaw =
+  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "3000";
+
+const parsedChatMonthlyTotalCostLimitUsd = Number(
+  chatMonthlyTotalCostLimitUsdRaw
+);
 
 if (
-  Number.isNaN(chatMonthlyTotalCostLimitUsd) ||
-  chatMonthlyTotalCostLimitUsd <= 0
+  Number.isNaN(parsedChatMonthlyTotalCostLimitUsd) ||
+  parsedChatMonthlyTotalCostLimitUsd <= 0
 ) {
   throw new Error(
     "環境変数 CHAT_MONTHLY_TOTAL_COST_LIMIT_USD は正の数値で指定してください"
   );
 }
 
-const interviewCompleteDailyUserLimitRaw =
-  process.env.INTERVIEW_COMPLETE_DAILY_USER_LIMIT || "10";
+const chatMonthlyTotalCostLimitUsd = Math.max(
+  parsedChatMonthlyTotalCostLimitUsd,
+  3000
+);
 
-const interviewCompleteDailyUserLimit = Number(
+const interviewCompleteDailyUserLimitRaw =
+  process.env.INTERVIEW_COMPLETE_DAILY_USER_LIMIT || "100";
+
+const parsedInterviewCompleteDailyUserLimit = Number(
   interviewCompleteDailyUserLimitRaw
 );
 
 if (
-  !Number.isInteger(interviewCompleteDailyUserLimit) ||
-  interviewCompleteDailyUserLimit <= 0
+  !Number.isInteger(parsedInterviewCompleteDailyUserLimit) ||
+  parsedInterviewCompleteDailyUserLimit <= 0
 ) {
   throw new Error(
     "環境変数 INTERVIEW_COMPLETE_DAILY_USER_LIMIT は正の整数で指定してください"
   );
 }
+
+const interviewCompleteDailyUserLimit = Math.max(
+  parsedInterviewCompleteDailyUserLimit,
+  100
+);
 
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",

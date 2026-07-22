@@ -486,11 +486,6 @@ export function AdminBillForm({
             label="注目表示"
             defaultChecked={bill?.is_featured ?? false}
           />
-          <ToggleField
-            name="use_knowledge_source_in_chat"
-            label="チャットでナレッジを使う"
-            defaultChecked={bill?.use_knowledge_source_in_chat ?? false}
-          />
         </CardContent>
       </Card>
 

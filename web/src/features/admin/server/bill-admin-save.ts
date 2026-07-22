@@ -227,7 +227,7 @@ export async function saveAdminBillInput(
     share_thumbnail_url: input.share_thumbnail_url,
     sources: input.sources,
     knowledge_source: input.knowledge_source,
-    use_knowledge_source_in_chat: input.use_knowledge_source_in_chat,
+    use_knowledge_source_in_chat: true,
     is_review_completed: input.is_review_completed,
     is_featured: input.is_featured,
     interview_enabled: true,
