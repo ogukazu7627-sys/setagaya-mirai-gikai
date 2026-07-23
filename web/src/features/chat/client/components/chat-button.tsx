@@ -10,7 +10,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { flushSync } from "react-dom";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { useChatAuth } from "../hooks/use-chat-auth";
 import { ChatWindow, type ChatWindowMode } from "./chat-window";
@@ -155,9 +154,7 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
               type="button"
               onClick={() => {
                 setActiveMode("question");
-                flushSync(() => {
-                  setIsOpen(true);
-                });
+                setIsOpen(true);
               }}
               className={`relative bg-white rounded-[50px] hover:opacity-90 flex items-center w-full py-2 transition-all ease-in-out ${
                 isCompact
@@ -168,6 +165,9 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
                 transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
               }}
               aria-label="案件について質問する"
+              aria-controls="ask-ai-dialog"
+              aria-expanded={isOpen}
+              aria-haspopup="dialog"
             >
               <span
                 className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
