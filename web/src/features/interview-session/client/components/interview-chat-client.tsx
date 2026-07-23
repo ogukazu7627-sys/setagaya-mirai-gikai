@@ -311,12 +311,20 @@ export function InterviewChatClient({
     }, []);
 
   const handleSubmitClickCapture: MouseEventHandler<HTMLButtonElement> =
-    useCallback(() => {
-      queueMicrotask(() => {
-        if (!submitInProgressRef.current) {
-          sendPointerActiveRef.current = false;
-        }
-      });
+    useCallback((event) => {
+      event.preventDefault();
+
+      const submitButton = event.currentTarget;
+      const form = submitButton.form;
+      if (!form) {
+        sendPointerActiveRef.current = false;
+        return;
+      }
+
+      // iPhone SafariではpointerdownをpreventDefaultした後の暗黙submitが
+      // blurより後になり得るため、Portalが残っている間にsubmitを確定する。
+      form.requestSubmit(submitButton);
+      sendPointerActiveRef.current = false;
     }, []);
 
   const handleFocusedInputSubmit = useCallback(() => {
@@ -595,7 +603,6 @@ export function InterviewChatClient({
               onSubmitClickCapture={handleSubmitClickCapture}
               onSubmitPointerCancel={handleSubmitPointerCancel}
               onSubmitPointerDownCapture={handleSubmitPointerDownCapture}
-              onSubmitPointerLeave={handleSubmitPointerCancel}
               preserveFocusWhileResponding
             />
           </InterviewAnswerFocusLayer>

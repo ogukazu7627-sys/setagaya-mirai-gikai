@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import {
   act,
   cleanup,
+  createEvent,
   fireEvent,
   render,
   screen,
@@ -202,6 +203,7 @@ describe("InterviewChatClient mobile answer focus mode", () => {
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   it("入力タップ時だけvisual viewport内へ質問と単一inputをPortal表示する", () => {
@@ -276,6 +278,13 @@ describe("InterviewChatClient mobile answer focus mode", () => {
       ).toBeInTheDocument();
       return true;
     });
+    const requestSubmitSpy = vi
+      .spyOn(HTMLFormElement.prototype, "requestSubmit")
+      .mockImplementation(function (this: HTMLFormElement) {
+        this.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        );
+      });
     renderClient();
 
     fireEvent.pointerDown(screen.getByRole("textbox"));
@@ -302,8 +311,12 @@ describe("InterviewChatClient mobile answer focus mode", () => {
       screen.getByTestId("interview-answer-focus-layer")
     ).toBeInTheDocument();
     fireEvent.pointerUp(submitButton);
-    fireEvent.click(submitButton);
+    const clickEvent = createEvent.click(submitButton);
+    fireEvent(submitButton, clickEvent);
 
+    expect(clickEvent.defaultPrevented).toBe(true);
+    expect(requestSubmitSpy).toHaveBeenCalledOnce();
+    expect(requestSubmitSpy).toHaveBeenCalledWith(submitButton);
     expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledOnce();
     expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledWith({
       text: "回答内容",
