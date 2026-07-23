@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { act, useState } from "react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { ChatWindow } from "./chat-window";
@@ -84,6 +85,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
   mediaQueryMock.matches = true;
   desktopMock.isDesktop = true;
   visualViewportFrameMock.frame = {
@@ -93,6 +95,10 @@ beforeEach(() => {
     offsetTop: 0,
     width: 390,
   };
+  Object.defineProperty(window, "scrollY", {
+    configurable: true,
+    value: 0,
+  });
 });
 
 function createChatState(sendMessage = vi.fn()) {
@@ -117,6 +123,22 @@ function createBillContext(
     tags: [],
     ...overrides,
   } as unknown as BillWithContent;
+}
+
+function MobileChatHarness() {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <ChatWindow
+      authStatus="authenticated"
+      chatState={createChatState()}
+      difficultyLevel="normal"
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      onSignInWithGoogle={vi.fn()}
+      sessionId="session-1"
+    />
+  );
 }
 
 describe("ChatWindow auth gate", () => {
@@ -273,13 +295,35 @@ describe("ChatWindow auth gate", () => {
     expect(onActiveModeChange).toHaveBeenCalledWith("question");
   });
 
-  it("スマホではvisual viewportに合わせてシートと入力欄を配置する", () => {
+  it("スマホのclosed状態ではdialogも操作可能なtextareaも描画しない", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        isOpen={false}
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText("わからないことをAIに質問する")
+    ).not.toBeInTheDocument();
+  });
+
+  it("スマホのpreviewではvisual viewport内に不透明なシートを表示し、textareaを自動focusしない", () => {
     mediaQueryMock.matches = false;
     desktopMock.isDesktop = false;
     visualViewportFrameMock.frame = {
-      height: 500,
-      keyboardInset: 280,
-      offsetLeft: 0,
+      height: 640,
+      keyboardInset: 0,
+      offsetLeft: 4,
       offsetTop: 20,
       width: 390,
     };
@@ -296,17 +340,195 @@ describe("ChatWindow auth gate", () => {
       />
     );
 
+    const overlay = screen.getByTestId("chat-window-overlay");
     const sheet = screen.getByTestId("chat-window-sheet");
-    expect(sheet).toHaveStyle({
-      height: "410px",
-      left: "0px",
-      top: "110px",
+    const textarea = screen.getByPlaceholderText(
+      "わからないことをAIに質問する"
+    );
+
+    expect(screen.getByRole("dialog", { name: "AIに質問する" })).toBeVisible();
+    expect(overlay).toHaveStyle({
+      height: "640px",
+      left: "4px",
+      top: "20px",
       width: "390px",
     });
+    expect(overlay.style.getPropertyValue("--visual-viewport-height")).toBe(
+      "640px"
+    );
+    expect(overlay.style.getPropertyValue("--visual-viewport-top")).toBe(
+      "20px"
+    );
+    expect(sheet).toHaveStyle({
+      height: "82%",
+    });
+    expect(sheet).toHaveAttribute("data-chat-phase", "preview");
+    expect(sheet).toHaveClass("bg-white", "opacity-100", "isolate");
+    expect(sheet.style.getPropertyValue("--chat-composer-bottom-padding")).toBe(
+      "max(10px, env(safe-area-inset-bottom))"
+    );
+    expect(document.activeElement).not.toBe(textarea);
+    expect(screen.getByTestId("chat-window-backdrop")).toHaveClass(
+      "bg-black/50"
+    );
+  });
+
+  it("同じtextareaのままpreviewとcomposingを切り替え、blurしてもdialogを閉じない", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    const sheet = screen.getByTestId("chat-window-sheet");
+    const textarea = screen.getByPlaceholderText(
+      "わからないことをAIに質問する"
+    );
+
+    fireEvent.change(textarea, { target: { value: "入力途中の質問" } });
+    act(() => {
+      textarea.focus();
+    });
+
+    expect(sheet).toHaveAttribute("data-chat-phase", "composing");
+    expect(sheet).toHaveStyle({ height: "100%" });
     expect(sheet.style.getPropertyValue("--chat-composer-bottom-padding")).toBe(
       "10px"
     );
-    expect(screen.getByTestId("chat-window-composer")).toBeInTheDocument();
+    expect(screen.getByTestId("chat-window-feedback")).toHaveClass(
+      "order-1",
+      "mb-2"
+    );
+    expect(screen.getByPlaceholderText("わからないことをAIに質問する")).toBe(
+      textarea
+    );
+
+    fireEvent.blur(textarea);
+
+    expect(screen.getByRole("dialog", { name: "AIに質問する" })).toBeVisible();
+    expect(sheet).toHaveAttribute("data-chat-phase", "preview");
+    expect(screen.getByTestId("chat-window-feedback")).toHaveClass("order-2");
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    expect(textarea).toHaveValue("入力途中の質問");
+    expect(screen.getByPlaceholderText("わからないことをAIに質問する")).toBe(
+      textarea
+    );
+  });
+
+  it("composerをscroll areaの外側かつ同じ白いシート内に配置する", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    const sheet = screen.getByTestId("chat-window-sheet");
+    const scrollArea = screen.getByTestId("chat-window-scroll-area");
+    const composer = screen.getByTestId("chat-window-composer");
+
+    expect(sheet).toContainElement(scrollArea);
+    expect(sheet).toContainElement(composer);
+    expect(scrollArea).not.toContainElement(composer);
+  });
+
+  it("送信ボタン操作ではtextareaをblurせず、日本語IME変換中は送信しない", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+    const sendMessage = vi.fn();
+
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        chatState={createChatState(sendMessage)}
+        difficultyLevel="normal"
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        sessionId="session-1"
+      />
+    );
+
+    const textarea = screen.getByPlaceholderText(
+      "わからないことをAIに質問する"
+    );
+    const sendButton = screen.getByRole("button", { name: "送信" });
+    const form = textarea.closest("form");
+
+    if (!form) {
+      throw new Error("送信フォームが見つかりません");
+    }
+    Object.defineProperty(form, "message", {
+      configurable: true,
+      value: textarea,
+    });
+
+    fireEvent.focus(textarea);
+    fireEvent.change(textarea, { target: { value: "変換中の質問" } });
+    fireEvent.compositionStart(textarea);
+    fireEvent.submit(form);
+    expect(sendMessage).not.toHaveBeenCalled();
+
+    fireEvent.compositionEnd(textarea);
+    act(() => {
+      textarea.focus();
+    });
+    expect(document.activeElement).toBe(textarea);
+    fireEvent.pointerDown(sendButton);
+
+    expect(document.activeElement).toBe(textarea);
+    expect(screen.getByTestId("chat-window-sheet")).toHaveAttribute(
+      "data-chat-phase",
+      "composing"
+    );
+  });
+
+  it("×でclosedへ戻り、背景スクロール位置を復元する", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 320,
+    });
+
+    render(<MobileChatHarness />);
+
+    expect(document.body.style.position).toBe("fixed");
+    expect(document.body.style.top).toBe("-320px");
+
+    fireEvent.click(screen.getByRole("button", { name: "AI質問を閉じる" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.body.style.position).toBe("");
+    expect(window.scrollTo).toHaveBeenCalledWith(0, 320);
+  });
+
+  it("背景タップでclosedへ戻る", () => {
+    mediaQueryMock.matches = false;
+    desktopMock.isDesktop = false;
+
+    render(<MobileChatHarness />);
+
+    fireEvent.click(screen.getByTestId("chat-window-backdrop"));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("未ログインでAIインタビューを開くとGoogleログインゲートを表示する", async () => {

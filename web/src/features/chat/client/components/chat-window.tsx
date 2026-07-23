@@ -30,6 +30,9 @@ import { SystemMessage } from "./system-message";
 import { UserMessage } from "./user-message";
 
 export type ChatWindowMode = "question" | "interview";
+type MobileChatPhase = "preview" | "composing";
+
+const COMPOSITION_END_GUARD_MS = 100;
 
 interface ChatWindowProps {
   billContext?: BillWithContent;
@@ -223,12 +226,15 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [mobilePhase, setMobilePhase] = useState<MobileChatPhase>("preview");
   const { messages, sendMessage, status, error } = chatState;
   const safeMessages = messages ?? [];
   const isDesktop = useIsDesktop();
   const canShowInterviewInChatPanel = useMediaQuery("(min-width: 768px)");
   const visualViewportFrame = useVisualViewportFrame(isOpen && !isDesktop);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isImeComposingRef = useRef(false);
+  const compositionEndAtRef = useRef(0);
 
   const isResponding = status === "streaming" || status === "submitted";
   const isAuthLoading = authStatus === "loading";
@@ -243,40 +249,35 @@ export function ChatWindow({
       ? "interview"
       : "question";
   const isMobileSheet = !isDesktop;
-  const isKeyboardOpen = visualViewportFrame.keyboardInset > 0;
   const mobileOverlayStyle = useMemo<CSSProperties | undefined>(() => {
     if (!isMobileSheet) {
       return undefined;
     }
 
     return {
+      "--visual-viewport-height": `${visualViewportFrame.height}px`,
+      "--visual-viewport-left": `${visualViewportFrame.offsetLeft}px`,
+      "--visual-viewport-top": `${visualViewportFrame.offsetTop}px`,
+      "--visual-viewport-width": `${visualViewportFrame.width}px`,
       height: `${visualViewportFrame.height}px`,
       left: `${visualViewportFrame.offsetLeft}px`,
       top: `${visualViewportFrame.offsetTop}px`,
       width: `${visualViewportFrame.width}px`,
-    };
+    } as CSSProperties;
   }, [isMobileSheet, visualViewportFrame]);
   const mobileSheetStyle = useMemo<CSSProperties | undefined>(() => {
     if (!isMobileSheet) {
       return undefined;
     }
 
-    const sheetHeight = visualViewportFrame.height * 0.82;
-    const sheetTop =
-      visualViewportFrame.offsetTop + visualViewportFrame.height - sheetHeight;
-
     return {
-      "--chat-composer-bottom-padding": isKeyboardOpen
-        ? "10px"
-        : "max(10px, env(safe-area-inset-bottom))",
-      bottom: "auto",
-      height: `${sheetHeight}px`,
-      left: `${visualViewportFrame.offsetLeft}px`,
-      right: "auto",
-      top: `${sheetTop}px`,
-      width: `${visualViewportFrame.width}px`,
+      "--chat-composer-bottom-padding":
+        mobilePhase === "composing"
+          ? "10px"
+          : "max(10px, env(safe-area-inset-bottom))",
+      height: mobilePhase === "composing" ? "100%" : "82%",
     } as CSSProperties;
-  }, [isKeyboardOpen, isMobileSheet, visualViewportFrame]);
+  }, [isMobileSheet, mobilePhase]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -289,6 +290,12 @@ export function ChatWindow({
   }, [activeMode, canUseInterviewInChatPanel, onActiveModeChange]);
 
   useEffect(() => {
+    if (!isOpen || isDesktop) {
+      setMobilePhase("preview");
+    }
+  }, [isDesktop, isOpen]);
+
+  useLayoutEffect(() => {
     if (!isOpen || isDesktop) {
       return;
     }
@@ -334,14 +341,16 @@ export function ChatWindow({
   // チャットが開かれたときにinputにフォーカス（disableAutoFocusがfalseの場合のみ）
   useLayoutEffect(() => {
     if (
+      isMounted &&
       isOpen &&
+      isDesktop &&
       resolvedMode === "question" &&
       textareaRef.current &&
       !disableAutoFocus
     ) {
       textareaRef.current.focus({ preventScroll: true });
     }
-  }, [isOpen, disableAutoFocus, resolvedMode]);
+  }, [disableAutoFocus, isDesktop, isMounted, isOpen, resolvedMode]);
 
   // Auto-resize textarea based on content
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -358,6 +367,8 @@ export function ChatWindow({
 
     if (
       !hasText ||
+      isImeComposingRef.current ||
+      Date.now() - compositionEndAtRef.current < COMPOSITION_END_GUARD_MS ||
       isResponding ||
       isInputDisabled ||
       resolvedMode !== "question"
@@ -382,148 +393,167 @@ export function ChatWindow({
     setInput("");
   };
 
-  const chatContent = (
+  const handleClose = () => {
+    setMobilePhase("preview");
+    onClose();
+  };
+
+  const chatPanelContents = (
     <>
-      {/* オーバーレイ（1400px未満でのみ表示） */}
-      {isOpen && (
-        <button
-          type="button"
-          className="fixed z-40 bg-black/50 transition-opacity cursor-default pc:hidden"
-          style={mobileOverlayStyle}
-          onClick={onClose}
-          aria-label="モーダルを閉じる"
-        />
-      )}
-
-      {/* チャットウィンドウ */}
-      <div
-        // xlサイズでは、横幅1180px（メイン + チャット）の中央寄せにする
-        className={`fixed z-50
-          bg-white shadow-md rounded-t-2xl flex flex-col overscroll-contain touch-pan-y
-          md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl md:h-[80vh]
-						pc:visible pc:opacity-100 pc:h-[70vh]
-          xl:right-[calc(calc(100%-1180px)/2)]
-          transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none
-						${isOpen ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-0 pc:visible pc:translate-y-0 pc:opacity-100"}
-					`}
-        data-testid="chat-window-sheet"
-        style={mobileSheetStyle}
+      <button
+        type="button"
+        className={`${isMobileSheet ? "" : "pc:hidden"} self-end p-2 m-2 hover:bg-gray-100 rounded-full`}
+        onClick={handleClose}
+        aria-label="AI質問を閉じる"
       >
-        <button
-          type="button"
-          className="pc:hidden self-end p-2 m-2 hover:bg-gray-100 rounded-full"
-          onClick={onClose}
-          aria-label="モーダルを閉じる"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        {canUseInterviewInChatPanel && (
-          <div className="px-6 pb-2 pc:pt-6">
-            <div
-              aria-label="チャットモード"
-              className="grid h-10 grid-cols-2 rounded-full border border-primary/25 bg-mirai-surface-light p-1"
-              role="tablist"
-            >
-              {(
-                [
-                  ["question", "質問"],
-                  ["interview", "AIインタビュー"],
-                ] as const
-              ).map(([mode, label]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  role="tab"
-                  aria-selected={resolvedMode === mode}
-                  onClick={() => onActiveModeChange?.(mode)}
-                  className={`rounded-full text-sm font-bold leading-none transition-colors ${
-                    resolvedMode === mode
-                      ? "bg-white text-mirai-text shadow-sm"
-                      : "text-mirai-text-muted hover:text-mirai-text"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div
-          className="flex min-h-0 flex-1 flex-col overscroll-contain"
-          hidden={resolvedMode !== "question"}
-        >
-          {/* メッセージエリア（スクロール可能） */}
-          <Conversation className="flex-1 min-h-0 overscroll-contain touch-pan-y">
-            <ConversationContent
-              className={`p-0 flex flex-col gap-3 pb-2 px-6 ${
-                canUseInterviewInChatPanel ? "pc:pt-0" : "pc:pt-6"
-              }`}
-            >
-              <ChatMessages
-                billContext={billContext}
-                hasInterviewConfig={hasInterviewConfig}
-                difficultyLevel={difficultyLevel}
-                messages={safeMessages}
-                sendMessage={sendMessage}
-                status={status}
-                pageContext={pageContext}
-                sessionId={sessionId}
-                previewOnly={previewOnly}
-                authStatus={authStatus}
-              />
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
-
-          {/* 入力エリア（固定下部） */}
+        <X className="h-5 w-5" />
+      </button>
+      {canUseInterviewInChatPanel && (
+        <div className="px-6 pb-2 pc:pt-6">
           <div
-            className="shrink-0 bg-white px-6 pb-[var(--chat-composer-bottom-padding,1rem)] pt-2"
-            data-testid="chat-window-composer"
+            aria-label="チャットモード"
+            className="grid h-10 grid-cols-2 rounded-full border border-primary/25 bg-mirai-surface-light p-1"
+            role="tablist"
           >
-            <div className="relative">
-              <PromptInput
-                onSubmit={handleSubmit}
-                className={`flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0 ${
-                  isChatLocked ? "pointer-events-none opacity-40" : ""
+            {(
+              [
+                ["question", "質問"],
+                ["interview", "AIインタビュー"],
+              ] as const
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={resolvedMode === mode}
+                onClick={() => onActiveModeChange?.(mode)}
+                className={`rounded-full text-sm font-bold leading-none transition-colors ${
+                  resolvedMode === mode
+                    ? "bg-white text-mirai-text shadow-sm"
+                    : "text-mirai-text-muted hover:text-mirai-text"
                 }`}
               >
-                <PromptInputBody className="flex-1">
-                  <PromptInputTextarea
-                    ref={textareaRef}
-                    onChange={handleInputChange}
-                    value={input}
-                    placeholder="わからないことをAIに質問する"
-                    disabled={isInputDisabled}
-                    rows={1}
-                    submitOnEnter={isDesktop}
-                    // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
-                    className={`!min-h-0 min-w-0 wrap-anywhere text-base md:text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
-                  />
-                </PromptInputBody>
-                <button
-                  type="submit"
-                  disabled={!input || isResponding || isInputDisabled}
-                  className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
-                >
-                  <Image
-                    src="/icons/send-button-icon.svg"
-                    alt="送信"
-                    width={40}
-                    height={40}
-                    className="w-full h-full"
-                  />
-                </button>
-              </PromptInput>
-              {isChatLocked && (
-                <GoogleLoginGate
-                  message="AIチャットを使うにはGoogleログインが必要です"
-                  isAuthLoading={isAuthLoading}
-                  onSignInWithGoogle={onSignInWithGoogle}
-                  className="absolute inset-0 rounded-[50px] border border-primary/30 bg-white/95 px-4 shadow-sm"
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div
+        className="flex min-h-0 flex-1 flex-col overscroll-contain"
+        hidden={resolvedMode !== "question"}
+      >
+        {/* メッセージエリア（スクロール可能） */}
+        <Conversation
+          className="flex-1 min-h-0 overscroll-contain touch-pan-y"
+          data-testid="chat-window-scroll-area"
+        >
+          <ConversationContent
+            className={`p-0 flex flex-col gap-3 pb-2 px-6 ${
+              canUseInterviewInChatPanel ? "pc:pt-0" : "pc:pt-6"
+            }`}
+          >
+            <ChatMessages
+              billContext={billContext}
+              hasInterviewConfig={hasInterviewConfig}
+              difficultyLevel={difficultyLevel}
+              messages={safeMessages}
+              sendMessage={sendMessage}
+              status={status}
+              pageContext={pageContext}
+              sessionId={sessionId}
+              previewOnly={previewOnly}
+              authStatus={authStatus}
+            />
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+
+        {/* 入力エリア（固定下部） */}
+        <div
+          className="flex shrink-0 flex-col bg-white px-6 pb-[var(--chat-composer-bottom-padding,1rem)] pt-2"
+          data-testid="chat-window-composer"
+        >
+          <div
+            className={`relative ${
+              isMobileSheet && mobilePhase === "composing"
+                ? "order-2"
+                : "order-1"
+            }`}
+          >
+            <PromptInput
+              onSubmit={handleSubmit}
+              className={`flex items-end gap-2.5 py-2 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0 ${
+                isChatLocked ? "pointer-events-none opacity-40" : ""
+              }`}
+            >
+              <PromptInputBody className="flex-1">
+                <PromptInputTextarea
+                  ref={textareaRef}
+                  onChange={handleInputChange}
+                  onFocus={() => {
+                    if (isMobileSheet) {
+                      setMobilePhase("composing");
+                    }
+                  }}
+                  onBlur={() => {
+                    if (isMobileSheet) {
+                      setMobilePhase("preview");
+                    }
+                  }}
+                  onCompositionStart={() => {
+                    isImeComposingRef.current = true;
+                  }}
+                  onCompositionEnd={() => {
+                    isImeComposingRef.current = false;
+                    compositionEndAtRef.current = Date.now();
+                  }}
+                  value={input}
+                  placeholder="わからないことをAIに質問する"
+                  disabled={isInputDisabled}
+                  rows={1}
+                  submitOnEnter={isDesktop}
+                  // min-w-0, wrap-anywhere が無いと長文で親幅を押し広げてしまう
+                  className={`!min-h-0 min-w-0 wrap-anywhere text-base md:text-sm font-medium leading-[1.5em] tracking-[0.01em] placeholder:text-mirai-text-placeholder placeholder:font-medium placeholder:leading-[1.5em] placeholder:tracking-[0.01em] placeholder:no-underline border-none focus:ring-0 bg-transparent shadow-none !py-2 !px-0`}
                 />
-              )}
-            </div>
+              </PromptInputBody>
+              <button
+                type="submit"
+                disabled={!input || isResponding || isInputDisabled}
+                onPointerDown={(event) => {
+                  if (isMobileSheet) {
+                    event.preventDefault();
+                  }
+                }}
+                className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
+              >
+                <Image
+                  src="/icons/send-button-icon.svg"
+                  alt="送信"
+                  width={40}
+                  height={40}
+                  className="w-full h-full"
+                />
+              </button>
+            </PromptInput>
+            {isChatLocked && (
+              <GoogleLoginGate
+                message="AIチャットを使うにはGoogleログインが必要です"
+                isAuthLoading={isAuthLoading}
+                onSignInWithGoogle={onSignInWithGoogle}
+                className="absolute inset-0 rounded-[50px] border border-primary/30 bg-white/95 px-4 shadow-sm"
+              />
+            )}
+          </div>
+          <div
+            className={
+              isMobileSheet && mobilePhase === "composing"
+                ? "order-1 mb-2"
+                : "order-2"
+            }
+            data-testid="chat-window-feedback"
+          >
             <PromptInputError status={status} error={error} />
             {authError && (
               <p className="mt-2 text-xs font-medium text-red-600">
@@ -533,24 +563,70 @@ export function ChatWindow({
             {safeMessages.length > 0 && <PromptInputHint />}
           </div>
         </div>
-
-        {canUseInterviewInChatPanel && (
-          <div
-            className="flex min-h-0 flex-1 flex-col overscroll-contain touch-pan-y"
-            hidden={resolvedMode !== "interview"}
-          >
-            <InterviewSidePanel
-              billId={billContext.id}
-              isActive={resolvedMode === "interview"}
-              previewOnly={previewOnly}
-              authStatus={authStatus}
-              authError={authError}
-              onSignInWithGoogle={onSignInWithGoogle}
-            />
-          </div>
-        )}
       </div>
+
+      {canUseInterviewInChatPanel && (
+        <div
+          className="flex min-h-0 flex-1 flex-col overscroll-contain touch-pan-y"
+          hidden={resolvedMode !== "interview"}
+        >
+          <InterviewSidePanel
+            billId={billContext.id}
+            isActive={resolvedMode === "interview"}
+            previewOnly={previewOnly}
+            authStatus={authStatus}
+            authError={authError}
+            onSignInWithGoogle={onSignInWithGoogle}
+          />
+        </div>
+      )}
     </>
+  );
+
+  const chatContent = isMobileSheet ? (
+    isOpen ? (
+      <div
+        className="fixed z-[60] overflow-hidden"
+        data-testid="chat-window-overlay"
+        style={mobileOverlayStyle}
+      >
+        <button
+          type="button"
+          className="absolute inset-0 z-0 cursor-default bg-black/50"
+          onClick={handleClose}
+          aria-label="背景をタップしてAI質問を閉じる"
+          data-testid="chat-window-backdrop"
+        />
+        <section
+          id="ask-ai-dialog"
+          aria-label="AIに質問する"
+          aria-modal="true"
+          className="absolute inset-x-0 bottom-0 z-10 isolate flex flex-col overflow-hidden overscroll-contain rounded-t-2xl bg-white opacity-100 shadow-md touch-pan-y animate-in slide-in-from-bottom duration-300 motion-reduce:animate-none"
+          data-chat-phase={mobilePhase}
+          data-testid="chat-window-sheet"
+          role="dialog"
+          style={mobileSheetStyle}
+        >
+          {chatPanelContents}
+        </section>
+      </div>
+    ) : null
+  ) : (
+    <div
+      id="ask-ai-dialog"
+      // xlサイズでは、横幅1180px（メイン + チャット）の中央寄せにする
+      className={`fixed z-50
+        bg-white shadow-md rounded-t-2xl flex flex-col overscroll-contain touch-pan-y
+        md:bottom-4 md:right-4 md:left-auto md:w-[450px] md:rounded-2xl md:h-[80vh]
+        pc:visible pc:opacity-100 pc:h-[70vh]
+        xl:right-[calc(calc(100%-1180px)/2)]
+        transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none
+        ${isOpen ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-0 pc:visible pc:translate-y-0 pc:opacity-100"}
+      `}
+      data-testid="chat-window-sheet"
+    >
+      {chatPanelContents}
+    </div>
   );
 
   // body直下にPortalでマウント（クライアントサイドのみ）
