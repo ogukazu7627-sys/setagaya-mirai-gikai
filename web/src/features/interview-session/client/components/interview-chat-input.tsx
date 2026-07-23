@@ -38,7 +38,6 @@ interface InterviewChatInputProps {
   onSubmitClickCapture?: MouseEventHandler<HTMLButtonElement>;
   onSubmitPointerCancel?: PointerEventHandler<HTMLButtonElement>;
   onSubmitPointerDownCapture?: PointerEventHandler<HTMLButtonElement>;
-  onSubmitPointerLeave?: PointerEventHandler<HTMLButtonElement>;
   preserveFocusWhileResponding?: boolean;
 }
 
@@ -57,7 +56,6 @@ export function InterviewChatInput({
   onSubmitClickCapture,
   onSubmitPointerCancel,
   onSubmitPointerDownCapture,
-  onSubmitPointerLeave,
   preserveFocusWhileResponding = false,
 }: InterviewChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -154,7 +152,6 @@ export function InterviewChatInput({
             }
             onSubmitPointerDownCapture?.(event);
           }}
-          onPointerLeave={onSubmitPointerLeave}
           className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
         >
           <Image
