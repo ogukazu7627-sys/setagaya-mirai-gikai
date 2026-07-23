@@ -187,13 +187,23 @@ export function useInterviewChat({
 
   // メッセージ送信
   const handleSubmit = (message: PromptInputMessage) => {
-    const hasText = Boolean(message.text);
-    if (!hasText || isChatLoading || stage === "summary_complete") {
-      return;
+    const userMessageText = message.text?.trim() ?? "";
+    if (
+      userMessageText.length === 0 ||
+      isChatLoading ||
+      stage === "summary_complete"
+    ) {
+      return false;
     }
 
-    const userMessageText = message.text ?? "";
     const userMessageId = `user-${Date.now()}`;
+
+    try {
+      // DOMが切り替わる前に送信を開始できたことを確定する。
+      submitChatMessage(userMessageText, stage);
+    } catch {
+      return false;
+    }
 
     // ユーザーメッセージを会話履歴に追加
     setConversationMessages((prev) => [
@@ -205,9 +215,7 @@ export function useInterviewChat({
       },
     ]);
     setInput("");
-
-    // 現在のステージでメッセージ送信
-    submitChatMessage(userMessageText, stage);
+    return true;
   };
 
   // クイックリプライを選択した時の処理

@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -165,7 +167,7 @@ describe("InterviewChatClient mobile answer focus mode", () => {
       handleQuickReply: vi.fn(),
       handleResumeInterview: vi.fn(),
       handleRetry: vi.fn(),
-      handleSubmit: vi.fn(),
+      handleSubmit: vi.fn(() => true),
       input: "",
       isLoading: false,
       messages: [
@@ -265,22 +267,186 @@ describe("InterviewChatClient mobile answer focus mode", () => {
     expect(scrollToMock).toHaveBeenCalledWith(0, 240);
   });
 
-  it("送信ボタン操作によるblurでは回答フォーカスモードを維持する", () => {
+  it("pointerdown→blur→click→submitでも1回のタップで送信してからPortalを閉じる", async () => {
+    mediaQueryMock.matches = true;
+    interviewChatMock.state.input = "回答内容";
+    interviewChatMock.state.handleSubmit = vi.fn(() => {
+      expect(
+        screen.getByTestId("interview-answer-focus-layer")
+      ).toBeInTheDocument();
+      return true;
+    });
+    renderClient();
+
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    const answerDock = screen.getByTestId("interview-answer-dock");
+    const textbox = within(answerDock).getByRole(
+      "textbox"
+    ) as HTMLTextAreaElement;
+    const submitButton = within(answerDock).getByRole("button", {
+      name: "送信",
+    });
+    const form = textbox.closest("form");
+    expect(form).not.toBeNull();
+    if (!form) {
+      return;
+    }
+    Object.defineProperty(form, "message", {
+      configurable: true,
+      value: textbox,
+    });
+
+    fireEvent.pointerDown(submitButton);
+    fireEvent.blur(textbox);
+    expect(
+      screen.getByTestId("interview-answer-focus-layer")
+    ).toBeInTheDocument();
+    fireEvent.pointerUp(submitButton);
+    fireEvent.click(submitButton);
+
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledOnce();
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledWith({
+      text: "回答内容",
+    });
+    expect(interviewChatMock.state.handleSubmit.mock.results[0]?.value).toBe(
+      true
+    );
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("interview-answer-focus-layer")
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.getAllByRole("textbox")).toHaveLength(1);
+  });
+
+  it("1タップ送信後は回答を通常画面の履歴へ反映して入力をクリアする", async () => {
+    mediaQueryMock.matches = true;
+    interviewChatMock.state.input = "一人一人に適切な教育をしてほしい";
+    interviewChatMock.state.handleSubmit = vi.fn((message) => {
+      const answer = message.text?.trim();
+      if (!answer) {
+        return false;
+      }
+      interviewChatMock.state.messages = [
+        ...interviewChatMock.state.messages,
+        {
+          id: "optimistic-user-message",
+          role: "user",
+          content: answer,
+        },
+      ];
+      interviewChatMock.state.input = "";
+      return true;
+    });
+    renderClient();
+
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    const answerDock = screen.getByTestId("interview-answer-dock");
+    fireEvent.click(within(answerDock).getByRole("button", { name: "送信" }));
+
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledOnce();
+    expect(
+      screen.getByText("一人一人に適切な教育をしてほしい")
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("interview-answer-focus-layer")
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("textbox")).toHaveValue("");
+    });
+  });
+
+  it("同じform submitが連続しても回答を二重送信しない", () => {
     mediaQueryMock.matches = true;
     interviewChatMock.state.input = "回答内容";
     renderClient();
 
     fireEvent.pointerDown(screen.getByRole("textbox"));
-    const answerDock = screen.getByTestId("interview-answer-dock");
-    fireEvent.pointerDown(
-      within(answerDock).getByRole("button", { name: "送信" })
-    );
-    fireEvent.blur(within(answerDock).getByRole("textbox"));
+    const textbox = within(
+      screen.getByTestId("interview-answer-dock")
+    ).getByRole("textbox") as HTMLTextAreaElement;
+    const form = textbox.closest("form");
+    expect(form).not.toBeNull();
+    if (!form) {
+      return;
+    }
+    Object.defineProperty(form, "message", {
+      configurable: true,
+      value: textbox,
+    });
 
+    act(() => {
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+      form.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true })
+      );
+    });
+
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledOnce();
+  });
+
+  it("空文字では送信せず回答フォーカスモードを閉じない", () => {
+    mediaQueryMock.matches = true;
+    interviewChatMock.state.input = "";
+    renderClient();
+
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    const textbox = within(
+      screen.getByTestId("interview-answer-dock")
+    ).getByRole("textbox") as HTMLTextAreaElement;
+    const form = textbox.closest("form");
+    expect(form).not.toBeNull();
+    if (!form) {
+      return;
+    }
+    Object.defineProperty(form, "message", {
+      configurable: true,
+      value: textbox,
+    });
+
+    fireEvent.submit(form);
+
+    expect(interviewChatMock.state.handleSubmit).not.toHaveBeenCalled();
     expect(
       screen.getByTestId("interview-answer-focus-layer")
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("textbox")).toHaveLength(1);
+  });
+
+  it("送信開始が拒否された場合は入力とPortalを維持して再送できる", async () => {
+    mediaQueryMock.matches = true;
+    interviewChatMock.state.input = "消してはいけない回答";
+    interviewChatMock.state.handleSubmit = vi
+      .fn()
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    renderClient();
+
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+    const answerDock = screen.getByTestId("interview-answer-dock");
+    const submitButton = within(answerDock).getByRole("button", {
+      name: "送信",
+    });
+
+    fireEvent.click(submitButton);
+
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledOnce();
+    expect(
+      screen.getByTestId("interview-answer-focus-layer")
+    ).toBeInTheDocument();
+    expect(within(answerDock).getByRole("textbox")).toHaveValue(
+      "消してはいけない回答"
+    );
+
+    fireEvent.click(submitButton);
+
+    expect(interviewChatMock.state.handleSubmit).toHaveBeenCalledTimes(2);
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("interview-answer-focus-layer")
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("質問生成中は同じ質問カード内でストリーミング文へ差し替える", () => {

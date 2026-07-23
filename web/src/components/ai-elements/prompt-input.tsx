@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import type { ChatStatus, FileUIPart } from "ai";
 import {
   ImageIcon,
@@ -12,6 +11,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { nanoid } from "nanoid";
+import type { ReactNode } from "react";
 import {
   type ChangeEventHandler,
   Children,
@@ -209,6 +209,7 @@ export type PromptInputProps = Omit<
   // Minimal constraints
   maxFiles?: number;
   maxFileSize?: number; // bytes
+  controlledText?: string;
   onError?: (err: {
     code: "max_files" | "max_file_size" | "accept";
     message: string;
@@ -227,6 +228,7 @@ export const PromptInput = ({
   syncHiddenInput,
   maxFiles,
   maxFileSize,
+  controlledText,
   onError,
   onSubmit,
   ...props
@@ -409,7 +411,15 @@ export const PromptInput = ({
       ...item,
     }));
 
-    onSubmit({ text: event.currentTarget.message.value, files }, event);
+    const messageControl = event.currentTarget.elements.namedItem("message");
+    const text =
+      controlledText ??
+      (messageControl instanceof HTMLTextAreaElement ||
+      messageControl instanceof HTMLInputElement
+        ? messageControl.value
+        : "");
+
+    onSubmit({ text, files }, event);
   };
 
   const ctx = useMemo<AttachmentsContext>(

@@ -5,6 +5,7 @@ import type {
   ChangeEvent,
   CompositionEventHandler,
   FocusEventHandler,
+  MouseEventHandler,
   MutableRefObject,
   PointerEventHandler,
   Ref,
@@ -34,7 +35,10 @@ interface InterviewChatInputProps {
   onTextareaPointerDown?: PointerEventHandler<HTMLTextAreaElement>;
   onTextareaFocus?: FocusEventHandler<HTMLTextAreaElement>;
   onTextareaBlur?: FocusEventHandler<HTMLTextAreaElement>;
-  onSubmitPointerDown?: PointerEventHandler<HTMLButtonElement>;
+  onSubmitClickCapture?: MouseEventHandler<HTMLButtonElement>;
+  onSubmitPointerCancel?: PointerEventHandler<HTMLButtonElement>;
+  onSubmitPointerDownCapture?: PointerEventHandler<HTMLButtonElement>;
+  onSubmitPointerLeave?: PointerEventHandler<HTMLButtonElement>;
   preserveFocusWhileResponding?: boolean;
 }
 
@@ -50,7 +54,10 @@ export function InterviewChatInput({
   onTextareaPointerDown,
   onTextareaFocus,
   onTextareaBlur,
-  onSubmitPointerDown,
+  onSubmitClickCapture,
+  onSubmitPointerCancel,
+  onSubmitPointerDownCapture,
+  onSubmitPointerLeave,
   preserveFocusWhileResponding = false,
 }: InterviewChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -115,6 +122,7 @@ export function InterviewChatInput({
     <>
       <PromptInput
         onSubmit={handleSubmit}
+        controlledText={input}
         className="flex items-end gap-2.5 py-1 pl-6 pr-4 bg-white rounded-[50px] border-mirai-gradient divide-y-0"
       >
         <PromptInputBody className="flex-1">
@@ -138,12 +146,15 @@ export function InterviewChatInput({
         <button
           type="submit"
           disabled={!input || isResponding}
-          onPointerDown={(event) => {
+          onClickCapture={onSubmitClickCapture}
+          onPointerCancel={onSubmitPointerCancel}
+          onPointerDownCapture={(event) => {
             if (preserveFocusWhileResponding) {
               event.preventDefault();
             }
-            onSubmitPointerDown?.(event);
+            onSubmitPointerDownCapture?.(event);
           }}
+          onPointerLeave={onSubmitPointerLeave}
           className="flex-shrink-0 w-10 h-10 disabled:opacity-50"
         >
           <Image

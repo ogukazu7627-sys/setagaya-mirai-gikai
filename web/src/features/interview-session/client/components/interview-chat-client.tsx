@@ -1,7 +1,11 @@
 "use client";
 
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
-import type { FocusEventHandler, PointerEventHandler } from "react";
+import type {
+  FocusEventHandler,
+  MouseEventHandler,
+  PointerEventHandler,
+} from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
@@ -95,7 +99,10 @@ export function InterviewChatClient({
     start: number | null;
     end: number | null;
   }>({ start: null, end: null });
-  const keepFocusThroughSubmitRef = useRef(false);
+  const sendPointerActiveRef = useRef(false);
+  const submitInProgressRef = useRef(false);
+  const submitLockRef = useRef(false);
+  const focusModeClosingRef = useRef(false);
   const wasLoadingRef = useRef(isLoading);
   const isMobileViewport = useMediaQuery("(max-width: 767px)");
   const shouldUseMobileAnswerFocus = layout === "page" && isMobileViewport;
@@ -127,14 +134,36 @@ export function InterviewChatClient({
     }
   }, [isTimeUp, timeUpDismissed]);
 
+  const submitInterviewAnswer = useCallback(
+    (answerText: string) => {
+      const answerSnapshot = answerText.trim();
+      if (
+        answerSnapshot.length === 0 ||
+        submitLockRef.current ||
+        isChatInputBusy ||
+        stage !== "chat"
+      ) {
+        return false;
+      }
+
+      submitLockRef.current = true;
+      dismissTimeUpIfNeeded();
+      const accepted = handleSubmit({ text: answerSnapshot });
+      if (!accepted) {
+        submitLockRef.current = false;
+        return false;
+      }
+
+      return true;
+    },
+    [dismissTimeUpIfNeeded, handleSubmit, isChatInputBusy, stage]
+  );
+
   const handleChatSubmit = useCallback(
     (params: { text?: string }) => {
-      if (params.text) {
-        dismissTimeUpIfNeeded();
-      }
-      handleSubmit(params);
+      submitInterviewAnswer(params.text ?? "");
     },
-    [dismissTimeUpIfNeeded, handleSubmit]
+    [submitInterviewAnswer]
   );
 
   const handleChatQuickReply = useCallback(
@@ -204,7 +233,8 @@ export function InterviewChatClient({
         !shouldUseMobileAnswerFocus ||
         stage !== "chat" ||
         isChatInputBusy ||
-        isAnswerFocusMode
+        isAnswerFocusMode ||
+        focusModeClosingRef.current
       ) {
         return;
       }
@@ -256,23 +286,72 @@ export function InterviewChatClient({
         end: event.currentTarget.selectionEnd,
       };
 
-      if (keepFocusThroughSubmitRef.current) {
-        window.requestAnimationFrame(() => {
-          textareaRef.current?.focus({ preventScroll: true });
-        });
+      if (
+        sendPointerActiveRef.current ||
+        submitInProgressRef.current ||
+        submitLockRef.current
+      ) {
         return;
       }
 
+      focusModeClosingRef.current = true;
       setIsAnswerFocusMode(false);
     }, []);
 
-  const handleSubmitPointerDown: PointerEventHandler<HTMLButtonElement> =
+  const handleSubmitPointerDownCapture: PointerEventHandler<HTMLButtonElement> =
     useCallback(() => {
-      keepFocusThroughSubmitRef.current = true;
-      window.requestAnimationFrame(() => {
-        keepFocusThroughSubmitRef.current = false;
+      sendPointerActiveRef.current = true;
+    }, []);
+
+  const handleSubmitPointerCancel: PointerEventHandler<HTMLButtonElement> =
+    useCallback(() => {
+      if (!submitInProgressRef.current) {
+        sendPointerActiveRef.current = false;
+      }
+    }, []);
+
+  const handleSubmitClickCapture: MouseEventHandler<HTMLButtonElement> =
+    useCallback(() => {
+      queueMicrotask(() => {
+        if (!submitInProgressRef.current) {
+          sendPointerActiveRef.current = false;
+        }
       });
     }, []);
+
+  const handleFocusedInputSubmit = useCallback(() => {
+    const answerSnapshot = input.trim();
+    if (
+      answerSnapshot.length === 0 ||
+      submitInProgressRef.current ||
+      submitLockRef.current
+    ) {
+      return;
+    }
+
+    submitInProgressRef.current = true;
+    const accepted = submitInterviewAnswer(answerSnapshot);
+    if (!accepted) {
+      submitInProgressRef.current = false;
+      sendPointerActiveRef.current = false;
+      return;
+    }
+
+    answerSelectionRef.current = { start: 0, end: 0 };
+    focusModeClosingRef.current = true;
+    textareaRef.current?.blur();
+    flushSync(() => {
+      setIsAnswerFocusMode(false);
+    });
+    submitInProgressRef.current = false;
+    sendPointerActiveRef.current = false;
+  }, [input, submitInterviewAnswer]);
+
+  useEffect(() => {
+    if (!isAnswerFocusMode && focusModeClosingRef.current) {
+      focusModeClosingRef.current = false;
+    }
+  }, [isAnswerFocusMode]);
 
   useEffect(() => {
     if (
@@ -298,6 +377,10 @@ export function InterviewChatClient({
   useEffect(() => {
     const wasLoading = wasLoadingRef.current;
     wasLoadingRef.current = isLoading;
+
+    if (wasLoading && !isLoading) {
+      submitLockRef.current = false;
+    }
 
     if (isAnswerFocusMode && stage === "chat" && wasLoading && !isLoading) {
       textareaRef.current?.focus({ preventScroll: true });
@@ -501,7 +584,7 @@ export function InterviewChatClient({
             <InterviewChatInput
               input={input}
               onInputChange={setInput}
-              onSubmit={handleChatSubmit}
+              onSubmit={handleFocusedInputSubmit}
               placeholder={
                 isChatInputBusy ? "次の質問を準備中" : "AIの質問に回答する"
               }
@@ -509,7 +592,10 @@ export function InterviewChatClient({
               showHint={false}
               textareaRef={textareaRef}
               onTextareaBlur={handleFocusedInputBlur}
-              onSubmitPointerDown={handleSubmitPointerDown}
+              onSubmitClickCapture={handleSubmitClickCapture}
+              onSubmitPointerCancel={handleSubmitPointerCancel}
+              onSubmitPointerDownCapture={handleSubmitPointerDownCapture}
+              onSubmitPointerLeave={handleSubmitPointerCancel}
               preserveFocusWhileResponding
             />
           </InterviewAnswerFocusLayer>

@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PromptInput,
   PromptInputBody,
+  PromptInputButton,
+  PromptInputError,
+  PromptInputHint,
+  PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
-  PromptInputSubmit,
-  PromptInputError,
-  PromptInputHint,
-  PromptInputButton,
 } from "./prompt-input";
 
 // nanoid をモックして安定した ID を返す
@@ -81,6 +81,26 @@ describe("PromptInput", () => {
           text: "",
           files: expect.any(Array),
         }),
+        expect.any(Object)
+      );
+    });
+
+    it("controlledTextがある場合はDOMではなく管理中の値を送信する", () => {
+      const onSubmit = vi.fn();
+      render(
+        <PromptInput controlledText="管理中の回答" onSubmit={onSubmit}>
+          <PromptInputBody>
+            <PromptInputTextarea defaultValue="DOM上の回答" />
+          </PromptInputBody>
+        </PromptInput>
+      );
+
+      const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
+      const form = textarea.closest("form") as HTMLFormElement;
+      fireEvent.submit(form);
+
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ text: "管理中の回答" }),
         expect.any(Object)
       );
     });
