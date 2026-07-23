@@ -77,9 +77,9 @@ describe("InterviewChatInput", () => {
   });
 
   it("送信ボタンのpointer downでtextareaのblurを防ぐ", () => {
-    const onSubmitPointerDown = vi.fn();
+    const onSubmitPointerDownCapture = vi.fn();
     renderInput({
-      onSubmitPointerDown,
+      onSubmitPointerDownCapture,
       preserveFocusWhileResponding: true,
     });
     const submitButton = screen.getByRole("button", { name: "送信" });
@@ -88,6 +88,6 @@ describe("InterviewChatInput", () => {
     fireEvent(submitButton, event);
 
     expect(event.defaultPrevented).toBe(true);
-    expect(onSubmitPointerDown).toHaveBeenCalledTimes(1);
+    expect(onSubmitPointerDownCapture).toHaveBeenCalledTimes(1);
   });
 });

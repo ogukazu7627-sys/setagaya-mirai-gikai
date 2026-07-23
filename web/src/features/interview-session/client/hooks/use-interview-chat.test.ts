@@ -130,10 +130,12 @@ describe("useInterviewChat", () => {
         useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
       );
 
+      let accepted: boolean | undefined;
       act(() => {
-        result.current.handleSubmit({ text: "" });
+        accepted = result.current.handleSubmit({ text: "" });
       });
 
+      expect(accepted).toBe(false);
       expect(mockSubmit).not.toHaveBeenCalled();
       expect(result.current.messages).toHaveLength(0);
     });
@@ -169,14 +171,39 @@ describe("useInterviewChat", () => {
         useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
       );
 
+      let accepted: boolean | undefined;
       act(() => {
-        result.current.handleSubmit({ text: "テスト入力" });
+        accepted = result.current.handleSubmit({ text: "テスト入力" });
       });
 
+      expect(accepted).toBe(true);
       expect(result.current.messages).toHaveLength(1);
       expect(result.current.messages[0].role).toBe("user");
       expect(result.current.messages[0].content).toBe("テスト入力");
       expect(result.current.input).toBe("");
+      expect(mockSubmit).toHaveBeenCalledOnce();
+    });
+
+    it("submit開始が同期的に失敗した場合は回答とinputを変更せずfalseを返す", () => {
+      mockSubmit.mockImplementationOnce(() => {
+        throw new Error("submit start failed");
+      });
+      const { result } = renderHook(() =>
+        useInterviewChat({ billId: DEFAULT_BILL_ID, initialMessages: [] })
+      );
+
+      act(() => {
+        result.current.setInput("保持する回答");
+      });
+
+      let accepted: boolean | undefined;
+      act(() => {
+        accepted = result.current.handleSubmit({ text: "保持する回答" });
+      });
+
+      expect(accepted).toBe(false);
+      expect(result.current.messages).toHaveLength(0);
+      expect(result.current.input).toBe("保持する回答");
       expect(mockSubmit).toHaveBeenCalledOnce();
     });
 
