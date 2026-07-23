@@ -1,8 +1,9 @@
 "use client";
 
 import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
-import type { CSSProperties } from "react";
-import { useCallback, useMemo, useState } from "react";
+import type { FocusEventHandler, PointerEventHandler } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   Conversation,
   ConversationContent,
@@ -15,6 +16,8 @@ import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
 import { calcInterviewProgress } from "../utils/calc-interview-progress";
 import { embedBillLink } from "../utils/embed-bill-link";
+import { getActiveInterviewQuestion } from "../utils/get-active-interview-question";
+import { InterviewAnswerFocusLayer } from "./interview-answer-focus-layer";
 import { InterviewChatInput } from "./interview-chat-input";
 import { InterviewErrorDisplay } from "./interview-error-display";
 import { InterviewMessage } from "./interview-message";
@@ -85,10 +88,19 @@ export function InterviewChatClient({
   });
 
   const [timeUpDismissed, setTimeUpDismissed] = useState(false);
+  const [isAnswerFocusMode, setIsAnswerFocusMode] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const answerFocusScrollYRef = useRef(0);
+  const answerSelectionRef = useRef<{
+    start: number | null;
+    end: number | null;
+  }>({ start: null, end: null });
+  const keepFocusThroughSubmitRef = useRef(false);
+  const wasLoadingRef = useRef(isLoading);
   const isMobileViewport = useMediaQuery("(max-width: 767px)");
-  const shouldUseMobileViewportFrame = layout === "page" && isMobileViewport;
+  const shouldUseMobileAnswerFocus = layout === "page" && isMobileViewport;
   const visualViewportFrame = useVisualViewportFrame(
-    shouldUseMobileViewportFrame
+    shouldUseMobileAnswerFocus && isAnswerFocusMode
   );
 
   const progress = useMemo(
@@ -107,34 +119,6 @@ export function InterviewChatClient({
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
   const isPanelLayout = layout === "panel";
   const isChatInputBusy = isLoading || isPreparingInitialQuestion;
-  const isKeyboardOpen = visualViewportFrame.keyboardInset > 0;
-  const mobileViewportStyle = useMemo<CSSProperties | undefined>(() => {
-    if (!shouldUseMobileViewportFrame) {
-      return undefined;
-    }
-
-    return {
-      bottom: "auto",
-      height: `${visualViewportFrame.height}px`,
-      left: `${visualViewportFrame.offsetLeft}px`,
-      overflow: "hidden",
-      position: "fixed",
-      right: "auto",
-      top: `${visualViewportFrame.offsetTop}px`,
-      width: `${visualViewportFrame.width}px`,
-    };
-  }, [shouldUseMobileViewportFrame, visualViewportFrame]);
-  const inputAreaStyle = useMemo<CSSProperties | undefined>(() => {
-    if (isPanelLayout) {
-      return undefined;
-    }
-
-    return {
-      "--interview-composer-bottom-padding": isKeyboardOpen
-        ? "10px"
-        : "max(0.75rem, env(safe-area-inset-bottom))",
-    } as CSSProperties;
-  }, [isKeyboardOpen, isPanelLayout]);
 
   // チャット操作時にタイムアップアラートを自動非表示にする
   const dismissTimeUpIfNeeded = useCallback(() => {
@@ -184,6 +168,28 @@ export function InterviewChatClient({
   // ストリーミング中のメッセージを表示するかどうか
   const showStreamingMessage = object && !isStreamingMessageCommitted;
 
+  const activeQuestion = useMemo(
+    () =>
+      getActiveInterviewQuestion({
+        messages,
+        stage,
+        isLoading,
+        isPreparingInitialQuestion,
+        streamingText: object?.text,
+        streamingNextStage: object?.next_stage,
+        isStreamingMessageCommitted: Boolean(isStreamingMessageCommitted),
+      }),
+    [
+      isLoading,
+      isPreparingInitialQuestion,
+      isStreamingMessageCommitted,
+      messages,
+      object?.next_stage,
+      object?.text,
+      stage,
+    ]
+  );
+
   // メッセージ内にレポートが存在するかどうか
   const hasReport = messages.some((m) => m.report != null);
 
@@ -191,6 +197,112 @@ export function InterviewChatClient({
   const lastAssistantIndex = messages.findLastIndex(
     (m) => m.role === "assistant"
   );
+
+  const openAnswerFocusMode = useCallback(
+    (textarea: HTMLTextAreaElement) => {
+      if (
+        !shouldUseMobileAnswerFocus ||
+        stage !== "chat" ||
+        isChatInputBusy ||
+        isAnswerFocusMode
+      ) {
+        return;
+      }
+
+      answerFocusScrollYRef.current = window.scrollY;
+      answerSelectionRef.current = {
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd,
+      };
+
+      flushSync(() => {
+        setIsAnswerFocusMode(true);
+      });
+
+      const focusedTextarea = textareaRef.current;
+      focusedTextarea?.focus({ preventScroll: true });
+      const { start, end } = answerSelectionRef.current;
+      if (focusedTextarea && start !== null && end !== null) {
+        focusedTextarea.setSelectionRange(start, end);
+      }
+    },
+    [isAnswerFocusMode, isChatInputBusy, shouldUseMobileAnswerFocus, stage]
+  );
+
+  const handleNormalInputPointerDown: PointerEventHandler<HTMLTextAreaElement> =
+    useCallback(
+      (event) => {
+        if (!shouldUseMobileAnswerFocus) {
+          return;
+        }
+        event.preventDefault();
+        openAnswerFocusMode(event.currentTarget);
+      },
+      [openAnswerFocusMode, shouldUseMobileAnswerFocus]
+    );
+
+  const handleNormalInputFocus: FocusEventHandler<HTMLTextAreaElement> =
+    useCallback(
+      (event) => {
+        openAnswerFocusMode(event.currentTarget);
+      },
+      [openAnswerFocusMode]
+    );
+
+  const handleFocusedInputBlur: FocusEventHandler<HTMLTextAreaElement> =
+    useCallback((event) => {
+      answerSelectionRef.current = {
+        start: event.currentTarget.selectionStart,
+        end: event.currentTarget.selectionEnd,
+      };
+
+      if (keepFocusThroughSubmitRef.current) {
+        window.requestAnimationFrame(() => {
+          textareaRef.current?.focus({ preventScroll: true });
+        });
+        return;
+      }
+
+      setIsAnswerFocusMode(false);
+    }, []);
+
+  const handleSubmitPointerDown: PointerEventHandler<HTMLButtonElement> =
+    useCallback(() => {
+      keepFocusThroughSubmitRef.current = true;
+      window.requestAnimationFrame(() => {
+        keepFocusThroughSubmitRef.current = false;
+      });
+    }, []);
+
+  useEffect(() => {
+    if (
+      isAnswerFocusMode &&
+      (!shouldUseMobileAnswerFocus || stage !== "chat")
+    ) {
+      setIsAnswerFocusMode(false);
+    }
+  }, [isAnswerFocusMode, shouldUseMobileAnswerFocus, stage]);
+
+  useEffect(() => {
+    if (isAnswerFocusMode || !shouldUseMobileAnswerFocus || stage !== "chat") {
+      return;
+    }
+
+    const textarea = textareaRef.current;
+    const { start, end } = answerSelectionRef.current;
+    if (textarea && start !== null && end !== null) {
+      textarea.setSelectionRange(start, end);
+    }
+  }, [isAnswerFocusMode, shouldUseMobileAnswerFocus, stage]);
+
+  useEffect(() => {
+    const wasLoading = wasLoadingRef.current;
+    wasLoadingRef.current = isLoading;
+
+    if (isAnswerFocusMode && stage === "chat" && wasLoading && !isLoading) {
+      textareaRef.current?.focus({ preventScroll: true });
+    }
+  }, [isAnswerFocusMode, isLoading, stage]);
 
   return (
     <div
@@ -200,7 +312,6 @@ export function InterviewChatClient({
           : "h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light"
       }
       data-testid="interview-chat-root"
-      style={mobileViewportStyle}
     >
       <div
         className={
@@ -334,9 +445,8 @@ export function InterviewChatClient({
 
         {/* 入力エリア */}
         <div
-          className="shrink-0 bg-white px-6 pb-[var(--interview-composer-bottom-padding,max(0.75rem,env(safe-area-inset-bottom)))] pt-2"
+          className="shrink-0 bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2"
           data-testid="interview-chat-composer"
-          style={inputAreaStyle}
         >
           {(stage === "summary" || stage === "summary_complete") && (
             <InterviewSummaryInput
@@ -354,7 +464,7 @@ export function InterviewChatClient({
             />
           )}
 
-          {stage === "chat" && (
+          {stage === "chat" && !isAnswerFocusMode && (
             <InterviewChatInput
               input={input}
               onInputChange={setInput}
@@ -365,10 +475,45 @@ export function InterviewChatClient({
                   : "AIの質問に回答する"
               }
               isResponding={isChatInputBusy}
+              textareaRef={textareaRef}
+              onTextareaPointerDown={handleNormalInputPointerDown}
+              onTextareaFocus={handleNormalInputFocus}
             />
           )}
         </div>
       </div>
+
+      {isAnswerFocusMode &&
+        shouldUseMobileAnswerFocus &&
+        stage === "chat" &&
+        activeQuestion && (
+          <InterviewAnswerFocusLayer
+            currentTopic={progress?.currentTopic ?? null}
+            frame={visualViewportFrame}
+            isQuestionLoading={activeQuestion.isLoading}
+            latestQuestion={activeQuestion.text}
+            progressPercentage={
+              showProgressBar && progress ? progress.percentage : null
+            }
+            remainingMinutes={timerMinutes}
+            restoreScrollY={answerFocusScrollYRef.current}
+          >
+            <InterviewChatInput
+              input={input}
+              onInputChange={setInput}
+              onSubmit={handleChatSubmit}
+              placeholder={
+                isChatInputBusy ? "次の質問を準備中" : "AIの質問に回答する"
+              }
+              isResponding={isChatInputBusy}
+              showHint={false}
+              textareaRef={textareaRef}
+              onTextareaBlur={handleFocusedInputBlur}
+              onSubmitPointerDown={handleSubmitPointerDown}
+              preserveFocusWhileResponding
+            />
+          </InterviewAnswerFocusLayer>
+        )}
     </div>
   );
 }
