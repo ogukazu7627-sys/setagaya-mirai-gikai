@@ -8,6 +8,7 @@ import type {
   BillSource,
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
+import { getAdminTagMajorCategory } from "../shared/fixed-admin-tags";
 import { billFormSchema } from "./bill-admin-schemas";
 import type { NewTagInput } from "./bill-admin-shared";
 import { nullableString } from "./bill-admin-utils";
@@ -75,7 +76,7 @@ function newTagsFromFormData(
       seenLabels.add(label);
       tags.push({
         label,
-        major_category: fallbackCategory,
+        major_category: getAdminTagMajorCategory(label, fallbackCategory),
       });
     }
   });
