@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  cleanupTestUser,
+  createTestUser,
   getAnonClient,
   getAuthenticatedClient,
-  createTestUser,
-  cleanupTestUser,
 } from "../utils";
 
 /**
@@ -25,6 +25,11 @@ const tables = [
   "interview_sessions",
   "interview_messages",
   "interview_report",
+  "recommendation_profiles",
+  "daily_recommendations",
+  "recommendation_impressions",
+  "push_subscriptions",
+  "recommendation_api_rate_limits",
 ] as const;
 
 describe("RLS default deny（全テーブル共通）", () => {

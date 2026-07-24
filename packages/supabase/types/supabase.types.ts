@@ -1192,6 +1192,193 @@ export type Database = {
           },
         ]
       }
+      daily_recommendations: {
+        Row: {
+          bill_ids: string[]
+          created_at: string
+          id: string
+          preference_version: number
+          profile_id: string
+          recommendation_date: string
+          sources: Database["public"]["Enums"]["recommendation_source_enum"][]
+        }
+        Insert: {
+          bill_ids?: string[]
+          created_at?: string
+          id?: string
+          preference_version: number
+          profile_id: string
+          recommendation_date: string
+          sources?: Database["public"]["Enums"]["recommendation_source_enum"][]
+        }
+        Update: {
+          bill_ids?: string[]
+          created_at?: string
+          id?: string
+          preference_version?: number
+          profile_id?: string
+          recommendation_date?: string
+          sources?: Database["public"]["Enums"]["recommendation_source_enum"][]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_recommendations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "recommendation_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          enabled: boolean
+          endpoint: string
+          id: string
+          last_attempted_at: string | null
+          last_notification_date: string | null
+          last_notification_status:
+            | Database["public"]["Enums"]["push_notification_status_enum"]
+            | null
+          p256dh: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          enabled?: boolean
+          endpoint: string
+          id?: string
+          last_attempted_at?: string | null
+          last_notification_date?: string | null
+          last_notification_status?:
+            | Database["public"]["Enums"]["push_notification_status_enum"]
+            | null
+          p256dh: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          enabled?: boolean
+          endpoint?: string
+          id?: string
+          last_attempted_at?: string | null
+          last_notification_date?: string | null
+          last_notification_status?:
+            | Database["public"]["Enums"]["push_notification_status_enum"]
+            | null
+          p256dh?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "recommendation_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recommendation_api_rate_limits: {
+        Row: {
+          key_hash: string
+          request_count: number
+          route_key: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          key_hash: string
+          request_count?: number
+          route_key: string
+          updated_at?: string
+          window_start: string
+        }
+        Update: {
+          key_hash?: string
+          request_count?: number
+          route_key?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      recommendation_impressions: {
+        Row: {
+          bill_id: string
+          display_source: Database["public"]["Enums"]["recommendation_display_source_enum"]
+          first_displayed_at: string
+          profile_id: string
+        }
+        Insert: {
+          bill_id: string
+          display_source: Database["public"]["Enums"]["recommendation_display_source_enum"]
+          first_displayed_at?: string
+          profile_id: string
+        }
+        Update: {
+          bill_id?: string
+          display_source?: Database["public"]["Enums"]["recommendation_display_source_enum"]
+          first_displayed_at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_impressions_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_impressions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "recommendation_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recommendation_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          installation_id: string
+          preference_version: number
+          selected_parent_category_ids: string[]
+          selected_small_tags: string[]
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          installation_id: string
+          preference_version?: number
+          selected_parent_category_ids: string[]
+          selected_small_tags: string[]
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          installation_id?: string
+          preference_version?: number
+          selected_parent_category_ids?: string[]
+          selected_small_tags?: string[]
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       report_reactions: {
         Row: {
           created_at: string
@@ -1578,6 +1765,25 @@ export type Database = {
           session_count: number
         }[]
       }
+      claim_daily_push_subscriptions: {
+        Args: { p_limit?: number; p_recommendation_date: string }
+        Returns: {
+          auth: string
+          endpoint: string
+          p256dh: string
+          profile_id: string
+          subscription_id: string
+        }[]
+      }
+      consume_recommendation_rate_limit: {
+        Args: {
+          p_key_hash: string
+          p_limit: number
+          p_route_key: string
+          p_window_start: string
+        }
+        Returns: boolean
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string
@@ -1708,6 +1914,28 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: undefined
       }
+      reset_recommendation_history: {
+        Args: { p_installation_id: string }
+        Returns: Database["public"]["Tables"]["recommendation_profiles"]["Row"]
+      }
+      save_recommendation_preferences: {
+        Args: {
+          p_installation_id: string
+          p_selected_parent_category_ids: string[]
+          p_selected_small_tags: string[]
+          p_timezone: string
+        }
+        Returns: Database["public"]["Tables"]["recommendation_profiles"]["Row"]
+      }
+      save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_p256dh: string
+          p_profile_id: string
+        }
+        Returns: Database["public"]["Tables"]["push_subscriptions"]["Row"]
+      }
       set_active_diet_session: {
         Args: { target_session_id: string }
         Returns: undefined
@@ -1749,6 +1977,16 @@ export type Database = {
         | "general_citizen"
       interview_role_enum: "assistant" | "user"
       moderation_status_enum: "ok" | "warning" | "ng"
+      push_notification_status_enum:
+        | "processing"
+        | "sent"
+        | "skipped"
+        | "failed"
+        | "expired"
+      recommendation_display_source_enum: "homepage" | "push"
+      recommendation_source_enum:
+        | "selected-subcategory"
+        | "parent-category"
       stance_type_enum:
         | "for"
         | "against"
@@ -1918,6 +2156,18 @@ export const Constants = {
       ],
       interview_role_enum: ["assistant", "user"],
       moderation_status_enum: ["ok", "warning", "ng"],
+      push_notification_status_enum: [
+        "processing",
+        "sent",
+        "skipped",
+        "failed",
+        "expired",
+      ],
+      recommendation_display_source_enum: ["homepage", "push"],
+      recommendation_source_enum: [
+        "selected-subcategory",
+        "parent-category",
+      ],
       stance_type_enum: [
         "for",
         "against",

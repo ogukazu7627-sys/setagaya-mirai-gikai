@@ -1,4 +1,8 @@
 import type { Database } from "@mirai-gikai/supabase";
+import {
+  type MajorCategoryLabel,
+  RECOMMENDATION_CATEGORY_OPTIONS,
+} from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 
 // Database types
 export type Bill = Database["public"]["Tables"]["bills"]["Row"];
@@ -30,62 +34,8 @@ export type BillSource = {
   accessed_at?: string | null;
 };
 
-export const MAJOR_CATEGORY_OPTIONS = [
-  {
-    id: "education",
-    label: "教育🏫",
-    description: "学校、教育委員会、不登校、給食、教育環境、学びの支援",
-  },
-  {
-    id: "childcare",
-    label: "子育て👶",
-    description: "保育、学童、子育て支援、若者支援、児童、妊娠・出産",
-  },
-  {
-    id: "welfare",
-    label: "福祉🤝",
-    description: "高齢者、障害者、介護、健康、生活支援、医療、福祉施策",
-  },
-  {
-    id: "urban_planning",
-    label: "まちづくり🏗️",
-    description: "再開発、道路、公園、住宅、交通、都市計画、自転車、歩行環境",
-  },
-  {
-    id: "disaster_prevention",
-    label: "防災☔",
-    description: "災害対策、防犯、交通安全、危機管理",
-  },
-  {
-    id: "administration_finance",
-    label: "行財政🏛️",
-    description:
-      "予算、決算、基金、区債、税、契約、条例、行政改革、DX、庁舎、窓口改革",
-  },
-  {
-    id: "culture",
-    label: "文化・スポーツ📚",
-    description: "文化施設、スポーツ施設、生涯学習、図書館、地域イベント",
-  },
-  {
-    id: "industry",
-    label: "産業💡",
-    description: "商店街、産業振興、創業支援、観光、地域経済、雇用",
-  },
-  {
-    id: "environment",
-    label: "環境問題🌿",
-    description: "ごみ、清掃、リサイクル、気候変動、緑、環境政策",
-  },
-  {
-    id: "daily_life",
-    label: "暮らし🙋",
-    description: "戸籍、区民施設、地域行政、消費生活、町会、地域活動",
-  },
-] as const;
-
-export type MajorCategoryLabel =
-  (typeof MAJOR_CATEGORY_OPTIONS)[number]["label"];
+export const MAJOR_CATEGORY_OPTIONS = RECOMMENDATION_CATEGORY_OPTIONS;
+export type { MajorCategoryLabel };
 
 // Coming Soon議案の型（最小限の情報のみ）
 export type ComingSoonBill = {

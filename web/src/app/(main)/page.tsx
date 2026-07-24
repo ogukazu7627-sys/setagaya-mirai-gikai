@@ -11,6 +11,8 @@ import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { TodayRecommendationsSection } from "@/features/recommendations/client/components/today-recommendations-section";
+import { getRecommendationAvailability } from "@/features/recommendations/server/services/recommendation-availability-service";
 import { getJapanTime } from "@/lib/utils/date";
 
 type HomeProps = {
@@ -29,10 +31,12 @@ export default async function Home({ searchParams }: HomeProps) {
     });
 
   // ゆくゆくタグ機能がマージされたらBFFに統合する
-  const [currentSession, currentDifficulty] = await Promise.all([
-    getCurrentDietSession(now),
-    getDifficultyLevel(),
-  ]);
+  const [currentSession, currentDifficulty, recommendationAvailability] =
+    await Promise.all([
+      getCurrentDietSession(now),
+      getDifficultyLevel(),
+      getRecommendationAvailability(),
+    ]);
 
   const toBillChatContext = (bill: BillWithContent) => {
     return {
@@ -57,6 +61,8 @@ export default async function Home({ searchParams }: HomeProps) {
 
       {/* 本日の世田谷区議会セクション */}
       <CurrentDietSession session={currentSession} />
+
+      <TodayRecommendationsSection availability={recommendationAvailability} />
 
       {/* 議案一覧セクション */}
       <Container className="">
