@@ -1,65 +1,16 @@
 import {
-  AdminBillSaveError,
   getAdminDraftBillForApi,
   listAdminBillKnowledgeSourcesForApi,
   saveAdminDraftBillFromJson,
 } from "@/features/admin/server/bill-admin";
 import { jsonResponse } from "@/lib/api/response";
-import { env } from "@/lib/env";
-
-function authenticateAdminDraftApiRequest(request: Request): Response | null {
-  if (!env.adminApiToken) {
-    return jsonResponse(
-      {
-        success: false,
-        error: "ADMIN_API_TOKEN is not configured",
-        code: "admin_api_token_not_configured",
-      },
-      500
-    );
-  }
-
-  const authorization = request.headers.get("authorization");
-  if (authorization !== `Bearer ${env.adminApiToken}`) {
-    return jsonResponse(
-      {
-        success: false,
-        error: "Unauthorized",
-        code: "unauthorized",
-      },
-      401
-    );
-  }
-
-  return null;
-}
-
-function handleAdminDraftApiError(error: unknown, fallbackMessage: string) {
-  if (error instanceof AdminBillSaveError) {
-    return jsonResponse(
-      {
-        success: false,
-        error: error.message,
-        code: error.code,
-        billId: error.billId,
-      },
-      error.status
-    );
-  }
-
-  console.error("Admin draft bill API error:", error);
-  return jsonResponse(
-    {
-      success: false,
-      error: fallbackMessage,
-      code: "internal_error",
-    },
-    500
-  );
-}
+import {
+  authenticateAdminBillsApiRequest,
+  handleAdminBillsApiError,
+} from "../_shared";
 
 export async function GET(request: Request) {
-  const authError = authenticateAdminDraftApiRequest(request);
+  const authError = authenticateAdminBillsApiRequest(request);
   if (authError) return authError;
 
   const searchParams = new URL(request.url).searchParams;
@@ -72,9 +23,10 @@ export async function GET(request: Request) {
       );
       return jsonResponse(result, 200);
     } catch (error) {
-      return handleAdminDraftApiError(
+      return handleAdminBillsApiError(
         error,
-        "Failed to read bill knowledge sources"
+        "Failed to read bill knowledge sources",
+        "Admin draft bill API error"
       );
     }
   }
@@ -94,12 +46,16 @@ export async function GET(request: Request) {
     const result = await getAdminDraftBillForApi(billId);
     return jsonResponse(result, 200);
   } catch (error) {
-    return handleAdminDraftApiError(error, "Failed to read draft bill");
+    return handleAdminBillsApiError(
+      error,
+      "Failed to read draft bill",
+      "Admin draft bill API error"
+    );
   }
 }
 
 export async function POST(request: Request) {
-  const authError = authenticateAdminDraftApiRequest(request);
+  const authError = authenticateAdminBillsApiRequest(request);
   if (authError) return authError;
 
   let body: unknown;
@@ -120,6 +76,10 @@ export async function POST(request: Request) {
     const result = await saveAdminDraftBillFromJson(body);
     return jsonResponse(result, 200);
   } catch (error) {
-    return handleAdminDraftApiError(error, "Failed to save draft bill");
+    return handleAdminBillsApiError(
+      error,
+      "Failed to save draft bill",
+      "Admin draft bill API error"
+    );
   }
 }

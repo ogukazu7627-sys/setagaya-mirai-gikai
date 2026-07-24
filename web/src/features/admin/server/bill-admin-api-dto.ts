@@ -1,9 +1,11 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import type { BillItemType } from "@/features/bills/shared/types";
 import { findUnknownCouncilorNamesByBillId } from "@/features/councilors/server/repositories/councilor-statement-repository";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
@@ -18,12 +20,14 @@ import {
   type AdminBillKnowledgeSourceExportItem,
   AdminBillSaveError,
   type AdminDraftBillApiTag,
+  type BillContentRow,
   type BillRow,
   type BillTagJoinRow,
   billItemTypeSchema,
   type DietSessionRow,
   type GetAdminDraftBillApiResponse,
   type ListAdminBillKnowledgeSourcesApiResponse,
+  type PublishAdminDraftBillApiResponse,
   type SaveAdminDraftBillApiResponse,
 } from "./bill-admin-shared";
 import {
@@ -111,6 +115,168 @@ export async function saveAdminDraftBillFromJson(
       is_review_completed: false,
       interview_enabled: true,
     },
+  };
+}
+
+const adminPublishDraftBillApiSchema = z.object({
+  id: z.string().uuid("idはUUID形式で指定してください。"),
+  publish_status: z.literal("published").optional(),
+  is_review_completed: z.boolean().optional(),
+});
+
+function parseAdminPublishDraftBillApiInput(input: unknown) {
+  const result = adminPublishDraftBillApiSchema.safeParse(input);
+  if (!result.success) {
+    throw new AdminBillSaveError(
+      getFirstZodIssueMessage(result.error),
+      400,
+      "invalid_request"
+    );
+  }
+
+  return result.data;
+}
+
+function hasRequiredPublicContent(
+  content: Pick<BillContentRow, "title" | "summary" | "content"> | null
+) {
+  return (
+    Boolean(content) &&
+    Boolean(content?.title.trim()) &&
+    Boolean(content?.summary.trim()) &&
+    Boolean(content?.content.trim())
+  );
+}
+
+export async function publishAdminDraftBillFromJson(
+  input: unknown
+): Promise<PublishAdminDraftBillApiResponse> {
+  const parsed = parseAdminPublishDraftBillApiInput(input);
+
+  if (isSetagayaMockMode) {
+    throw new AdminBillSaveError(
+      "現在はローカルのモック表示中です。公開するにはSupabase接続を設定してください。",
+      503,
+      "mock_mode",
+      parsed.id
+    );
+  }
+
+  const supabase = createAdminClient();
+  const [billResult, normalContentResult] = await Promise.all([
+    supabase
+      .from("bills")
+      .select("id, publish_status, is_review_completed")
+      .eq("id", parsed.id)
+      .maybeSingle(),
+    supabase
+      .from("bill_contents")
+      .select("title, summary, content")
+      .eq("bill_id", parsed.id)
+      .eq("difficulty_level", "normal")
+      .maybeSingle(),
+  ]);
+
+  if (billResult.error) {
+    throw new AdminBillSaveError(
+      `公開対象の確認に失敗しました: ${billResult.error.message}`,
+      500,
+      "bill_lookup_failed",
+      parsed.id
+    );
+  }
+
+  if (!billResult.data) {
+    throw new AdminBillSaveError(
+      "公開対象の案件が見つかりません。",
+      404,
+      "bill_not_found",
+      parsed.id
+    );
+  }
+
+  if (billResult.data.publish_status !== "draft") {
+    throw new AdminBillSaveError(
+      "公開APIではdraftの案件だけ公開できます。",
+      409,
+      "non_draft_publish_not_allowed",
+      parsed.id
+    );
+  }
+
+  if (normalContentResult.error) {
+    throw new AdminBillSaveError(
+      `通常本文の確認に失敗しました: ${normalContentResult.error.message}`,
+      500,
+      "bill_contents_lookup_failed",
+      parsed.id
+    );
+  }
+
+  if (!hasRequiredPublicContent(normalContentResult.data)) {
+    throw new AdminBillSaveError(
+      "公開するにはnormalのタイトル・概要・本文が必要です。",
+      409,
+      "public_content_missing",
+      parsed.id
+    );
+  }
+
+  const now = new Date().toISOString();
+  const isReviewCompleted =
+    parsed.is_review_completed ?? billResult.data.is_review_completed;
+  const { data: updatedBill, error: updateError } = await supabase
+    .from("bills")
+    .update({
+      publish_status: "published",
+      published_at: now,
+      updated_at: now,
+      is_review_completed: isReviewCompleted,
+    })
+    .eq("id", parsed.id)
+    .eq("publish_status", "draft")
+    .select("id, publish_status, is_review_completed, published_at")
+    .maybeSingle();
+
+  if (updateError) {
+    throw new AdminBillSaveError(
+      `公開状態の更新に失敗しました: ${updateError.message}`,
+      500,
+      "bill_publish_failed",
+      parsed.id
+    );
+  }
+
+  if (!updatedBill) {
+    throw new AdminBillSaveError(
+      "公開対象の状態が変更されたため、公開できませんでした。",
+      409,
+      "bill_publish_conflict",
+      parsed.id
+    );
+  }
+
+  const unknownCouncilorNames = await findUnknownCouncilorNamesByBillId(
+    parsed.id
+  );
+  revalidateTag(CACHE_TAGS.BILLS);
+
+  return {
+    success: true,
+    billId: updatedBill.id,
+    previousPublishStatus: "draft",
+    publish_status: "published",
+    is_review_completed: updatedBill.is_review_completed,
+    publishedAt: updatedBill.published_at ?? now,
+    adminEditUrl: new URL(
+      routes.adminBillEdit(updatedBill.id),
+      env.webUrl
+    ).toString(),
+    publicUrl: new URL(
+      routes.billDetail(updatedBill.id),
+      env.webUrl
+    ).toString(),
+    unknownCouncilorNames,
   };
 }
 

@@ -181,6 +181,18 @@ export type SaveAdminDraftBillApiResponse = {
   };
 };
 
+export type PublishAdminDraftBillApiResponse = {
+  success: true;
+  billId: string;
+  previousPublishStatus: "draft";
+  publish_status: "published";
+  is_review_completed: boolean;
+  publishedAt: string;
+  adminEditUrl: string;
+  publicUrl: string;
+  unknownCouncilorNames: string[];
+};
+
 export type AdminDraftBillApiTag = {
   id: string;
   label: string;
