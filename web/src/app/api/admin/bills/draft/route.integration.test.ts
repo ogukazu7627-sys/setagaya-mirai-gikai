@@ -5,7 +5,6 @@ import {
   cleanupTestTag,
   createTestBill,
   createTestPreviewToken,
-  createTestTag,
 } from "@test-utils/utils";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -460,18 +459,11 @@ describe("/api/admin/bills/draft", () => {
     expect(res.status).toBe(400);
   });
 
-  it("タグ名の直接入力では既存タグを再利用し、ないタグは作成して紐づける", async () => {
-    const existingTag = await createTestTag({
-      label: `既存直接入力タグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      major_category: "防災☔",
-    });
-    tagIds.push(existingTag.id);
-    const newLabel = `新規直接入力タグ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
+  it("固定タグ名の入力ではタグを作成または再利用して紐づける", async () => {
     const res = await postDraft(
       validDraftBody({
         major_category: "防災☔",
-        tag_labels: [existingTag.label, newLabel],
+        tag_labels: ["地震", "北沢エリア"],
       })
     );
     const body = (await res.json()) as DraftApiResponse;
@@ -489,16 +481,36 @@ describe("/api/admin/bills/draft", () => {
     );
     const labels = tags.map((tag) => tag?.label);
 
-    expect(labels).toContain(existingTag.label);
-    expect(labels).toContain(newLabel);
-    expect(billTags?.map((row) => row.tag_id)).toContain(existingTag.id);
+    expect(labels).toContain("地震");
+    expect(labels).toContain("北沢エリア");
 
-    const createdTag = tags.find((tag) => tag?.label === newLabel);
-    expect(createdTag).toMatchObject({
-      label: newLabel,
+    const disasterTag = tags.find((tag) => tag?.label === "地震");
+    expect(disasterTag).toMatchObject({
+      label: "地震",
       major_category: "防災☔",
     });
-    if (createdTag?.id) tagIds.push(createdTag.id);
+    const regionTag = tags.find((tag) => tag?.label === "北沢エリア");
+    expect(regionTag).toMatchObject({
+      label: "北沢エリア",
+      major_category: "暮らし🙋",
+    });
+  });
+
+  it("固定候補にないタグ名は400で拒否する", async () => {
+    const res = await postDraft(
+      validDraftBody({
+        major_category: "防災☔",
+        tag_labels: ["教材費"],
+      })
+    );
+    const body = (await res.json()) as DraftApiResponse;
+
+    expect(res.status).toBe(400);
+    expect(body).toMatchObject({
+      success: false,
+      code: "invalid_request",
+    });
+    expect(body.error).toContain("固定候補にないタグ");
   });
 
   it("GETでもADMIN_API_TOKEN未設定時は500を返す", async () => {

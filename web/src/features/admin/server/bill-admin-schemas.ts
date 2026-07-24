@@ -1,6 +1,10 @@
 import "server-only";
 
 import { z } from "zod";
+import {
+  getAdminTagMajorCategory,
+  normalizeAdminTagLabels,
+} from "../shared/fixed-admin-tags";
 import { majorCategoryLabels, type NewTagInput } from "./bill-admin-shared";
 
 export const billFormSchema = z
@@ -58,6 +62,17 @@ export const billFormSchema = z
         code: z.ZodIssueCode.custom,
         path: ["tag_ids"],
         message: "タグは最大3つまでです",
+      });
+    }
+    const invalidTags = normalizeAdminTagLabels(
+      value.new_tags.map((tag) => tag.label),
+      value.major_category
+    ).invalidLabels;
+    if (invalidTags.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["new_tags"],
+        message: `固定候補にないタグは指定できません: ${invalidTags.join(", ")}`,
       });
     }
   });
@@ -138,12 +153,18 @@ export const adminDraftBillApiSchema = z
       .default([]),
   })
   .superRefine((value, ctx) => {
-    const labelCount = new Set([
+    const inputLabels = [
       ...value.tag_labels.map((label) => label.trim()).filter(Boolean),
       ...value.new_tag_labels.map((label) => label.trim()).filter(Boolean),
       ...value.new_tags.map((tag) => tag.label.trim()).filter(Boolean),
-    ]).size;
-    const totalTagCount = labelCount > 0 ? labelCount : value.tag_ids.length;
+    ];
+    const normalizedTags = normalizeAdminTagLabels(
+      inputLabels,
+      value.major_category
+    );
+    const labelCount = normalizedTags.labels.length;
+    const totalTagCount =
+      inputLabels.length > 0 ? labelCount : value.tag_ids.length;
     if (totalTagCount > 3) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -151,34 +172,34 @@ export const adminDraftBillApiSchema = z
         message: "タグは最大3つまでです",
       });
     }
+    if (normalizedTags.invalidLabels.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tag_labels"],
+        message: `固定候補にないタグは指定できません: ${normalizedTags.invalidLabels.join(", ")}`,
+      });
+    }
   })
   .transform((value) => {
-    const fallbackCategory =
-      value.new_tag_major_category ?? value.major_category;
     const hasTagLabelInput =
       value.tag_labels.some((label) => label.trim().length > 0) ||
       value.new_tag_labels.some((label) => label.trim().length > 0) ||
       value.new_tags.some((tag) => tag.label.trim().length > 0);
-    const tagsFromLabels = value.tag_labels
-      .map((label) => ({
-        label: label.trim(),
-        major_category: fallbackCategory,
-      }))
-      .filter((tag) => tag.label.length > 0);
-    const newTagsFromLabels = value.new_tag_labels
-      .map((label, index) => ({
-        label: label.trim(),
-        major_category:
-          value.new_tag_major_categories[index] ?? fallbackCategory,
-      }))
-      .filter((tag) => tag.label.length > 0);
+    const normalizedTags = normalizeAdminTagLabels(
+      [
+        ...value.tag_labels,
+        ...value.new_tag_labels,
+        ...value.new_tags.map((tag) => tag.label),
+      ],
+      value.major_category
+    );
+    const tagsFromFixedLabels = normalizedTags.labels.map((label) => ({
+      label,
+      major_category: getAdminTagMajorCategory(label, value.major_category),
+    }));
 
     const dedupedNewTags = new Map<string, NewTagInput>();
-    for (const tag of [
-      ...value.new_tags,
-      ...newTagsFromLabels,
-      ...tagsFromLabels,
-    ]) {
+    for (const tag of tagsFromFixedLabels) {
       if (!dedupedNewTags.has(tag.label)) {
         dedupedNewTags.set(tag.label, tag);
       }

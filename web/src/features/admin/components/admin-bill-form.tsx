@@ -10,7 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { BillSource } from "@/features/bills/shared/types";
+import type {
+  BillSource,
+  MajorCategoryLabel,
+} from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import { saveAdminBillAction } from "../server/actions";
 import {
@@ -109,6 +112,15 @@ function normalizeSources(sources: unknown): BillSource[] {
   );
 }
 
+function normalizeMajorCategory(
+  majorCategory: string | null | undefined
+): MajorCategoryLabel {
+  return (
+    MAJOR_CATEGORY_OPTIONS.find((category) => category.label === majorCategory)
+      ?.label ?? "教育🏫"
+  );
+}
+
 export function AdminBillForm({
   data,
   error,
@@ -117,6 +129,7 @@ export function AdminBillForm({
 }: AdminBillFormProps) {
   const bill = data.bill;
   const values = getInitialAdminBillValues(data);
+  const initialMajorCategory = normalizeMajorCategory(bill?.major_category);
   const sources = normalizeSources(bill?.sources);
   const sourceRows = Array.from({
     length: Math.max(5, sources.length + 1),
@@ -252,7 +265,7 @@ export function AdminBillForm({
           <Field label="大分類">
             <NativeSelect
               name="major_category"
-              defaultValue={bill?.major_category ?? "教育🏫"}
+              defaultValue={initialMajorCategory}
               required
             >
               {MAJOR_CATEGORY_OPTIONS.map((category) => (
@@ -394,11 +407,12 @@ export function AdminBillForm({
         <CardHeader>
           <CardTitle>タグ・出典・チャット情報</CardTitle>
           <CardDescription>
-            小分類タグは案件ごとに入力します。出典は公開詳細ページの補足資料として表示されます。
+            小分類タグは固定候補から選びます。出典は公開詳細ページの補足資料として表示されます。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <AdminTagSelector
+            majorCategory={initialMajorCategory}
             tags={data.tags}
             selectedTagIds={data.selectedTagIds}
           />
