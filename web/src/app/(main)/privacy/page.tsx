@@ -22,7 +22,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年7月21日
+          最終更新日：2026年7月25日
         </p>
 
         <section className="space-y-4">
@@ -52,6 +52,8 @@ export default function PrivacyPage() {
               "Googleログインを利用した本人確認、AIチャット利用者の識別、利用上限の管理",
               "AIチャットに入力された内容への回答生成、品質改善、不正利用・過剰利用の防止",
               "問題報告・お問い合わせへの対応、掲載内容や表示不具合の確認・改善",
+              "匿名IDにひも付けた興味分野、おすすめ履歴、日ごとのおすすめの保存",
+              "利用者が希望した場合のWebプッシュ通知の配信",
               "本サービスの改善・新規開発",
               "上記の各利用目的に必要な各種調査・分析",
               "「3. 第三者への情報提供について」に定める場合における第三者への開示・提供",
@@ -105,21 +107,33 @@ export default function PrivacyPage() {
         </section>
 
         <section className="space-y-4">
-          <LegalSectionTitle>6. 保管期間と廃棄</LegalSectionTitle>
+          <LegalSectionTitle>
+            6. 匿名おすすめ機能とWebプッシュ通知
+          </LegalSectionTitle>
+          <LegalParagraph>
+            おすすめ機能では、このブラウザで生成した匿名ID、選択した3つの興味分野、その親分類、タイムゾーン、表示済み案件、日ごとのおすすめを保存します。この機能のために氏名、メールアドレス、Googleアカウント、正確な住所を取得せず、ブラウザフィンガープリントも作成しません。
+          </LegalParagraph>
+          <LegalParagraph>
+            通知を有効にした場合は、Webプッシュ通知に必要な購読先と暗号鍵を保存します。設定は別の端末やブラウザへ引き継がれません。トップページのおすすめ設定から、通知の停止、表示履歴のリセット、匿名設定の全削除を行えます。
+          </LegalParagraph>
+        </section>
+
+        <section className="space-y-4">
+          <LegalSectionTitle>7. 保管期間と廃棄</LegalSectionTitle>
           <LegalParagraph>
             取得した個人情報は、利用目的に照らして必要な期間保管した後、適切な方法で廃棄・削除します。
           </LegalParagraph>
         </section>
 
         <section className="space-y-4">
-          <LegalSectionTitle>7. 改訂と通知</LegalSectionTitle>
+          <LegalSectionTitle>8. 改訂と通知</LegalSectionTitle>
           <LegalParagraph>
             本ポリシーは必要に応じて改訂されます。改訂内容はウェブサイトへの掲載をもって効力を生じるものとし、個別の通知は行いません。
           </LegalParagraph>
         </section>
 
         <section className="space-y-4">
-          <LegalSectionTitle>8. お問い合わせ窓口</LegalSectionTitle>
+          <LegalSectionTitle>9. お問い合わせ窓口</LegalSectionTitle>
           <LegalParagraph>
             個人情報の確認・修正・削除等のご相談は、本サービスの運営者までご連絡ください。
           </LegalParagraph>
