@@ -2,7 +2,7 @@ import { Writable } from "node:stream";
 import type { ReactElement } from "react";
 import { renderToPipeableStream, renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { parseMarkdown } from "./index";
+import { parseMarkdown, resolveMarkdownSectionHeadingTag } from "./index";
 
 function renderSuspenseToHtml(element: ReactElement): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -29,6 +29,25 @@ function renderSuspenseToHtml(element: ReactElement): Promise<string> {
 }
 
 describe("parseMarkdown", () => {
+  it("resolves section boundaries from the complete markdown document", () => {
+    expect(
+      resolveMarkdownSectionHeadingTag(`# 具体的な内容
+
+本文。
+
+# よくある質問
+
+FAQ。`)
+    ).toBe("h1");
+    expect(
+      resolveMarkdownSectionHeadingTag(`# 記事タイトル
+
+## 小見出し
+
+本文。`)
+    ).toBe("h2");
+  });
+
   it("should not allow malicious iframe elements", async () => {
     const markdown = `<iframe src="https://malicious.com/evil" onload="alert('XSS')"></iframe>
 
