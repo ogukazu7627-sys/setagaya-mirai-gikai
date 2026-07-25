@@ -1,10 +1,16 @@
 import type { Element, ElementContent, Root } from "hast";
 
+export type MarkdownSectionHeadingTag = "h1" | "h2";
+
+export interface RehypeWrapSectionsOptions {
+  sectionHeadingTag?: MarkdownSectionHeadingTag;
+}
+
 /**
  * 見出しとその後続要素をsectionで囲むrehypeプラグイン。
  * H1が複数ある案件本文ではH1を大区切りにし、H2は論点やFAQ内の小見出しとして扱う。
  */
-export function rehypeWrapSections() {
+export function rehypeWrapSections(options: RehypeWrapSectionsOptions = {}) {
   return (tree: Root) => {
     let currentSection: Element | null = null;
 
@@ -13,7 +19,8 @@ export function rehypeWrapSections() {
     const h1Count = originalChildren.filter(
       (child) => child.type === "element" && child.tagName === "h1"
     ).length;
-    const sectionHeadingTag = h1Count > 1 ? "h1" : "h2";
+    const sectionHeadingTag =
+      options.sectionHeadingTag ?? (h1Count > 1 ? "h1" : "h2");
 
     tree.children = [];
 

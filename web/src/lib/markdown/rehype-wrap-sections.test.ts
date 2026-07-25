@@ -200,4 +200,41 @@ Answer.`;
 
     expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
   });
+
+  it("should preserve h1 section boundaries for a fragment split from a larger document", async () => {
+    const input = `# よくある質問
+
+## なぜ改修工事を行うのですか？
+
+回答1です。
+
+## いつからいつまで休館しますか？
+
+回答2です。
+
+## 断熱改修や太陽光発電も行いますか？
+
+回答3です。`;
+
+    const fragmentProcessor = unified()
+      .use(remarkParse)
+      .use(remarkRehype)
+      .use(rehypeWrapSections, { sectionHeadingTag: "h1" })
+      .use(rehypeStringify);
+    const result = await fragmentProcessor.process(input);
+    const output = result.toString();
+
+    const expected = `<h1>よくある質問</h1>
+<section>
+<h2>なぜ改修工事を行うのですか？</h2>
+<p>回答1です。</p>
+<h2>いつからいつまで休館しますか？</h2>
+<p>回答2です。</p>
+<h2>断熱改修や太陽光発電も行いますか？</h2>
+<p>回答3です。</p>
+</section>`;
+
+    expect(normalizeHTML(output)).toBe(normalizeHTML(expected));
+    expect(output.match(/<section>/g)).toHaveLength(1);
+  });
 });

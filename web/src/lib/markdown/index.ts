@@ -17,7 +17,10 @@ import { rehypeCouncilorOpinionIcons } from "./rehype-councilor-opinion-icons";
 import { rehypeEmbedYouTube } from "./rehype-embed-youtube";
 import { rehypeExternalLinks } from "./rehype-external-links";
 import { rehypeInjectElement } from "./rehype-inject-element";
-import { rehypeWrapSections } from "./rehype-wrap-sections";
+import {
+  type MarkdownSectionHeadingTag,
+  rehypeWrapSections,
+} from "./rehype-wrap-sections";
 
 const h2AttributesWithoutClassName = (
   defaultSchema.attributes?.h2 || []
@@ -64,12 +67,33 @@ const sanitizeSchema: RehypeSanitizeOptions = {
 };
 
 /**
+ * 元のMarkdown文書全体から、白いセクションカードの境界を決める。
+ * H1が複数ある記事はH1を章、従来形式の記事はH2を章として扱う。
+ */
+export function resolveMarkdownSectionHeadingTag(
+  markdown: string
+): MarkdownSectionHeadingTag {
+  const tree = unified().use(remarkParse).parse(markdown);
+  const h1Count = tree.children.filter(
+    (node) => node.type === "heading" && node.depth === 1
+  ).length;
+  return h1Count > 1 ? "h1" : "h2";
+}
+
+export interface ParseMarkdownOptions {
+  sectionHeadingTag?: MarkdownSectionHeadingTag;
+}
+
+/**
  * MarkdownテキストをReact Elementに変換
  * @param markdown - Markdown形式のテキスト
- * @param options - オプション（currentLevel等）
+ * @param options - 元文書のセクション境界などの描画オプション
  * @returns React Element（部分水和対応）
  */
-export async function parseMarkdown(markdown: string): Promise<ReactElement> {
+export async function parseMarkdown(
+  markdown: string,
+  options: ParseMarkdownOptions = {}
+): Promise<ReactElement> {
   // Markdown → mdast（remarkBreaksでソフト改行をbreak nodeに変換）
   const remarkProcessor = unified().use(remarkParse).use(remarkBreaks);
   const parsed = remarkProcessor.parse(markdown);
@@ -78,7 +102,9 @@ export async function parseMarkdown(markdown: string): Promise<ReactElement> {
   // mdast → hast（rehypeプラグイン適用）
   const hast = await unified()
     .use(remarkRehype)
-    .use(rehypeWrapSections)
+    .use(rehypeWrapSections, {
+      sectionHeadingTag: options.sectionHeadingTag,
+    })
     .use(rehypeInjectElement, {
       injections: [
         {
