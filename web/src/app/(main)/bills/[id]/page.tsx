@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
+import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { getRandomBillRecommendations } from "@/features/bills/server/loaders/get-random-bill-recommendations";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -63,10 +64,12 @@ export async function generateMetadata({
 
 export default async function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = await params;
-  const [billWithContent, currentDifficulty] = await Promise.all([
-    getBillById(id),
-    getDifficultyLevel(),
-  ]);
+  const [billWithContent, currentDifficulty, recommendedBills] =
+    await Promise.all([
+      getBillById(id),
+      getDifficultyLevel(),
+      getRandomBillRecommendations(id),
+    ]);
 
   if (!billWithContent) {
     notFound();
@@ -76,6 +79,7 @@ export default async function BillDetailPage({ params }: BillDetailPageProps) {
     <BillDetailLayout
       bill={billWithContent}
       currentDifficulty={currentDifficulty}
+      recommendedBills={recommendedBills}
     />
   );
 }
