@@ -13,15 +13,18 @@ import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
 import { CouncilVoteResultCard } from "./council-vote-result-card";
 import { OfficialSourcesSection } from "./official-sources-section";
+import { RandomBillRecommendationsSection } from "./random-bill-recommendations-section";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
   currentDifficulty: DifficultyLevelEnum;
+  recommendedBills?: BillWithContent[];
 }
 
 export async function BillDetailLayout({
   bill,
   currentDifficulty,
+  recommendedBills = [],
 }: BillDetailLayoutProps) {
   const [interviewConfig, publicReportsResult, topicAnalysis] =
     await Promise.all([
@@ -91,6 +94,8 @@ export async function BillDetailLayout({
         <div className="my-8">
           <BillShareButtons bill={bill} />
         </div>
+
+        <RandomBillRecommendationsSection bills={recommendedBills} />
       </Container>
     </div>
   );
