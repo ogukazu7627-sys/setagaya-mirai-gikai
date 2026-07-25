@@ -13,20 +13,13 @@ import {
   getSetagayaMockBillsByMajorCategory,
   isSetagayaMockMode,
 } from "@/lib/setagaya-mock";
+import type { BillsByMajorCategory } from "../../shared/types";
+import { groupBillsByMajorCategory } from "../../shared/utils/group-bills-by-major-category";
 import {
-  type Bill,
-  type BillContent,
-  type BillsByMajorCategory,
-  type BillWithContent,
-  MAJOR_CATEGORY_OPTIONS,
-} from "../../shared/types";
-import { sortBillsForHomeList } from "../../shared/utils/sort-bills";
-import {
-  findBillIdsWithPublicInterview,
   findFeaturedBillsByDietSessionIds,
   findPublishedBillsByDietSessionIds,
-  findTagsByBillIds,
 } from "../repositories/bill-repository";
+import { buildBillsWithContent } from "../utils/build-bills-with-content";
 
 type HomeDataOptions = {
   currentDate: Date;
@@ -37,11 +30,6 @@ export type YearArchiveData = {
   years: number[];
   selectedYear: number | null;
   billsByMajorCategory: BillsByMajorCategory[];
-};
-
-type BillRowWithContent = Bill & {
-  bill_contents: BillContent[] | BillContent | null;
-  tags?: unknown;
 };
 
 /**
@@ -121,62 +109,6 @@ export async function loadHomeData(options: HomeDataOptions) {
       selectedYear: selectedArchiveYear,
       billsByMajorCategory: groupBillsByMajorCategory(archiveBills),
     },
-  };
-}
-
-function groupBillsByMajorCategory(
-  bills: BillWithContent[]
-): BillsByMajorCategory[] {
-  const uniqueBills = Array.from(
-    new Map(bills.map((bill) => [bill.id, bill])).values()
-  );
-  const sortedBills = sortBillsForHomeList(uniqueBills);
-
-  return MAJOR_CATEGORY_OPTIONS.map((category) => ({
-    category,
-    bills: sortedBills.filter((bill) => bill.major_category === category.label),
-  })).filter(({ bills }) => bills.length > 0);
-}
-
-async function buildBillsWithContent(
-  rows: BillRowWithContent[]
-): Promise<BillWithContent[]> {
-  if (rows.length === 0) {
-    return [];
-  }
-
-  const billIds = rows.map((item) => item.id);
-  const [tagsByBillId, interviewBillIds] = await Promise.all([
-    findTagsByBillIds(billIds),
-    findBillIdsWithPublicInterview(billIds),
-  ]);
-
-  return rows.map((item) => {
-    const { bill_contents, tags: _joinedTags, ...bill } = item;
-    return {
-      ...bill,
-      knowledge_source: null,
-      bill_content: toHomeBillContent(bill_contents),
-      tags: tagsByBillId.get(item.id) ?? [],
-      hasPublicInterview: interviewBillIds.has(item.id),
-    };
-  }) as BillWithContent[];
-}
-
-function toHomeBillContent(
-  billContents: BillContent[] | BillContent | null
-): BillContent | undefined {
-  const billContent = Array.isArray(billContents)
-    ? billContents[0]
-    : (billContents ?? undefined);
-
-  if (!billContent) {
-    return undefined;
-  }
-
-  return {
-    ...billContent,
-    content: "",
   };
 }
 

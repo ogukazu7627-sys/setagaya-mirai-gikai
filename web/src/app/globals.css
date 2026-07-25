@@ -44,6 +44,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-primary-accent: var(--primary-accent);
+  --color-primary-strong: var(--primary-strong);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -138,6 +139,13 @@
     var(--app-header-height) +
     var(--app-header-content-gap)
   );
+  --mobile-primary-navigation-height: 4.25rem;
+  --mobile-primary-navigation-content-gap: 1rem;
+  --mobile-primary-navigation-layout-offset: calc(
+    var(--mobile-primary-navigation-height) +
+    env(safe-area-inset-bottom, 0px) +
+    var(--mobile-primary-navigation-content-gap)
+  );
   --background: #f7f4ee;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -146,6 +154,7 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #38bdf8;
   --primary-accent: #0ea5e9;
+  --primary-strong: #0369a1;
   --mirai-gradient-start: #7dd3fc;
   --mirai-gradient-end: #e0f2fe;
   --primary-foreground: oklch(0.985 0 0);
@@ -268,6 +277,22 @@
     top: var(--app-header-top);
     padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .app-mobile-primary-navigation {
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .layout-with-mobile-primary-navigation {
+    padding-bottom: var(--mobile-primary-navigation-layout-offset);
+  }
+
+  @media (min-width: 1000px) {
+    .layout-with-mobile-primary-navigation {
+      padding-bottom: 0;
+    }
   }
 
   .bg-mirai-gradient {

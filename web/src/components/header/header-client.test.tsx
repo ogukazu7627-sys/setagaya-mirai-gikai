@@ -1,16 +1,22 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HeaderClient } from "./header-client";
 
+const navigationMock = vi.hoisted(() => ({
+  pathname: "/",
+}));
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => navigationMock.pathname,
 }));
 
 vi.mock("next/image", () => ({
-  default: ({ alt }: { alt: string }) => <span>{alt}</span>,
+  default: ({ alt, className }: { alt: string; className?: string }) => (
+    <span className={className}>{alt}</span>
+  ),
 }));
 
 vi.mock("next/link", () => ({
@@ -38,6 +44,7 @@ vi.mock("./hamburger-menu", () => ({
 }));
 
 afterEach(() => {
+  navigationMock.pathname = "/";
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   document.documentElement.style.removeProperty("--app-header-height");
@@ -71,6 +78,11 @@ describe("HeaderClient", () => {
 
     const header = container.querySelector("header");
     expect(header).toHaveClass("app-fixed-header", "fixed");
+    expect(screen.getByText("みらい議会＠世田谷区")).toHaveClass(
+      "h-8",
+      "min-[360px]:h-9",
+      "sm:h-11"
+    );
     await waitFor(() =>
       expect(
         document.documentElement.style.getPropertyValue("--app-header-height")
@@ -82,5 +94,23 @@ describe("HeaderClient", () => {
     expect(
       document.documentElement.style.getPropertyValue("--app-header-height")
     ).toBe("");
+  });
+
+  it("renders the shared desktop primary navigation only on general routes", () => {
+    const { rerender } = render(<HeaderClient difficultyLevel="normal" />);
+
+    expect(
+      screen.getByRole("navigation", { name: "主要ナビゲーション" })
+    ).toHaveAttribute("data-primary-navigation", "desktop");
+    expect(screen.getByText("ホーム")).toBeInTheDocument();
+    expect(screen.getByText("議会")).toBeInTheDocument();
+    expect(screen.getByText("議員")).toBeInTheDocument();
+    expect(screen.getByText("学ぶ")).toBeInTheDocument();
+
+    navigationMock.pathname = "/preview/bills/bill-id";
+    rerender(<HeaderClient difficultyLevel="normal" />);
+    expect(
+      screen.queryByRole("navigation", { name: "主要ナビゲーション" })
+    ).not.toBeInTheDocument();
   });
 });

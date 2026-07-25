@@ -59,12 +59,16 @@ describe("ChatButton", () => {
   });
 
   it("ランチャーは1回目のタップでキーボードではなくダイアログだけを開くbuttonである", () => {
-    render(<ChatButton difficultyLevel="normal" />);
+    const { container } = render(<ChatButton difficultyLevel="normal" />);
 
     const launcher = screen.getByRole("button", {
       name: "案件について質問する",
     });
 
+    expect(container.firstElementChild).toHaveClass(
+      "bottom-[calc(var(--mobile-primary-navigation-layout-offset)+0.5rem)]",
+      "pc:hidden"
+    );
     expect(launcher).toHaveAttribute("type", "button");
     expect(launcher).toHaveAttribute("aria-haspopup", "dialog");
     expect(launcher).toHaveAttribute("aria-expanded", "false");
