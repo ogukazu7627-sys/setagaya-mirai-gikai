@@ -10,6 +10,7 @@ import type {
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
+import type { AdminBillSourceFilter } from "../shared/admin-bill-source-filter";
 
 export type BillRow = Database["public"]["Tables"]["bills"]["Row"];
 export type BillContentRow =
@@ -95,6 +96,7 @@ export type AdminBillSearchFilters = {
   majorCategory: "" | MajorCategoryLabel;
   statusLabel: string;
   thumbnail: "" | "with" | "without";
+  officialSources: AdminBillSourceFilter;
   submittedDateFrom: string;
   submittedDateTo: string;
 };
