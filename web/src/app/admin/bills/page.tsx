@@ -6,6 +6,7 @@ import { AdminBillList } from "@/features/admin/components/admin-bill-list";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
 import {
+  ADMIN_BILL_SOURCE_FILTER_OPTIONS,
   ADMIN_BILLS_PER_PAGE,
   type AdminBillSearchFilters,
   type AdminBillSort,
@@ -33,6 +34,7 @@ interface AdminBillsPageProps {
     major_category?: string;
     status_label?: string;
     thumbnail?: string;
+    official_sources?: string;
     date_from?: string;
     date_to?: string;
     bulk_status?: string;
@@ -75,6 +77,7 @@ function adminBillsHref(
   setSearchParamIfPresent(params, "major_category", filters.majorCategory);
   setSearchParamIfPresent(params, "status_label", filters.statusLabel);
   setSearchParamIfPresent(params, "thumbnail", filters.thumbnail);
+  setSearchParamIfPresent(params, "official_sources", filters.officialSources);
   setSearchParamIfPresent(params, "date_from", filters.submittedDateFrom);
   setSearchParamIfPresent(params, "date_to", filters.submittedDateTo);
 
@@ -91,6 +94,7 @@ function hasDetailedFilters(filters: AdminBillSearchFilters) {
       filters.majorCategory ||
       filters.statusLabel ||
       filters.thumbnail ||
+      filters.officialSources ||
       filters.submittedDateFrom ||
       filters.submittedDateTo
   );
@@ -217,6 +221,21 @@ function AdminBillSearchForm({
               <option value="">すべて</option>
               <option value="with">あり</option>
               <option value="without">なし</option>
+            </select>
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-sm font-bold">公式資料・出典</span>
+            <select
+              name="official_sources"
+              defaultValue={filters.officialSources}
+              className={inputClassName}
+            >
+              <option value="">すべて</option>
+              {ADMIN_BILL_SOURCE_FILTER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
           <label className="grid gap-1.5">

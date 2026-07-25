@@ -8,10 +8,10 @@ describe("normalizeAdminBillsReturnPath", () => {
   it("keeps admin bills list query params", () => {
     expect(
       normalizeAdminBillsReturnPath(
-        "/admin/bills?page=2&sort_by=updated_at&sort_order=asc&publish_status=draft"
+        "/admin/bills?page=2&sort_by=updated_at&sort_order=asc&publish_status=draft&official_sources=without"
       )
     ).toBe(
-      "/admin/bills?page=2&sort_by=updated_at&sort_order=asc&publish_status=draft"
+      "/admin/bills?page=2&sort_by=updated_at&sort_order=asc&publish_status=draft&official_sources=without"
     );
   });
 

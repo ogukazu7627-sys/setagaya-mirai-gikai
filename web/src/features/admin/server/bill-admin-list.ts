@@ -7,6 +7,11 @@ import type {
   BillPublishStatus,
 } from "@/features/bills/shared/types";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
+import {
+  getAdminBillSourcePostgrestFilter,
+  matchesAdminBillSourceFilter,
+  normalizeAdminBillSourceFilter,
+} from "../shared/admin-bill-source-filter";
 import { requireAdmin } from "./auth";
 import { mockBillToAdminListItem } from "./bill-admin-mock";
 import {
@@ -43,6 +48,7 @@ type AdminBillSearchParamInput = {
   major_category?: string;
   status_label?: string;
   thumbnail?: string;
+  official_sources?: string;
   date_from?: string;
   date_to?: string;
 };
@@ -112,6 +118,7 @@ export function normalizeAdminBillSearchFilters(
     majorCategory,
     statusLabel,
     thumbnail,
+    officialSources: normalizeAdminBillSourceFilter(input.official_sources),
     submittedDateFrom: normalizeDateFilter(input.date_from),
     submittedDateTo: normalizeDateFilter(input.date_to),
   };
@@ -152,6 +159,9 @@ function adminBillMatchesSearchFilters(
     return false;
   }
   if (filters.thumbnail === "without" && bill.thumbnail_url) {
+    return false;
+  }
+  if (!matchesAdminBillSourceFilter(bill.sources, filters.officialSources)) {
     return false;
   }
 
@@ -374,6 +384,16 @@ export async function listAdminBills({
   }
   if (filters.thumbnail === "without") {
     query = query.or("thumbnail_url.is.null,thumbnail_url.eq.");
+  }
+  const officialSourcesFilter = getAdminBillSourcePostgrestFilter(
+    filters.officialSources
+  );
+  if (officialSourcesFilter) {
+    query = query.filter(
+      "sources",
+      officialSourcesFilter.operator,
+      officialSourcesFilter.value
+    );
   }
   if (filters.submittedDateFrom) {
     query = query.gte("submitted_date", filters.submittedDateFrom);
