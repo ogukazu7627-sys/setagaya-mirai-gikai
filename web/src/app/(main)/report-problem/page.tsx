@@ -46,7 +46,7 @@ export default async function ReportProblemPage({
   const errorMessage = getErrorMessage(params?.error);
 
   return (
-    <main className="bg-mirai-surface-light pt-24 pb-16 md:pt-12">
+    <main className="bg-mirai-surface-light pb-16 md:pt-12">
       <Container className="max-w-3xl">
         <Card>
           <CardHeader>

@@ -7,6 +7,8 @@ import type { StoredRecommendationProfile } from "../../shared/types/recommendat
 
 export const RECOMMENDATION_PROFILE_STORAGE_KEY =
   "mirai-gikai:recommendation-profile:v1";
+export const RECOMMENDATION_PROFILE_UPDATED_EVENT =
+  "mirai-gikai:recommendation-profile-updated";
 
 export type StoredProfileReadResult =
   | { status: "valid"; profile: StoredRecommendationProfile }
@@ -68,6 +70,14 @@ export function removeRecommendationProfile(
   } catch {
     return false;
   }
+}
+
+export function notifyRecommendationProfileUpdated(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event(RECOMMENDATION_PROFILE_UPDATED_EVENT));
 }
 
 export function canPersistRecommendationProfile(

@@ -42,6 +42,7 @@ import {
   canPersistRecommendationProfile,
   createAnonymousInstallationId,
   getBrowserRecommendationStorage,
+  notifyRecommendationProfileUpdated,
   readRecommendationProfile,
   removeRecommendationProfile,
   writeRecommendationProfile,
@@ -213,6 +214,7 @@ export function TodayRecommendationsSection({
       throw new Error("このブラウザでは設定を保存できません");
     }
 
+    notifyRecommendationProfileUpdated();
     setProfile(nextProfile);
     setOnboardingOpen(false);
     await loadToday(nextProfile);
@@ -307,6 +309,7 @@ export function TodayRecommendationsSection({
       if (storageRef.current) {
         removeRecommendationProfile(storageRef.current);
       }
+      notifyRecommendationProfileUpdated();
       setProfile(null);
       setData(null);
       setStatus("idle");

@@ -125,6 +125,19 @@
 
 :root {
   --radius: 0.625rem;
+  --app-header-safe-top: env(safe-area-inset-top, 0px);
+  --app-header-top-gap: 1rem;
+  --app-header-top: calc(
+    var(--app-header-safe-top) +
+    var(--app-header-top-gap)
+  );
+  --app-header-height: 4rem;
+  --app-header-content-gap: 1rem;
+  --app-header-layout-offset: calc(
+    var(--app-header-top) +
+    var(--app-header-height) +
+    var(--app-header-content-gap)
+  );
   --background: #f7f4ee;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -197,6 +210,10 @@
 }
 
 @layer base {
+  html {
+    scroll-padding-top: var(--app-header-layout-offset);
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -247,6 +264,12 @@
 }
 
 @layer components {
+  .app-fixed-header {
+    top: var(--app-header-top);
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
   .bg-mirai-gradient {
     background-image: linear-gradient(
       to bottom right,
