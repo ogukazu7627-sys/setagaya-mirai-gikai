@@ -165,7 +165,7 @@ export function InterviewDisclosurePage({
 }: InterviewDisclosurePageProps) {
   return (
     <div className="flex flex-col gap-8 pb-8 bg-mirai-light-gradient">
-      <div className="flex flex-col gap-8 px-4 pt-24 md:pt-12 max-w-[600px] mx-auto w-full">
+      <div className="flex flex-col gap-8 px-4 md:pt-12 max-w-[600px] mx-auto w-full">
         <DisclosureBreadcrumb billId={billId} previewToken={previewToken} />
         <StaticDisclosureSection />
         <ModelSection interviewConfig={props.interviewConfig} />

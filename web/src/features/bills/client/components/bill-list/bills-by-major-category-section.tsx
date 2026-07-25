@@ -1,11 +1,22 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  getBrowserRecommendationStorage,
+  RECOMMENDATION_PROFILE_STORAGE_KEY,
+  RECOMMENDATION_PROFILE_UPDATED_EVENT,
+  readRecommendationProfile,
+} from "@/features/recommendations/client/utils/recommendation-storage";
 import { routes } from "@/lib/routes";
 import type { BillsByMajorCategory } from "../../../shared/types";
-import { MAJOR_CATEGORY_OPTIONS } from "../../../shared/types";
+import {
+  paginateThemeBills,
+  resolveInitialThemeCategoryId,
+} from "../../../shared/utils/theme-bills";
 import { BillCard } from "./bill-card";
 
 interface BillsByMajorCategorySectionProps {
@@ -14,24 +25,69 @@ interface BillsByMajorCategorySectionProps {
   description?: string;
 }
 
-const ALL_TAB = "すべて";
-
 export function BillsByMajorCategorySection({
   billsByMajorCategory,
   title = "テーマから探す",
   description,
 }: BillsByMajorCategorySectionProps) {
-  const [selectedCategory, setSelectedCategory] = useState(ALL_TAB);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    () => resolveInitialThemeCategoryId(billsByMajorCategory, [])
+  );
+  const [requestedPage, setRequestedPage] = useState(1);
 
-  const visibleGroups = useMemo(() => {
-    if (selectedCategory === ALL_TAB) {
-      return billsByMajorCategory;
+  useEffect(() => {
+    function syncCategoryWithProfile() {
+      const storage = getBrowserRecommendationStorage();
+      const stored = storage ? readRecommendationProfile(storage) : null;
+      const preferredCategoryIds =
+        stored?.status === "valid"
+          ? stored.profile.selectedParentCategoryIds
+          : [];
+      const nextCategoryId = resolveInitialThemeCategoryId(
+        billsByMajorCategory,
+        preferredCategoryIds
+      );
+
+      setSelectedCategoryId(nextCategoryId);
+      setRequestedPage(1);
     }
 
-    return billsByMajorCategory.filter(
-      ({ category }) => category.label === selectedCategory
+    function handleStorage(event: StorageEvent) {
+      if (
+        event.key === null ||
+        event.key === RECOMMENDATION_PROFILE_STORAGE_KEY
+      ) {
+        syncCategoryWithProfile();
+      }
+    }
+
+    syncCategoryWithProfile();
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(
+      RECOMMENDATION_PROFILE_UPDATED_EVENT,
+      syncCategoryWithProfile
     );
-  }, [billsByMajorCategory, selectedCategory]);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(
+        RECOMMENDATION_PROFILE_UPDATED_EVENT,
+        syncCategoryWithProfile
+      );
+    };
+  }, [billsByMajorCategory]);
+
+  const selectedGroup = useMemo(
+    () =>
+      billsByMajorCategory.find(
+        ({ category }) => category.id === selectedCategoryId
+      ) ?? billsByMajorCategory[0],
+    [billsByMajorCategory, selectedCategoryId]
+  );
+  const page = useMemo(
+    () => paginateThemeBills(selectedGroup?.bills ?? [], requestedPage),
+    [requestedPage, selectedGroup]
+  );
 
   if (billsByMajorCategory.length === 0) {
     return null;
@@ -48,52 +104,100 @@ export function BillsByMajorCategorySection({
         )}
         <div className="-mx-4 overflow-x-auto px-4">
           <div className="flex w-max gap-2">
-            {[
-              ALL_TAB,
-              ...MAJOR_CATEGORY_OPTIONS.map((category) => category.label),
-            ].map((label) => {
-              const isSelected = selectedCategory === label;
+            {billsByMajorCategory.map(({ category }) => {
+              const isSelected = selectedGroup?.category.id === category.id;
               return (
-                <button
-                  key={label}
+                <Button
+                  key={category.id}
                   type="button"
-                  onClick={() => setSelectedCategory(label)}
-                  className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+                  size="sm"
+                  variant="outline"
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    setSelectedCategoryId(category.id);
+                    setRequestedPage(1);
+                  }}
+                  className={`h-auto whitespace-nowrap px-4 py-2 shadow-none ${
                     isSelected
-                      ? "border-primary bg-primary text-white"
+                      ? "border-primary bg-primary text-white hover:bg-primary hover:text-white"
                       : "border-mirai-border bg-white text-mirai-text hover:bg-gray-50"
                   }`}
                 >
-                  {label}
-                </button>
+                  {category.label}
+                </Button>
               );
             })}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-12">
-        {visibleGroups.map(({ category, bills }) => (
-          <section key={category.id} className="flex flex-col gap-6">
+      {selectedGroup && (
+        <div className="flex flex-col gap-12">
+          <section
+            key={selectedGroup.category.id}
+            className="flex flex-col gap-6"
+          >
             <div className="flex flex-col gap-1.5">
               <h3 className="text-[22px] font-bold text-black leading-[1.48]">
-                {category.label}
+                {selectedGroup.category.label}
               </h3>
               <p className="text-xs text-mirai-text-secondary">
-                {category.description}
+                {selectedGroup.category.description}
               </p>
             </div>
 
             <div className="flex flex-col gap-4">
-              {bills.map((bill) => (
+              {page.bills.map((bill) => (
                 <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
                   <BillCard bill={bill} />
                 </Link>
               ))}
             </div>
+
+            {page.totalPages > 1 && (
+              <nav
+                aria-label={`${selectedGroup.category.name}の案件ページ`}
+                className="flex items-center justify-center gap-4"
+              >
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  aria-label="前のページ"
+                  disabled={page.currentPage === 1}
+                  onClick={() =>
+                    setRequestedPage((current) => Math.max(1, current - 1))
+                  }
+                  className="border-mirai-border shadow-none"
+                >
+                  <ChevronLeft aria-hidden="true" />
+                </Button>
+                <span
+                  className="min-w-14 text-center text-sm font-bold text-mirai-text"
+                  aria-live="polite"
+                >
+                  {page.currentPage} / {page.totalPages}
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  aria-label="次のページ"
+                  disabled={page.currentPage === page.totalPages}
+                  onClick={() =>
+                    setRequestedPage((current) =>
+                      Math.min(page.totalPages, current + 1)
+                    )
+                  }
+                  className="border-mirai-border shadow-none"
+                >
+                  <ChevronRight aria-hidden="true" />
+                </Button>
+              </nav>
+            )}
           </section>
-        ))}
-      </div>
+        </div>
+      )}
     </section>
   );
 }

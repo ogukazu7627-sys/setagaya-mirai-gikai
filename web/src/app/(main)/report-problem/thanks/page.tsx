@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function ReportProblemThanksPage() {
   return (
-    <main className="bg-mirai-surface-light pt-24 pb-16 md:pt-12">
+    <main className="bg-mirai-surface-light pb-16 md:pt-12">
       <Container className="max-w-2xl">
         <Card>
           <CardHeader>

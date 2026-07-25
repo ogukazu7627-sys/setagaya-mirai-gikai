@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <LegalPageLayout
-      className="bg-transparent pt-24 md:pt-12"
+      className="bg-transparent md:pt-12"
       title="プライバシーポリシー"
       description="みらい議会＠世田谷区における個人情報の取り扱いについてご説明します。"
     >
