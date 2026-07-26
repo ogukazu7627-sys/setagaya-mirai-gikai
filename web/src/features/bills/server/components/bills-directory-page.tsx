@@ -6,8 +6,6 @@ import { BillsByMajorCategorySection } from "@/features/bills/client/components/
 import { CouncilSearchSection } from "@/features/bills/client/components/bill-list/council-search-section";
 import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
 import type { CouncilSearchInitialFilters } from "@/features/bills/shared/types/council-search";
-import { buildCouncilSearchCommitteeDocuments } from "@/features/bills/shared/utils/build-council-search-documents";
-import { CouncilChatClient } from "@/features/chat/client/components/council-chat-client";
 import { findActivePublicCommittees } from "@/features/committees/server/repositories/committee-directory-repository";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
@@ -26,13 +24,7 @@ export async function BillsDirectoryPage({
 }: BillsDirectoryPageProps) {
   const now = getJapanTime();
   const [
-    {
-      currentBills,
-      billsByMajorCategory,
-      searchDocuments,
-      difficultyLevel,
-      archiveData,
-    },
+    { billsByMajorCategory, searchDocuments, archiveData },
     currentSession,
     committees,
   ] = await Promise.all([
@@ -40,9 +32,6 @@ export async function BillsDirectoryPage({
     getCurrentDietSession(now),
     findActivePublicCommittees(),
   ]);
-  const committeeSearchDocuments =
-    buildCouncilSearchCommitteeDocuments(committees);
-
   return (
     <div className="min-h-dvh bg-mirai-surface">
       <Container className="py-8 sm:py-12">
@@ -60,7 +49,8 @@ export async function BillsDirectoryPage({
       <Container className="py-8 sm:py-10">
         <div className="flex flex-col gap-12">
           <CouncilSearchSection
-            documents={[...committeeSearchDocuments, ...searchDocuments]}
+            documents={searchDocuments}
+            committeeNames={committees.map((committee) => committee.name)}
             initialFilters={initialSearch}
           />
 
@@ -116,16 +106,6 @@ export async function BillsDirectoryPage({
           </Container>
         </div>
       )}
-
-      <CouncilChatClient
-        currentDifficulty={difficultyLevel}
-        bills={currentBills.map((bill) => ({
-          id: bill.id,
-          name: `${bill.bill_content?.title || bill.name}（${bill.name}）`,
-          summary: bill.bill_content?.summary || undefined,
-          tags: bill.tags.map((tag) => tag.label),
-        }))}
-      />
     </div>
   );
 }

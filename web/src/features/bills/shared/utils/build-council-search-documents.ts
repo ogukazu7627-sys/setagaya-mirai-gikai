@@ -1,15 +1,7 @@
-import type { PublicCommitteeSummary } from "@/features/committees/server/repositories/committee-directory-repository";
 import { extractCommitteeName } from "@/features/committees/shared/committee-matching";
-import {
-  COMMITTEE_KIND_LABELS,
-  getCommitteeProfile,
-} from "@/features/committees/shared/committee-profiles";
 import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import type { BillCardData, BillWithContent } from "../types";
-import type {
-  CouncilSearchBillDocument,
-  CouncilSearchCommitteeDocument,
-} from "../types/council-search";
+import type { CouncilSearchBillDocument } from "../types/council-search";
 
 export function buildCouncilSearchBillDocuments(
   bills: BillWithContent[]
@@ -35,22 +27,6 @@ export function buildCouncilSearchBillDocuments(
       submittedDate: bill.submitted_date,
       thumbnailUrl: bill.thumbnail_url,
       card: toBillCardData(bill),
-    };
-  });
-}
-
-export function buildCouncilSearchCommitteeDocuments(
-  committees: PublicCommitteeSummary[]
-): CouncilSearchCommitteeDocument[] {
-  return committees.map((committee) => {
-    const profile = getCommitteeProfile(committee.name);
-    return {
-      kind: "committee",
-      id: committee.id,
-      name: committee.name,
-      committeeKindLabel: COMMITTEE_KIND_LABELS[profile.kind],
-      summary: profile.summary,
-      responsibilities: profile.responsibilities,
     };
   });
 }
