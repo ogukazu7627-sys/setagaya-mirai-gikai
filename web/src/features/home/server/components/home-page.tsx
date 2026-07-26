@@ -6,10 +6,11 @@ import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
-import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
 import type { BillWithContent } from "@/features/bills/shared/types";
 import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
+import { CouncilorXPostsSection } from "@/features/councilor-x-posts/server/components/councilor-x-posts-section";
+import { loadLatestCouncilorXPosts } from "@/features/councilor-x-posts/server/loaders/load-latest-councilor-x-posts";
 import { RecommendedCouncilorsSection } from "@/features/councilors/server/components/recommended-councilors-section";
 import { loadRecommendedCouncilors } from "@/features/councilors/server/loaders/load-councilor-directory";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
@@ -18,27 +19,24 @@ import { TodayRecommendationsSection } from "@/features/recommendations/client/c
 import { getRecommendationAvailability } from "@/features/recommendations/server/services/recommendation-availability-service";
 import { getJapanTime } from "@/lib/utils/date";
 
-type HomePageProps = {
-  archiveYear?: string | string[];
-};
-
-export async function HomePage({ archiveYear }: HomePageProps) {
+export async function HomePage() {
   const now = getJapanTime();
   const [
-    { billsByMajorCategory, featuredBills, archiveData },
+    { billsByMajorCategory, featuredBills },
     currentSession,
     currentDifficulty,
     recommendationAvailability,
     councilors,
+    councilorXPosts,
   ] = await Promise.all([
     loadHomeData({
       currentDate: now,
-      archiveYear,
     }),
     getCurrentDietSession(now),
     getDifficultyLevel(),
     getRecommendationAvailability(),
     loadRecommendedCouncilorsSafely(now),
+    loadLatestCouncilorXPostsSafely(),
   ]);
 
   const toBillChatContext = (bill: BillWithContent) => {
@@ -78,13 +76,11 @@ export async function HomePage({ archiveYear }: HomePageProps) {
         </div>
       </Container>
 
-      {archiveData.years.length > 0 && (
-        <div className="bg-mirai-surface-muted py-10">
-          <Container>
-            <YearArchiveSection archiveData={archiveData} />
-          </Container>
-        </div>
-      )}
+      <div className="bg-mirai-surface-muted py-10 md:py-14">
+        <Container>
+          <CouncilorXPostsSection posts={councilorXPosts} />
+        </Container>
+      </div>
 
       <Container>
         <About />
@@ -104,6 +100,15 @@ async function loadRecommendedCouncilorsSafely(currentDate: Date) {
     return await loadRecommendedCouncilors(currentDate);
   } catch (error) {
     console.error("Failed to load recommended councilors for home", error);
+    return [];
+  }
+}
+
+async function loadLatestCouncilorXPostsSafely() {
+  try {
+    return await loadLatestCouncilorXPosts();
+  } catch {
+    console.error("Failed to load councilor X posts for home");
     return [];
   }
 }

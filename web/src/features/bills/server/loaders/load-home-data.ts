@@ -1,8 +1,5 @@
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import {
-  findDietSessionsStartingBefore,
-  findDietSessionsStartingBetween,
-} from "@/features/diet-sessions/server/repositories/diet-session-repository";
+import { findDietSessionsStartingBetween } from "@/features/diet-sessions/server/repositories/diet-session-repository";
 import {
   getCalendarYearFromDate,
   getCalendarYearRange,
@@ -18,11 +15,9 @@ import {
   findPublishedBillsByDietSessionIds,
 } from "../repositories/bill-repository";
 import { buildBillsWithContent } from "../utils/build-bills-with-content";
-import { loadYearArchiveData } from "./load-year-archive-data";
 
 type HomeDataOptions = {
   currentDate: Date;
-  archiveYear?: string | string[];
 };
 
 /**
@@ -37,38 +32,26 @@ export async function loadHomeData(options: HomeDataOptions) {
     return {
       billsByMajorCategory: getSetagayaMockBillsByMajorCategory("normal"),
       featuredBills,
-      archiveData: {
-        years: [],
-        selectedYear: null,
-        billsByMajorCategory: [],
-      },
     };
   }
 
   const currentYear = getCalendarYearFromDate(options.currentDate);
   const currentYearRange = getCalendarYearRange(currentYear);
-  const [difficultyLevel, currentYearSessions, pastSessions] =
-    await Promise.all([
-      getDifficultyLevel(),
-      findDietSessionsStartingBetween(
-        currentYearRange.startDate,
-        currentYearRange.endDate
-      ),
-      findDietSessionsStartingBefore(currentYearRange.startDate),
-    ]);
+  const [difficultyLevel, currentYearSessions] = await Promise.all([
+    getDifficultyLevel(),
+    findDietSessionsStartingBetween(
+      currentYearRange.startDate,
+      currentYearRange.endDate
+    ),
+  ]);
 
   const currentYearSessionIds = currentYearSessions.map(
     (session) => session.id
   );
 
-  const [featuredBillRows, currentBillRows, archiveData] = await Promise.all([
+  const [featuredBillRows, currentBillRows] = await Promise.all([
     findFeaturedBillsByDietSessionIds(currentYearSessionIds, difficultyLevel),
     findPublishedBillsByDietSessionIds(currentYearSessionIds, difficultyLevel),
-    loadYearArchiveData({
-      archiveYear: options.archiveYear,
-      difficultyLevel,
-      pastSessions,
-    }),
   ]);
 
   const [featuredBills, currentBills] = await Promise.all([
@@ -79,6 +62,5 @@ export async function loadHomeData(options: HomeDataOptions) {
   return {
     billsByMajorCategory: groupBillsByMajorCategory(currentBills),
     featuredBills,
-    archiveData,
   };
 }
