@@ -7,8 +7,10 @@ import { InterviewChatClient } from "@/features/interview-session/client/compone
 import { InterviewSessionErrorView } from "@/features/interview-session/client/components/interview-session-error-view";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { isLoopFamilyMode } from "@/features/interview-session/shared/utils/is-loop-family-mode";
+import { NO_INDEX_METADATA } from "@/lib/seo/no-index-metadata";
 
 export const dynamic = "force-dynamic";
+export const metadata = NO_INDEX_METADATA;
 
 interface InterviewChatPageProps {
   params: Promise<{
