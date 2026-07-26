@@ -507,14 +507,24 @@ BEGIN
   semantic_scores AS (
     SELECT
       chunk.bill_id,
-      max(1 - (chunk.embedding <=> p_query_embedding))::DOUBLE PRECISION
-        AS semantic_similarity
+      max(
+        1 - (
+          chunk.embedding
+          OPERATOR(extensions.<=>)
+          p_query_embedding
+        )
+      )::DOUBLE PRECISION AS semantic_similarity
     FROM public.council_search_chunks AS chunk
     JOIN base_bills AS base ON base.id = chunk.bill_id
     WHERE p_query_embedding IS NOT NULL
     GROUP BY chunk.bill_id
-    HAVING max(1 - (chunk.embedding <=> p_query_embedding))
-      >= p_similarity_threshold
+    HAVING max(
+      1 - (
+        chunk.embedding
+        OPERATOR(extensions.<=>)
+        p_query_embedding
+      )
+    ) >= p_similarity_threshold
   ),
   keyword_ranked AS (
     SELECT
