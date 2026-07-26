@@ -28,8 +28,26 @@ describe("MainLayout", () => {
     expect(container.firstElementChild).toHaveClass(
       "pt-[var(--app-header-layout-offset)]",
       "md:pt-0",
-      "md:mt-[var(--app-header-layout-offset)]",
+      "md:mt-[var(--app-header-layout-offset)]"
+    );
+  });
+
+  it.each([
+    "/",
+    "/bills/abc-123",
+    "/preview/bills/abc-123",
+  ])("reserves desktop chat-panel space on %s", (pathname) => {
+    navigationMock.pathname = pathname;
+    const { container } = render(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+
+    expect(container.firstElementChild).toHaveClass(
+      "pc:mr-[500px]",
       "pc:w-[calc(100vw-500px-2rem)]",
+      "xl:ml-[calc(calc(100vw-1180px)/2)]",
       "xl:w-[700px]"
     );
   });
@@ -76,7 +94,7 @@ describe("MainLayout", () => {
     expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
   });
 
-  it("reserves desktop space for the council directory chat panel", () => {
+  it("centers the council directory without desktop chat-panel space", () => {
     navigationMock.pathname = "/bills";
     const { container } = render(
       <MainLayout>
@@ -84,10 +102,14 @@ describe("MainLayout", () => {
       </MainLayout>
     );
 
-    expect(container.firstElementChild).toHaveClass(
-      "pc:mr-[500px]",
-      "pc:w-[calc(100vw-500px-2rem)]",
-      "xl:w-[700px]"
+    expect(container.firstElementChild).toHaveClass("mx-auto", "max-w-[700px]");
+    expect(container.firstElementChild).not.toHaveClass("pc:mr-[500px]");
+    expect(container.firstElementChild).not.toHaveClass(
+      "pc:w-[calc(100vw-500px-2rem)]"
     );
+    expect(container.firstElementChild).not.toHaveClass(
+      "xl:ml-[calc(calc(100vw-1180px)/2)]"
+    );
+    expect(container.firstElementChild).not.toHaveClass("xl:w-[700px]");
   });
 });
