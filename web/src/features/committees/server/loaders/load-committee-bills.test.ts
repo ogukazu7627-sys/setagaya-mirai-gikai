@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadCommitteeBills } from "./load-committee-bills";
 
+// @ts-expect-error Vitest supports virtual mocks for Next's server-only marker.
 vi.mock("server-only", () => ({}), { virtual: true });
 
 const mocks = vi.hoisted(() => ({
