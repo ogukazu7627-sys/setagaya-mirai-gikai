@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { AuthGate } from "@/components/layouts/auth-gate";
 import { Footer } from "@/components/layouts/footer/footer";
 import { MainLayout } from "@/components/layouts/main-layout";
+import { MobileBottomNavigation } from "@/features/primary-navigation/client/components/mobile-bottom-navigation";
 import { env } from "@/lib/env";
 import { RubyfulInitializer } from "@/lib/rubyful";
 
@@ -27,6 +28,7 @@ export default function MainGroupLayout({
         </main>
         <Footer />
       </MainLayout>
+      <MobileBottomNavigation />
     </>
   );
 }

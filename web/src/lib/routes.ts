@@ -13,6 +13,14 @@ export const routes = {
   privacy: () => "/privacy" as const,
   reportProblem: () => "/report-problem" as const,
   reportProblemThanks: () => "/report-problem/thanks" as const,
+  bills: () => "/bills" as const,
+  councilors: () => "/councilors" as const,
+  councilorDetail: (councilorId: string) =>
+    `/councilors/${councilorId}` as const,
+  committees: () => "/committees" as const,
+  committeeDetail: (committeeId: string) =>
+    `/committees/${committeeId}` as const,
+  learn: () => "/learn" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
