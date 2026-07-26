@@ -64,12 +64,12 @@ export function RecommendationBillsCarousel({
       opts={CAROUSEL_OPTIONS}
       setApi={setApi}
     >
-      <CarouselContent>
+      <CarouselContent className="-ml-2">
         {bills.map((bill, index) => (
           <CarouselItem
             key={bill.id}
             aria-label={`${index + 1} / ${bills.length}`}
-            className="flex basis-[86%] sm:basis-[64%] pc:basis-[44%]"
+            className="flex basis-[86%] max-w-[634px] pl-2"
           >
             <Link
               href={routes.billDetail(bill.id) as Route}
