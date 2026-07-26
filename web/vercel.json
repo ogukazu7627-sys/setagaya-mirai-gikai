@@ -3,10 +3,6 @@
   "regions": ["hnd1"],
   "crons": [
     {
-      "path": "/api/cron/councilor-x-posts",
-      "schedule": "17 */2 * * *"
-    },
-    {
       "path": "/api/cron/council-search-index",
       "schedule": "0 20 * * *"
     },
