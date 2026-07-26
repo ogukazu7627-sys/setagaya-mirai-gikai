@@ -51,14 +51,21 @@ describe("RecommendationBillsCarousel", () => {
 
   it("5件を横方向のスライドと前後操作で表示する", async () => {
     const onBillViewed = vi.fn();
-    render(
+    const { container } = render(
       <RecommendationBillsCarousel bills={bills} onBillViewed={onBillViewed} />
     );
 
     expect(
       screen.getByRole("region", { name: "今日のおすすめ案件" })
     ).toBeVisible();
-    expect(screen.getByRole("group", { name: "1 / 5" })).toBeVisible();
+    const firstSlide = screen.getByRole("group", { name: "1 / 5" });
+    expect(firstSlide).toBeVisible();
+    expect(firstSlide).toHaveClass("basis-[86%]", "max-w-[634px]", "pl-2");
+    expect(firstSlide).not.toHaveClass("sm:basis-[64%]");
+    expect(firstSlide).not.toHaveClass("pc:basis-[44%]");
+    expect(
+      container.querySelector('[data-slot="carousel-content"] > div')
+    ).toHaveClass("-ml-2");
     expect(screen.getByRole("group", { name: "5 / 5" })).toBeVisible();
     expect(
       screen.getByRole("button", { name: "前のおすすめを見る" })
