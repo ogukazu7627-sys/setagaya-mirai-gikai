@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  adminClient,
   cleanupTestUser,
   createTestUser,
   getAnonClient,
@@ -32,9 +33,70 @@ const tables = [
   "recommendation_api_rate_limits",
   "council_search_chunks",
   "council_search_index_jobs",
+  "councilor_x_posts",
+  "councilor_x_sync_states",
 ] as const;
 
+const xRlsCouncilorId = crypto.randomUUID();
+const xRlsInsertCouncilorId = crypto.randomUUID();
+const xRlsPostId = "1888888888888888888";
+const xRlsInsertPostId = "1777777777777777777";
+
 describe("RLS default deny（全テーブル共通）", () => {
+  beforeAll(async () => {
+    const suffix = crypto.randomUUID();
+    const { error: councilorError } = await adminClient
+      .from("councilors")
+      .insert([
+        {
+          id: xRlsCouncilorId,
+          display_name: "X RLS表示テスト議員",
+          normalized_name: `X RLS表示テスト議員-${suffix}`,
+          x_account_url: "https://x.com/rls_test_user",
+        },
+        {
+          id: xRlsInsertCouncilorId,
+          display_name: "X RLS挿入テスト議員",
+          normalized_name: `X RLS挿入テスト議員-${suffix}`,
+          x_account_url: "https://x.com/rls_insert_user",
+        },
+      ]);
+    if (councilorError) {
+      throw councilorError;
+    }
+
+    const { error: stateError } = await adminClient
+      .from("councilor_x_sync_states")
+      .insert({
+        councilor_id: xRlsCouncilorId,
+        x_username: "rls_test_user",
+        x_user_id: "188888888888888888",
+      });
+    if (stateError) {
+      throw stateError;
+    }
+
+    const { error: postError } = await adminClient
+      .from("councilor_x_posts")
+      .insert({
+        post_id: xRlsPostId,
+        councilor_id: xRlsCouncilorId,
+        post_url: `https://x.com/rls_test_user/status/${xRlsPostId}`,
+        posted_at: "2026-07-27T00:00:00.000Z",
+        post_type: "original",
+      });
+    if (postError) {
+      throw postError;
+    }
+  });
+
+  afterAll(async () => {
+    await adminClient
+      .from("councilors")
+      .delete()
+      .in("id", [xRlsCouncilorId, xRlsInsertCouncilorId]);
+  });
+
   describe("anon クライアント", () => {
     const anon = getAnonClient();
 
@@ -76,6 +138,35 @@ describe("RLS default deny（全テーブル共通）", () => {
         councilSearchRpcArgs()
       );
       expect(error).not.toBeNull();
+    });
+
+    it("persist_councilor_x_post_sync: 直接実行が拒否される", async () => {
+      const { error } = await anon.rpc("persist_councilor_x_post_sync", {
+        p_active_accounts: [],
+        p_posts: [],
+        p_sync_states: [],
+        p_synced_at: new Date().toISOString(),
+      });
+      expect(error).not.toBeNull();
+    });
+
+    it("councilor_x_posts / sync_states: INSERT が拒否される", async () => {
+      const { error: postError } = await anon.from("councilor_x_posts").insert({
+        post_id: xRlsInsertPostId,
+        councilor_id: xRlsInsertCouncilorId,
+        post_url: `https://x.com/rls_insert_user/status/${xRlsInsertPostId}`,
+        posted_at: "2026-07-27T01:00:00.000Z",
+        post_type: "original",
+      });
+      const { error: stateError } = await anon
+        .from("councilor_x_sync_states")
+        .insert({
+          councilor_id: xRlsInsertCouncilorId,
+          x_username: "rls_insert_user",
+        });
+
+      expect(postError).not.toBeNull();
+      expect(stateError).not.toBeNull();
     });
   });
 
@@ -135,6 +226,39 @@ describe("RLS default deny（全テーブル共通）", () => {
         councilSearchRpcArgs()
       );
       expect(error).not.toBeNull();
+    });
+
+    it("persist_councilor_x_post_sync: 直接実行が拒否される", async () => {
+      const client = await getAuthenticatedClient(email, password);
+      const { error } = await client.rpc("persist_councilor_x_post_sync", {
+        p_active_accounts: [],
+        p_posts: [],
+        p_sync_states: [],
+        p_synced_at: new Date().toISOString(),
+      });
+      expect(error).not.toBeNull();
+    });
+
+    it("councilor_x_posts / sync_states: INSERT が拒否される", async () => {
+      const client = await getAuthenticatedClient(email, password);
+      const { error: postError } = await client
+        .from("councilor_x_posts")
+        .insert({
+          post_id: xRlsInsertPostId,
+          councilor_id: xRlsInsertCouncilorId,
+          post_url: `https://x.com/rls_insert_user/status/${xRlsInsertPostId}`,
+          posted_at: "2026-07-27T01:00:00.000Z",
+          post_type: "original",
+        });
+      const { error: stateError } = await client
+        .from("councilor_x_sync_states")
+        .insert({
+          councilor_id: xRlsInsertCouncilorId,
+          x_username: "rls_insert_user",
+        });
+
+      expect(postError).not.toBeNull();
+      expect(stateError).not.toBeNull();
     });
   });
 });

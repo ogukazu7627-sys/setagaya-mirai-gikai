@@ -712,6 +712,82 @@ export type Database = {
           },
         ]
       }
+      councilor_x_posts: {
+        Row: {
+          councilor_id: string
+          created_at: string
+          post_id: string
+          post_type: string
+          post_url: string
+          posted_at: string
+          updated_at: string
+        }
+        Insert: {
+          councilor_id: string
+          created_at?: string
+          post_id: string
+          post_type: string
+          post_url: string
+          posted_at: string
+          updated_at?: string
+        }
+        Update: {
+          councilor_id?: string
+          created_at?: string
+          post_id?: string
+          post_type?: string
+          post_url?: string
+          posted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_x_posts_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      councilor_x_sync_states: {
+        Row: {
+          councilor_id: string
+          created_at: string
+          last_seen_post_id: string | null
+          last_successful_sync_at: string | null
+          updated_at: string
+          x_user_id: string | null
+          x_username: string
+        }
+        Insert: {
+          councilor_id: string
+          created_at?: string
+          last_seen_post_id?: string | null
+          last_successful_sync_at?: string | null
+          updated_at?: string
+          x_user_id?: string | null
+          x_username: string
+        }
+        Update: {
+          councilor_id?: string
+          created_at?: string
+          last_seen_post_id?: string | null
+          last_successful_sync_at?: string | null
+          updated_at?: string
+          x_user_id?: string | null
+          x_username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "councilor_x_sync_states_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: true
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       councilors: {
         Row: {
           created_at: string
@@ -1927,6 +2003,18 @@ export type Database = {
       enqueue_council_search_index_job: {
         Args: { p_bill_id: string }
         Returns: undefined
+      }
+      persist_councilor_x_post_sync: {
+        Args: {
+          p_active_accounts: Json
+          p_posts: Json
+          p_sync_states: Json
+          p_synced_at: string
+        }
+        Returns: {
+          deleted_count: number
+          stored_count: number
+        }[]
       }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {

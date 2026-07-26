@@ -22,7 +22,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年7月25日
+          最終更新日：2026年7月27日
         </p>
 
         <section className="space-y-4">
@@ -102,7 +102,8 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <LegalSectionTitle>5. Cookie（クッキー）について</LegalSectionTitle>
           <LegalParagraph>
-            当ウェブサイトでは、利便性向上とアクセス解析（Googleアナリティクス等）のためにCookieを使用しています。これらは匿名で収集され、個人を特定するものではありません。
+            当ウェブサイトでは、利便性向上とアクセス解析（Googleアナリティクス等）のためにCookieを使用しています。また、Xの公式埋め込み投稿を表示するページでは、X
+            Corp.が提供する外部スクリプトを読み込みます。この際、利用端末やブラウザに関する情報がXへ送信される場合があります。埋め込みにはパーソナライズを抑制する設定を使用します。
           </LegalParagraph>
         </section>
 
