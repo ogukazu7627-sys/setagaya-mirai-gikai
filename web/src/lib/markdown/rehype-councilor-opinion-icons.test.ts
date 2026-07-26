@@ -97,7 +97,7 @@ A. いいえ。`);
 発言内容。`)
     );
 
-    expect(html).toContain('src="/icons/councilors/fukuda-taemi.jpg"');
+    expect(html).toContain('src="/icons/councilors/fukuda-taemi-avatar.jpg"');
   });
 
   it("keeps decorating legacy councilor opinion sections", async () => {
@@ -121,10 +121,10 @@ A. いいえ。`);
 
   it("matches councilor headings with suffixes, parties, spaces, and unicode variants", () => {
     expect(getCouncilorIconUrl("福田 たえ美議員（公明党世田谷区議団）")).toBe(
-      "/icons/councilors/fukuda-taemi.jpg"
+      "/icons/councilors/fukuda-taemi-avatar.jpg"
     );
     expect(getCouncilorIconUrl("石原せいじ議員")).toBe(
-      "/icons/councilors/ishihara-seiji.jpg"
+      "/icons/councilors/ishihara-seiji-avatar.jpg"
     );
   });
 });

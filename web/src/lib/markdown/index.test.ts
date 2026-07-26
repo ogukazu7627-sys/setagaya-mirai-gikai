@@ -80,7 +80,7 @@ https://www.youtube.com/watch?v=safe123`;
 
     expect(html).toContain("councilor-opinion-heading");
     expect(html).toContain("councilor-opinion-icon");
-    expect(html).toContain("/icons/councilors/fukuda-taemi.jpg");
+    expect(html).toContain("/icons/councilors/fukuda-taemi-avatar.jpg");
     expect(html.match(/councilor-opinion-icon/g)).toHaveLength(1);
   });
 });
