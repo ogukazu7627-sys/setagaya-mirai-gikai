@@ -34,6 +34,7 @@ export function buildCouncilSearchBillDocuments(
       committeeName: extractCommitteeName(bill.status_note),
       tags: bill.tags.map((tag) => tag.label),
       submittedDate: bill.submitted_date,
+      thumbnailUrl: bill.thumbnail_url,
     };
   });
 }
@@ -71,6 +72,7 @@ export function buildCouncilSearchBillDocumentsFromRows(
       committeeName: extractCommitteeName(row.status_note),
       tags: tags.map((tag) => tag.label),
       submittedDate: row.submitted_date,
+      thumbnailUrl: row.thumbnail_url,
     };
   });
 }

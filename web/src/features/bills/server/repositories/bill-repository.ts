@@ -57,6 +57,7 @@ export async function findPublishedBillSearchRows(
       `
       id,
       name,
+      thumbnail_url,
       item_type,
       major_category,
       status_note,

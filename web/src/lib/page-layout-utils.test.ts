@@ -26,9 +26,9 @@ describe("isMainPage", () => {
     expect(isMainPage("/about")).toBe(false);
   });
 
-  it("returns false for the bills list page", () => {
-    expect(isMainPage("/bills")).toBe(false);
-    expect(isMainPage("/bills/")).toBe(false);
+  it("returns true for the council top page", () => {
+    expect(isMainPage("/bills")).toBe(true);
+    expect(isMainPage("/bills/")).toBe(true);
   });
 });
 

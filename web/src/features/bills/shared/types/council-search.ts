@@ -14,11 +14,13 @@ export type CouncilSearchBillDocument = {
   committeeName: string | null;
   tags: string[];
   submittedDate: string | null;
+  thumbnailUrl: string | null;
 };
 
 export type CouncilSearchBillRow = {
   id: string;
   name: string;
+  thumbnail_url: string | null;
   item_type: BillItemType;
   major_category: string | null;
   status_note: string | null;

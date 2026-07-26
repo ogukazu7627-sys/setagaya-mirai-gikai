@@ -1,15 +1,22 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  FilePenLine,
+  Landmark,
+  MessageCircleQuestion,
   RotateCcw,
+  ScrollText,
   Search,
   X,
 } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { type BillItemType, getBillItemTypeLabel } from "../../../shared/types";
 import type {
@@ -133,66 +141,72 @@ export function CouncilSearchSection({
         </h2>
       </div>
 
-      <div className="mt-5 border-y border-mirai-border bg-white py-5">
-        <label
-          htmlFor="council-search-input"
-          className="text-sm font-bold text-mirai-text"
-        >
-          キーワード
-        </label>
-        <div className="relative mt-2">
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-mirai-text-secondary"
-          />
-          <Input
-            id="council-search-input"
-            type="search"
-            value={filters.query}
-            onChange={(event) =>
-              updateFilters((current) => ({
-                ...current,
-                query: event.target.value,
-              }))
-            }
-            placeholder="地名・施設名・制度名など"
-            className="h-13 rounded-lg border-mirai-border bg-white pl-12 pr-12 text-base shadow-none"
-          />
-          {filters.query && (
-            <button
-              type="button"
-              aria-label="キーワードを消去"
-              onClick={() =>
-                updateFilters((current) => ({ ...current, query: "" }))
+      <div className="mt-5 flex flex-col gap-5">
+        <div>
+          <label
+            htmlFor="council-search-input"
+            className="text-sm font-bold text-mirai-text"
+          >
+            キーワード
+          </label>
+          <div className="relative mt-2">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-mirai-text-secondary"
+            />
+            <Input
+              id="council-search-input"
+              type="search"
+              value={filters.query}
+              onChange={(event) =>
+                updateFilters((current) => ({
+                  ...current,
+                  query: event.target.value,
+                }))
               }
-              className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-mirai-text-secondary hover:bg-mirai-surface-gray hover:text-mirai-text"
-            >
-              <X aria-hidden="true" className="size-4" />
-            </button>
-          )}
+              placeholder="地名・施設名・制度名など"
+              className="h-13 rounded-lg border-mirai-border bg-white pl-12 pr-12 text-base shadow-none"
+            />
+            {filters.query && (
+              <button
+                type="button"
+                aria-label="キーワードを消去"
+                onClick={() =>
+                  updateFilters((current) => ({ ...current, query: "" }))
+                }
+                className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-mirai-text-secondary hover:bg-mirai-surface-gray hover:text-mirai-text"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs font-bold text-mirai-text-secondary">
             よく探される言葉
           </span>
-          {QUICK_QUERIES.map((query) => (
-            <Button
-              key={query}
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                updateFilters((current) => ({ ...current, query }))
-              }
-              className="h-8 border-mirai-border px-3 text-xs shadow-none"
-            >
-              {query}
-            </Button>
-          ))}
+          {QUICK_QUERIES.map((query) => {
+            const isSelected = filters.query === query;
+            return (
+              <Button
+                key={query}
+                type="button"
+                size="sm"
+                variant={isSelected ? "default" : "outline"}
+                aria-pressed={isSelected}
+                onClick={() =>
+                  updateFilters((current) => ({ ...current, query }))
+                }
+                className="h-8 border-mirai-border px-3 text-xs shadow-none"
+              >
+                {query}
+              </Button>
+            );
+          })}
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <SearchFilter
             label="情報の種類"
             value={filters.contentType}
@@ -231,6 +245,7 @@ export function CouncilSearchSection({
           <SearchFilter
             label="委員会"
             value={filters.committeeName || "all"}
+            className="col-span-2 sm:col-span-1"
             onValueChange={(value) =>
               updateFilters((current) => ({
                 ...current,
@@ -249,7 +264,7 @@ export function CouncilSearchSection({
         </div>
 
         {isSearchActive && (
-          <div className="mt-4 flex justify-end">
+          <div className="flex justify-end">
             <Button
               type="button"
               size="sm"
@@ -279,10 +294,10 @@ export function CouncilSearchSection({
       </div>
 
       {visibleResults.length > 0 ? (
-        <ul className="mt-2 divide-y divide-mirai-border border-y border-mirai-border">
+        <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {visibleResults.map((document) => (
             <li key={`${document.kind}-${document.id}`}>
-              <CouncilSearchResultRow document={document} />
+              <CouncilSearchResultCard document={document} />
             </li>
           ))}
         </ul>
@@ -351,14 +366,21 @@ function SearchFilter({
   value,
   onValueChange,
   options,
+  className,
 }: {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
   options: Array<{ value: string; label: string }>;
+  className?: string;
 }) {
   return (
-    <label className="flex min-w-0 flex-col gap-2 text-xs font-bold text-mirai-text-secondary">
+    <label
+      className={cn(
+        "flex min-w-0 flex-col gap-2 text-xs font-bold text-mirai-text-secondary",
+        className
+      )}
+    >
       <span>{label}</span>
       <span className="relative">
         <select
@@ -381,80 +403,159 @@ function SearchFilter({
   );
 }
 
-function CouncilSearchResultRow({
+function CouncilSearchResultCard({
   document,
 }: {
   document: CouncilSearchDocument;
 }) {
   if (document.kind === "committee") {
     return (
-      <Link
+      <ResultCard
         href={routes.committeeDetail(document.id) as Route}
-        className="group flex min-h-28 items-center gap-4 py-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">委員会</Badge>
-            <span className="text-xs text-mirai-text-secondary">
-              {document.committeeKindLabel}
-            </span>
-          </div>
-          <p className="mt-2 font-bold leading-relaxed text-mirai-text group-hover:text-primary-strong">
-            {document.name}
-          </p>
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-mirai-text-secondary">
-            {document.summary}
-          </p>
-        </div>
-        <ArrowRight
-          aria-hidden="true"
-          className="size-5 shrink-0 text-primary-accent"
-        />
-      </Link>
+        typeLabel="委員会"
+        meta={document.committeeKindLabel}
+        title={document.name}
+        summary={document.summary}
+        icon={Landmark}
+        visualClassName="bg-teal-100 text-teal-800"
+      />
     );
   }
 
+  const visual = getBillResultVisual(document.itemType);
+
+  return (
+    <ResultCard
+      href={routes.billDetail(document.id) as Route}
+      typeLabel={getBillItemTypeLabel(document.itemType as BillItemType)}
+      meta={document.majorCategoryLabel}
+      date={document.submittedDate}
+      title={document.title}
+      summary={document.summary}
+      footer={document.committeeName}
+      thumbnailUrl={document.thumbnailUrl}
+      icon={visual.icon}
+      visualClassName={visual.className}
+    />
+  );
+}
+
+function ResultCard({
+  href,
+  typeLabel,
+  meta,
+  date,
+  title,
+  summary,
+  footer,
+  thumbnailUrl,
+  icon: Icon,
+  visualClassName,
+}: {
+  href: Route;
+  typeLabel: string;
+  meta?: string | null;
+  date?: string | null;
+  title: string;
+  summary?: string | null;
+  footer?: string | null;
+  thumbnailUrl?: string | null;
+  icon: LucideIcon;
+  visualClassName: string;
+}) {
   return (
     <Link
-      href={routes.billDetail(document.id) as Route}
-      className="group flex min-h-32 items-center gap-4 py-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
+      href={href}
+      className="group flex h-full min-h-44 overflow-hidden rounded-lg border border-mirai-border bg-white transition-colors hover:border-primary-accent hover:bg-mirai-surface-gray focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
     >
-      <div className="min-w-0 flex-1">
+      <div
+        className={cn(
+          "relative flex w-24 shrink-0 flex-col items-center justify-center overflow-hidden sm:w-28",
+          visualClassName
+        )}
+      >
+        {thumbnailUrl ? (
+          <Image
+            src={thumbnailUrl}
+            alt=""
+            fill
+            sizes="(max-width: 639px) 96px, 112px"
+            className="object-cover"
+          />
+        ) : (
+          <>
+            <Icon aria-hidden="true" className="size-8" />
+            <span className="mt-2 px-2 text-center text-xs font-bold">
+              {typeLabel}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">
-            {getBillItemTypeLabel(document.itemType as BillItemType)}
-          </Badge>
-          {document.majorCategoryLabel && (
-            <span className="text-xs text-mirai-text-secondary">
-              {document.majorCategoryLabel}
+          <Badge variant="outline">{typeLabel}</Badge>
+          {meta && (
+            <span className="line-clamp-1 text-xs text-mirai-text-secondary">
+              {meta}
             </span>
           )}
-          {document.submittedDate && (
+          {date && (
             <time className="text-xs text-mirai-text-secondary">
-              {formatDateWithDots(document.submittedDate)}
+              {formatDateWithDots(date)}
             </time>
           )}
         </div>
-        <p className="mt-2 font-bold leading-relaxed text-mirai-text group-hover:text-primary-strong">
-          {document.title}
-        </p>
-        {document.summary && (
+
+        <h4 className="mt-2 line-clamp-3 font-bold leading-relaxed text-mirai-text group-hover:text-primary-strong">
+          {title}
+        </h4>
+        {summary && (
           <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-mirai-text-secondary">
-            {document.summary}
+            {summary}
           </p>
         )}
-        {document.committeeName && (
-          <p className="mt-2 text-xs font-medium text-mirai-text-secondary">
-            {document.committeeName}
+
+        <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+          <p className="line-clamp-1 min-w-0 text-xs font-medium text-mirai-text-secondary">
+            {footer}
           </p>
-        )}
+          <ArrowRight
+            aria-hidden="true"
+            className="size-5 shrink-0 text-primary-accent transition-transform group-hover:translate-x-0.5"
+          />
+        </div>
       </div>
-      <ArrowRight
-        aria-hidden="true"
-        className="size-5 shrink-0 text-primary-accent"
-      />
     </Link>
   );
+}
+
+function getBillResultVisual(itemType: BillItemType): {
+  icon: LucideIcon;
+  className: string;
+} {
+  switch (itemType) {
+    case "report":
+      return {
+        icon: ClipboardList,
+        className: "bg-emerald-100 text-emerald-800",
+      };
+    case "petition":
+      return {
+        icon: FilePenLine,
+        className: "bg-amber-100 text-amber-900",
+      };
+    case "question":
+      return {
+        icon: MessageCircleQuestion,
+        className: "bg-rose-100 text-rose-800",
+      };
+    default:
+      return {
+        icon: ScrollText,
+        className: "bg-sky-100 text-sky-800",
+      };
+  }
 }
 
 function syncSearchParam(
