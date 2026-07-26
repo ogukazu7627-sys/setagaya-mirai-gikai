@@ -1,5 +1,5 @@
-import type { DietSession } from "@/features/diet-sessions/shared/types";
 import { describe, expect, it, vi } from "vitest";
+import type { DietSession } from "@/features/diet-sessions/shared/types";
 import type { CouncilAiSearchRequest } from "../../shared/types/council-ai-search";
 import { searchCouncilBills } from "./council-ai-search-service";
 
@@ -37,7 +37,10 @@ describe("searchCouncilBills", () => {
 
     expect(findSessions).toHaveBeenCalledWith("2026-01-01", "2026-12-31");
     expect(search).toHaveBeenCalledWith(
-      expect.objectContaining({ dietSessionIds: [session.id] })
+      expect.objectContaining({
+        dietSessionIds: [session.id],
+        similarityThreshold: 0.35,
+      })
     );
     expect(result.mode).toBe("hybrid");
     expect(result.billIds).toHaveLength(1);
