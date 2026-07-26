@@ -39,7 +39,7 @@ describe("searchCouncilBills", () => {
     expect(search).toHaveBeenCalledWith(
       expect.objectContaining({
         dietSessionIds: [session.id],
-        similarityThreshold: 0.35,
+        similarityThreshold: 0.4,
       })
     );
     expect(result.mode).toBe("hybrid");
