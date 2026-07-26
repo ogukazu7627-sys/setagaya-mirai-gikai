@@ -5,7 +5,7 @@ import type {
   CouncilSearchInitialFilters,
 } from "../types/council-search";
 
-export const COUNCIL_SEARCH_PAGE_SIZE = 10;
+export const COUNCIL_SEARCH_PAGE_SIZE = 5;
 
 const CONTENT_TYPES = new Set<CouncilSearchContentType>([
   "all",

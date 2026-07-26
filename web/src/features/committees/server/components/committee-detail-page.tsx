@@ -20,6 +20,7 @@ import {
   getCommitteeProfile,
 } from "@/features/committees/shared/committee-profiles";
 import { routes } from "@/lib/routes";
+import { getJapanTime } from "@/lib/utils/date";
 import { loadCommitteeBills } from "../loaders/load-committee-bills";
 import { findActivePublicCommitteeById } from "../repositories/committee-directory-repository";
 
@@ -41,7 +42,8 @@ export async function CommitteeDetailPage({
   const profile = getCommitteeProfile(committee.name);
   const relatedBills = await loadCommitteeBills(
     committee.name,
-    difficultyLevel
+    difficultyLevel,
+    getJapanTime()
   );
   const committeeSearchHref = `/bills?committee=${encodeURIComponent(
     committee.name
@@ -139,7 +141,7 @@ export async function CommitteeDetailPage({
                 この委員会で扱われている案件
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-mirai-text-secondary">
-                みらい議会で公開中の案件から、新しい順に表示しています。
+                今年の会期で公開中の案件から、新しい順に表示しています。
               </p>
             </div>
           </div>

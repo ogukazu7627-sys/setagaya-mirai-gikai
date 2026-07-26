@@ -1,13 +1,17 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { BillsByMajorCategorySection } from "../../client/components/bill-list/bills-by-major-category-section";
-import type { YearArchiveData } from "../loaders/load-home-data";
+import type { YearArchiveData } from "../loaders/load-year-archive-data";
 
 type YearArchiveSectionProps = {
   archiveData: YearArchiveData;
+  basePath?: "/" | "/bills";
 };
 
-export function YearArchiveSection({ archiveData }: YearArchiveSectionProps) {
+export function YearArchiveSection({
+  archiveData,
+  basePath = "/",
+}: YearArchiveSectionProps) {
   if (archiveData.years.length === 0 || archiveData.selectedYear == null) {
     return null;
   }
@@ -31,7 +35,7 @@ export function YearArchiveSection({ archiveData }: YearArchiveSectionProps) {
               return (
                 <Link
                   key={year}
-                  href={`/?archive_year=${year}#archive` as Route}
+                  href={`${basePath}?archive_year=${year}#archive` as Route}
                   className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                     isSelected
                       ? "border-primary bg-primary text-white"
@@ -50,6 +54,7 @@ export function YearArchiveSection({ archiveData }: YearArchiveSectionProps) {
         <BillsByMajorCategorySection
           billsByMajorCategory={archiveData.billsByMajorCategory}
           title={`${archiveData.selectedYear}年の案件をテーマから探す`}
+          sectionId="archive-theme-bills"
         />
       ) : (
         <p className="text-center py-12 text-muted-foreground">

@@ -1,32 +1,25 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import {
-  ArrowRight,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ClipboardList,
-  FilePenLine,
   Landmark,
-  MessageCircleQuestion,
   RotateCcw,
-  ScrollText,
   Search,
   X,
 } from "lucide-react";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import { formatDateWithDots } from "@/lib/utils/date";
-import { type BillItemType, getBillItemTypeLabel } from "../../../shared/types";
 import type {
   CouncilSearchContentType,
   CouncilSearchDocument,
@@ -39,6 +32,7 @@ import {
   hasActiveCouncilSearch,
   searchCouncilDocuments,
 } from "../../../shared/utils/council-search";
+import { BillCard } from "./bill-card";
 
 const CONTENT_TYPE_OPTIONS: Array<{
   value: CouncilSearchContentType;
@@ -294,7 +288,7 @@ export function CouncilSearchSection({
           </div>
 
           {visibleResults.length > 0 ? (
-            <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ul className="mt-4 flex flex-col gap-4">
               {visibleResults.map((document) => (
                 <li key={`${document.kind}-${document.id}`}>
                   <CouncilSearchResultCard document={document} />
@@ -414,152 +408,58 @@ function CouncilSearchResultCard({
 }) {
   if (document.kind === "committee") {
     return (
-      <ResultCard
+      <Link
         href={routes.committeeDetail(document.id) as Route}
-        typeLabel="委員会"
-        meta={document.committeeKindLabel}
-        title={document.name}
-        summary={document.summary}
-        icon={Landmark}
-        visualClassName="bg-teal-100 text-teal-800"
-      />
+        className="group block max-w-[634px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
+      >
+        <Card className="relative overflow-hidden border border-black transition-colors group-hover:bg-muted/50">
+          <CardHeader>
+            <div className="flex flex-col gap-3">
+              <Badge variant="outline" className="w-fit">
+                委員会
+              </Badge>
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-800">
+                  <Landmark aria-hidden="true" className="size-5" />
+                </span>
+                <CardTitle className="text-2xl/8 tracking-normal">
+                  {document.name}
+                </CardTitle>
+              </div>
+              <p className="text-xs font-medium text-mirai-text-secondary">
+                {document.committeeKindLabel}
+              </p>
+              <RubySafeLineClamp
+                text={document.summary}
+                maxLength={132}
+                lineClamp={4}
+                className="text-sm leading-relaxed"
+              />
+              <div className="flex flex-wrap gap-2">
+                {document.responsibilities.slice(0, 3).map((responsibility) => (
+                  <span
+                    key={responsibility}
+                    className="rounded-full bg-mirai-surface-gray px-3 py-1 text-xs font-medium text-mirai-text"
+                  >
+                    {responsibility}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </Link>
     );
   }
 
-  const visual = getBillResultVisual(document.itemType);
-
-  return (
-    <ResultCard
-      href={routes.billDetail(document.id) as Route}
-      typeLabel={getBillItemTypeLabel(document.itemType as BillItemType)}
-      meta={document.majorCategoryLabel}
-      date={document.submittedDate}
-      title={document.title}
-      summary={document.summary}
-      footer={document.committeeName}
-      thumbnailUrl={document.thumbnailUrl}
-      icon={visual.icon}
-      visualClassName={visual.className}
-    />
-  );
-}
-
-function ResultCard({
-  href,
-  typeLabel,
-  meta,
-  date,
-  title,
-  summary,
-  footer,
-  thumbnailUrl,
-  icon: Icon,
-  visualClassName,
-}: {
-  href: Route;
-  typeLabel: string;
-  meta?: string | null;
-  date?: string | null;
-  title: string;
-  summary?: string | null;
-  footer?: string | null;
-  thumbnailUrl?: string | null;
-  icon: LucideIcon;
-  visualClassName: string;
-}) {
   return (
     <Link
-      href={href}
-      className="group flex h-full min-h-44 overflow-hidden rounded-lg border border-mirai-border bg-white transition-colors hover:border-primary-accent hover:bg-mirai-surface-gray focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
+      href={routes.billDetail(document.id) as Route}
+      className="block max-w-[634px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
     >
-      <div
-        className={cn(
-          "relative flex w-24 shrink-0 flex-col items-center justify-center overflow-hidden sm:w-28",
-          visualClassName
-        )}
-      >
-        {thumbnailUrl ? (
-          <Image
-            src={thumbnailUrl}
-            alt=""
-            fill
-            sizes="(max-width: 639px) 96px, 112px"
-            className="object-cover"
-          />
-        ) : (
-          <>
-            <Icon aria-hidden="true" className="size-8" />
-            <span className="mt-2 px-2 text-center text-xs font-bold">
-              {typeLabel}
-            </span>
-          </>
-        )}
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{typeLabel}</Badge>
-          {meta && (
-            <span className="line-clamp-1 text-xs text-mirai-text-secondary">
-              {meta}
-            </span>
-          )}
-          {date && (
-            <time className="text-xs text-mirai-text-secondary">
-              {formatDateWithDots(date)}
-            </time>
-          )}
-        </div>
-
-        <h4 className="mt-2 line-clamp-3 font-bold leading-relaxed text-mirai-text group-hover:text-primary-strong">
-          {title}
-        </h4>
-        {summary && (
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-mirai-text-secondary">
-            {summary}
-          </p>
-        )}
-
-        <div className="mt-auto flex items-end justify-between gap-3 pt-3">
-          <p className="line-clamp-1 min-w-0 text-xs font-medium text-mirai-text-secondary">
-            {footer}
-          </p>
-          <ArrowRight
-            aria-hidden="true"
-            className="size-5 shrink-0 text-primary-accent transition-transform group-hover:translate-x-0.5"
-          />
-        </div>
-      </div>
+      <BillCard bill={document.card} />
     </Link>
   );
-}
-
-function getBillResultVisual(itemType: BillItemType): {
-  icon: LucideIcon;
-  className: string;
-} {
-  switch (itemType) {
-    case "report":
-      return {
-        icon: ClipboardList,
-        className: "bg-emerald-100 text-emerald-800",
-      };
-    case "petition":
-      return {
-        icon: FilePenLine,
-        className: "bg-amber-100 text-amber-900",
-      };
-    case "question":
-      return {
-        icon: MessageCircleQuestion,
-        className: "bg-rose-100 text-rose-800",
-      };
-    default:
-      return {
-        icon: ScrollText,
-        className: "bg-sky-100 text-sky-800",
-      };
-  }
 }
 
 function syncSearchParam(

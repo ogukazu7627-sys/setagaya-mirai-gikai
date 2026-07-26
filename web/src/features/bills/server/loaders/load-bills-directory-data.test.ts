@@ -5,9 +5,10 @@ import { loadBillsDirectoryData } from "./load-bills-directory-data";
 const mocks = vi.hoisted(() => ({
   getDifficultyLevel: vi.fn(),
   findDietSessionsStartingBetween: vi.fn(),
+  findDietSessionsStartingBefore: vi.fn(),
   findPublishedBillsByDietSessionIds: vi.fn(),
-  findPublishedBillSearchRows: vi.fn(),
   buildBillsWithContent: vi.fn(),
+  loadYearArchiveData: vi.fn(),
 }));
 
 vi.mock(
@@ -21,6 +22,7 @@ vi.mock(
   "@/features/diet-sessions/server/repositories/diet-session-repository",
   () => ({
     findDietSessionsStartingBetween: mocks.findDietSessionsStartingBetween,
+    findDietSessionsStartingBefore: mocks.findDietSessionsStartingBefore,
   })
 );
 
@@ -31,11 +33,14 @@ vi.mock("@/lib/setagaya-mock", () => ({
 
 vi.mock("../repositories/bill-repository", () => ({
   findPublishedBillsByDietSessionIds: mocks.findPublishedBillsByDietSessionIds,
-  findPublishedBillSearchRows: mocks.findPublishedBillSearchRows,
 }));
 
 vi.mock("../utils/build-bills-with-content", () => ({
   buildBillsWithContent: mocks.buildBillsWithContent,
+}));
+
+vi.mock("./load-year-archive-data", () => ({
+  loadYearArchiveData: mocks.loadYearArchiveData,
 }));
 
 beforeEach(() => {
@@ -44,39 +49,17 @@ beforeEach(() => {
   mocks.findDietSessionsStartingBetween.mockResolvedValue([
     { id: "session-2026" },
   ]);
+  mocks.findDietSessionsStartingBefore.mockResolvedValue([
+    { id: "session-2025", start_date: "2025-06-01" },
+  ]);
   mocks.findPublishedBillsByDietSessionIds.mockResolvedValue([
     { id: "current-bill-row" },
   ]);
-  mocks.findPublishedBillSearchRows.mockResolvedValue([
-    {
-      id: "bill-2026",
-      name: "令和8年の議案",
-      thumbnail_url: "https://example.com/bill-2026.jpg",
-      item_type: "bill",
-      major_category: "教育🏫",
-      status_note: "文教常任委員会で審査",
-      submitted_date: "2026-05-01",
-      bill_contents: {
-        title: "令和8年の学校に関する議案",
-        summary: "学校に関する議案です。",
-      },
-      bills_tags: [],
-    },
-    {
-      id: "bill-2025",
-      name: "令和7年の報告",
-      thumbnail_url: null,
-      item_type: "report",
-      major_category: "福祉🤝",
-      status_note: "福祉保健常任委員会で報告",
-      submitted_date: "2025-11-01",
-      bill_contents: {
-        title: "令和7年の福祉に関する報告",
-        summary: "福祉に関する報告です。",
-      },
-      bills_tags: [],
-    },
-  ]);
+  mocks.loadYearArchiveData.mockResolvedValue({
+    years: [2025],
+    selectedYear: 2025,
+    billsByMajorCategory: [],
+  });
   mocks.buildBillsWithContent.mockResolvedValue([
     {
       id: "bill-2026",
@@ -84,6 +67,14 @@ beforeEach(() => {
       item_type: "bill",
       major_category: "教育🏫",
       submitted_date: "2026-05-01",
+      thumbnail_url: "https://example.com/bill-2026.jpg",
+      status: "introduced",
+      status_label: null,
+      status_note: "文教常任委員会で審査",
+      is_featured: false,
+      is_review_completed: true,
+      interview_enabled: false,
+      hasPublicInterview: false,
       name: "令和8年の議案",
       bill_content: {
         title: "令和8年の学校に関する議案",
@@ -95,9 +86,10 @@ beforeEach(() => {
 });
 
 describe("loadBillsDirectoryData", () => {
-  it("groups the current year while building a search index from all public bills", async () => {
+  it("uses the current-year bills for themes, search, and AI context", async () => {
     const result = await loadBillsDirectoryData(
-      new Date("2026-07-26T12:00:00+09:00")
+      new Date("2026-07-26T12:00:00+09:00"),
+      "2025"
     );
 
     expect(mocks.findDietSessionsStartingBetween).toHaveBeenCalledOnce();
@@ -109,20 +101,31 @@ describe("loadBillsDirectoryData", () => {
       ["session-2026"],
       "normal"
     );
-    expect(mocks.findPublishedBillSearchRows).toHaveBeenCalledWith("normal");
+    expect(mocks.findDietSessionsStartingBefore).toHaveBeenCalledWith(
+      "2026-01-01"
+    );
+    expect(mocks.loadYearArchiveData).toHaveBeenCalledWith({
+      archiveYear: "2025",
+      difficultyLevel: "normal",
+      pastSessions: [{ id: "session-2025", start_date: "2025-06-01" }],
+    });
     expect(mocks.buildBillsWithContent).toHaveBeenCalledWith([
       { id: "current-bill-row" },
     ]);
     expect(result.billsByMajorCategory).toHaveLength(1);
     expect(result.billsByMajorCategory[0]?.bills[0]?.id).toBe("bill-2026");
-    expect(result.searchDocuments).toHaveLength(2);
-    expect(result.searchDocuments.map(({ id }) => id)).toEqual([
-      "bill-2026",
-      "bill-2025",
-    ]);
+    expect(result.currentBills.map(({ id }) => id)).toEqual(["bill-2026"]);
+    expect(result.searchDocuments).toHaveLength(1);
+    expect(result.searchDocuments.map(({ id }) => id)).toEqual(["bill-2026"]);
     expect(result.searchDocuments[0]?.thumbnailUrl).toBe(
       "https://example.com/bill-2026.jpg"
     );
+    expect(
+      result.searchDocuments[0]?.kind === "bill"
+        ? result.searchDocuments[0].card.id
+        : null
+    ).toBe("bill-2026");
+    expect(result.archiveData.selectedYear).toBe(2025);
     expect(result.difficultyLevel).toBe("normal");
   });
 });

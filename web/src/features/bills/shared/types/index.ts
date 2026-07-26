@@ -84,6 +84,26 @@ export type BillWithContent = Omit<
   hasPublicInterview?: boolean;
 };
 
+export type BillCardData = Pick<
+  BillWithContent,
+  | "id"
+  | "name"
+  | "item_type"
+  | "major_category"
+  | "status"
+  | "status_label"
+  | "status_note"
+  | "submitted_date"
+  | "thumbnail_url"
+  | "is_featured"
+  | "is_review_completed"
+  | "interview_enabled"
+  | "hasPublicInterview"
+> & {
+  bill_content?: Pick<BillContent, "title" | "summary"> | null;
+  tags: BillTag[];
+};
+
 // タグごとにグループ化された議案
 export type BillsByTag = {
   tag: BillTag & { description?: string; priority: number };

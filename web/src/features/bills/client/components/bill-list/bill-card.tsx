@@ -3,7 +3,7 @@ import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { formatDateWithDots } from "@/lib/utils/date";
-import type { BillWithContent } from "../../../shared/types";
+import type { BillCardData } from "../../../shared/types";
 import { getDisplayTags } from "../../../shared/utils/display-tags";
 import { ReviewCompleteBadge } from "../bill-detail/review-status-banner";
 import { BillItemTypeBadge } from "./bill-item-type-badge";
@@ -11,7 +11,7 @@ import { BillStatusBadge } from "./bill-status-badge";
 import { BillTag } from "./bill-tag";
 
 interface BillCardProps {
-  bill: BillWithContent;
+  bill: BillCardData;
   className?: string;
 }
 
@@ -113,7 +113,7 @@ export function BillCard({ bill, className }: BillCardProps) {
   );
 }
 
-function extractCommitteeOrSpeaker(bill: BillWithContent): string | null {
+function extractCommitteeOrSpeaker(bill: BillCardData): string | null {
   const note = bill.status_note;
   if (!note) return null;
 

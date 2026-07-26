@@ -8,13 +8,19 @@ import {
   getCommitteeSearchTerm,
   statusNoteMatchesCommittee,
 } from "@/features/committees/shared/committee-matching";
+import { findDietSessionsStartingBetween } from "@/features/diet-sessions/server/repositories/diet-session-repository";
+import {
+  getCalendarYearFromDate,
+  getCalendarYearRange,
+} from "@/features/diet-sessions/shared/utils/calendar-year";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
 
 const COMMITTEE_BILL_LIMIT = 6;
 
 export async function loadCommitteeBills(
   committeeName: string,
-  difficultyLevel: DifficultyLevelEnum
+  difficultyLevel: DifficultyLevelEnum,
+  currentDate: Date
 ): Promise<BillWithContent[]> {
   if (isSetagayaMockMode) {
     return getSetagayaMockBills(difficultyLevel)
@@ -24,9 +30,17 @@ export async function loadCommitteeBills(
       .slice(0, COMMITTEE_BILL_LIMIT);
   }
 
+  const currentYearRange = getCalendarYearRange(
+    getCalendarYearFromDate(currentDate)
+  );
+  const currentYearSessions = await findDietSessionsStartingBetween(
+    currentYearRange.startDate,
+    currentYearRange.endDate
+  );
   const rows = await findPublishedBillsByCommitteeSearchTerm(
     getCommitteeSearchTerm(committeeName),
     difficultyLevel,
+    currentYearSessions.map((session) => session.id),
     COMMITTEE_BILL_LIMIT
   );
   return buildBillsWithContent(rows);
