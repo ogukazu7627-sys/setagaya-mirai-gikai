@@ -4,7 +4,10 @@ import { LearnPage } from "@/features/learn/server/components/learn-page";
 export const metadata: Metadata = {
   title: "学ぶ | みらい議会＠世田谷区",
   description:
-    "みらい議会＠世田谷区の見方と、世田谷区議会の公式情報への入口を確認できます。",
+    "区議会の役割、議案の流れ、委員会、予算、請願・陳情など、世田谷区議会のしくみをやさしく学べます。",
+  alternates: {
+    canonical: "/learn",
+  },
 };
 
 export default function LearningPage() {

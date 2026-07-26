@@ -55,4 +55,24 @@ describe("MainLayout", () => {
       "layout-with-mobile-primary-navigation"
     );
   });
+
+  it("uses the wide layout for the learn index and lesson pages", () => {
+    navigationMock.pathname = "/learn";
+    const { container, rerender } = render(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+
+    expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
+    expect(container.firstElementChild).not.toHaveClass("max-w-[700px]");
+
+    navigationMock.pathname = "/learn/bill-process";
+    rerender(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+    expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
+  });
 });

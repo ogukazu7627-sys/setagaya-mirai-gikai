@@ -15,6 +15,11 @@ export function isMainPage(pathname: string): boolean {
   return false;
 }
 
+/** コンテンツをヘッダー幅まで広げるページかどうかを判定 */
+export function isWidePage(pathname: string): boolean {
+  return pathname === "/learn" || pathname.startsWith("/learn/");
+}
+
 /** インタビューチャットページかどうかを判定 */
 export function isInterviewPage(pathname: string): boolean {
   // /bills/[id]/interview/chat

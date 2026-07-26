@@ -3,7 +3,11 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { shouldShowPrimaryNavigation } from "@/features/primary-navigation/shared/primary-navigation";
-import { isInterviewSection, isMainPage } from "@/lib/page-layout-utils";
+import {
+  isInterviewSection,
+  isMainPage,
+  isWidePage,
+} from "@/lib/page-layout-utils";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
@@ -13,6 +17,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const useSidebarLayout = isMainPage(pathname);
+  const useWideLayout = isWidePage(pathname);
   const isInterview = isInterviewSection(pathname);
   const showPrimaryNavigation = shouldShowPrimaryNavigation(pathname);
 
@@ -20,7 +25,8 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div
       className={cn(
         // 固定ヘッダーの実測高とsafe areaを、全ページ共通の先頭余白に反映する。
-        "relative max-w-[700px] mx-auto pt-[var(--app-header-layout-offset)] md:pt-0 md:mt-[var(--app-header-layout-offset)]",
+        "relative mx-auto pt-[var(--app-header-layout-offset)] md:pt-0 md:mt-[var(--app-header-layout-offset)]",
+        useWideLayout ? "max-w-[1180px]" : "max-w-[700px]",
         // インタビューページ以外ではshadowを表示
         !isInterview && "sm:shadow-lg",
         // TOPと案件詳細は、1000px帯でもチャットを含めて横幅内に収める。

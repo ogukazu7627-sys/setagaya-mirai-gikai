@@ -21,6 +21,7 @@ export const routes = {
   committeeDetail: (committeeId: string) =>
     `/committees/${committeeId}` as const,
   learn: () => "/learn" as const,
+  learnLesson: (slug: string) => `/learn/${slug}` as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
