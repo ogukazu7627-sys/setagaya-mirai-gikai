@@ -5,6 +5,7 @@ import {
   isInterviewPage,
   isInterviewSection,
   isMainPage,
+  isWidePage,
 } from "./page-layout-utils";
 
 describe("isMainPage", () => {
@@ -27,6 +28,18 @@ describe("isMainPage", () => {
   it("returns false for the bills list page", () => {
     expect(isMainPage("/bills")).toBe(false);
     expect(isMainPage("/bills/")).toBe(false);
+  });
+});
+
+describe("isWidePage", () => {
+  it("returns true for the learn index and lesson pages", () => {
+    expect(isWidePage("/learn")).toBe(true);
+    expect(isWidePage("/learn/bill-process")).toBe(true);
+  });
+
+  it("returns false for other routes", () => {
+    expect(isWidePage("/")).toBe(false);
+    expect(isWidePage("/bills")).toBe(false);
   });
 });
 
