@@ -388,75 +388,19 @@ export function TodayRecommendationsSection({
               <p className="text-sm leading-relaxed text-mirai-text-secondary">
                 新しくおすすめできる案件がありません。
                 <br />
-                興味分野を変更するか、表示履歴をリセットすると、ほかの案件を表示できます。
+                設定から興味分野の変更や表示履歴のリセットを行うと、ほかの案件を表示できます。
               </p>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOnboardingOpen(true)}
-                >
-                  <SlidersHorizontal />
-                  興味分野を変更
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setResetOpen(true)}
-                >
-                  <History />
-                  表示履歴をリセット
-                </Button>
-              </div>
             </div>
           )}
 
-          {profile && status === "ready" && (
-            <div className="flex flex-wrap gap-3">
-              {(data?.bills.length ?? 0) > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOnboardingOpen(true)}
-                >
-                  <SlidersHorizontal />
-                  興味分野を変更
-                </Button>
-              )}
-              {data?.pushEnabled ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={stopNotifications}
-                  disabled={busy}
-                >
-                  <BellOff />
-                  通知を停止
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={enableNotifications}
-                  disabled={busy || notificationUnavailable}
-                >
-                  <Bell />
-                  毎朝、おすすめを受け取る
-                </Button>
-              )}
-            </div>
-          )}
-
-          {profile && status === "ready" && !data?.pushEnabled && (
-            <p className="text-xs leading-relaxed text-mirai-text-secondary">
-              毎朝、その日のおすすめ案件を1回お知らせします。通知はいつでも停止できます。通知を有効にすると、Webプッシュ通知に必要な購読情報をサーバーへ保存します。
-            </p>
-          )}
-          {profile && status === "ready" && notificationUnavailable && (
-            <p className="text-xs text-mirai-text-secondary">
-              このブラウザでは通知を利用できません。今日のおすすめはサイト内で確認できます。
-            </p>
-          )}
+          {profile &&
+            status === "ready" &&
+            !data?.pushEnabled &&
+            notificationUnavailable && (
+              <p className="text-xs text-mirai-text-secondary">
+                このブラウザでは通知を利用できません。今日のおすすめはサイト内で確認できます。
+              </p>
+            )}
           {message && status !== "error" && (
             <p role="alert" className="text-sm text-destructive">
               {message}
@@ -479,10 +423,55 @@ export function TodayRecommendationsSection({
           <DialogHeader>
             <DialogTitle>おすすめ設定</DialogTitle>
             <DialogDescription>
-              表示履歴と、このブラウザに保存した匿名設定を管理します。
+              興味分野、通知、表示履歴、このブラウザに保存した匿名設定を管理します。
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-start gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSettingsOpen(false);
+                setOnboardingOpen(true);
+              }}
+            >
+              <SlidersHorizontal />
+              興味分野を変更
+            </Button>
+            {data?.pushEnabled ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={stopNotifications}
+                disabled={busy}
+              >
+                <BellOff />
+                通知を停止
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={enableNotifications}
+                disabled={busy || notificationUnavailable}
+              >
+                <Bell />
+                毎朝、おすすめを受け取る
+              </Button>
+            )}
+            {!data?.pushEnabled && !notificationUnavailable && (
+              <p className="text-xs leading-relaxed text-mirai-text-secondary">
+                毎朝、その日のおすすめ案件を1回お知らせします。通知はいつでも停止できます。通知を有効にすると、Webプッシュ通知に必要な購読情報をサーバーへ保存します。
+              </p>
+            )}
+            {notificationUnavailable && (
+              <p className="text-xs text-mirai-text-secondary">
+                このブラウザでは通知を利用できません。今日のおすすめはサイト内で確認できます。
+              </p>
+            )}
+            <p className="text-xs leading-relaxed text-mirai-text-secondary">
+              興味分野や履歴は匿名の設定としてこのブラウザに保存されます。
+            </p>
             <Button
               type="button"
               variant="outline"

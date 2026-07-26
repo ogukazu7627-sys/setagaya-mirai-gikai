@@ -68,6 +68,7 @@ describe("TodayRecommendationsSection", () => {
   });
 
   it("loads saved recommendations and keeps notification-unsupported browsers usable", async () => {
+    const user = userEvent.setup();
     window.localStorage.setItem(
       RECOMMENDATION_PROFILE_STORAGE_KEY,
       JSON.stringify({
@@ -110,13 +111,14 @@ describe("TodayRecommendationsSection", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "毎朝、おすすめを受け取る" })
-    ).toBeDisabled();
-    expect(
       screen.getByText(
         "このブラウザでは通知を利用できません。今日のおすすめはサイト内で確認できます。"
       )
     ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "設定" }));
+    expect(
+      screen.getByRole("button", { name: "毎朝、おすすめを受け取る" })
+    ).toBeDisabled();
     await waitFor(() => {
       expect(mocks.recordRecommendationImpressions).toHaveBeenCalledWith(
         "11111111-1111-4111-8111-111111111111",
@@ -181,6 +183,7 @@ describe("TodayRecommendationsSection", () => {
   });
 
   it("keeps the notification stop action available when no recommendations remain", async () => {
+    const user = userEvent.setup();
     window.localStorage.setItem(
       RECOMMENDATION_PROFILE_STORAGE_KEY,
       JSON.stringify({
@@ -209,8 +212,10 @@ describe("TodayRecommendationsSection", () => {
     );
 
     expect(
-      await screen.findByRole("button", { name: "通知を停止" })
+      await screen.findByText(/新しくおすすめできる案件がありません/)
     ).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "設定" }));
+    expect(screen.getByRole("button", { name: "通知を停止" })).toBeVisible();
     expect(
       screen.getByRole("button", { name: "表示履歴をリセット" })
     ).toBeVisible();
