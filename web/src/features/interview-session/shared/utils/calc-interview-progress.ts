@@ -16,6 +16,7 @@ interface ProgressMessage {
   role: "assistant" | "user";
   questionId?: string | null;
   topicTitle?: string | null;
+  report?: unknown;
 }
 
 const MIN_FOLLOW_UP_QUESTIONS = 2;
@@ -37,14 +38,14 @@ function hasUserResponse(
   return false;
 }
 
-function calcRemainingQuestionRange(
-  totalQuestions: number,
-  messages: ProgressMessage[]
-): RemainingQuestionRange {
+function findCurrentThemeStart(messages: ProgressMessage[]): {
+  index: number;
+  startedThemeCount: number;
+} {
   const seenQuestionIds = new Set<string>();
-  let currentThemeStartIndex = -1;
+  let index = -1;
 
-  messages.forEach((message, index) => {
+  messages.forEach((message, messageIndex) => {
     if (
       message.role !== "assistant" ||
       !message.questionId ||
@@ -54,25 +55,46 @@ function calcRemainingQuestionRange(
     }
 
     seenQuestionIds.add(message.questionId);
-    currentThemeStartIndex = index;
+    index = messageIndex;
   });
 
-  const startedThemeCount = Math.min(totalQuestions, seenQuestionIds.size);
+  return { index, startedThemeCount: seenQuestionIds.size };
+}
+
+function getQuestionIndexes(
+  messages: ProgressMessage[],
+  startIndex: number
+): number[] {
+  return messages.flatMap((message, index) =>
+    index >= startIndex &&
+    message.role === "assistant" &&
+    message.report == null
+      ? [index]
+      : []
+  );
+}
+
+function calcRemainingQuestionRange(
+  totalQuestions: number,
+  messages: ProgressMessage[]
+): RemainingQuestionRange {
+  const currentTheme = findCurrentThemeStart(messages);
+  const startedThemeCount = Math.min(
+    totalQuestions,
+    currentTheme.startedThemeCount
+  );
   const unstartedThemeCount = Math.max(0, totalQuestions - startedThemeCount);
   const unstartedMin = unstartedThemeCount * (1 + MIN_FOLLOW_UP_QUESTIONS);
   const unstartedMax = unstartedThemeCount * (1 + MAX_FOLLOW_UP_QUESTIONS);
 
-  if (currentThemeStartIndex < 0) {
+  if (currentTheme.index < 0) {
     return { min: unstartedMin, max: unstartedMax };
   }
 
-  const currentThemeAssistantIndexes = messages
-    .map((message, index) => ({ message, index }))
-    .filter(
-      ({ message, index }) =>
-        index >= currentThemeStartIndex && message.role === "assistant"
-    )
-    .map(({ index }) => index);
+  const currentThemeAssistantIndexes = getQuestionIndexes(
+    messages,
+    currentTheme.index
+  );
   const baseQuestionIndex = currentThemeAssistantIndexes[0];
 
   if (baseQuestionIndex === undefined) {

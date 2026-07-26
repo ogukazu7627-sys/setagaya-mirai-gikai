@@ -33,7 +33,7 @@ export function InterviewProgressBar({
             </div>
           )}
         </div>
-        <p className="ml-auto shrink-0 text-sm text-gray-500">
+        <p className="ml-auto shrink-0 text-sm text-mirai-text-muted">
           {remainingQuestionLabel}
         </p>
       </div>
