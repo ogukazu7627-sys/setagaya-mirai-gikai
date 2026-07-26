@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { formatDateWithDots } from "@/lib/utils/date";
 import type { BillWithContent } from "../../../shared/types";
 import { getDisplayTags } from "../../../shared/utils/display-tags";
@@ -11,9 +12,10 @@ import { BillTag } from "./bill-tag";
 
 interface BillCardProps {
   bill: BillWithContent;
+  className?: string;
 }
 
-export function BillCard({ bill }: BillCardProps) {
+export function BillCard({ bill, className }: BillCardProps) {
   const displayTitle = bill.bill_content?.title;
   const summary = bill.bill_content?.summary;
   const showInterviewBadge =
@@ -22,7 +24,12 @@ export function BillCard({ bill }: BillCardProps) {
   const displayTags = getDisplayTags(bill);
 
   return (
-    <Card className="border border-black hover:bg-muted/50 transition-colors relative overflow-hidden max-w-[634px]">
+    <Card
+      className={cn(
+        "relative max-w-[634px] overflow-hidden border border-black transition-colors hover:bg-muted/50",
+        className
+      )}
+    >
       <div className="flex flex-col">
         {/* 注目バッジエリア */}
         {bill.is_featured && (

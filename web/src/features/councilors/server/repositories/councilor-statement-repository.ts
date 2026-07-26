@@ -22,6 +22,11 @@ export type CouncilorStatementCount = {
   statementCount: number;
 };
 
+export type CouncilorStatementCountById = {
+  councilorId: string;
+  statementCount: number;
+};
+
 export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
   bills: {
     id: string;
@@ -210,6 +215,46 @@ export async function findPublishedCouncilorStatementCounts(): Promise<
     (a, b) =>
       b.statementCount - a.statementCount ||
       a.councilorName.localeCompare(b.councilorName, "ja")
+  );
+}
+
+export async function findPublishedCouncilorStatementCountsByCouncilorIds(
+  councilorIds: string[]
+): Promise<CouncilorStatementCountById[]> {
+  const uniqueCouncilorIds = Array.from(new Set(councilorIds));
+  if (uniqueCouncilorIds.length === 0) {
+    return [];
+  }
+
+  const supabase = createAdminClient();
+  return Promise.all(
+    uniqueCouncilorIds.map(async (councilorId) => {
+      const { count, error } = await supabase
+        .from("councilor_bill_statements")
+        .select(
+          `
+          id,
+          bills!inner (
+            publish_status
+          )
+        `,
+          { count: "exact", head: true }
+        )
+        .eq("councilor_id", councilorId)
+        .eq("difficulty_level", "normal")
+        .eq("bills.publish_status", "published");
+
+      if (error) {
+        throw new Error(
+          `Failed to count published councilor statements: ${error.message}`
+        );
+      }
+
+      return {
+        councilorId,
+        statementCount: count ?? 0,
+      };
+    })
   );
 }
 

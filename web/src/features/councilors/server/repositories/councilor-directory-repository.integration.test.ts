@@ -11,6 +11,7 @@ import {
 } from "./councilor-directory-repository";
 import {
   findPublishedCouncilorStatementCounts,
+  findPublishedCouncilorStatementCountsByCouncilorIds,
   findPublishedCouncilorStatementDetails,
 } from "./councilor-statement-repository";
 
@@ -112,6 +113,8 @@ describe("councilor directory repository", () => {
     if (error) throw new Error(error.message);
 
     const counts = await findPublishedCouncilorStatementCounts();
+    const selectedCounts =
+      await findPublishedCouncilorStatementCountsByCouncilorIds([councilor.id]);
     const details = await findPublishedCouncilorStatementDetails({
       councilorId: councilor.id,
     });
@@ -120,6 +123,12 @@ describe("councilor directory repository", () => {
       counts.find(({ councilorId }) => councilorId === councilor.id)
         ?.statementCount
     ).toBe(1);
+    expect(selectedCounts).toEqual([
+      {
+        councilorId: councilor.id,
+        statementCount: 1,
+      },
+    ]);
     expect(details.map(({ bill_id }) => bill_id)).toEqual([publishedBill.id]);
   });
 });
