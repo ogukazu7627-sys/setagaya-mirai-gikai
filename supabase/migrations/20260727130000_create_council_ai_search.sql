@@ -596,17 +596,17 @@ ALTER TABLE public.council_search_chunks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.council_search_index_jobs ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON FUNCTION public.enqueue_council_search_index_job(UUID)
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.queue_council_search_bill_row()
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.queue_council_search_related_row()
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.queue_council_search_tag_rows()
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.queue_council_search_session_rows()
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.claim_council_search_index_jobs(INTEGER)
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.search_council_bills(
   extensions.vector,
   TEXT[],
@@ -618,7 +618,7 @@ REVOKE ALL ON FUNCTION public.search_council_bills(
   TEXT[],
   REAL,
   INTEGER
-) FROM PUBLIC;
+) FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT, INSERT, UPDATE, DELETE
   ON public.council_search_chunks TO service_role;
