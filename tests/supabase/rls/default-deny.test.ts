@@ -30,6 +30,8 @@ const tables = [
   "recommendation_impressions",
   "push_subscriptions",
   "recommendation_api_rate_limits",
+  "council_search_chunks",
+  "council_search_index_jobs",
 ] as const;
 
 describe("RLS default deny（全テーブル共通）", () => {
@@ -65,6 +67,14 @@ describe("RLS default deny（全テーブル共通）", () => {
         end_date: "2025-06-30",
         slug: "rls-test",
       });
+      expect(error).not.toBeNull();
+    });
+
+    it("search_council_bills: 直接実行が拒否される", async () => {
+      const { error } = await anon.rpc(
+        "search_council_bills",
+        councilSearchRpcArgs()
+      );
       expect(error).not.toBeNull();
     });
   });
@@ -117,5 +127,29 @@ describe("RLS default deny（全テーブル共通）", () => {
       });
       expect(error).not.toBeNull();
     });
+
+    it("search_council_bills: 直接実行が拒否される", async () => {
+      const client = await getAuthenticatedClient(email, password);
+      const { error } = await client.rpc(
+        "search_council_bills",
+        councilSearchRpcArgs()
+      );
+      expect(error).not.toBeNull();
+    });
   });
 });
+
+function councilSearchRpcArgs() {
+  return {
+    p_query_embedding: null,
+    p_query_terms: ["防災"],
+    p_diet_session_ids: [crypto.randomUUID()],
+    p_content_type: null,
+    p_major_category: null,
+    p_committee_name: null,
+    p_councilor_ids: [],
+    p_councilor_names: [],
+    p_similarity_threshold: 0.3,
+    p_limit: 5,
+  };
+}

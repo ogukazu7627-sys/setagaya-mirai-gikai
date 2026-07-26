@@ -1,6 +1,6 @@
 import type { BillCardData, BillItemType } from ".";
 
-export type CouncilSearchContentType = "all" | BillItemType | "committee";
+export type CouncilSearchContentType = "all" | BillItemType;
 
 export type CouncilSearchBillDocument = {
   kind: "bill";
@@ -18,26 +18,14 @@ export type CouncilSearchBillDocument = {
   card: BillCardData;
 };
 
-export type CouncilSearchCommitteeDocument = {
-  kind: "committee";
-  id: string;
-  name: string;
-  committeeKindLabel: string;
-  summary: string;
-  responsibilities: string[];
-};
-
-export type CouncilSearchDocument =
-  | CouncilSearchBillDocument
-  | CouncilSearchCommitteeDocument;
+export type CouncilSearchDocument = CouncilSearchBillDocument;
 
 export type CouncilSearchFilters = {
-  query: string;
   contentType: CouncilSearchContentType;
   themeId: string;
   committeeName: string;
 };
 
 export type CouncilSearchInitialFilters = Partial<
-  Record<"q" | "type" | "theme" | "committee", string>
+  Record<"type" | "theme" | "committee", string>
 >;

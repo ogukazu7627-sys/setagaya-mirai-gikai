@@ -4,19 +4,23 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Landmark,
   RotateCcw,
   Search,
-  X,
+  Sparkles,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { RubySafeLineClamp } from "@/components/ruby-safe-line-clamp";
-import { Badge } from "@/components/ui/badge";
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -32,6 +36,8 @@ import {
   hasActiveCouncilSearch,
   searchCouncilDocuments,
 } from "../../../shared/utils/council-search";
+import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
+import { getCouncilAiSearchInstallationId } from "../../utils/council-ai-search-storage";
 import { BillCard } from "./bill-card";
 
 const CONTENT_TYPE_OPTIONS: Array<{
@@ -43,38 +49,60 @@ const CONTENT_TYPE_OPTIONS: Array<{
   { value: "question", label: "質問" },
   { value: "petition", label: "請願・陳情" },
   { value: "report", label: "報告事項" },
-  { value: "committee", label: "委員会" },
 ];
 
-const QUICK_QUERIES = ["子育て", "防災", "道路・交通", "高齢者", "学校"];
+const QUICK_QUERIES = ["防災", "子育て世代が知っておくべきこと"] as const;
+const SEARCH_SKELETON_KEYS = [
+  "search-skeleton-1",
+  "search-skeleton-2",
+  "search-skeleton-3",
+  "search-skeleton-4",
+  "search-skeleton-5",
+] as const;
+
+type SearchStatus = "idle" | "loading" | "success" | "error";
 
 type CouncilSearchSectionProps = {
   documents: CouncilSearchDocument[];
+  committeeNames: string[];
   initialFilters?: CouncilSearchInitialFilters;
 };
 
 export function CouncilSearchSection({
   documents,
+  committeeNames,
   initialFilters = {},
 }: CouncilSearchSectionProps) {
   const themeIds = RECOMMENDATION_CATEGORY_OPTIONS.map(
     (category) => category.id
   );
   const [filters, setFilters] = useState<CouncilSearchFilters>(() =>
-    createCouncilSearchFilters(initialFilters, documents, themeIds)
+    createCouncilSearchFilters(initialFilters, committeeNames, themeIds)
   );
+  const [draftQuery, setDraftQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
+  const [rankedBillIds, setRankedBillIds] = useState<string[] | null>(null);
+  const [status, setStatus] = useState<SearchStatus>("idle");
   const [requestedPage, setRequestedPage] = useState(1);
+  const requestControllerRef = useRef<AbortController | null>(null);
 
-  const committeeNames = useMemo(
-    () =>
-      documents
-        .filter((document) => document.kind === "committee")
-        .map((document) => document.name),
+  const documentsById = useMemo(
+    () => new Map(documents.map((document) => [document.id, document])),
     [documents]
   );
-  const results = useMemo(
+  const localResults = useMemo(
     () => searchCouncilDocuments(documents, filters),
     [documents, filters]
+  );
+  const results = useMemo(
+    () =>
+      rankedBillIds === null
+        ? localResults
+        : rankedBillIds.flatMap((billId) => {
+            const document = documentsById.get(billId);
+            return document ? [document] : [];
+          }),
+    [documentsById, localResults, rankedBillIds]
   );
   const totalPages = Math.max(
     1,
@@ -85,11 +113,12 @@ export function CouncilSearchSection({
     (currentPage - 1) * COUNCIL_SEARCH_PAGE_SIZE,
     currentPage * COUNCIL_SEARCH_PAGE_SIZE
   );
-  const isSearchActive = hasActiveCouncilSearch(filters);
+  const isSearchActive =
+    submittedQuery.length > 0 || hasActiveCouncilSearch(filters);
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    syncSearchParam(url.searchParams, "q", filters.query.trim());
+    url.searchParams.delete("q");
     syncSearchParam(
       url.searchParams,
       "type",
@@ -100,16 +129,110 @@ export function CouncilSearchSection({
     window.history.replaceState(window.history.state, "", url);
   }, [filters]);
 
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+    },
+    []
+  );
+
+  const executeSearch = useCallback(
+    async (query: string, searchFilters: CouncilSearchFilters) => {
+      const normalizedQuery = query.trim();
+      requestControllerRef.current?.abort();
+      if (!normalizedQuery) {
+        setSubmittedQuery("");
+        setRankedBillIds(null);
+        setStatus("idle");
+        return;
+      }
+
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
+      setSubmittedQuery(normalizedQuery);
+      setRankedBillIds([]);
+      setRequestedPage(1);
+      setStatus("loading");
+
+      try {
+        let storage: Storage | null = null;
+        try {
+          storage = window.localStorage;
+        } catch {
+          storage = null;
+        }
+        const installationId = getCouncilAiSearchInstallationId(
+          storage,
+          window.crypto
+        );
+        const response = await requestCouncilAiSearch(
+          {
+            installationId,
+            query: normalizedQuery,
+            contentType: searchFilters.contentType,
+            themeId: searchFilters.themeId as Parameters<
+              typeof requestCouncilAiSearch
+            >[0]["themeId"],
+            committeeName: searchFilters.committeeName,
+          },
+          controller.signal
+        );
+        if (!controller.signal.aborted) {
+          setRankedBillIds(response.billIds);
+          setStatus("success");
+        }
+      } catch (error) {
+        if (
+          !controller.signal.aborted &&
+          !(error instanceof DOMException && error.name === "AbortError")
+        ) {
+          setRankedBillIds([]);
+          setStatus("error");
+        }
+      }
+    },
+    []
+  );
+
   function updateFilters(
     update: (current: CouncilSearchFilters) => CouncilSearchFilters
   ) {
-    setFilters(update);
+    const nextFilters = update(filters);
+    setFilters(nextFilters);
     setRequestedPage(1);
+    if (submittedQuery) {
+      void executeSearch(submittedQuery, nextFilters);
+    }
   }
 
-  function resetFilters() {
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void executeSearch(draftQuery, filters);
+  }
+
+  function handleQueryKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      event.currentTarget.form?.requestSubmit();
+    }
+  }
+
+  function runQuickSearch(query: string) {
+    setDraftQuery(query);
+    void executeSearch(query, filters);
+  }
+
+  function resetSearch() {
+    requestControllerRef.current?.abort();
+    setDraftQuery("");
+    setSubmittedQuery("");
+    setRankedBillIds(null);
+    setStatus("idle");
     setFilters({
-      query: "",
       contentType: "all",
       themeId: "",
       committeeName: "",
@@ -135,72 +258,63 @@ export function CouncilSearchSection({
         </h2>
       </div>
 
-      <div className="mt-5 flex flex-col gap-5">
-        <div>
-          <label
-            htmlFor="council-search-input"
-            className="text-sm font-bold text-mirai-text"
+      <form
+        role="search"
+        onSubmit={submitSearch}
+        className="mt-5 rounded-lg border border-mirai-border bg-white p-4 sm:p-5"
+      >
+        <label
+          htmlFor="council-ai-search-input"
+          className="text-sm font-bold text-mirai-text"
+        >
+          知りたいことを入力
+        </label>
+        <div className="relative mt-2 rounded-lg border border-mirai-border bg-white focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+          <Sparkles
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-4 size-5 text-primary-accent"
+          />
+          <Textarea
+            id="council-ai-search-input"
+            rows={1}
+            maxLength={200}
+            value={draftQuery}
+            onChange={(event) => setDraftQuery(event.target.value)}
+            onKeyDown={handleQueryKeyDown}
+            placeholder="例：子育て世代が知っておくべきこと"
+            className="max-h-[92px] min-h-13 resize-none border-0 bg-transparent py-3 pl-12 pr-14 text-base leading-6 shadow-none focus-visible:border-0 focus-visible:ring-0"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            aria-label="議会をAI検索"
+            title="検索"
+            disabled={!draftQuery.trim() || status === "loading"}
+            className="absolute bottom-2 right-2 size-9 rounded-md shadow-none"
           >
-            キーワード
-          </label>
-          <div className="relative mt-2">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-mirai-text-secondary"
-            />
-            <Input
-              id="council-search-input"
-              type="search"
-              value={filters.query}
-              onChange={(event) =>
-                updateFilters((current) => ({
-                  ...current,
-                  query: event.target.value,
-                }))
-              }
-              placeholder="地名・施設名・制度名など"
-              className="h-13 rounded-lg border-mirai-border bg-white pl-12 pr-12 text-base shadow-none"
-            />
-            {filters.query && (
-              <button
-                type="button"
-                aria-label="キーワードを消去"
-                onClick={() =>
-                  updateFilters((current) => ({ ...current, query: "" }))
-                }
-                className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-mirai-text-secondary hover:bg-mirai-surface-gray hover:text-mirai-text"
-              >
-                <X aria-hidden="true" className="size-4" />
-              </button>
-            )}
-          </div>
+            <Search aria-hidden="true" className="size-4" />
+          </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-xs font-bold text-mirai-text-secondary">
-            よく探される言葉
+            入力例
           </span>
-          {QUICK_QUERIES.map((query) => {
-            const isSelected = filters.query === query;
-            return (
-              <Button
-                key={query}
-                type="button"
-                size="sm"
-                variant={isSelected ? "default" : "outline"}
-                aria-pressed={isSelected}
-                onClick={() =>
-                  updateFilters((current) => ({ ...current, query }))
-                }
-                className="h-8 border-mirai-border px-3 text-xs shadow-none"
-              >
-                {query}
-              </Button>
-            );
-          })}
+          {QUICK_QUERIES.map((query) => (
+            <Button
+              key={query}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => runQuickSearch(query)}
+              className="h-auto min-h-8 whitespace-normal border-mirai-border px-3 py-1.5 text-left text-xs shadow-none"
+            >
+              {query}
+            </Button>
+          ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid grid-cols-1 gap-3 border-t border-mirai-border pt-5 sm:grid-cols-3">
           <SearchFilter
             label="情報の種類"
             value={filters.contentType}
@@ -208,9 +322,6 @@ export function CouncilSearchSection({
               updateFilters((current) => ({
                 ...current,
                 contentType: value as CouncilSearchContentType,
-                themeId: value === "committee" ? "" : current.themeId,
-                committeeName:
-                  value === "committee" ? "" : current.committeeName,
               }))
             }
             options={CONTENT_TYPE_OPTIONS}
@@ -221,10 +332,6 @@ export function CouncilSearchSection({
             onValueChange={(value) =>
               updateFilters((current) => ({
                 ...current,
-                contentType:
-                  current.contentType === "committee"
-                    ? "all"
-                    : current.contentType,
                 themeId: value === "all" ? "" : value,
               }))
             }
@@ -239,14 +346,9 @@ export function CouncilSearchSection({
           <SearchFilter
             label="委員会"
             value={filters.committeeName || "all"}
-            className="col-span-2 sm:col-span-1"
             onValueChange={(value) =>
               updateFilters((current) => ({
                 ...current,
-                contentType:
-                  current.contentType === "committee"
-                    ? "all"
-                    : current.contentType,
                 committeeName: value === "all" ? "" : value,
               }))
             }
@@ -258,12 +360,12 @@ export function CouncilSearchSection({
         </div>
 
         {isSearchActive && (
-          <div className="flex justify-end">
+          <div className="mt-3 flex justify-end">
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              onClick={resetFilters}
+              onClick={resetSearch}
               className="text-mirai-text-secondary"
             >
               <RotateCcw aria-hidden="true" className="size-4" />
@@ -271,44 +373,72 @@ export function CouncilSearchSection({
             </Button>
           </div>
         )}
-      </div>
+      </form>
 
       {isSearchActive && (
-        <>
-          <div className="mt-7 flex items-end justify-between gap-4">
+        <div className="mt-7">
+          <div className="flex items-end justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold text-mirai-text">検索結果</h3>
-              <p
-                className="mt-1 text-xs text-mirai-text-secondary"
-                aria-live="polite"
-              >
-                {results.length}件
-              </p>
+              {status !== "loading" && status !== "error" && (
+                <p
+                  className="mt-1 text-xs text-mirai-text-secondary"
+                  aria-live="polite"
+                >
+                  {results.length}件
+                </p>
+              )}
             </div>
           </div>
 
-          {visibleResults.length > 0 ? (
-            <ul className="mt-4 flex flex-col gap-4">
-              {visibleResults.map((document) => (
-                <li key={`${document.kind}-${document.id}`}>
-                  <CouncilSearchResultCard document={document} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="mt-4 border-y border-mirai-border py-10 text-center">
-              <Search
-                aria-hidden="true"
-                className="mx-auto size-7 text-mirai-text-secondary"
-              />
-              <p className="mt-3 font-bold text-mirai-text">
-                条件に合う情報が見つかりませんでした
+          {status === "loading" ? (
+            <CouncilSearchSkeleton />
+          ) : status === "error" ? (
+            <div
+              role="alert"
+              className="mt-4 max-w-[634px] border-y border-mirai-border py-10 text-center"
+            >
+              <p className="font-bold text-mirai-text">
+                検索結果を取得できませんでした
               </p>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={resetFilters}
+                onClick={() => void executeSearch(submittedQuery, filters)}
+                className="mt-4 border-mirai-border shadow-none"
+              >
+                <RotateCcw aria-hidden="true" className="size-4" />
+                もう一度試す
+              </Button>
+            </div>
+          ) : visibleResults.length > 0 ? (
+            <ul className="mt-4 flex max-w-[634px] flex-col gap-4">
+              {visibleResults.map((document) => (
+                <li key={document.id}>
+                  <Link
+                    href={routes.billDetail(document.id) as Route}
+                    className="block w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
+                  >
+                    <BillCard bill={document.card} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-4 max-w-[634px] border-y border-mirai-border py-10 text-center">
+              <Search
+                aria-hidden="true"
+                className="mx-auto size-7 text-mirai-text-secondary"
+              />
+              <p className="mt-3 font-bold text-mirai-text">
+                条件に合う案件が見つかりませんでした
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={resetSearch}
                 className="mt-4 border-mirai-border shadow-none"
               >
                 <RotateCcw aria-hidden="true" className="size-4" />
@@ -317,16 +447,17 @@ export function CouncilSearchSection({
             </div>
           )}
 
-          {totalPages > 1 && (
+          {status !== "loading" && status !== "error" && totalPages > 1 && (
             <nav
               aria-label="議会検索結果のページ"
-              className="mt-6 flex items-center justify-center gap-4"
+              className="mt-6 flex max-w-[634px] items-center justify-center gap-4"
             >
               <Button
                 type="button"
                 size="icon"
                 variant="outline"
                 aria-label="前のページ"
+                title="前のページ"
                 disabled={currentPage === 1}
                 onClick={() =>
                   setRequestedPage((page) => Math.max(1, page - 1))
@@ -343,6 +474,7 @@ export function CouncilSearchSection({
                 size="icon"
                 variant="outline"
                 aria-label="次のページ"
+                title="次のページ"
                 disabled={currentPage === totalPages}
                 onClick={() =>
                   setRequestedPage((page) => Math.min(totalPages, page + 1))
@@ -353,7 +485,7 @@ export function CouncilSearchSection({
               </Button>
             </nav>
           )}
-        </>
+        </div>
       )}
     </section>
   );
@@ -401,64 +533,27 @@ function SearchFilter({
   );
 }
 
-function CouncilSearchResultCard({
-  document,
-}: {
-  document: CouncilSearchDocument;
-}) {
-  if (document.kind === "committee") {
-    return (
-      <Link
-        href={routes.committeeDetail(document.id) as Route}
-        className="group block max-w-[634px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
-      >
-        <Card className="relative overflow-hidden border border-black transition-colors group-hover:bg-muted/50">
-          <CardHeader>
-            <div className="flex flex-col gap-3">
-              <Badge variant="outline" className="w-fit">
-                委員会
-              </Badge>
-              <div className="flex items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-800">
-                  <Landmark aria-hidden="true" className="size-5" />
-                </span>
-                <CardTitle className="text-2xl/8 tracking-normal">
-                  {document.name}
-                </CardTitle>
-              </div>
-              <p className="text-xs font-medium text-mirai-text-secondary">
-                {document.committeeKindLabel}
-              </p>
-              <RubySafeLineClamp
-                text={document.summary}
-                maxLength={132}
-                lineClamp={4}
-                className="text-sm leading-relaxed"
-              />
-              <div className="flex flex-wrap gap-2">
-                {document.responsibilities.slice(0, 3).map((responsibility) => (
-                  <span
-                    key={responsibility}
-                    className="rounded-full bg-mirai-surface-gray px-3 py-1 text-xs font-medium text-mirai-text"
-                  >
-                    {responsibility}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      </Link>
-    );
-  }
-
+function CouncilSearchSkeleton() {
   return (
-    <Link
-      href={routes.billDetail(document.id) as Route}
-      className="block max-w-[634px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
+    <div
+      role="status"
+      aria-live="polite"
+      className="mt-4 flex max-w-[634px] flex-col gap-4"
     >
-      <BillCard bill={document.card} />
-    </Link>
+      <span className="sr-only">検索中</span>
+      {SEARCH_SKELETON_KEYS.slice(0, COUNCIL_SEARCH_PAGE_SIZE).map((key) => (
+        <div
+          key={key}
+          className="min-h-56 animate-pulse rounded-lg border border-mirai-border bg-white p-6"
+        >
+          <div className="h-6 w-20 rounded bg-mirai-surface-gray" />
+          <div className="mt-5 h-7 w-4/5 rounded bg-mirai-surface-gray" />
+          <div className="mt-5 h-4 w-2/5 rounded bg-mirai-surface-gray" />
+          <div className="mt-7 h-4 w-full rounded bg-mirai-surface-gray" />
+          <div className="mt-3 h-4 w-3/4 rounded bg-mirai-surface-gray" />
+        </div>
+      ))}
+    </div>
   );
 }
 

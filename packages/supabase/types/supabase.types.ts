@@ -408,6 +408,135 @@ export type Database = {
           },
         ]
       }
+      council_search_chunks: {
+        Row: {
+          bill_id: string
+          chunk_key: string
+          chunk_kind: Database["public"]["Enums"]["council_search_chunk_kind"]
+          committee_name: string | null
+          content: string
+          content_hash: string
+          councilor_id: string | null
+          councilor_name: string | null
+          created_at: string
+          diet_session_id: string
+          embedding: string
+          embedding_model: string
+          heading: string | null
+          id: string
+          indexed_at: string
+          item_type: Database["public"]["Enums"]["bill_item_type"]
+          major_category: string | null
+          normalized_content: string
+          updated_at: string
+        }
+        Insert: {
+          bill_id: string
+          chunk_key: string
+          chunk_kind: Database["public"]["Enums"]["council_search_chunk_kind"]
+          committee_name?: string | null
+          content: string
+          content_hash: string
+          councilor_id?: string | null
+          councilor_name?: string | null
+          created_at?: string
+          diet_session_id: string
+          embedding: string
+          embedding_model: string
+          heading?: string | null
+          id?: string
+          indexed_at?: string
+          item_type: Database["public"]["Enums"]["bill_item_type"]
+          major_category?: string | null
+          normalized_content: string
+          updated_at?: string
+        }
+        Update: {
+          bill_id?: string
+          chunk_key?: string
+          chunk_kind?: Database["public"]["Enums"]["council_search_chunk_kind"]
+          committee_name?: string | null
+          content?: string
+          content_hash?: string
+          councilor_id?: string | null
+          councilor_name?: string | null
+          created_at?: string
+          diet_session_id?: string
+          embedding?: string
+          embedding_model?: string
+          heading?: string | null
+          id?: string
+          indexed_at?: string
+          item_type?: Database["public"]["Enums"]["bill_item_type"]
+          major_category?: string | null
+          normalized_content?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "council_search_chunks_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "council_search_chunks_councilor_id_fkey"
+            columns: ["councilor_id"]
+            isOneToOne: false
+            referencedRelation: "councilors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "council_search_chunks_diet_session_id_fkey"
+            columns: ["diet_session_id"]
+            isOneToOne: false
+            referencedRelation: "diet_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      council_search_index_jobs: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          bill_id: string
+          last_error: string | null
+          locked_at: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at?: string
+          bill_id: string
+          last_error?: string | null
+          locked_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          bill_id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "council_search_index_jobs_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: true
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       councilor_bill_statements: {
         Row: {
           bill_id: string
@@ -1768,6 +1897,14 @@ export type Database = {
           session_count: number
         }[]
       }
+      claim_council_search_index_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempt_count: number
+          bill_id: string
+          requested_at: string
+        }[]
+      }
       claim_daily_push_subscriptions: {
         Args: { p_limit?: number; p_recommendation_date: string }
         Returns: {
@@ -1786,6 +1923,10 @@ export type Database = {
           p_window_start: string
         }
         Returns: boolean
+      }
+      enqueue_council_search_index_job: {
+        Args: { p_bill_id: string }
+        Returns: undefined
       }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
@@ -1930,6 +2071,28 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["recommendation_profiles"]["Row"]
       }
+      search_council_bills: {
+        Args: {
+          p_committee_name: string | null
+          p_content_type:
+            | Database["public"]["Enums"]["bill_item_type"]
+            | null
+          p_councilor_ids: string[]
+          p_councilor_names: string[]
+          p_diet_session_ids: string[]
+          p_limit: number
+          p_major_category: string | null
+          p_query_embedding: string | null
+          p_query_terms: string[]
+          p_similarity_threshold: number
+        }
+        Returns: {
+          bill_id: string
+          keyword_score: number
+          score: number
+          semantic_similarity: number
+        }[]
+      }
       save_push_subscription: {
         Args: {
           p_auth: string
@@ -1963,6 +2126,10 @@ export type Database = {
         | "rejected"
         | "preparing"
       chat_role_enum: "user" | "system" | "assistant"
+      council_search_chunk_kind:
+        | "overview"
+        | "content"
+        | "councilor_statement"
       difficulty_level_enum: "normal" | "hard"
       house_enum: "HR" | "HC"
       interview_config_status_enum: "public" | "closed"
@@ -2140,6 +2307,11 @@ export const Constants = {
         "preparing",
       ],
       chat_role_enum: ["user", "system", "assistant"],
+      council_search_chunk_kind: [
+        "overview",
+        "content",
+        "councilor_statement",
+      ],
       difficulty_level_enum: ["normal", "hard"],
       house_enum: ["HR", "HC"],
       interview_config_status_enum: ["public", "closed"],

@@ -7,142 +7,28 @@ import {
 } from "./council-search";
 
 const documents: CouncilSearchDocument[] = [
-  {
-    kind: "bill",
+  createDocument({
     id: "education-bill",
     title: "学校給食費を無償化する議案",
-    officialName: "議案第1号",
-    summary: "区立小中学校の給食費について定めます。",
     itemType: "bill",
     majorCategoryId: "education",
-    majorCategoryLabel: "教育🏫",
     committeeName: "文教常任委員会",
-    tags: ["学校給食"],
     submittedDate: "2026-06-01",
-    thumbnailUrl: null,
-    card: createCard({
-      id: "education-bill",
-      title: "学校給食費を無償化する議案",
-      itemType: "bill",
-      majorCategory: "教育🏫",
-      submittedDate: "2026-06-01",
-      thumbnailUrl: null,
-    }),
-  },
-  {
-    kind: "bill",
+  }),
+  createDocument({
     id: "welfare-report",
     title: "高齢者の見守りに関する報告",
-    officialName: "報告第2号",
-    summary: "地域の高齢者を支える取組を報告します。",
     itemType: "report",
     majorCategoryId: "welfare",
-    majorCategoryLabel: "福祉🤝",
     committeeName: "福祉保健常任委員会",
-    tags: ["高齢者福祉"],
     submittedDate: "2026-07-01",
-    thumbnailUrl: "https://example.com/welfare-report.jpg",
-    card: createCard({
-      id: "welfare-report",
-      title: "高齢者の見守りに関する報告",
-      itemType: "report",
-      majorCategory: "福祉🤝",
-      submittedDate: "2026-07-01",
-      thumbnailUrl: "https://example.com/welfare-report.jpg",
-    }),
-  },
-  {
-    kind: "committee",
-    id: "education-committee",
-    name: "文教常任委員会",
-    committeeKindLabel: "常任委員会",
-    summary: "学校の教育環境と生涯学習を審査します。",
-    responsibilities: ["児童・生徒の教育環境", "生涯学習"],
-  },
+  }),
 ];
 
-function createCard({
-  id,
-  title,
-  itemType,
-  majorCategory,
-  submittedDate,
-  thumbnailUrl,
-}: {
-  id: string;
-  title: string;
-  itemType: BillCardData["item_type"];
-  majorCategory: string;
-  submittedDate: string;
-  thumbnailUrl: string | null;
-}): BillCardData {
-  return {
-    id,
-    name: title,
-    item_type: itemType,
-    major_category: majorCategory,
-    status: "introduced",
-    status_label: null,
-    status_note: null,
-    submitted_date: submittedDate,
-    thumbnail_url: thumbnailUrl,
-    is_featured: false,
-    is_review_completed: false,
-    interview_enabled: false,
-    hasPublicInterview: false,
-    bill_content: {
-      title,
-      summary: "",
-    },
-    tags: [],
-  };
-}
-
 describe("searchCouncilDocuments", () => {
-  it("searches titles, summaries, tags, categories, and committees", () => {
-    const results = searchCouncilDocuments(documents, {
-      query: "学校",
-      contentType: "all",
-      themeId: "",
-      committeeName: "",
-    });
-
-    expect(results.map(({ id }) => id)).toEqual([
-      "education-bill",
-      "education-committee",
-    ]);
-  });
-
-  it("requires every query token to match", () => {
-    const results = searchCouncilDocuments(documents, {
-      query: "高齢者 見守り",
-      contentType: "all",
-      themeId: "",
-      committeeName: "",
-    });
-
-    expect(results.map(({ id }) => id)).toEqual(["welfare-report"]);
-  });
-
-  it("treats middle-dot-separated terms as alternatives", () => {
-    const results = searchCouncilDocuments(documents, {
-      query: "学校・高齢者",
-      contentType: "all",
-      themeId: "",
-      committeeName: "",
-    });
-
-    expect(results.map(({ id }) => id)).toEqual([
-      "welfare-report",
-      "education-bill",
-      "education-committee",
-    ]);
-  });
-
-  it("filters by content type, theme, and committee", () => {
+  it("情報種別・テーマ・委員会をローカルで絞り込む", () => {
     expect(
       searchCouncilDocuments(documents, {
-        query: "",
         contentType: "report",
         themeId: "welfare",
         committeeName: "福祉保健常任委員会",
@@ -150,56 +36,92 @@ describe("searchCouncilDocuments", () => {
     ).toEqual(["welfare-report"]);
   });
 
-  it("shows newer bills first when no search condition is active", () => {
-    const results = searchCouncilDocuments(documents, {
-      query: "",
-      contentType: "all",
-      themeId: "",
-      committeeName: "",
-    });
-
-    expect(results.slice(0, 2).map(({ id }) => id)).toEqual([
-      "welfare-report",
-      "education-bill",
-    ]);
+  it("条件がない場合は新しい案件を先に並べる", () => {
+    expect(
+      searchCouncilDocuments(documents, {
+        contentType: "all",
+        themeId: "",
+        committeeName: "",
+      }).map(({ id }) => id)
+    ).toEqual(["welfare-report", "education-bill"]);
   });
 });
 
 describe("createCouncilSearchFilters", () => {
-  it("keeps valid shared URL filters and drops unknown values", () => {
+  it("有効なURL条件だけを引き継ぐ", () => {
     expect(
       createCouncilSearchFilters(
         {
-          q: "  学校 ",
           type: "bill",
           theme: "education",
           committee: "文教常任委員会",
         },
-        documents,
+        ["文教常任委員会", "福祉保健常任委員会"],
         ["education", "welfare"]
       )
     ).toEqual({
-      query: "学校",
       contentType: "bill",
       themeId: "education",
       committeeName: "文教常任委員会",
     });
+  });
 
+  it("未知の条件を既定値へ戻す", () => {
     expect(
       createCouncilSearchFilters(
         {
-          type: "unknown",
+          type: "committee",
           theme: "unknown",
           committee: "存在しない委員会",
         },
-        documents,
+        ["文教常任委員会"],
         ["education", "welfare"]
       )
     ).toEqual({
-      query: "",
       contentType: "all",
       themeId: "",
       committeeName: "",
     });
   });
 });
+
+function createDocument(input: {
+  id: string;
+  title: string;
+  itemType: BillCardData["item_type"];
+  majorCategoryId: string;
+  committeeName: string;
+  submittedDate: string;
+}): CouncilSearchDocument {
+  return {
+    kind: "bill",
+    id: input.id,
+    title: input.title,
+    officialName: input.title,
+    summary: "",
+    itemType: input.itemType,
+    majorCategoryId: input.majorCategoryId,
+    majorCategoryLabel: input.majorCategoryId,
+    committeeName: input.committeeName,
+    tags: [],
+    submittedDate: input.submittedDate,
+    thumbnailUrl: null,
+    card: {
+      id: input.id,
+      name: input.title,
+      item_type: input.itemType,
+      major_category: input.majorCategoryId,
+      status: "introduced",
+      status_label: null,
+      status_note: input.committeeName,
+      submitted_date: input.submittedDate,
+      thumbnail_url: null,
+      is_featured: false,
+      is_review_completed: false,
+      interview_enabled: false,
+      hasPublicInterview: false,
+      bill_content: { title: input.title, summary: "" },
+      tags: [],
+    },
+  };
+}
