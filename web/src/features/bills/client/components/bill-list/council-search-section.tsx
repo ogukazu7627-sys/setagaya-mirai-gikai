@@ -279,83 +279,87 @@ export function CouncilSearchSection({
         )}
       </div>
 
-      <div className="mt-7 flex items-end justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-bold text-mirai-text">
-            {isSearchActive ? "検索結果" : "新着の案件"}
-          </h3>
-          <p
-            className="mt-1 text-xs text-mirai-text-secondary"
-            aria-live="polite"
-          >
-            {results.length}件
-          </p>
-        </div>
-      </div>
+      {isSearchActive && (
+        <>
+          <div className="mt-7 flex items-end justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-mirai-text">検索結果</h3>
+              <p
+                className="mt-1 text-xs text-mirai-text-secondary"
+                aria-live="polite"
+              >
+                {results.length}件
+              </p>
+            </div>
+          </div>
 
-      {visibleResults.length > 0 ? (
-        <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {visibleResults.map((document) => (
-            <li key={`${document.kind}-${document.id}`}>
-              <CouncilSearchResultCard document={document} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="mt-4 border-y border-mirai-border py-10 text-center">
-          <Search
-            aria-hidden="true"
-            className="mx-auto size-7 text-mirai-text-secondary"
-          />
-          <p className="mt-3 font-bold text-mirai-text">
-            条件に合う情報が見つかりませんでした
-          </p>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={resetFilters}
-            className="mt-4 border-mirai-border shadow-none"
-          >
-            <RotateCcw aria-hidden="true" className="size-4" />
-            条件をクリア
-          </Button>
-        </div>
-      )}
+          {visibleResults.length > 0 ? (
+            <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {visibleResults.map((document) => (
+                <li key={`${document.kind}-${document.id}`}>
+                  <CouncilSearchResultCard document={document} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-4 border-y border-mirai-border py-10 text-center">
+              <Search
+                aria-hidden="true"
+                className="mx-auto size-7 text-mirai-text-secondary"
+              />
+              <p className="mt-3 font-bold text-mirai-text">
+                条件に合う情報が見つかりませんでした
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={resetFilters}
+                className="mt-4 border-mirai-border shadow-none"
+              >
+                <RotateCcw aria-hidden="true" className="size-4" />
+                条件をクリア
+              </Button>
+            </div>
+          )}
 
-      {totalPages > 1 && (
-        <nav
-          aria-label="議会検索結果のページ"
-          className="mt-6 flex items-center justify-center gap-4"
-        >
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            aria-label="前のページ"
-            disabled={currentPage === 1}
-            onClick={() => setRequestedPage((page) => Math.max(1, page - 1))}
-            className="border-mirai-border shadow-none"
-          >
-            <ChevronLeft aria-hidden="true" />
-          </Button>
-          <span className="min-w-16 text-center text-sm font-bold text-mirai-text">
-            {currentPage} / {totalPages}
-          </span>
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            aria-label="次のページ"
-            disabled={currentPage === totalPages}
-            onClick={() =>
-              setRequestedPage((page) => Math.min(totalPages, page + 1))
-            }
-            className="border-mirai-border shadow-none"
-          >
-            <ChevronRight aria-hidden="true" />
-          </Button>
-        </nav>
+          {totalPages > 1 && (
+            <nav
+              aria-label="議会検索結果のページ"
+              className="mt-6 flex items-center justify-center gap-4"
+            >
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                aria-label="前のページ"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setRequestedPage((page) => Math.max(1, page - 1))
+                }
+                className="border-mirai-border shadow-none"
+              >
+                <ChevronLeft aria-hidden="true" />
+              </Button>
+              <span className="min-w-16 text-center text-sm font-bold text-mirai-text">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                aria-label="次のページ"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setRequestedPage((page) => Math.min(totalPages, page + 1))
+                }
+                className="border-mirai-border shadow-none"
+              >
+                <ChevronRight aria-hidden="true" />
+              </Button>
+            </nav>
+          )}
+        </>
       )}
     </section>
   );
