@@ -18,6 +18,7 @@ const documents: CouncilSearchDocument[] = [
     committeeName: "文教常任委員会",
     tags: ["学校給食"],
     submittedDate: "2026-06-01",
+    thumbnailUrl: null,
   },
   {
     kind: "bill",
@@ -31,6 +32,7 @@ const documents: CouncilSearchDocument[] = [
     committeeName: "福祉保健常任委員会",
     tags: ["高齢者福祉"],
     submittedDate: "2026-07-01",
+    thumbnailUrl: "https://example.com/welfare-report.jpg",
   },
   {
     kind: "committee",

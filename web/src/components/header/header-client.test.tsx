@@ -113,4 +113,12 @@ describe("HeaderClient", () => {
       screen.queryByRole("navigation", { name: "主要ナビゲーション" })
     ).not.toBeInTheDocument();
   });
+
+  it("shows the explanation detail toggle on the council top page", () => {
+    navigationMock.pathname = "/bills";
+
+    render(<HeaderClient difficultyLevel="normal" />);
+
+    expect(screen.getByText("difficulty")).toBeInTheDocument();
+  });
 });

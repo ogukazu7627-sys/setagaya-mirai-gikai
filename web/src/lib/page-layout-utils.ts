@@ -1,15 +1,17 @@
 /**
  * ページレイアウトに関するユーティリティ
  *
- * TOPページと案件詳細ページは「メインページ」として扱い、
+ * TOPページ、議会トップ、案件詳細ページは「メインページ」として扱い、
  * - DifficultySelectorを表示
  * - チャットサイドバー用のオフセットレイアウトを使用
  */
 
-/** メインページ（TOP、案件詳細）かどうかを判定 */
+/** メインページ（TOP、議会トップ、案件詳細）かどうかを判定 */
 export function isMainPage(pathname: string): boolean {
   // トップページ
   if (pathname === "/") return true;
+  // 議会トップ
+  if (pathname === "/bills" || pathname === "/bills/") return true;
   // 案件詳細ページ（/bills/[id]）- サブパスは除外
   if (/\/bills\/[^/]+$/.test(pathname)) return true;
   return false;
@@ -17,7 +19,6 @@ export function isMainPage(pathname: string): boolean {
 
 /** PCで常設AIパネル分の横幅を確保するページかどうかを判定 */
 export function hasPersistentChatSidebar(pathname: string): boolean {
-  if (pathname === "/bills" || pathname === "/bills/") return true;
   return isMainPage(pathname);
 }
 

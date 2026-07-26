@@ -51,6 +51,7 @@ beforeEach(() => {
     {
       id: "bill-2026",
       name: "令和8年の議案",
+      thumbnail_url: "https://example.com/bill-2026.jpg",
       item_type: "bill",
       major_category: "教育🏫",
       status_note: "文教常任委員会で審査",
@@ -64,6 +65,7 @@ beforeEach(() => {
     {
       id: "bill-2025",
       name: "令和7年の報告",
+      thumbnail_url: null,
       item_type: "report",
       major_category: "福祉🤝",
       status_note: "福祉保健常任委員会で報告",
@@ -118,6 +120,9 @@ describe("loadBillsDirectoryData", () => {
       "bill-2026",
       "bill-2025",
     ]);
+    expect(result.searchDocuments[0]?.thumbnailUrl).toBe(
+      "https://example.com/bill-2026.jpg"
+    );
     expect(result.difficultyLevel).toBe("normal");
   });
 });
