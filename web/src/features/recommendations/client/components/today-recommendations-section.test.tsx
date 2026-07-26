@@ -52,6 +52,29 @@ describe("TodayRecommendationsSection", () => {
     vi.clearAllMocks();
     window.localStorage.clear();
     mocks.recordRecommendationImpressions.mockResolvedValue({ success: true });
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+    window.IntersectionObserver = vi.fn().mockImplementation(() => ({
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn(),
+    }));
+    window.ResizeObserver = vi.fn().mockImplementation(() => ({
+      observe: vi.fn(),
+      unobserve: vi.fn(),
+      disconnect: vi.fn(),
+    }));
   });
 
   it("shows onboarding only when the versioned local profile is absent", () => {
@@ -105,6 +128,9 @@ describe("TodayRecommendationsSection", () => {
 
     expect(
       await screen.findByText("案件カード: テスト案件タイトル")
+    ).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "今日のおすすめ案件" })
     ).toBeVisible();
     expect(
       screen.queryByText("不登校支援・学校改築・防災情報")

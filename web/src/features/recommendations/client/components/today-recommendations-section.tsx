@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Container } from "@/components/layouts/container";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BillCard } from "@/features/bills/client/components/bill-list/bill-card";
 import { routes } from "@/lib/routes";
 import type { RecommendationSmallTag } from "../../shared/constants/recommendation-taxonomy";
 import { RECOMMENDATION_SMALL_TAGS } from "../../shared/constants/recommendation-taxonomy";
@@ -53,6 +52,7 @@ import {
   getPushSupport,
   type PushSupport,
 } from "../utils/web-push-client";
+import { RecommendationBillsCarousel } from "./recommendation-bills-carousel";
 import { RecommendationOnboardingDialog } from "./recommendation-onboarding-dialog";
 
 type TodayRecommendationsSectionProps = {
@@ -157,30 +157,29 @@ export function TodayRecommendationsSection({
     setOnboardingOpen(true);
   }, [hasAvailableTags, loadToday]);
 
-  const billIds = useMemo(
-    () => data?.bills.map((bill) => bill.id) ?? [],
-    [data]
-  );
-  useEffect(() => {
-    if (!profile || !data || billIds.length === 0) {
-      return;
-    }
-    const key = [
-      profile.installationId,
-      data.preferenceVersion,
-      data.recommendationDate,
-      billIds.join(","),
-    ].join(":");
-    if (sentImpressionKeys.current.has(key)) {
-      return;
-    }
-    sentImpressionKeys.current.add(key);
-    void recordRecommendationImpressions(profile.installationId, billIds).catch(
-      () => {
-        sentImpressionKeys.current.delete(key);
+  const recordViewedBill = useCallback(
+    (billId: string) => {
+      if (!profile || !data) {
+        return;
       }
-    );
-  }, [billIds, data, profile]);
+      const key = [
+        profile.installationId,
+        data.preferenceVersion,
+        data.recommendationDate,
+        billId,
+      ].join(":");
+      if (sentImpressionKeys.current.has(key)) {
+        return;
+      }
+      sentImpressionKeys.current.add(key);
+      void recordRecommendationImpressions(profile.installationId, [
+        billId,
+      ]).catch(() => {
+        sentImpressionKeys.current.delete(key);
+      });
+    },
+    [data, profile]
+  );
 
   async function completeOnboarding(tags: RecommendationSmallTag[]) {
     const storage = storageRef.current;
@@ -368,19 +367,18 @@ export function TodayRecommendationsSection({
                 {message}
               </p>
               <Button asChild variant="outline">
-                <a href="#theme-bills">テーマから案件を探す</a>
+                <Link href={routes.bills() as Route}>
+                  議会ページで案件を探す
+                </Link>
               </Button>
             </div>
           )}
 
           {status === "ready" && data && data.bills.length > 0 && (
-            <div className="flex flex-col gap-4">
-              {data.bills.map((bill) => (
-                <Link key={bill.id} href={routes.billDetail(bill.id) as Route}>
-                  <BillCard bill={bill} />
-                </Link>
-              ))}
-            </div>
+            <RecommendationBillsCarousel
+              bills={data.bills}
+              onBillViewed={recordViewedBill}
+            />
           )}
 
           {status === "ready" && data && data.bills.length === 0 && (

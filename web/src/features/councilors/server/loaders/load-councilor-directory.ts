@@ -1,12 +1,14 @@
 import "server-only";
 
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { selectDailyCouncilors } from "../../shared/utils/select-daily-councilors";
 import {
   findActivePublicCouncilorById,
   findActivePublicCouncilors,
 } from "../repositories/councilor-directory-repository";
 import {
   findPublishedCouncilorStatementCounts,
+  findPublishedCouncilorStatementCountsByCouncilorIds,
   findPublishedCouncilorStatementDetails,
 } from "../repositories/councilor-statement-repository";
 
@@ -24,6 +26,24 @@ export async function loadCouncilorDirectory() {
   );
 
   return councilors.map((councilor) => ({
+    ...councilor,
+    statementCount: statementCountByCouncilorId.get(councilor.id) ?? 0,
+  }));
+}
+
+export async function loadRecommendedCouncilors(currentDate: Date) {
+  const councilors = await findActivePublicCouncilors();
+  const recommendedCouncilors = selectDailyCouncilors(councilors, currentDate);
+  const statementCounts = isSetagayaMockMode
+    ? []
+    : await findPublishedCouncilorStatementCountsByCouncilorIds(
+        recommendedCouncilors.map((councilor) => councilor.id)
+      );
+  const statementCountByCouncilorId = new Map(
+    statementCounts.map((count) => [count.councilorId, count.statementCount])
+  );
+
+  return recommendedCouncilors.map((councilor) => ({
     ...councilor,
     statementCount: statementCountByCouncilorId.get(councilor.id) ?? 0,
   }));
