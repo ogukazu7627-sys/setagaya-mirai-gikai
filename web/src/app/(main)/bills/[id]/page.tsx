@@ -4,6 +4,10 @@ import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/ge
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
 import { getRandomBillRecommendations } from "@/features/bills/server/loaders/get-random-bill-recommendations";
+import {
+  BILL_SEO_SITE_NAME,
+  buildBillSeoMetadata,
+} from "@/features/bills/shared/utils/bill-seo-metadata";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -25,9 +29,9 @@ export async function generateMetadata({
     };
   }
 
-  // bill_contentのsummaryがあればそれを使用、なければデフォルト値を使用
-  const description = bill.bill_content?.summary || "議案の詳細情報";
+  const seoMetadata = buildBillSeoMetadata(bill);
   const defaultOgpUrl = new URL("/ogp.jpg", env.webUrl).toString();
+  const canonicalPath = routes.billDetail(bill.id);
 
   // シェア用OGP画像（share_thumbnail_url > thumbnail_url > デフォルト）
   // ページ表示用のthumbnail_urlとは別に、SNSシェア用の画像を優先
@@ -35,28 +39,30 @@ export async function generateMetadata({
     bill.share_thumbnail_url || bill.thumbnail_url || defaultOgpUrl;
 
   return {
-    title: bill.name,
-    description: description,
+    title: seoMetadata.title,
+    description: seoMetadata.description,
     alternates: {
-      canonical: routes.billDetail(bill.id),
+      canonical: canonicalPath,
     },
     openGraph: {
-      title: bill.name,
-      description: description,
+      title: seoMetadata.title,
+      description: seoMetadata.description,
       type: "article",
-      publishedTime: bill.submitted_date ?? undefined,
+      url: canonicalPath,
+      siteName: BILL_SEO_SITE_NAME,
+      publishedTime: bill.published_at ?? undefined,
       modifiedTime: bill.updated_at,
       images: [
         {
           url: shareImageUrl,
-          alt: `${bill.name} のOGPイメージ`,
+          alt: `${seoMetadata.subjectTitle} のOGPイメージ`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: bill.name,
-      description: description,
+      title: seoMetadata.title,
+      description: seoMetadata.description,
       images: [shareImageUrl],
     },
   };
