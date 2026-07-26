@@ -15,6 +15,12 @@ export function isMainPage(pathname: string): boolean {
   return false;
 }
 
+/** PCで常設AIパネル分の横幅を確保するページかどうかを判定 */
+export function hasPersistentChatSidebar(pathname: string): boolean {
+  if (pathname === "/bills" || pathname === "/bills/") return true;
+  return isMainPage(pathname);
+}
+
 /** コンテンツをヘッダー幅まで広げるページかどうかを判定 */
 export function isWidePage(pathname: string): boolean {
   return pathname === "/learn" || pathname.startsWith("/learn/");

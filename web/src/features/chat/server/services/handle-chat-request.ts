@@ -23,6 +23,7 @@ import {
   OFF_TOPIC_RESPONSE_TEXT,
 } from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
+import type { ChatPageContext } from "@/features/chat/shared/types/page-context";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
 import { AI_MODELS } from "@/lib/ai/models";
@@ -43,10 +44,7 @@ import {
 export type ChatMessageMetadata = {
   billContext?: BillWithContent;
   hasInterviewConfig?: boolean;
-  pageContext?: {
-    type: "home" | "bill";
-    bills?: Array<{ id: string; name: string; summary?: string }>;
-  };
+  pageContext?: ChatPageContext;
   difficultyLevel: DifficultyLevelEnum;
   sessionId: string;
 };
@@ -236,17 +234,16 @@ async function buildPrompt(
   promptProvider: PromptProvider
 ) {
   // Determine prompt name
-  const promptName =
-    context.pageContext?.type === "home"
-      ? "top-chat-system"
-      : `bill-chat-system-${context.difficultyLevel}`;
+  const promptName = isDirectoryPageContext(context.pageContext)
+    ? "top-chat-system"
+    : `bill-chat-system-${context.difficultyLevel}`;
 
   // Prepare prompt variables
   // bill 関連の変数はクライアント側のメタデータを信頼せず、必ずサーバー側で再取得した
   // 公開済みデータのみから組み立てる（管理画面トグルの強制と非公開ナレッジ流出防止）。
   // 公開済み bill が引けない場合は bill コンテキスト自体を空にする。
   let variables: Record<string, string>;
-  if (context.pageContext?.type === "home") {
+  if (isDirectoryPageContext(context.pageContext)) {
     variables = {
       billSummary: JSON.stringify(context.pageContext.bills ?? ""),
     };
@@ -421,9 +418,9 @@ function hasExistingSuggestInterview(
 function buildSystemPromptWithInterviewInstructions(
   basePrompt: string,
   shouldSuggestInterview: boolean,
-  pageType: "home" | "bill" | undefined
+  pageType: ChatPageContext["type"] | undefined
 ): string {
-  if (pageType === "home") {
+  if (pageType === "home" || pageType === "council") {
     return basePrompt + INTERVIEW_AWARENESS_PROMPT_HOME;
   }
   if (pageType !== "bill") {
@@ -434,6 +431,12 @@ function buildSystemPromptWithInterviewInstructions(
     prompt += INTERVIEW_SUGGESTION_PROMPT;
   }
   return prompt;
+}
+
+function isDirectoryPageContext(
+  pageContext: ChatPageContext | undefined
+): pageContext is ChatPageContext & { type: "home" | "council" } {
+  return pageContext?.type === "home" || pageContext?.type === "council";
 }
 
 /**

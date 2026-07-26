@@ -3,18 +3,43 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Container } from "@/components/layouts/container";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
+import { CouncilSearchSection } from "@/features/bills/client/components/bill-list/council-search-section";
+import type { CouncilSearchInitialFilters } from "@/features/bills/shared/types/council-search";
+import { buildCouncilSearchCommitteeDocuments } from "@/features/bills/shared/utils/build-council-search-documents";
+import { CouncilChatClient } from "@/features/chat/client/components/council-chat-client";
+import { findActivePublicCommittees } from "@/features/committees/server/repositories/committee-directory-repository";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { routes } from "@/lib/routes";
 import { getJapanTime } from "@/lib/utils/date";
 import { loadBillsDirectoryData } from "../loaders/load-bills-directory-data";
 
-export async function BillsDirectoryPage() {
+type BillsDirectoryPageProps = {
+  initialSearch?: CouncilSearchInitialFilters;
+};
+
+export async function BillsDirectoryPage({
+  initialSearch,
+}: BillsDirectoryPageProps) {
   const now = getJapanTime();
-  const [{ billsByMajorCategory }, currentSession] = await Promise.all([
+  const [
+    { billsByMajorCategory, searchDocuments, difficultyLevel },
+    currentSession,
+    committees,
+  ] = await Promise.all([
     loadBillsDirectoryData(now),
     getCurrentDietSession(now),
+    findActivePublicCommittees(),
   ]);
+  const committeeSearchDocuments =
+    buildCouncilSearchCommitteeDocuments(committees);
+  const currentBills = Array.from(
+    new Map(
+      billsByMajorCategory
+        .flatMap((category) => category.bills)
+        .map((bill) => [bill.id, bill])
+    ).values()
+  );
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -32,6 +57,11 @@ export async function BillsDirectoryPage() {
 
       <Container className="py-8 sm:py-10">
         <div className="flex flex-col gap-12">
+          <CouncilSearchSection
+            documents={[...committeeSearchDocuments, ...searchDocuments]}
+            initialFilters={initialSearch}
+          />
+
           <section aria-labelledby="committee-entry-title">
             <Link
               href={routes.committees() as Route}
@@ -48,7 +78,7 @@ export async function BillsDirectoryPage() {
                   委員会を見る
                 </span>
                 <span className="mt-1 block text-sm leading-relaxed text-mirai-text-secondary">
-                  委員会ごとの所属議員を確認できます。
+                  役割と、実際に話し合われている案件を確認できます。
                 </span>
               </span>
               <ArrowRight
@@ -76,6 +106,16 @@ export async function BillsDirectoryPage() {
           )}
         </div>
       </Container>
+
+      <CouncilChatClient
+        currentDifficulty={difficultyLevel}
+        bills={currentBills.map((bill) => ({
+          id: bill.id,
+          name: `${bill.bill_content?.title || bill.name}（${bill.name}）`,
+          summary: bill.bill_content?.summary || undefined,
+          tags: bill.tags.map((tag) => tag.label),
+        }))}
+      />
     </div>
   );
 }

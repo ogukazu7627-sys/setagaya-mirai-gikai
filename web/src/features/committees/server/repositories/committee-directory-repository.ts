@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { PUBLIC_COMMITTEE_NAMES } from "@/features/committees/shared/committee-profiles";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import { isUuid } from "@/lib/utils/uuid";
 
@@ -64,6 +65,12 @@ const COMMITTEE_SELECT = `
   )
 `;
 
+const MOCK_COMMITTEES = PUBLIC_COMMITTEE_NAMES.map((name, index) => ({
+  id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+  name,
+  memberCount: 0,
+}));
+
 function toMembers(
   relations: CommitteeMemberRelation[] | null
 ): PublicCommitteeMember[] {
@@ -93,7 +100,7 @@ export async function findActivePublicCommittees(): Promise<
   PublicCommitteeSummary[]
 > {
   if (isSetagayaMockMode) {
-    return [];
+    return MOCK_COMMITTEES;
   }
 
   const supabase = createAdminClient();
@@ -117,8 +124,15 @@ export async function findActivePublicCommittees(): Promise<
 export async function findActivePublicCommitteeById(
   committeeId: string
 ): Promise<PublicCommitteeDetail | null> {
-  if (isSetagayaMockMode || !isUuid(committeeId)) {
+  if (!isUuid(committeeId)) {
     return null;
+  }
+
+  if (isSetagayaMockMode) {
+    const committee = MOCK_COMMITTEES.find(({ id }) => id === committeeId);
+    return committee
+      ? { id: committee.id, name: committee.name, members: [] }
+      : null;
   }
 
   const supabase = createAdminClient();

@@ -1,40 +1,51 @@
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import {
+  buildCouncilSearchBillDocuments,
+  buildCouncilSearchBillDocumentsFromRows,
+} from "@/features/bills/shared/utils/build-council-search-documents";
 import { groupBillsByMajorCategory } from "@/features/bills/shared/utils/group-bills-by-major-category";
 import { findDietSessionsStartingBetween } from "@/features/diet-sessions/server/repositories/diet-session-repository";
 import {
   getCalendarYearFromDate,
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
+import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
 import {
-  getSetagayaMockBillsByMajorCategory,
-  isSetagayaMockMode,
-} from "@/lib/setagaya-mock";
-import { findPublishedBillsByDietSessionIds } from "../repositories/bill-repository";
+  findPublishedBillSearchRows,
+  findPublishedBillsByDietSessionIds,
+} from "../repositories/bill-repository";
 import { buildBillsWithContent } from "../utils/build-bills-with-content";
 
 export async function loadBillsDirectoryData(currentDate: Date) {
+  const difficultyLevel = await getDifficultyLevel();
+
   if (isSetagayaMockMode) {
+    const bills = getSetagayaMockBills(difficultyLevel);
     return {
-      billsByMajorCategory: getSetagayaMockBillsByMajorCategory("normal"),
+      billsByMajorCategory: groupBillsByMajorCategory(bills),
+      searchDocuments: buildCouncilSearchBillDocuments(bills),
+      difficultyLevel,
     };
   }
 
   const currentYear = getCalendarYearFromDate(currentDate);
   const currentYearRange = getCalendarYearRange(currentYear);
-  const [difficultyLevel, currentYearSessions] = await Promise.all([
-    getDifficultyLevel(),
-    findDietSessionsStartingBetween(
-      currentYearRange.startDate,
-      currentYearRange.endDate
-    ),
-  ]);
-  const billRows = await findPublishedBillsByDietSessionIds(
-    currentYearSessions.map((session) => session.id),
-    difficultyLevel
+  const currentYearSessions = await findDietSessionsStartingBetween(
+    currentYearRange.startDate,
+    currentYearRange.endDate
   );
-  const bills = await buildBillsWithContent(billRows);
+  const [currentYearRows, searchRows] = await Promise.all([
+    findPublishedBillsByDietSessionIds(
+      currentYearSessions.map((session) => session.id),
+      difficultyLevel
+    ),
+    findPublishedBillSearchRows(difficultyLevel),
+  ]);
+  const currentYearBills = await buildBillsWithContent(currentYearRows);
 
   return {
-    billsByMajorCategory: groupBillsByMajorCategory(bills),
+    billsByMajorCategory: groupBillsByMajorCategory(currentYearBills),
+    searchDocuments: buildCouncilSearchBillDocumentsFromRows(searchRows),
+    difficultyLevel,
   };
 }

@@ -75,4 +75,19 @@ describe("MainLayout", () => {
     );
     expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
   });
+
+  it("reserves desktop space for the council directory chat panel", () => {
+    navigationMock.pathname = "/bills";
+    const { container } = render(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+
+    expect(container.firstElementChild).toHaveClass(
+      "pc:mr-[500px]",
+      "pc:w-[calc(100vw-500px-2rem)]",
+      "xl:w-[700px]"
+    );
+  });
 });

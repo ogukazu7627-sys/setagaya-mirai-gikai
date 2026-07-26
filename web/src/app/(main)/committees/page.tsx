@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "委員会 | みらい議会＠世田谷区",
-  description: "世田谷区議会の委員会と所属議員を確認できます。",
+  description:
+    "世田谷区議会の各委員会の役割、話し合うテーマ、公開中の案件を確認できます。",
 };
 
 export default function CommitteesPage() {
