@@ -1,12 +1,11 @@
 import { processCouncilSearchIndexJobs } from "@/features/bills/server/services/council-search-index-service";
 import { councilAiSearchJsonResponse } from "@/features/bills/server/utils/council-ai-search-response";
+import { isCouncilSearchIndexRequestAuthorized } from "@/features/bills/server/utils/council-search-index-auth";
 
 export const maxDuration = 60;
 
 export async function GET(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  const authorization = request.headers.get("authorization");
-  if (!secret || authorization !== `Bearer ${secret}`) {
+  if (!(await isCouncilSearchIndexRequestAuthorized(request))) {
     return councilAiSearchJsonResponse(
       { error: "Unauthorized", code: "unauthorized" },
       401
