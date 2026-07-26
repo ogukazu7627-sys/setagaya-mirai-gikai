@@ -3,13 +3,132 @@ import type { InterviewStage } from "../schemas";
 export interface InterviewProgress {
   percentage: number;
   currentTopic: string | null;
+  remainingQuestionRange: RemainingQuestionRange | null;
   showSkip: boolean;
+}
+
+export interface RemainingQuestionRange {
+  min: number;
+  max: number;
 }
 
 interface ProgressMessage {
   role: "assistant" | "user";
   questionId?: string | null;
   topicTitle?: string | null;
+  report?: unknown;
+}
+
+const MIN_FOLLOW_UP_QUESTIONS = 2;
+const MAX_FOLLOW_UP_QUESTIONS = 3;
+
+function hasUserResponse(
+  messages: ProgressMessage[],
+  assistantIndex: number
+): boolean {
+  for (let index = assistantIndex + 1; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message?.role === "assistant") {
+      return false;
+    }
+    if (message?.role === "user") {
+      return true;
+    }
+  }
+  return false;
+}
+
+function findCurrentThemeStart(messages: ProgressMessage[]): {
+  index: number;
+  startedThemeCount: number;
+} {
+  const seenQuestionIds = new Set<string>();
+  let index = -1;
+
+  messages.forEach((message, messageIndex) => {
+    if (
+      message.role !== "assistant" ||
+      !message.questionId ||
+      seenQuestionIds.has(message.questionId)
+    ) {
+      return;
+    }
+
+    seenQuestionIds.add(message.questionId);
+    index = messageIndex;
+  });
+
+  return { index, startedThemeCount: seenQuestionIds.size };
+}
+
+function getQuestionIndexes(
+  messages: ProgressMessage[],
+  startIndex: number
+): number[] {
+  return messages.flatMap((message, index) =>
+    index >= startIndex &&
+    message.role === "assistant" &&
+    message.report == null
+      ? [index]
+      : []
+  );
+}
+
+function calcRemainingQuestionRange(
+  totalQuestions: number,
+  messages: ProgressMessage[]
+): RemainingQuestionRange {
+  const currentTheme = findCurrentThemeStart(messages);
+  const startedThemeCount = Math.min(
+    totalQuestions,
+    currentTheme.startedThemeCount
+  );
+  const unstartedThemeCount = Math.max(0, totalQuestions - startedThemeCount);
+  const unstartedMin = unstartedThemeCount * (1 + MIN_FOLLOW_UP_QUESTIONS);
+  const unstartedMax = unstartedThemeCount * (1 + MAX_FOLLOW_UP_QUESTIONS);
+
+  if (currentTheme.index < 0) {
+    return { min: unstartedMin, max: unstartedMax };
+  }
+
+  const currentThemeAssistantIndexes = getQuestionIndexes(
+    messages,
+    currentTheme.index
+  );
+  const baseQuestionIndex = currentThemeAssistantIndexes[0];
+
+  if (baseQuestionIndex === undefined) {
+    return { min: unstartedMin, max: unstartedMax };
+  }
+
+  const baseQuestionOutstanding = hasUserResponse(messages, baseQuestionIndex)
+    ? 0
+    : 1;
+  const followUpIndexes = currentThemeAssistantIndexes.slice(1);
+  const outstandingFollowUps = followUpIndexes.filter(
+    (index) => !hasUserResponse(messages, index)
+  ).length;
+  const additionalFollowUpsMin = Math.max(
+    0,
+    MIN_FOLLOW_UP_QUESTIONS - followUpIndexes.length
+  );
+  const additionalFollowUpsMax = Math.max(
+    0,
+    MAX_FOLLOW_UP_QUESTIONS - followUpIndexes.length
+  );
+
+  return {
+    min:
+      unstartedMin +
+      baseQuestionOutstanding +
+      outstandingFollowUps +
+      additionalFollowUpsMin,
+    max:
+      unstartedMax +
+      baseQuestionOutstanding +
+      outstandingFollowUps +
+      additionalFollowUpsMax,
+  };
 }
 
 /**
@@ -35,11 +154,21 @@ export function calcInterviewProgress(
   const currentTopic = lastTopicMessage?.topicTitle ?? null;
 
   if (stage === "summary_complete") {
-    return { percentage: 100, currentTopic, showSkip: false };
+    return {
+      percentage: 100,
+      currentTopic,
+      remainingQuestionRange: null,
+      showSkip: false,
+    };
   }
 
   if (stage === "summary") {
-    return { percentage: 90, currentTopic, showSkip: false };
+    return {
+      percentage: 90,
+      currentTopic,
+      remainingQuestionRange: null,
+      showSkip: false,
+    };
   }
 
   // chat: 質問ベースの進捗
@@ -53,5 +182,13 @@ export function calcInterviewProgress(
   // chatステージでは最大80%まで
   const percentage = Math.round((completedCount / totalQuestions) * 80);
 
-  return { percentage, currentTopic, showSkip: true };
+  return {
+    percentage,
+    currentTopic,
+    remainingQuestionRange: calcRemainingQuestionRange(
+      totalQuestions,
+      messages
+    ),
+    showSkip: true,
+  };
 }

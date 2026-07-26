@@ -17,7 +17,9 @@ import { InterviewChatClient } from "./interview-chat-client";
 type MockInterviewMessage = {
   content: string;
   id: string;
+  questionId?: string | null;
   role: "assistant" | "user";
+  topicTitle?: string | null;
 };
 
 const mediaQueryMock = vi.hoisted(() => ({
@@ -118,7 +120,17 @@ vi.mock("./interview-message", () => ({
 }));
 
 vi.mock("./interview-progress-bar", () => ({
-  InterviewProgressBar: () => <div data-testid="interview-progress-bar" />,
+  InterviewProgressBar: ({
+    remainingQuestionRange,
+  }: {
+    remainingQuestionRange: { min: number; max: number } | null;
+  }) => (
+    <div data-testid="interview-progress-bar">
+      {remainingQuestionRange === null
+        ? "質問終了"
+        : `あと約${remainingQuestionRange.min}〜${remainingQuestionRange.max}問`}
+    </div>
+  ),
 }));
 
 vi.mock("./quick-reply-buttons", () => ({
@@ -137,14 +149,22 @@ vi.mock("./time-up-prompt", () => ({
   TimeUpPrompt: () => null,
 }));
 
-function renderClient(layout: "page" | "panel" = "page") {
+function renderClient(
+  layout: "page" | "panel" = "page",
+  progressOptions?: {
+    mode?: "loop" | "targeted" | "bulk";
+    totalQuestions?: number;
+  }
+) {
   return render(
     <InterviewChatClient
       billId="bill-1"
       billTitle="テスト案件"
       initialMessages={[]}
       layout={layout}
+      mode={progressOptions?.mode}
       sessionId="session-1"
+      totalQuestions={progressOptions?.totalQuestions}
     />
   );
 }
@@ -534,5 +554,36 @@ describe("InterviewChatClient mobile answer focus mode", () => {
       screen.queryByTestId("interview-answer-focus-layer")
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("textbox")).toHaveLength(1);
+  });
+
+  it("全画面版へ推定残り問数を渡す", () => {
+    mediaQueryMock.matches = false;
+    renderClient("page", { mode: "loop", totalQuestions: 4 });
+
+    expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
+      "あと約12〜16問"
+    );
+  });
+
+  it("デスクトップのサイドパネルへ推定残り問数を渡す", () => {
+    mediaQueryMock.matches = false;
+    renderClient("panel", { mode: "loop", totalQuestions: 4 });
+
+    expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
+      "あと約12〜16問"
+    );
+  });
+
+  it("モバイル回答フォーカスモードへ推定残り問数を渡す", () => {
+    mediaQueryMock.matches = true;
+    renderClient("page", { mode: "loop", totalQuestions: 4 });
+
+    fireEvent.pointerDown(screen.getByRole("textbox"));
+
+    expect(
+      within(screen.getByTestId("interview-answer-focus-layer")).getByText(
+        "あと約12〜16問"
+      )
+    ).toBeInTheDocument();
   });
 });

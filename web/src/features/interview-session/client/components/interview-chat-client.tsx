@@ -86,7 +86,7 @@ export function InterviewChatClient({
     previewToken,
   });
 
-  const { remainingMinutes, isTimeUp } = useInterviewTimer({
+  const { isTimeUp } = useInterviewTimer({
     estimatedDuration,
     sessionStartedAt,
   });
@@ -118,10 +118,6 @@ export function InterviewChatClient({
   const billDetailLink = getBillDetailLink(billId, previewToken);
 
   const showProgressBar = isLoopFamilyMode(mode) && progress !== null;
-  const timerMinutes =
-    remainingMinutes !== null && stage === "chat" && !timeUpDismissed
-      ? remainingMinutes
-      : null;
   const showTimeUpPrompt =
     isTimeUp && !timeUpDismissed && stage === "chat" && !isLoading;
   const isPanelLayout = layout === "panel";
@@ -416,7 +412,7 @@ export function InterviewChatClient({
             <InterviewProgressBar
               percentage={progress.percentage}
               currentTopic={progress.currentTopic}
-              remainingMinutes={timerMinutes}
+              remainingQuestionRange={progress.remainingQuestionRange}
             />
           </div>
         )}
@@ -586,7 +582,11 @@ export function InterviewChatClient({
             progressPercentage={
               showProgressBar && progress ? progress.percentage : null
             }
-            remainingMinutes={timerMinutes}
+            remainingQuestionRange={
+              showProgressBar && progress
+                ? progress.remainingQuestionRange
+                : null
+            }
             restoreScrollY={answerFocusScrollYRef.current}
           >
             <InterviewChatInput

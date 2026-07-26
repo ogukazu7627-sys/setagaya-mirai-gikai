@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import type { VisualViewportFrame } from "@/hooks/use-visual-viewport-frame";
+import type { RemainingQuestionRange } from "../../shared/utils/calc-interview-progress";
 import { InterviewProgressBar } from "./interview-progress-bar";
-import { InterviewTimer } from "./interview-timer";
 
 interface InterviewAnswerFocusLayerProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ interface InterviewAnswerFocusLayerProps {
   isQuestionLoading: boolean;
   latestQuestion: string;
   progressPercentage: number | null;
-  remainingMinutes: number | null;
+  remainingQuestionRange: RemainingQuestionRange | null;
   restoreScrollY: number;
 }
 
@@ -25,7 +25,7 @@ export function InterviewAnswerFocusLayer({
   isQuestionLoading,
   latestQuestion,
   progressPercentage,
-  remainingMinutes,
+  remainingQuestionRange,
   restoreScrollY,
 }: InterviewAnswerFocusLayerProps) {
   useLayoutEffect(() => {
@@ -91,17 +91,12 @@ export function InterviewAnswerFocusLayer({
           <InterviewProgressBar
             percentage={progressPercentage}
             currentTopic={currentTopic}
-            remainingMinutes={remainingMinutes}
+            remainingQuestionRange={remainingQuestionRange}
           />
         ) : (
-          <div className="flex items-center justify-between gap-3">
-            <p className="truncate text-sm font-bold text-mirai-text">
-              {currentTopic ?? "AIインタビュー"}
-            </p>
-            {remainingMinutes !== null && (
-              <InterviewTimer remainingMinutes={remainingMinutes} />
-            )}
-          </div>
+          <p className="truncate text-sm font-bold text-mirai-text">
+            {currentTopic ?? "AIインタビュー"}
+          </p>
         )}
       </div>
 
