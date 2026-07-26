@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import type { ChatPageContext } from "../../shared/types/page-context";
 import { useChatAuth } from "../hooks/use-chat-auth";
 import { ChatWindow, type ChatWindowMode } from "./chat-window";
 
@@ -39,15 +40,7 @@ interface ChatButtonProps {
   billContext?: BillWithContent;
   hasInterviewConfig?: boolean;
   difficultyLevel: string;
-  pageContext?: {
-    type: "home" | "bill";
-    bills?: Array<{
-      name: string;
-      summary?: string;
-      tags?: string[];
-      isFeatured?: boolean;
-    }>;
-  };
+  pageContext?: ChatPageContext;
 }
 
 export interface ChatButtonRef {

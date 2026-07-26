@@ -4,8 +4,8 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { shouldShowPrimaryNavigation } from "@/features/primary-navigation/shared/primary-navigation";
 import {
+  hasPersistentChatSidebar,
   isInterviewSection,
-  isMainPage,
   isWidePage,
 } from "@/lib/page-layout-utils";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
-  const useSidebarLayout = isMainPage(pathname);
+  const useSidebarLayout = hasPersistentChatSidebar(pathname);
   const useWideLayout = isWidePage(pathname);
   const isInterview = isInterviewSection(pathname);
   const showPrimaryNavigation = shouldShowPrimaryNavigation(pathname);

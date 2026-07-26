@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   extractBillIdFromPath,
+  hasPersistentChatSidebar,
   isInterviewPage,
   isInterviewSection,
   isMainPage,
@@ -28,6 +29,20 @@ describe("isMainPage", () => {
   it("returns false for the bills list page", () => {
     expect(isMainPage("/bills")).toBe(false);
     expect(isMainPage("/bills/")).toBe(false);
+  });
+});
+
+describe("hasPersistentChatSidebar", () => {
+  it("returns true for pages with an always-visible desktop chat panel", () => {
+    expect(hasPersistentChatSidebar("/")).toBe(true);
+    expect(hasPersistentChatSidebar("/bills")).toBe(true);
+    expect(hasPersistentChatSidebar("/bills/")).toBe(true);
+    expect(hasPersistentChatSidebar("/bills/abc-123")).toBe(true);
+  });
+
+  it("returns false for pages without the persistent chat panel", () => {
+    expect(hasPersistentChatSidebar("/committees")).toBe(false);
+    expect(hasPersistentChatSidebar("/bills/abc-123/interview")).toBe(false);
   });
 });
 

@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { Bill, BillDietSession } from "../../shared/types";
+import type { CouncilSearchBillRow } from "../../shared/types/council-search";
 
 type BillWithDietSession = Bill & {
   diet_session?: BillDietSession | null;
@@ -44,6 +45,80 @@ export async function findPublishedBillsWithContents(
   }
 
   return data;
+}
+
+export async function findPublishedBillSearchRows(
+  difficultyLevel: DifficultyLevelEnum
+): Promise<CouncilSearchBillRow[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      id,
+      name,
+      item_type,
+      major_category,
+      status_note,
+      submitted_date,
+      bill_contents!inner (
+        title,
+        summary,
+        difficulty_level
+      ),
+      bills_tags (
+        tags (
+          label,
+          major_category
+        )
+      )
+    `
+    )
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .order("submitted_date", { ascending: false, nullsFirst: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch bill search rows: ${error.message}`);
+  }
+
+  return (data ?? []) as unknown as CouncilSearchBillRow[];
+}
+
+export async function findPublishedBillsByCommitteeSearchTerm(
+  searchTerm: string,
+  difficultyLevel: DifficultyLevelEnum,
+  limit = 6
+) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select(
+      `
+      *,
+      bill_contents!inner (
+        id,
+        bill_id,
+        title,
+        summary,
+        content,
+        difficulty_level,
+        created_at,
+        updated_at
+      )
+    `
+    )
+    .eq("publish_status", "published")
+    .eq("bill_contents.difficulty_level", difficultyLevel)
+    .ilike("status_note", `%${searchTerm}%`)
+    .order("submitted_date", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Failed to fetch bills by committee: ${error.message}`);
+  }
+
+  return data ?? [];
 }
 
 /**

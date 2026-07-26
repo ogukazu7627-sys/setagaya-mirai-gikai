@@ -20,6 +20,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import type { BillWithContent } from "@/features/bills/shared/types";
+import type { ChatPageContext } from "@/features/chat/shared/types/page-context";
 import { InterviewSidePanel } from "@/features/interview-session/client/components/interview-side-panel";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -41,15 +42,7 @@ interface ChatWindowProps {
   chatState: ReturnType<typeof import("@ai-sdk/react").useChat>;
   isOpen: boolean;
   onClose: () => void;
-  pageContext?: {
-    type: "home" | "bill";
-    bills?: Array<{
-      name: string;
-      summary?: string;
-      tags?: string[];
-      isFeatured?: boolean;
-    }>;
-  };
+  pageContext?: ChatPageContext;
   disableAutoFocus?: boolean;
   sessionId: string;
   previewOnly?: boolean;
@@ -68,6 +61,19 @@ const COMMON_BILL_QUESTIONS = [
   "公式資料のどこを見ればいい？",
   "賛成・反対の論点は？",
 ];
+
+const DIRECTORY_QUESTIONS = {
+  home: [
+    "みらい議会って何？",
+    "世田谷区議会って何をするところ？",
+    "注目の案件について教えて",
+  ],
+  council: [
+    "最近の議案を分かりやすく教えて",
+    "子育てについて何が話し合われている？",
+    "委員会ごとの役割を教えて",
+  ],
+} as const;
 
 function getBillSampleQuestions(bill: BillWithContent): string[] {
   const itemTypeQuestions: Partial<
@@ -146,11 +152,9 @@ function ChatMessages({
         <div className="flex flex-wrap gap-3">
           {(billContext
             ? getBillSampleQuestions(billContext)
-            : [
-                "みらい議会って何？",
-                "世田谷区議会って何をするところ？",
-                "注目の案件について教えて",
-              ]
+            : pageContext?.type === "council"
+              ? DIRECTORY_QUESTIONS.council
+              : DIRECTORY_QUESTIONS.home
           ).map((question) => {
             return (
               <button

@@ -6,9 +6,30 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "議会 | みらい議会＠世田谷区",
   description:
-    "世田谷区議会で扱われている議案、質問、請願・陳情、報告事項をテーマ別に確認できます。",
+    "世田谷区議会の議案、質問、請願・陳情、報告事項、委員会をキーワードやテーマから探せます。",
 };
 
-export default function BillsPage() {
-  return <BillsDirectoryPage />;
+type BillsPageProps = {
+  searchParams?: Promise<
+    Partial<Record<"q" | "type" | "theme" | "committee", string | string[]>>
+  >;
+};
+
+export default async function BillsPage({ searchParams }: BillsPageProps) {
+  const params = await searchParams;
+
+  return (
+    <BillsDirectoryPage
+      initialSearch={{
+        q: firstValue(params?.q),
+        type: firstValue(params?.type),
+        theme: firstValue(params?.theme),
+        committee: firstValue(params?.committee),
+      }}
+    />
+  );
+}
+
+function firstValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
