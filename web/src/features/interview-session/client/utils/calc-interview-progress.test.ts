@@ -18,6 +18,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 100,
         currentTopic: null,
+        remainingQuestionRange: null,
         showSkip: false,
       });
     });
@@ -31,6 +32,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 100,
         currentTopic: "経済",
+        remainingQuestionRange: null,
         showSkip: false,
       });
     });
@@ -42,6 +44,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 90,
         currentTopic: null,
+        remainingQuestionRange: null,
         showSkip: false,
       });
     });
@@ -58,6 +61,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 90,
         currentTopic: "社会保障",
+        remainingQuestionRange: null,
         showSkip: false,
       });
     });
@@ -69,6 +73,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 0,
         currentTopic: null,
+        remainingQuestionRange: { min: 15, max: 20 },
         showSkip: true,
       });
     });
@@ -81,6 +86,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 0,
         currentTopic: "経済",
+        remainingQuestionRange: { min: 15, max: 20 },
         showSkip: true,
       });
     });
@@ -99,6 +105,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 16,
         currentTopic: "社会保障",
+        remainingQuestionRange: { min: 12, max: 16 },
         showSkip: true,
       });
     });
@@ -119,6 +126,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 64,
         currentTopic: "テーマ5",
+        remainingQuestionRange: { min: 3, max: 4 },
         showSkip: true,
       });
     });
@@ -136,6 +144,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 20, // 1/4 × 80 = 20
         currentTopic: "教育",
+        remainingQuestionRange: { min: 9, max: 12 },
         showSkip: true,
       });
     });
@@ -163,6 +172,79 @@ describe("calcInterviewProgress", () => {
       // → 2/2 × 80 = 80 (totalQuestions=2 だと全完了)
       const result = calcInterviewProgress(2, "chat", messages);
       expect(result?.percentage).toBe(80);
+    });
+
+    it("4テーマの開始時はあと約12〜16問", () => {
+      const result = calcInterviewProgress(4, "chat", []);
+
+      expect(result?.remainingQuestionRange).toEqual({ min: 12, max: 16 });
+    });
+
+    it("現在表示中の基本質問を残り問数に含める", () => {
+      const messages = [
+        {
+          role: "assistant" as const,
+          questionId: "q1",
+          topicTitle: "お願いしたいこと",
+        },
+      ];
+
+      const result = calcInterviewProgress(4, "chat", messages);
+
+      expect(result?.remainingQuestionRange).toEqual({ min: 12, max: 16 });
+    });
+
+    it("基本質問へ回答すると残り範囲が1問減る", () => {
+      const messages = [
+        {
+          role: "assistant" as const,
+          questionId: "q1",
+          topicTitle: "お願いしたいこと",
+        },
+        { role: "user" as const },
+      ];
+
+      const result = calcInterviewProgress(4, "chat", messages);
+
+      expect(result?.remainingQuestionRange).toEqual({ min: 11, max: 15 });
+    });
+
+    it("questionIdのない深掘り質問も回答ごとに残り範囲から減らす", () => {
+      const messages = [
+        {
+          role: "assistant" as const,
+          questionId: "q1",
+          topicTitle: "お願いしたいこと",
+        },
+        { role: "user" as const },
+        { role: "assistant" as const },
+        { role: "user" as const },
+        { role: "assistant" as const },
+      ];
+
+      const result = calcInterviewProgress(4, "chat", messages);
+
+      expect(result?.remainingQuestionRange).toEqual({ min: 10, max: 14 });
+    });
+
+    it("次の基本テーマへ進んだら前テーマの残り深掘りを持ち越さない", () => {
+      const messages = [
+        {
+          role: "assistant" as const,
+          questionId: "q1",
+          topicTitle: "お願いしたいこと",
+        },
+        { role: "user" as const },
+        {
+          role: "assistant" as const,
+          questionId: "q2",
+          topicTitle: "お願いしたい理由",
+        },
+      ];
+
+      const result = calcInterviewProgress(4, "chat", messages);
+
+      expect(result?.remainingQuestionRange).toEqual({ min: 9, max: 12 });
     });
   });
 });
