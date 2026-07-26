@@ -592,6 +592,7 @@ export type Database = {
           is_active: boolean
           normalized_name: string
           updated_at: string
+          x_account_url: string | null
         }
         Insert: {
           created_at?: string
@@ -601,6 +602,7 @@ export type Database = {
           is_active?: boolean
           normalized_name: string
           updated_at?: string
+          x_account_url?: string | null
         }
         Update: {
           created_at?: string
@@ -610,6 +612,7 @@ export type Database = {
           is_active?: boolean
           normalized_name?: string
           updated_at?: string
+          x_account_url?: string | null
         }
         Relationships: []
       }
