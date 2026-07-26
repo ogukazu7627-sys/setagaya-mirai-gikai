@@ -1,12 +1,11 @@
 import { syncCouncilorXPosts } from "@/features/councilor-x-posts/server/services/councilor-x-post-sync-service";
+import { isCouncilorXPostSyncRequestAuthorized } from "@/features/councilor-x-posts/server/utils/councilor-x-post-sync-auth";
 import { jsonResponse } from "@/lib/api/response";
 
 export const maxDuration = 300;
 
 export async function GET(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  const authorization = request.headers.get("authorization");
-  if (!secret || authorization !== `Bearer ${secret}`) {
+  if (!(await isCouncilorXPostSyncRequestAuthorized(request))) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 

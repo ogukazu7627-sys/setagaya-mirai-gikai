@@ -1,0 +1,44 @@
+name: Councilor X Posts
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: councilor-x-posts
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  sync-posts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Sync councilor X posts
+        env:
+          AUDIENCE: https://civictech-setagaya.org/api/cron/councilor-x-posts
+          ENDPOINT: https://civictech-setagaya.org/api/cron/councilor-x-posts
+        run: |
+          encoded_audience="$(
+            jq -rn --arg value "$AUDIENCE" '$value | @uri'
+          )"
+          oidc_response="$(
+            curl --fail-with-body --silent --show-error \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --header "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+              --header "Accept: application/json; api-version=2.0" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded_audience}"
+          )"
+          oidc_token="$(printf '%s' "$oidc_response" | jq -er '.value')"
+          echo "::add-mask::$oidc_token"
+
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 10 \
+            --max-time 330 \
+            --header "Authorization: Bearer ${oidc_token}" \
+            "$ENDPOINT"
