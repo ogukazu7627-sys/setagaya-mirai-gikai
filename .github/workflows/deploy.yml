@@ -10,14 +10,36 @@ jobs:
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect Supabase changes
+        id: supabase_changes
+        run: |
+          base_sha="${{ github.event.before }}"
+
+          if [ -z "$base_sha" ] || [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
+            base_sha="$(git rev-list --max-parents=0 HEAD)"
+          fi
+
+          changed_files="$(git diff --name-only "$base_sha" "$GITHUB_SHA")"
+          printf 'Changed files:\n%s\n' "$changed_files"
+
+          if printf '%s\n' "$changed_files" | grep -Eq '^supabase/'; then
+            echo "has_supabase_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_supabase_changes=false" >> "$GITHUB_OUTPUT"
+          fi
 
       # Supabase CLI セットアップ
       - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         with:
             version: latest
 
       # config.toml は Auth URL も本番へ反映するため、ローカルURLの混入をCIで止める。
       - name: Validate Supabase Auth URLs
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         run: |
           if [ -z "$SUPABASE_AUTH_SITE_URL" ]; then
             echo "::error::SUPABASE_AUTH_SITE_URL is required"
@@ -58,6 +80,7 @@ jobs:
 
       # Supabase プロジェクトへリンク（ノンインタラクティブ）
       - name: Supabase link
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         run: |
           supabase link --project-ref $SUPABASE_PROJECT_REF --password $SUPABASE_DB_PASSWORD
         env:
@@ -74,6 +97,7 @@ jobs:
       # あると supabase db push が [Y/n] を出して stdin 待ちで停止するため。実際に本番デプロイが
       # db push で数時間ハングした）
       - name: Supabase db push
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         run: |
           supabase db push --include-all --yes
         env:
@@ -84,6 +108,7 @@ jobs:
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       - name: Render production Supabase config
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         run: |
           ruby <<'RUBY'
           path = "supabase/config.toml"
@@ -126,6 +151,7 @@ jobs:
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
 
       - name: Supabase config push
+        if: steps.supabase_changes.outputs.has_supabase_changes == 'true'
         run: |
           supabase config push --yes
         env:
