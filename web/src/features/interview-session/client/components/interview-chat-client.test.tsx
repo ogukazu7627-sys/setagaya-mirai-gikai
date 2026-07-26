@@ -169,6 +169,30 @@ function renderClient(
   );
 }
 
+function buildMockInterviewMessages(
+  questionCount: number
+): MockInterviewMessage[] {
+  const messages: MockInterviewMessage[] = [];
+
+  for (let index = 0; index < questionCount; index += 1) {
+    messages.push({
+      content: `質問${index + 1}`,
+      id: `assistant-${index + 1}`,
+      questionId: `q${index + 1}`,
+      role: "assistant",
+    });
+    if (index < questionCount - 1) {
+      messages.push({
+        content: `回答${index + 1}`,
+        id: `user-${index + 1}`,
+        role: "user",
+      });
+    }
+  }
+
+  return messages;
+}
+
 describe("InterviewChatClient mobile answer focus mode", () => {
   const scrollToMock = vi.fn();
 
@@ -561,7 +585,43 @@ describe("InterviewChatClient mobile answer focus mode", () => {
     renderClient("page", { mode: "loop", totalQuestions: 4 });
 
     expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
-      "あと約12〜16問"
+      "あと約7〜10問"
+    );
+  });
+
+  it("7問目から8問目へ進むと残り問数を1〜3問へ固定する", () => {
+    mediaQueryMock.matches = false;
+    interviewChatMock.state.messages = buildMockInterviewMessages(7);
+    const view = renderClient("page", { mode: "loop", totalQuestions: 4 });
+
+    expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
+      "あと約1〜4問"
+    );
+
+    interviewChatMock.state.messages = buildMockInterviewMessages(8);
+    view.rerender(
+      <InterviewChatClient
+        billId="bill-1"
+        billTitle="テスト案件"
+        initialMessages={[]}
+        layout="page"
+        mode="loop"
+        sessionId="session-1"
+        totalQuestions={4}
+      />
+    );
+
+    expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
+      "あと約1〜3問"
+    );
+  });
+
+  it("要約ステージでは質問終了を渡す", () => {
+    interviewChatMock.state.stage = "summary";
+    renderClient("page", { mode: "loop", totalQuestions: 4 });
+
+    expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
+      "質問終了"
     );
   });
 
@@ -570,7 +630,7 @@ describe("InterviewChatClient mobile answer focus mode", () => {
     renderClient("panel", { mode: "loop", totalQuestions: 4 });
 
     expect(screen.getByTestId("interview-progress-bar")).toHaveTextContent(
-      "あと約12〜16問"
+      "あと約7〜10問"
     );
   });
 
@@ -582,7 +642,7 @@ describe("InterviewChatClient mobile answer focus mode", () => {
 
     expect(
       within(screen.getByTestId("interview-answer-focus-layer")).getByText(
-        "あと約12〜16問"
+        "あと約7〜10問"
       )
     ).toBeInTheDocument();
   });

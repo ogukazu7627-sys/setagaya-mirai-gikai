@@ -1,6 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { calcInterviewProgress } from "./calc-interview-progress";
-import { parseMessageContent } from "./message-utils";
+
+function buildQuestionMessages(questionCount: number) {
+  const messages: Array<{
+    role: "assistant" | "user";
+    questionId?: string;
+  }> = [];
+
+  for (let index = 0; index < questionCount; index += 1) {
+    messages.push({
+      role: "assistant",
+      questionId: `q${index + 1}`,
+    });
+    if (index < questionCount - 1) {
+      messages.push({ role: "user" });
+    }
+  }
+
+  return messages;
+}
 
 describe("calcInterviewProgress", () => {
   describe("totalQuestionsが未定義または0の場合", () => {
@@ -74,7 +92,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 0,
         currentTopic: null,
-        remainingQuestionRange: { min: 15, max: 20 },
+        remainingQuestionRange: { min: 7, max: 10 },
         showSkip: true,
       });
     });
@@ -87,7 +105,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 0,
         currentTopic: "経済",
-        remainingQuestionRange: { min: 15, max: 20 },
+        remainingQuestionRange: { min: 7, max: 10 },
         showSkip: true,
       });
     });
@@ -106,7 +124,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 16,
         currentTopic: "社会保障",
-        remainingQuestionRange: { min: 12, max: 16 },
+        remainingQuestionRange: { min: 6, max: 9 },
         showSkip: true,
       });
     });
@@ -127,12 +145,12 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 64,
         currentTopic: "テーマ5",
-        remainingQuestionRange: { min: 3, max: 4 },
+        remainingQuestionRange: { min: 3, max: 6 },
         showSkip: true,
       });
     });
 
-    it("同じquestionIdの重複メッセージはカウントしない", () => {
+    it("同じquestionIdの重複メッセージは進捗率ではカウントしない", () => {
       const messages = [
         { role: "assistant" as const, questionId: "q1", topicTitle: "経済" },
         { role: "user" as const },
@@ -145,7 +163,7 @@ describe("calcInterviewProgress", () => {
       expect(result).toEqual({
         percentage: 20, // 1/4 × 80 = 20
         currentTopic: "教育",
-        remainingQuestionRange: { min: 9, max: 12 },
+        remainingQuestionRange: { min: 5, max: 8 },
         showSkip: true,
       });
     });
@@ -175,129 +193,97 @@ describe("calcInterviewProgress", () => {
       expect(result?.percentage).toBe(80);
     });
 
-    it("4テーマの開始時はあと約12〜16問", () => {
-      const result = calcInterviewProgress(4, "chat", []);
+    it.each([
+      {
+        questionCount: 1,
+        expected: { min: 7, max: 10 },
+      },
+      {
+        questionCount: 2,
+        expected: { min: 6, max: 9 },
+      },
+      {
+        questionCount: 3,
+        expected: { min: 5, max: 8 },
+      },
+      {
+        questionCount: 4,
+        expected: { min: 4, max: 7 },
+      },
+      {
+        questionCount: 5,
+        expected: { min: 3, max: 6 },
+      },
+      {
+        questionCount: 6,
+        expected: { min: 2, max: 5 },
+      },
+      {
+        questionCount: 7,
+        expected: { min: 1, max: 4 },
+      },
+      {
+        questionCount: 8,
+        expected: { min: 1, max: 3 },
+      },
+      {
+        questionCount: 12,
+        expected: { min: 1, max: 3 },
+      },
+    ])("$questionCount個目の質問では$expected.min〜$expected.max問と表示する", ({
+      questionCount,
+      expected,
+    }) => {
+      const messages = buildQuestionMessages(questionCount);
 
-      expect(result?.remainingQuestionRange).toEqual({ min: 12, max: 16 });
+      expect(
+        calcInterviewProgress(4, "chat", messages)?.remainingQuestionRange
+      ).toEqual(expected);
     });
 
-    it("現在表示中の基本質問を残り問数に含める", () => {
+    it("ユーザー回答だけでは残り問数を減らさない", () => {
       const messages = [
-        {
-          role: "assistant" as const,
-          questionId: "q1",
-          topicTitle: "お願いしたいこと",
-        },
-      ];
-
-      const result = calcInterviewProgress(4, "chat", messages);
-
-      expect(result?.remainingQuestionRange).toEqual({ min: 12, max: 16 });
-    });
-
-    it("基本質問へ回答すると残り範囲が1問減る", () => {
-      const messages = [
-        {
-          role: "assistant" as const,
-          questionId: "q1",
-          topicTitle: "お願いしたいこと",
-        },
+        { role: "assistant" as const, questionId: "q1" },
+        { role: "user" as const },
         { role: "user" as const },
       ];
 
-      const result = calcInterviewProgress(4, "chat", messages);
-
-      expect(result?.remainingQuestionRange).toEqual({ min: 11, max: 15 });
+      expect(
+        calcInterviewProgress(4, "chat", messages)?.remainingQuestionRange
+      ).toEqual({ min: 7, max: 10 });
     });
 
-    it("questionIdのない深掘り質問も回答ごとに残り範囲から減らす", () => {
+    it("questionIdの有無にかかわらず表示済みのAI質問を数える", () => {
       const messages = [
-        {
-          role: "assistant" as const,
-          questionId: "q1",
-          topicTitle: "お願いしたいこと",
-        },
+        { role: "assistant" as const, questionId: "q1" },
         { role: "user" as const },
         { role: "assistant" as const },
-        { role: "user" as const },
-        { role: "assistant" as const },
       ];
 
-      const result = calcInterviewProgress(4, "chat", messages);
-
-      expect(result?.remainingQuestionRange).toEqual({ min: 10, max: 14 });
-    });
-
-    it("次の基本テーマへ進んだら前テーマの残り深掘りを持ち越さない", () => {
-      const messages = [
-        {
-          role: "assistant" as const,
-          questionId: "q1",
-          topicTitle: "お願いしたいこと",
-        },
-        { role: "user" as const },
-        {
-          role: "assistant" as const,
-          questionId: "q2",
-          topicTitle: "お願いしたい理由",
-        },
-      ];
-
-      const result = calcInterviewProgress(4, "chat", messages);
-
-      expect(result?.remainingQuestionRange).toEqual({ min: 9, max: 12 });
+      expect(
+        calcInterviewProgress(4, "chat", messages)?.remainingQuestionRange
+      ).toEqual({ min: 6, max: 9 });
     });
 
     it.each([
       {
-        label: "深掘り2問へすべて回答した場合",
-        followUps: 2,
-        answerLast: true,
-        expected: { min: 0, max: 1 },
+        questionCount: 0,
+        expected: { min: 7, max: 10 },
       },
       {
-        label: "深掘り3問目が未回答の場合",
-        followUps: 3,
-        answerLast: false,
-        expected: { min: 1, max: 1 },
+        questionCount: 7,
+        expected: { min: 1, max: 4 },
       },
       {
-        label: "深掘り3問へすべて回答した場合",
-        followUps: 3,
-        answerLast: true,
-        expected: { min: 0, max: 0 },
+        questionCount: 8,
+        expected: { min: 1, max: 3 },
       },
-      {
-        label: "想定を超える深掘り4問目が未回答の場合",
-        followUps: 4,
-        answerLast: false,
-        expected: { min: 1, max: 1 },
-      },
-    ])("$labelも残り範囲へ反映する", ({ followUps, answerLast, expected }) => {
-      const messages: Array<{
-        role: "assistant" | "user";
-        questionId?: string;
-      }> = [
-        { role: "assistant" as const, questionId: "q1" },
-        { role: "user" as const },
-      ];
-
-      for (let index = 0; index < followUps; index += 1) {
-        messages.push({ role: "assistant" as const });
-        if (index < followUps - 1 || answerLast) {
-          messages.push({ role: "user" as const });
-        }
-      }
-
-      expect(
-        calcInterviewProgress(1, "chat", messages)?.remainingQuestionRange
-      ).toEqual(expected);
-    });
-
-    it("レポート文は深掘り質問として数えない", () => {
+    ])("$questionCount問表示済みでもレポート文は質問数として数えない", ({
+      questionCount,
+      expected,
+    }) => {
       const messages = [
-        { role: "assistant" as const, questionId: "q1" },
-        { role: "user" as const },
+        ...buildQuestionMessages(questionCount),
         {
           role: "assistant" as const,
           report: { summary: "途中レポート" },
@@ -305,47 +291,8 @@ describe("calcInterviewProgress", () => {
       ];
 
       expect(
-        calcInterviewProgress(1, "chat", messages)?.remainingQuestionRange
-      ).toEqual({ min: 2, max: 3 });
-    });
-
-    it("DB保存形式から再読み込みしても同じ残り範囲を復元する", () => {
-      const storedMessages = [
-        {
-          role: "assistant" as const,
-          content: JSON.stringify({
-            text: "基本質問",
-            question_id: "q1",
-            topic_title: "お願いしたいこと",
-          }),
-        },
-        { role: "user" as const, content: "基本質問への回答" },
-        {
-          role: "assistant" as const,
-          content: JSON.stringify({
-            text: "深掘り質問",
-            question_id: null,
-            topic_title: null,
-          }),
-        },
-      ];
-      const restoredMessages = storedMessages.map((message) => {
-        if (message.role === "user") {
-          return { role: message.role };
-        }
-        const parsed = parseMessageContent(message.content);
-        return {
-          role: message.role,
-          questionId: parsed.questionId,
-          topicTitle: parsed.topicTitle,
-          report: parsed.report,
-        };
-      });
-
-      expect(
-        calcInterviewProgress(1, "chat", restoredMessages)
-          ?.remainingQuestionRange
-      ).toEqual({ min: 2, max: 3 });
+        calcInterviewProgress(4, "chat", messages)?.remainingQuestionRange
+      ).toEqual(expected);
     });
   });
 });

@@ -19,115 +19,27 @@ interface ProgressMessage {
   report?: unknown;
 }
 
-const MIN_FOLLOW_UP_QUESTIONS = 2;
-const MAX_FOLLOW_UP_QUESTIONS = 3;
-
-function hasUserResponse(
-  messages: ProgressMessage[],
-  assistantIndex: number
-): boolean {
-  for (let index = assistantIndex + 1; index < messages.length; index += 1) {
-    const message = messages[index];
-    if (message?.role === "assistant") {
-      return false;
-    }
-    if (message?.role === "user") {
-      return true;
-    }
-  }
-  return false;
-}
-
-function findCurrentThemeStart(messages: ProgressMessage[]): {
-  index: number;
-  startedThemeCount: number;
-} {
-  const seenQuestionIds = new Set<string>();
-  let index = -1;
-
-  messages.forEach((message, messageIndex) => {
-    if (
-      message.role !== "assistant" ||
-      !message.questionId ||
-      seenQuestionIds.has(message.questionId)
-    ) {
-      return;
-    }
-
-    seenQuestionIds.add(message.questionId);
-    index = messageIndex;
-  });
-
-  return { index, startedThemeCount: seenQuestionIds.size };
-}
-
-function getQuestionIndexes(
-  messages: ProgressMessage[],
-  startIndex: number
-): number[] {
-  return messages.flatMap((message, index) =>
-    index >= startIndex &&
-    message.role === "assistant" &&
-    message.report == null
-      ? [index]
-      : []
-  );
-}
+const FIRST_QUESTION_REMAINING_RANGE = { min: 7, max: 10 } as const;
+const FIXED_REMAINING_RANGE = { min: 1, max: 3 } as const;
+const FIXED_RANGE_START_QUESTION = 8;
 
 function calcRemainingQuestionRange(
-  totalQuestions: number,
   messages: ProgressMessage[]
 ): RemainingQuestionRange {
-  const currentTheme = findCurrentThemeStart(messages);
-  const startedThemeCount = Math.min(
-    totalQuestions,
-    currentTheme.startedThemeCount
-  );
-  const unstartedThemeCount = Math.max(0, totalQuestions - startedThemeCount);
-  const unstartedMin = unstartedThemeCount * (1 + MIN_FOLLOW_UP_QUESTIONS);
-  const unstartedMax = unstartedThemeCount * (1 + MAX_FOLLOW_UP_QUESTIONS);
-
-  if (currentTheme.index < 0) {
-    return { min: unstartedMin, max: unstartedMax };
-  }
-
-  const currentThemeAssistantIndexes = getQuestionIndexes(
-    messages,
-    currentTheme.index
-  );
-  const baseQuestionIndex = currentThemeAssistantIndexes[0];
-
-  if (baseQuestionIndex === undefined) {
-    return { min: unstartedMin, max: unstartedMax };
-  }
-
-  const baseQuestionOutstanding = hasUserResponse(messages, baseQuestionIndex)
-    ? 0
-    : 1;
-  const followUpIndexes = currentThemeAssistantIndexes.slice(1);
-  const outstandingFollowUps = followUpIndexes.filter(
-    (index) => !hasUserResponse(messages, index)
+  // 残り問数は質問内容を解釈せず、表示済みのAI質問数だけで機械的に減らす。
+  const displayedQuestionCount = messages.filter(
+    (message) => message.role === "assistant" && message.report == null
   ).length;
-  const additionalFollowUpsMin = Math.max(
-    0,
-    MIN_FOLLOW_UP_QUESTIONS - followUpIndexes.length
-  );
-  const additionalFollowUpsMax = Math.max(
-    0,
-    MAX_FOLLOW_UP_QUESTIONS - followUpIndexes.length
-  );
+  const currentQuestionNumber = Math.max(1, displayedQuestionCount);
 
+  if (currentQuestionNumber >= FIXED_RANGE_START_QUESTION) {
+    return { ...FIXED_REMAINING_RANGE };
+  }
+
+  const completedQuestionCount = currentQuestionNumber - 1;
   return {
-    min:
-      unstartedMin +
-      baseQuestionOutstanding +
-      outstandingFollowUps +
-      additionalFollowUpsMin,
-    max:
-      unstartedMax +
-      baseQuestionOutstanding +
-      outstandingFollowUps +
-      additionalFollowUpsMax,
+    min: FIRST_QUESTION_REMAINING_RANGE.min - completedQuestionCount,
+    max: FIRST_QUESTION_REMAINING_RANGE.max - completedQuestionCount,
   };
 }
 
@@ -185,10 +97,7 @@ export function calcInterviewProgress(
   return {
     percentage,
     currentTopic,
-    remainingQuestionRange: calcRemainingQuestionRange(
-      totalQuestions,
-      messages
-    ),
+    remainingQuestionRange: calcRemainingQuestionRange(messages),
     showSkip: true,
   };
 }

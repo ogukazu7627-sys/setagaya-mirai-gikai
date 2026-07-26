@@ -12,11 +12,11 @@ describe("InterviewProgressBar", () => {
       <InterviewProgressBar
         currentTopic="お願いしたいこと"
         percentage={0}
-        remainingQuestionRange={{ min: 12, max: 16 }}
+        remainingQuestionRange={{ min: 7, max: 10 }}
       />
     );
 
-    expect(screen.getByText("あと約12〜16問")).toBeInTheDocument();
+    expect(screen.getByText("あと約7〜10問")).toBeInTheDocument();
   });
 
   it("最小と最大が同じ場合は1つの数で表示する", () => {
@@ -48,7 +48,7 @@ describe("InterviewProgressBar", () => {
       <InterviewProgressBar
         currentTopic={null}
         percentage={0}
-        remainingQuestionRange={{ min: 12, max: 16 }}
+        remainingQuestionRange={{ min: 7, max: 10 }}
       />
     );
 
