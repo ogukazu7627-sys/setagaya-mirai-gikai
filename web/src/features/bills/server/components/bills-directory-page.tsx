@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Container } from "@/components/layouts/container";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { CouncilSearchSection } from "@/features/bills/client/components/bill-list/council-search-section";
+import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
 import type { CouncilSearchInitialFilters } from "@/features/bills/shared/types/council-search";
 import { buildCouncilSearchCommitteeDocuments } from "@/features/bills/shared/utils/build-council-search-documents";
 import { CouncilChatClient } from "@/features/chat/client/components/council-chat-client";
@@ -16,30 +17,31 @@ import { loadBillsDirectoryData } from "../loaders/load-bills-directory-data";
 
 type BillsDirectoryPageProps = {
   initialSearch?: CouncilSearchInitialFilters;
+  archiveYear?: string | string[];
 };
 
 export async function BillsDirectoryPage({
   initialSearch,
+  archiveYear,
 }: BillsDirectoryPageProps) {
   const now = getJapanTime();
   const [
-    { billsByMajorCategory, searchDocuments, difficultyLevel },
+    {
+      currentBills,
+      billsByMajorCategory,
+      searchDocuments,
+      difficultyLevel,
+      archiveData,
+    },
     currentSession,
     committees,
   ] = await Promise.all([
-    loadBillsDirectoryData(now),
+    loadBillsDirectoryData(now, archiveYear),
     getCurrentDietSession(now),
     findActivePublicCommittees(),
   ]);
   const committeeSearchDocuments =
     buildCouncilSearchCommitteeDocuments(committees);
-  const currentBills = Array.from(
-    new Map(
-      billsByMajorCategory
-        .flatMap((category) => category.bills)
-        .map((bill) => [bill.id, bill])
-    ).values()
-  );
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -106,6 +108,14 @@ export async function BillsDirectoryPage({
           )}
         </div>
       </Container>
+
+      {archiveData.years.length > 0 && (
+        <div className="bg-mirai-surface-muted py-10">
+          <Container>
+            <YearArchiveSection archiveData={archiveData} basePath="/bills" />
+          </Container>
+        </div>
+      )}
 
       <CouncilChatClient
         currentDifficulty={difficultyLevel}

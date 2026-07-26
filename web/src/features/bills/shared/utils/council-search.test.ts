@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { BillCardData } from "../types";
 import type { CouncilSearchDocument } from "../types/council-search";
 import {
   createCouncilSearchFilters,
@@ -19,6 +20,14 @@ const documents: CouncilSearchDocument[] = [
     tags: ["学校給食"],
     submittedDate: "2026-06-01",
     thumbnailUrl: null,
+    card: createCard({
+      id: "education-bill",
+      title: "学校給食費を無償化する議案",
+      itemType: "bill",
+      majorCategory: "教育🏫",
+      submittedDate: "2026-06-01",
+      thumbnailUrl: null,
+    }),
   },
   {
     kind: "bill",
@@ -33,6 +42,14 @@ const documents: CouncilSearchDocument[] = [
     tags: ["高齢者福祉"],
     submittedDate: "2026-07-01",
     thumbnailUrl: "https://example.com/welfare-report.jpg",
+    card: createCard({
+      id: "welfare-report",
+      title: "高齢者の見守りに関する報告",
+      itemType: "report",
+      majorCategory: "福祉🤝",
+      submittedDate: "2026-07-01",
+      thumbnailUrl: "https://example.com/welfare-report.jpg",
+    }),
   },
   {
     kind: "committee",
@@ -43,6 +60,43 @@ const documents: CouncilSearchDocument[] = [
     responsibilities: ["児童・生徒の教育環境", "生涯学習"],
   },
 ];
+
+function createCard({
+  id,
+  title,
+  itemType,
+  majorCategory,
+  submittedDate,
+  thumbnailUrl,
+}: {
+  id: string;
+  title: string;
+  itemType: BillCardData["item_type"];
+  majorCategory: string;
+  submittedDate: string;
+  thumbnailUrl: string | null;
+}): BillCardData {
+  return {
+    id,
+    name: title,
+    item_type: itemType,
+    major_category: majorCategory,
+    status: "introduced",
+    status_label: null,
+    status_note: null,
+    submitted_date: submittedDate,
+    thumbnail_url: thumbnailUrl,
+    is_featured: false,
+    is_review_completed: false,
+    interview_enabled: false,
+    hasPublicInterview: false,
+    bill_content: {
+      title,
+      summary: "",
+    },
+    tags: [],
+  };
+}
 
 describe("searchCouncilDocuments", () => {
   it("searches titles, summaries, tags, categories, and committees", () => {

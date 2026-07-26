@@ -1,4 +1,4 @@
-import type { BillItemType } from ".";
+import type { BillCardData, BillItemType } from ".";
 
 export type CouncilSearchContentType = "all" | BillItemType | "committee";
 
@@ -15,26 +15,7 @@ export type CouncilSearchBillDocument = {
   tags: string[];
   submittedDate: string | null;
   thumbnailUrl: string | null;
-};
-
-export type CouncilSearchBillRow = {
-  id: string;
-  name: string;
-  thumbnail_url: string | null;
-  item_type: BillItemType;
-  major_category: string | null;
-  status_note: string | null;
-  submitted_date: string | null;
-  bill_contents:
-    | { title: string; summary: string }
-    | Array<{ title: string; summary: string }>
-    | null;
-  bills_tags: Array<{
-    tags:
-      | { label: string; major_category: string | null }
-      | Array<{ label: string; major_category: string | null }>
-      | null;
-  }> | null;
+  card: BillCardData;
 };
 
 export type CouncilSearchCommitteeDocument = {

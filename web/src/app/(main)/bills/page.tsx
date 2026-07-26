@@ -11,7 +11,12 @@ export const metadata: Metadata = {
 
 type BillsPageProps = {
   searchParams?: Promise<
-    Partial<Record<"q" | "type" | "theme" | "committee", string | string[]>>
+    Partial<
+      Record<
+        "q" | "type" | "theme" | "committee" | "archive_year",
+        string | string[]
+      >
+    >
   >;
 };
 
@@ -26,6 +31,7 @@ export default async function BillsPage({ searchParams }: BillsPageProps) {
         theme: firstValue(params?.theme),
         committee: firstValue(params?.committee),
       }}
+      archiveYear={params?.archive_year}
     />
   );
 }

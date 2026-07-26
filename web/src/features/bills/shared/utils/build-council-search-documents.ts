@@ -5,10 +5,9 @@ import {
   getCommitteeProfile,
 } from "@/features/committees/shared/committee-profiles";
 import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
-import type { BillWithContent } from "../types";
+import type { BillCardData, BillWithContent } from "../types";
 import type {
   CouncilSearchBillDocument,
-  CouncilSearchBillRow,
   CouncilSearchCommitteeDocument,
 } from "../types/council-search";
 
@@ -35,44 +34,7 @@ export function buildCouncilSearchBillDocuments(
       tags: bill.tags.map((tag) => tag.label),
       submittedDate: bill.submitted_date,
       thumbnailUrl: bill.thumbnail_url,
-    };
-  });
-}
-
-export function buildCouncilSearchBillDocumentsFromRows(
-  rows: CouncilSearchBillRow[]
-): CouncilSearchBillDocument[] {
-  return rows.map((row) => {
-    const content = Array.isArray(row.bill_contents)
-      ? row.bill_contents[0]
-      : row.bill_contents;
-    const tags = (row.bills_tags ?? []).flatMap((relation) => {
-      const relatedTags = Array.isArray(relation.tags)
-        ? relation.tags
-        : relation.tags
-          ? [relation.tags]
-          : [];
-      return relatedTags;
-    });
-    const category = RECOMMENDATION_CATEGORY_OPTIONS.find(
-      (option) =>
-        option.label === row.major_category ||
-        tags.some((tag) => tag.major_category === option.label)
-    );
-
-    return {
-      kind: "bill",
-      id: row.id,
-      title: content?.title || row.name,
-      officialName: row.name,
-      summary: content?.summary || "",
-      itemType: row.item_type,
-      majorCategoryId: category?.id ?? null,
-      majorCategoryLabel: category?.label ?? row.major_category,
-      committeeName: extractCommitteeName(row.status_note),
-      tags: tags.map((tag) => tag.label),
-      submittedDate: row.submitted_date,
-      thumbnailUrl: row.thumbnail_url,
+      card: toBillCardData(bill),
     };
   });
 }
@@ -91,4 +53,29 @@ export function buildCouncilSearchCommitteeDocuments(
       responsibilities: profile.responsibilities,
     };
   });
+}
+
+function toBillCardData(bill: BillWithContent): BillCardData {
+  return {
+    id: bill.id,
+    name: bill.name,
+    item_type: bill.item_type,
+    major_category: bill.major_category,
+    status: bill.status,
+    status_label: bill.status_label,
+    status_note: bill.status_note,
+    submitted_date: bill.submitted_date,
+    thumbnail_url: bill.thumbnail_url,
+    is_featured: bill.is_featured,
+    is_review_completed: bill.is_review_completed,
+    interview_enabled: bill.interview_enabled,
+    hasPublicInterview: bill.hasPublicInterview,
+    bill_content: bill.bill_content
+      ? {
+          title: bill.bill_content.title,
+          summary: bill.bill_content.summary,
+        }
+      : undefined,
+    tags: bill.tags,
+  };
 }

@@ -2,7 +2,6 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type { Bill, BillDietSession } from "../../shared/types";
-import type { CouncilSearchBillRow } from "../../shared/types/council-search";
 
 type BillWithDietSession = Bill & {
   diet_session?: BillDietSession | null;
@@ -47,50 +46,16 @@ export async function findPublishedBillsWithContents(
   return data;
 }
 
-export async function findPublishedBillSearchRows(
-  difficultyLevel: DifficultyLevelEnum
-): Promise<CouncilSearchBillRow[]> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("bills")
-    .select(
-      `
-      id,
-      name,
-      thumbnail_url,
-      item_type,
-      major_category,
-      status_note,
-      submitted_date,
-      bill_contents!inner (
-        title,
-        summary,
-        difficulty_level
-      ),
-      bills_tags (
-        tags (
-          label,
-          major_category
-        )
-      )
-    `
-    )
-    .eq("publish_status", "published")
-    .eq("bill_contents.difficulty_level", difficultyLevel)
-    .order("submitted_date", { ascending: false, nullsFirst: false });
-
-  if (error) {
-    throw new Error(`Failed to fetch bill search rows: ${error.message}`);
-  }
-
-  return (data ?? []) as unknown as CouncilSearchBillRow[];
-}
-
 export async function findPublishedBillsByCommitteeSearchTerm(
   searchTerm: string,
   difficultyLevel: DifficultyLevelEnum,
+  dietSessionIds: string[],
   limit = 6
 ) {
+  if (dietSessionIds.length === 0) {
+    return [];
+  }
+
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
@@ -111,6 +76,7 @@ export async function findPublishedBillsByCommitteeSearchTerm(
     )
     .eq("publish_status", "published")
     .eq("bill_contents.difficulty_level", difficultyLevel)
+    .in("diet_session_id", dietSessionIds)
     .ilike("status_note", `%${searchTerm}%`)
     .order("submitted_date", { ascending: false, nullsFirst: false })
     .limit(limit);

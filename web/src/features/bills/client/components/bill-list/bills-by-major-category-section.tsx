@@ -23,12 +23,14 @@ interface BillsByMajorCategorySectionProps {
   billsByMajorCategory: BillsByMajorCategory[];
   title?: string;
   description?: string;
+  sectionId?: string;
 }
 
 export function BillsByMajorCategorySection({
   billsByMajorCategory,
   title = "テーマから探す",
   description,
+  sectionId = "theme-bills",
 }: BillsByMajorCategorySectionProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     () => resolveInitialThemeCategoryId(billsByMajorCategory, [])
@@ -94,7 +96,7 @@ export function BillsByMajorCategorySection({
   }
 
   return (
-    <section id="theme-bills" className="scroll-mt-20 flex flex-col gap-8">
+    <section id={sectionId} className="scroll-mt-20 flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <h2 className="text-[22px] font-bold text-black leading-[1.48]">
           {title}
