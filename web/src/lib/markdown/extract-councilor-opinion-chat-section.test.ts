@@ -28,7 +28,7 @@ describe("extractCouncilorOpinionChatSection", () => {
       groupIndex: 0,
       rawHeading: "中里光夫議員",
       councilorName: "中里光夫",
-      iconUrl: "/icons/councilors/nakazato-mitsuo.jpg",
+      iconUrl: "/icons/councilors/nakazato-mitsuo-avatar.jpg",
     });
     expect(section?.groups[0]?.messages).toMatchObject([
       {
