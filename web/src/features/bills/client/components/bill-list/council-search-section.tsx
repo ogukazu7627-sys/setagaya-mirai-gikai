@@ -326,7 +326,7 @@ export function CouncilSearchSection({
             value={draftQuery}
             onChange={(event) => setDraftQuery(event.target.value)}
             onKeyDown={handleQueryKeyDown}
-            placeholder="例：子育て世代が知っておくべきこと"
+            placeholder="例：若者が知るべきこと"
             className="max-h-[92px] min-h-13 resize-none border-0 bg-transparent py-3 pl-12 pr-14 text-base leading-6 shadow-none focus-visible:border-0 focus-visible:ring-0"
           />
           <Button
