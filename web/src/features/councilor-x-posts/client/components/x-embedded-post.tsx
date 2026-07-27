@@ -36,6 +36,17 @@ declare global {
 
 const EMBED_TIMEOUT_MS = 12_000;
 
+function makeEmbedDisplayOnly(element: HTMLElement) {
+  element.style.pointerEvents = "none";
+  element.tabIndex = -1;
+
+  const iframe = element.querySelector("iframe");
+  if (iframe) {
+    iframe.style.pointerEvents = "none";
+    iframe.tabIndex = -1;
+  }
+}
+
 export function XEmbeddedPost({
   post,
   shouldLoad,
@@ -95,6 +106,7 @@ export function XEmbeddedPost({
           fail();
           return;
         }
+        makeEmbedDisplayOnly(element);
         active = false;
         setEmbedStatus("ready");
       } catch {
@@ -130,7 +142,22 @@ export function XEmbeddedPost({
         </div>
       )}
 
-      <div ref={hostRef} className="w-full" />
+      <div className="relative w-full touch-pan-y">
+        <div ref={hostRef} className="w-full [&_iframe]:pointer-events-none" />
+
+        {embedStatus === "ready" && (
+          <a
+            aria-label={`${post.councilorName}の投稿をXでもっと読む`}
+            className="absolute right-4 bottom-3 left-4 z-10 h-8 rounded-full focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2"
+            draggable={false}
+            href={post.postUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <span className="sr-only">Xでもっと読む</span>
+          </a>
+        )}
+      </div>
 
       {embedStatus === "failed" && (
         <article className="min-h-[260px] border border-mirai-border bg-white p-6">

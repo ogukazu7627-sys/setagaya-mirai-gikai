@@ -36,7 +36,7 @@ describe("XEmbeddedPost", () => {
   });
 
   it("公式APIのプライバシー設定で埋め込みを生成する", async () => {
-    const embeddedPost = document.createElement("blockquote");
+    const embeddedPost = document.createElement("iframe");
     const createTweet = vi.fn().mockResolvedValue(embeddedPost);
     window.twttr = { widgets: { createTweet } };
 
@@ -58,6 +58,13 @@ describe("XEmbeddedPost", () => {
       screen.queryByText("X投稿を読み込んでいます")
     ).not.toBeInTheDocument();
     expect(screen.queryByText("この投稿をXで見る")).not.toBeInTheDocument();
+    expect(embeddedPost.style.pointerEvents).toBe("none");
+    expect(embeddedPost).toHaveAttribute("tabindex", "-1");
+    expect(
+      screen.getByRole("link", {
+        name: "テスト議員の投稿をXでもっと読む",
+      })
+    ).toHaveAttribute("href", post.postUrl);
   });
 
   it("後続投稿は指示されるまで公式埋め込みを生成しない", async () => {
