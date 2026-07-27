@@ -4,35 +4,21 @@ import {
   getCalendarYearFromDate,
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
-import {
-  getSetagayaMockBills,
-  getSetagayaMockBillsByMajorCategory,
-  isSetagayaMockMode,
-} from "@/lib/setagaya-mock";
-import { groupBillsByMajorCategory } from "../../shared/utils/group-bills-by-major-category";
-import {
-  findFeaturedBillsByDietSessionIds,
-  findPublishedBillsByDietSessionIds,
-} from "../repositories/bill-repository";
+import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { findFeaturedBillsByDietSessionIds } from "../repositories/bill-repository";
 import { buildBillsWithContent } from "../utils/build-bills-with-content";
 
 type HomeDataOptions = {
   currentDate: Date;
 };
 
-/**
- * トップページ用のデータを並列取得する
- * BFF (Backend For Frontend) パターン
- */
+/** トップページに表示する注目案件を取得する。 */
 export async function loadHomeData(options: HomeDataOptions) {
   if (isSetagayaMockMode) {
     const featuredBills = getSetagayaMockBills("normal").filter(
       (bill) => bill.is_featured
     );
-    return {
-      billsByMajorCategory: getSetagayaMockBillsByMajorCategory("normal"),
-      featuredBills,
-    };
+    return { featuredBills };
   }
 
   const currentYear = getCalendarYearFromDate(options.currentDate);
@@ -49,18 +35,11 @@ export async function loadHomeData(options: HomeDataOptions) {
     (session) => session.id
   );
 
-  const [featuredBillRows, currentBillRows] = await Promise.all([
-    findFeaturedBillsByDietSessionIds(currentYearSessionIds, difficultyLevel),
-    findPublishedBillsByDietSessionIds(currentYearSessionIds, difficultyLevel),
-  ]);
+  const featuredBillRows = await findFeaturedBillsByDietSessionIds(
+    currentYearSessionIds,
+    difficultyLevel
+  );
+  const featuredBills = await buildBillsWithContent(featuredBillRows);
 
-  const [featuredBills, currentBills] = await Promise.all([
-    buildBillsWithContent(featuredBillRows),
-    buildBillsWithContent(currentBillRows),
-  ]);
-
-  return {
-    billsByMajorCategory: groupBillsByMajorCategory(currentBills),
-    featuredBills,
-  };
+  return { featuredBills };
 }
