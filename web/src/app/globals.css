@@ -125,6 +125,9 @@
 }
 
 :root {
+  --font-noto-sans-jp: "Noto Sans JP Variable", system-ui, sans-serif;
+  --font-lexend-giga: "Lexend Giga Variable", system-ui, sans-serif;
+  --font-noto-serif-jp: "Noto Serif JP Variable", "Yu Mincho", serif;
   --radius: 0.625rem;
   --app-header-safe-top: env(safe-area-inset-top, 0px);
   --app-header-top-gap: 1rem;

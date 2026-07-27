@@ -1,28 +1,11 @@
+import "@fontsource-variable/lexend-giga/wght.css";
+import "@fontsource-variable/noto-sans-jp/wght.css";
+import "@fontsource-variable/noto-serif-jp/wght.css";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Lexend_Giga, Noto_Sans_JP, Noto_Serif_JP } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import type { ReactNode } from "react";
 import { env } from "@/lib/env";
-
-const notoSansJP = Noto_Sans_JP({
-  variable: "--font-noto-sans-jp",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
-
-const lexendGiga = Lexend_Giga({
-  variable: "--font-lexend-giga",
-  subsets: ["latin"],
-  weight: ["400", "500", "700", "800", "900"],
-});
-
-// トピックの代表意見など、引用文を明朝体で表示するために使用
-const notoSerifJP = Noto_Serif_JP({
-  variable: "--font-noto-serif-jp",
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
 
 const siteTitle = "みらい議会＠世田谷区";
 const siteDescription =
@@ -105,9 +88,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${notoSansJP.variable} ${lexendGiga.variable} ${notoSerifJP.variable} font-sans antialiased bg-mirai-surface-light`}
-      >
+      <body className="font-sans antialiased bg-mirai-surface-light">
         <NextTopLoader showSpinner={false} color={themeColor} />
         {children}
       </body>
