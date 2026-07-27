@@ -109,7 +109,7 @@ export function CouncilorXPostsCarousel({
             <CarouselItem
               key={post.postId}
               aria-label={`${index + 1} / ${posts.length}`}
-              className="self-start basis-[88%] pl-3 sm:basis-[70%] md:basis-[52%] lg:basis-[42%] xl:basis-[36%]"
+              className="self-start basis-[88%] overflow-hidden pl-3 sm:basis-[min(550px,78%)]"
             >
               <XEmbeddedPost
                 post={post}
