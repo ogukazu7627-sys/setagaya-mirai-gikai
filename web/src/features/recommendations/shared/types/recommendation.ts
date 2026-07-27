@@ -1,4 +1,4 @@
-import type { BillWithContent } from "@/features/bills/shared/types";
+import type { BillCardData } from "@/features/bills/shared/types";
 import type {
   RecommendationCategoryId,
   RecommendationSmallTag,
@@ -28,8 +28,7 @@ export type StoredRecommendationProfile = {
 
 export type TodayRecommendationsResponse = {
   recommendationDate: string;
-  bills: BillWithContent[];
-  hasRemainingCandidates: boolean;
+  bills: BillCardData[];
   selectedSmallTags: RecommendationSmallTag[];
   selectedParentCategoryIds: RecommendationCategoryId[];
   preferenceVersion: number;

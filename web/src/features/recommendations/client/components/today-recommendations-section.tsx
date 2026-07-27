@@ -21,22 +21,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { routes } from "@/lib/routes";
 import type { RecommendationSmallTag } from "../../shared/constants/recommendation-taxonomy";
-import { RECOMMENDATION_SMALL_TAGS } from "../../shared/constants/recommendation-taxonomy";
 import type {
   RecommendationAvailability,
   StoredRecommendationProfile,
   TodayRecommendationsResponse,
 } from "../../shared/types/recommendation";
+import { getJstDateKey } from "../../shared/utils/jst-date";
+import { getAvailableTags } from "../../shared/utils/recommendation-availability";
 import {
   deleteRecommendationData,
+  fetchRecommendationAvailability,
   fetchTodayRecommendations,
   RecommendationClientError,
   recordRecommendationImpressions,
   resetRecommendationHistory,
   savePreferences,
 } from "../utils/recommendation-api-client";
+import { createRecommendationImpressionBatcher } from "../utils/recommendation-impression-batcher";
 import {
   canPersistRecommendationProfile,
   createAnonymousInstallationId,
@@ -47,6 +51,12 @@ import {
   writeRecommendationProfile,
 } from "../utils/recommendation-storage";
 import {
+  isTodayRecommendationsCacheFresh,
+  readTodayRecommendationsCache,
+  removeTodayRecommendationsCache,
+  writeTodayRecommendationsCache,
+} from "../utils/today-recommendations-cache";
+import {
   disableWebPush,
   enableWebPush,
   getPushSupport,
@@ -56,18 +66,26 @@ import { RecommendationBillsCarousel } from "./recommendation-bills-carousel";
 import { RecommendationOnboardingDialog } from "./recommendation-onboarding-dialog";
 
 type TodayRecommendationsSectionProps = {
-  availability: RecommendationAvailability;
+  currentDifficulty: DifficultyLevelEnum;
 };
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
+type AvailabilityStatus = "idle" | "loading" | "ready" | "error";
 
 export function TodayRecommendationsSection({
-  availability,
+  currentDifficulty,
 }: TodayRecommendationsSectionProps) {
   const [profile, setProfile] = useState<StoredRecommendationProfile | null>(
     null
   );
   const [data, setData] = useState<TodayRecommendationsResponse | null>(null);
+  const [availability, setAvailability] =
+    useState<RecommendationAvailability | null>(null);
+  const [availabilityStatus, setAvailabilityStatus] =
+    useState<AvailabilityStatus>("idle");
+  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(
+    null
+  );
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
@@ -77,20 +95,118 @@ export function TodayRecommendationsSection({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pushSupport, setPushSupport] = useState<PushSupport | null>(null);
-  const sentImpressionKeys = useRef(new Set<string>());
   const storageRef = useRef<Storage | null>(null);
-  const hasAvailableTags = RECOMMENDATION_SMALL_TAGS.some(
-    (tag) => availability[tag] > 0
+  const availabilityRef = useRef<RecommendationAvailability | null>(null);
+  const availabilityRequestRef =
+    useRef<Promise<RecommendationAvailability> | null>(null);
+  const todayRequestIdRef = useRef(0);
+  const impressionBatcherRef = useRef<ReturnType<
+    typeof createRecommendationImpressionBatcher
+  > | null>(null);
+  if (!impressionBatcherRef.current) {
+    impressionBatcherRef.current = createRecommendationImpressionBatcher(
+      recordRecommendationImpressions
+    );
+  }
+  const impressionBatcher = impressionBatcherRef.current;
+
+  const storeTodayData = useCallback(
+    (
+      currentProfile: StoredRecommendationProfile,
+      recommendations: TodayRecommendationsResponse
+    ) => {
+      if (!storageRef.current) {
+        return;
+      }
+      writeTodayRecommendationsCache(
+        storageRef.current,
+        {
+          installationId: currentProfile.installationId,
+          preferenceVersion: currentProfile.preferenceVersion,
+          difficultyLevel: currentDifficulty,
+        },
+        recommendations
+      );
+    },
+    [currentDifficulty]
   );
+
+  const loadAvailability = useCallback(async () => {
+    if (availabilityRef.current) {
+      return availabilityRef.current;
+    }
+    if (availabilityRequestRef.current) {
+      return availabilityRequestRef.current;
+    }
+
+    setAvailabilityStatus("loading");
+    setAvailabilityMessage(null);
+    const request = fetchRecommendationAvailability();
+    availabilityRequestRef.current = request;
+    try {
+      const result = await request;
+      availabilityRef.current = result;
+      setAvailability(result);
+      setAvailabilityStatus("ready");
+      return result;
+    } catch (error) {
+      setAvailabilityStatus("error");
+      setAvailabilityMessage(
+        error instanceof Error
+          ? error.message
+          : "おすすめ設定を読み込めませんでした"
+      );
+      throw error;
+    } finally {
+      availabilityRequestRef.current = null;
+    }
+  }, []);
+
+  const prepareOnboarding = useCallback(async () => {
+    try {
+      const result = await loadAvailability();
+      if (getAvailableTags(result).length < 3) {
+        setAvailabilityStatus("error");
+        setAvailabilityMessage("おすすめ機能を一時的に利用できません");
+        return;
+      }
+      setAvailabilityMessage(null);
+      setOnboardingOpen(true);
+    } catch {
+      // 表示用エラーは loadAvailability 側で設定済み。
+    }
+  }, [loadAvailability]);
 
   const loadToday = useCallback(
     async (currentProfile: StoredRecommendationProfile) => {
-      setStatus("loading");
+      const requestId = ++todayRequestIdRef.current;
       setMessage(null);
+      const cachedEntry = storageRef.current
+        ? readTodayRecommendationsCache(storageRef.current, {
+            installationId: currentProfile.installationId,
+            preferenceVersion: currentProfile.preferenceVersion,
+            difficultyLevel: currentDifficulty,
+            recommendationDate: getJstDateKey(),
+          })
+        : null;
+      const cached = cachedEntry?.data ?? null;
+      if (cached) {
+        setData(cached);
+        setStatus("ready");
+      } else {
+        setStatus("loading");
+      }
+      if (cachedEntry && isTodayRecommendationsCacheFresh(cachedEntry)) {
+        return;
+      }
+
       try {
         const result = await fetchTodayRecommendations(
           currentProfile.installationId
         );
+        if (requestId !== todayRequestIdRef.current) {
+          return;
+        }
         const nextProfile = {
           ...currentProfile,
           selectedSmallTags: result.selectedSmallTags,
@@ -101,20 +217,29 @@ export function TodayRecommendationsSection({
         if (storageRef.current) {
           writeRecommendationProfile(storageRef.current, nextProfile);
         }
+        storeTodayData(nextProfile, result);
         setData(result);
         setStatus("ready");
       } catch (error) {
+        if (requestId !== todayRequestIdRef.current) {
+          return;
+        }
         if (
           error instanceof RecommendationClientError &&
           error.code === "profile-not-found"
         ) {
           if (storageRef.current) {
             removeRecommendationProfile(storageRef.current);
+            removeTodayRecommendationsCache(storageRef.current);
           }
           setProfile(null);
           setData(null);
           setStatus("idle");
-          setOnboardingOpen(true);
+          await prepareOnboarding();
+          return;
+        }
+        if (cached) {
+          setStatus("ready");
           return;
         }
         setMessage(
@@ -125,7 +250,7 @@ export function TodayRecommendationsSection({
         setStatus("error");
       }
     },
-    []
+    [currentDifficulty, prepareOnboarding, storeTodayData]
   );
 
   useEffect(() => {
@@ -143,42 +268,43 @@ export function TodayRecommendationsSection({
     }
     if (stored.status === "invalid") {
       removeRecommendationProfile(storage);
+      removeTodayRecommendationsCache(storage);
     }
     if (stored.status === "valid") {
       setProfile(stored.profile);
       void loadToday(stored.profile);
       return;
     }
-    if (!hasAvailableTags) {
-      setMessage("おすすめ機能を一時的に利用できません");
-      setStatus("error");
-      return;
-    }
-    setOnboardingOpen(true);
-  }, [hasAvailableTags, loadToday]);
+    void prepareOnboarding();
+  }, [loadToday, prepareOnboarding]);
+
+  useEffect(() => {
+    const flushImpressions = () => {
+      void impressionBatcher.flush();
+    };
+    window.addEventListener("pagehide", flushImpressions);
+    return () => {
+      window.removeEventListener("pagehide", flushImpressions);
+      todayRequestIdRef.current += 1;
+      impressionBatcher.dispose();
+    };
+  }, [impressionBatcher]);
 
   const recordViewedBill = useCallback(
     (billId: string) => {
       if (!profile || !data) {
         return;
       }
-      const key = [
-        profile.installationId,
-        data.preferenceVersion,
-        data.recommendationDate,
-        billId,
-      ].join(":");
-      if (sentImpressionKeys.current.has(key)) {
-        return;
-      }
-      sentImpressionKeys.current.add(key);
-      void recordRecommendationImpressions(profile.installationId, [
-        billId,
-      ]).catch(() => {
-        sentImpressionKeys.current.delete(key);
-      });
+      impressionBatcher.record(
+        {
+          installationId: profile.installationId,
+          preferenceVersion: data.preferenceVersion,
+          recommendationDate: data.recommendationDate,
+        },
+        billId
+      );
     },
-    [data, profile]
+    [data, impressionBatcher, profile]
   );
 
   async function completeOnboarding(tags: RecommendationSmallTag[]) {
@@ -191,6 +317,8 @@ export function TodayRecommendationsSection({
     const isNewProfile = profile == null;
     const installationId =
       profile?.installationId ?? createAnonymousInstallationId(window.crypto);
+    todayRequestIdRef.current += 1;
+    await impressionBatcher.flush();
     const response = await savePreferences({
       installationId,
       selectedSmallTags: tags,
@@ -213,6 +341,7 @@ export function TodayRecommendationsSection({
       throw new Error("このブラウザでは設定を保存できません");
     }
 
+    removeTodayRecommendationsCache(storage);
     notifyRecommendationProfileUpdated();
     setProfile(nextProfile);
     setOnboardingOpen(false);
@@ -224,6 +353,7 @@ export function TodayRecommendationsSection({
       setMessage("この環境では通知を設定できません");
       return;
     }
+    todayRequestIdRef.current += 1;
     setBusy(true);
     setMessage(null);
     try {
@@ -231,7 +361,9 @@ export function TodayRecommendationsSection({
         installationId: profile.installationId,
         vapidPublicKey: data.vapidPublicKey,
       });
-      setData({ ...data, pushEnabled: true });
+      const nextData = { ...data, pushEnabled: true };
+      setData(nextData);
+      storeTodayData(profile, nextData);
     } catch {
       setPushSupport(getPushSupport());
       setMessage(
@@ -249,11 +381,14 @@ export function TodayRecommendationsSection({
     if (!profile || !data) {
       return;
     }
+    todayRequestIdRef.current += 1;
     setBusy(true);
     setMessage(null);
     try {
       await disableWebPush(profile.installationId);
-      setData({ ...data, pushEnabled: false });
+      const nextData = { ...data, pushEnabled: false };
+      setData(nextData);
+      storeTodayData(profile, nextData);
     } catch {
       setMessage("通知を停止できませんでした。もう一度お試しください。");
     } finally {
@@ -265,9 +400,11 @@ export function TodayRecommendationsSection({
     if (!profile) {
       return;
     }
+    todayRequestIdRef.current += 1;
     setBusy(true);
     setMessage(null);
     try {
+      await impressionBatcher.flush();
       const response = await resetRecommendationHistory(profile.installationId);
       const nextProfile = {
         ...profile,
@@ -275,6 +412,7 @@ export function TodayRecommendationsSection({
       };
       if (storageRef.current) {
         writeRecommendationProfile(storageRef.current, nextProfile);
+        removeTodayRecommendationsCache(storageRef.current);
       }
       setProfile(nextProfile);
       setResetOpen(false);
@@ -292,6 +430,7 @@ export function TodayRecommendationsSection({
     if (!profile) {
       return;
     }
+    todayRequestIdRef.current += 1;
     setBusy(true);
     setMessage(null);
     try {
@@ -307,6 +446,7 @@ export function TodayRecommendationsSection({
       });
       if (storageRef.current) {
         removeRecommendationProfile(storageRef.current);
+        removeTodayRecommendationsCache(storageRef.current);
       }
       notifyRecommendationProfileUpdated();
       setProfile(null);
@@ -314,7 +454,7 @@ export function TodayRecommendationsSection({
       setStatus("idle");
       setDeleteOpen(false);
       setSettingsOpen(false);
-      setOnboardingOpen(true);
+      await prepareOnboarding();
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "設定を削除できません"
@@ -354,6 +494,34 @@ export function TodayRecommendationsSection({
               このブラウザではおすすめ設定を保存できません。通常の案件一覧は引き続き利用できます。
             </p>
           )}
+
+          {!storageUnavailable &&
+            !profile &&
+            availabilityStatus === "loading" && (
+              <p
+                className="text-sm text-mirai-text-secondary"
+                aria-live="polite"
+              >
+                おすすめ設定を準備しています...
+              </p>
+            )}
+
+          {!storageUnavailable &&
+            !profile &&
+            availabilityStatus === "error" && (
+              <div className="space-y-4">
+                <p role="alert" className="text-sm text-mirai-text-secondary">
+                  {availabilityMessage ?? "おすすめ設定を読み込めませんでした"}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void prepareOnboarding()}
+                >
+                  もう一度試す
+                </Button>
+              </div>
+            )}
 
           {!storageUnavailable && status === "loading" && (
             <p className="text-sm text-mirai-text-secondary" aria-live="polite">
@@ -404,17 +572,24 @@ export function TodayRecommendationsSection({
               {message}
             </p>
           )}
+          {profile && availabilityMessage && (
+            <p role="alert" className="text-sm text-destructive">
+              {availabilityMessage}
+            </p>
+          )}
         </div>
       </Container>
 
-      <RecommendationOnboardingDialog
-        open={onboardingOpen}
-        required={profile == null && !storageUnavailable}
-        availability={availability}
-        profile={profile}
-        onOpenChange={setOnboardingOpen}
-        onComplete={completeOnboarding}
-      />
+      {availability && (
+        <RecommendationOnboardingDialog
+          open={onboardingOpen}
+          required={profile == null && !storageUnavailable}
+          availability={availability}
+          profile={profile}
+          onOpenChange={setOnboardingOpen}
+          onComplete={completeOnboarding}
+        />
+      )}
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="rounded-lg" showCloseButton>
@@ -430,8 +605,9 @@ export function TodayRecommendationsSection({
               variant="outline"
               onClick={() => {
                 setSettingsOpen(false);
-                setOnboardingOpen(true);
+                void prepareOnboarding();
               }}
+              disabled={availabilityStatus === "loading"}
             >
               <SlidersHorizontal />
               興味分野を変更

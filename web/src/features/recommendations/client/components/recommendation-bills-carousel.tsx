@@ -13,11 +13,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { BillCard } from "@/features/bills/client/components/bill-list/bill-card";
-import type { BillWithContent } from "@/features/bills/shared/types";
+import type { BillCardData } from "@/features/bills/shared/types";
 import { routes } from "@/lib/routes";
 
 type RecommendationBillsCarouselProps = {
-  bills: BillWithContent[];
+  bills: BillCardData[];
   onBillViewed?: (billId: string) => void;
 };
 

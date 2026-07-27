@@ -1,4 +1,5 @@
 import type {
+  RecommendationAvailability,
   StoredRecommendationProfile,
   TodayRecommendationsResponse,
 } from "../../shared/types/recommendation";
@@ -37,6 +38,15 @@ export async function fetchTodayRecommendations(
     {
       method: "POST",
       body: JSON.stringify({ installationId }),
+    }
+  );
+}
+
+export function fetchRecommendationAvailability() {
+  return requestJson<RecommendationAvailability>(
+    "/api/recommendations/availability",
+    {
+      method: "GET",
     }
   );
 }

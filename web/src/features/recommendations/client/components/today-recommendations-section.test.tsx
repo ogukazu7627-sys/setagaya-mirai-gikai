@@ -1,17 +1,23 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BillWithContent } from "@/features/bills/shared/types";
+import type { BillCardData } from "@/features/bills/shared/types";
 import {
   RECOMMENDATION_SMALL_TAGS,
   type RecommendationSmallTag,
 } from "../../shared/constants/recommendation-taxonomy";
 import type { RecommendationAvailability } from "../../shared/types/recommendation";
+import { getJstDateKey } from "../../shared/utils/jst-date";
 import { RECOMMENDATION_PROFILE_STORAGE_KEY } from "../utils/recommendation-storage";
+import {
+  TODAY_RECOMMENDATIONS_CACHE_KEY,
+  writeTodayRecommendationsCache,
+} from "../utils/today-recommendations-cache";
 
 const mocks = vi.hoisted(() => ({
+  fetchRecommendationAvailability: vi.fn(),
   fetchTodayRecommendations: vi.fn(),
   recordRecommendationImpressions: vi.fn(),
   savePreferences: vi.fn(),
@@ -25,6 +31,7 @@ vi.mock("../utils/recommendation-api-client", async () => {
   >("../utils/recommendation-api-client");
   return {
     ...actual,
+    fetchRecommendationAvailability: mocks.fetchRecommendationAvailability,
     fetchTodayRecommendations: mocks.fetchTodayRecommendations,
     recordRecommendationImpressions: mocks.recordRecommendationImpressions,
     savePreferences: mocks.savePreferences,
@@ -40,7 +47,7 @@ vi.mock("../utils/web-push-client", () => ({
 }));
 
 vi.mock("@/features/bills/client/components/bill-list/bill-card", () => ({
-  BillCard: ({ bill }: { bill: BillWithContent }) => (
+  BillCard: ({ bill }: { bill: BillCardData }) => (
     <div>案件カード: {bill.bill_content?.title}</div>
   ),
 }));
@@ -51,6 +58,9 @@ describe("TodayRecommendationsSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
+    mocks.fetchRecommendationAvailability.mockResolvedValue(
+      availabilityWith(["不登校支援", "学校改築", "防災情報"])
+    );
     mocks.recordRecommendationImpressions.mockResolvedValue({ success: true });
     Object.defineProperty(window, "matchMedia", {
       writable: true,
@@ -77,16 +87,13 @@ describe("TodayRecommendationsSection", () => {
     }));
   });
 
-  it("shows onboarding only when the versioned local profile is absent", () => {
-    render(
-      <TodayRecommendationsSection
-        availability={availabilityWith(["不登校支援", "学校改築", "防災情報"])}
-      />
-    );
+  it("shows onboarding only when the versioned local profile is absent", async () => {
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
 
     expect(
-      screen.getByRole("dialog", { name: "興味のある分野を選ぶ" })
+      await screen.findByRole("dialog", { name: "興味のある分野を選ぶ" })
     ).toBeVisible();
+    expect(mocks.fetchRecommendationAvailability).toHaveBeenCalledTimes(1);
     expect(mocks.fetchTodayRecommendations).not.toHaveBeenCalled();
   });
 
@@ -110,9 +117,8 @@ describe("TodayRecommendationsSection", () => {
           name: "テスト案件",
           bill_content: { title: "テスト案件タイトル" },
           tags: [],
-        } as unknown as BillWithContent,
+        } as unknown as BillCardData,
       ],
-      hasRemainingCandidates: false,
       selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
       selectedParentCategoryIds: ["education", "disaster-prevention"],
       preferenceVersion: 1,
@@ -120,11 +126,7 @@ describe("TodayRecommendationsSection", () => {
       vapidPublicKey: null,
     });
 
-    render(
-      <TodayRecommendationsSection
-        availability={availabilityWith(["不登校支援", "学校改築", "防災情報"])}
-      />
-    );
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
 
     expect(
       await screen.findByText("案件カード: テスト案件タイトル")
@@ -145,12 +147,172 @@ describe("TodayRecommendationsSection", () => {
     expect(
       screen.getByRole("button", { name: "毎朝、おすすめを受け取る" })
     ).toBeDisabled();
+    expect(mocks.fetchRecommendationAvailability).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "興味分野を変更" }));
+    expect(
+      await screen.findByRole("dialog", { name: "興味分野を変更" })
+    ).toBeVisible();
+    expect(mocks.fetchRecommendationAvailability).toHaveBeenCalledTimes(1);
+    await waitFor(
+      () => {
+        expect(mocks.recordRecommendationImpressions).toHaveBeenCalledWith(
+          "11111111-1111-4111-8111-111111111111",
+          ["22222222-2222-4222-8222-222222222222"]
+        );
+      },
+      { timeout: 2000 }
+    );
+  });
+
+  it("新しい当日キャッシュを即表示し、API呼び出しも省略する", async () => {
+    const installationId = "11111111-1111-4111-8111-111111111111";
+    const profile = {
+      installationId,
+      selectedParentCategoryIds: ["education", "disaster-prevention"] as const,
+      selectedSmallTags: ["不登校支援", "学校改築", "防災情報"] as const,
+      completedAt: "2026-07-25T00:00:00.000Z",
+      preferenceVersion: 1,
+    };
+    window.localStorage.setItem(
+      RECOMMENDATION_PROFILE_STORAGE_KEY,
+      JSON.stringify(profile)
+    );
+    writeTodayRecommendationsCache(
+      window.localStorage,
+      {
+        installationId,
+        preferenceVersion: 1,
+        difficultyLevel: "normal",
+      },
+      {
+        recommendationDate: getJstDateKey(),
+        bills: [
+          {
+            id: "33333333-3333-4333-8333-333333333333",
+            name: "キャッシュ案件",
+            bill_content: { title: "キャッシュから即表示" },
+            tags: [],
+          } as unknown as BillCardData,
+        ],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        preferenceVersion: 1,
+        pushEnabled: false,
+        vapidPublicKey: null,
+      }
+    );
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    expect(
+      await screen.findByText("案件カード: キャッシュから即表示")
+    ).toBeVisible();
+    expect(mocks.fetchTodayRecommendations).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText("おすすめを読み込んでいます...")
+    ).not.toBeInTheDocument();
+  });
+
+  it("古い当日キャッシュを即表示しながら裏で再検証する", async () => {
+    const installationId = "11111111-1111-4111-8111-111111111111";
+    window.localStorage.setItem(
+      RECOMMENDATION_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        installationId,
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        completedAt: "2026-07-25T00:00:00.000Z",
+        preferenceVersion: 1,
+      })
+    );
+    writeTodayRecommendationsCache(
+      window.localStorage,
+      {
+        installationId,
+        preferenceVersion: 1,
+        difficultyLevel: "normal",
+      },
+      {
+        recommendationDate: getJstDateKey(),
+        bills: [
+          {
+            id: "44444444-4444-4444-8444-444444444444",
+            name: "再検証案件",
+            bill_content: { title: "古いキャッシュを先に表示" },
+            tags: [],
+          } as unknown as BillCardData,
+        ],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        preferenceVersion: 1,
+        pushEnabled: false,
+        vapidPublicKey: null,
+      }
+    );
+    const stored = JSON.parse(
+      window.localStorage.getItem(TODAY_RECOMMENDATIONS_CACHE_KEY) ?? "{}"
+    ) as Record<string, unknown>;
+    stored.cachedAt = "2000-01-01T00:00:00.000Z";
+    window.localStorage.setItem(
+      TODAY_RECOMMENDATIONS_CACHE_KEY,
+      JSON.stringify(stored)
+    );
+    mocks.fetchTodayRecommendations.mockReturnValue(new Promise(() => {}));
+
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    expect(
+      await screen.findByText("案件カード: 古いキャッシュを先に表示")
+    ).toBeVisible();
+    expect(mocks.fetchTodayRecommendations).toHaveBeenCalledWith(
+      installationId
+    );
+    expect(
+      screen.queryByText("おすすめを読み込んでいます...")
+    ).not.toBeInTheDocument();
+  });
+
+  it("古い再検証結果で新しい難易度の表示を上書きしない", async () => {
+    const installationId = "11111111-1111-4111-8111-111111111111";
+    window.localStorage.setItem(
+      RECOMMENDATION_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        installationId,
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        completedAt: "2026-07-25T00:00:00.000Z",
+        preferenceVersion: 1,
+      })
+    );
+    let resolveFirstRequest: (
+      value: ReturnType<typeof recommendationResponse>
+    ) => void = () => {};
+    const firstRequest = new Promise<ReturnType<typeof recommendationResponse>>(
+      (resolve) => {
+        resolveFirstRequest = resolve;
+      }
+    );
+    mocks.fetchTodayRecommendations
+      .mockReturnValueOnce(firstRequest)
+      .mockResolvedValueOnce(recommendationResponse("難しい表示"));
+
+    const { rerender } = render(
+      <TodayRecommendationsSection currentDifficulty="normal" />
+    );
     await waitFor(() => {
-      expect(mocks.recordRecommendationImpressions).toHaveBeenCalledWith(
-        "11111111-1111-4111-8111-111111111111",
-        ["22222222-2222-4222-8222-222222222222"]
-      );
+      expect(mocks.fetchTodayRecommendations).toHaveBeenCalledTimes(1);
     });
+
+    rerender(<TodayRecommendationsSection currentDifficulty="hard" />);
+    expect(await screen.findByText("案件カード: 難しい表示")).toBeVisible();
+
+    await act(async () => {
+      resolveFirstRequest(recommendationResponse("古い普通表示"));
+      await firstRequest;
+    });
+    expect(
+      screen.queryByText("案件カード: 古い普通表示")
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("案件カード: 難しい表示")).toBeVisible();
   });
 
   it("records the same rendered bills again after a history reset changes the preference version", async () => {
@@ -173,9 +335,8 @@ describe("TodayRecommendationsSection", () => {
           name: "テスト案件",
           bill_content: { title: "テスト案件タイトル" },
           tags: [],
-        } as unknown as BillWithContent,
+        } as unknown as BillCardData,
       ],
-      hasRemainingCandidates: false,
       selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
       selectedParentCategoryIds: ["education", "disaster-prevention"],
       pushEnabled: false,
@@ -188,24 +349,26 @@ describe("TodayRecommendationsSection", () => {
       preferenceVersion: 2,
     });
 
-    render(
-      <TodayRecommendationsSection
-        availability={availabilityWith(["不登校支援", "学校改築", "防災情報"])}
-      />
-    );
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
 
-    await waitFor(() => {
-      expect(mocks.recordRecommendationImpressions).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(
+      () => {
+        expect(mocks.recordRecommendationImpressions).toHaveBeenCalledTimes(1);
+      },
+      { timeout: 2000 }
+    );
     await user.click(screen.getByRole("button", { name: "設定" }));
     await user.click(
       screen.getByRole("button", { name: "表示履歴をリセット" })
     );
     await user.click(screen.getByRole("button", { name: "リセットする" }));
 
-    await waitFor(() => {
-      expect(mocks.recordRecommendationImpressions).toHaveBeenCalledTimes(2);
-    });
+    await waitFor(
+      () => {
+        expect(mocks.recordRecommendationImpressions).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("keeps the notification stop action available when no recommendations remain", async () => {
@@ -223,7 +386,6 @@ describe("TodayRecommendationsSection", () => {
     mocks.fetchTodayRecommendations.mockResolvedValue({
       recommendationDate: "2026-07-25",
       bills: [],
-      hasRemainingCandidates: false,
       selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
       selectedParentCategoryIds: ["education", "disaster-prevention"],
       preferenceVersion: 1,
@@ -231,11 +393,7 @@ describe("TodayRecommendationsSection", () => {
       vapidPublicKey: "AQID",
     });
 
-    render(
-      <TodayRecommendationsSection
-        availability={availabilityWith(["不登校支援", "学校改築", "防災情報"])}
-      />
-    );
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
 
     expect(
       await screen.findByText(/新しくおすすめできる案件がありません/)
@@ -257,4 +415,23 @@ function availabilityWith(
       availableTags.includes(tag) ? 1 : 0,
     ])
   ) as RecommendationAvailability;
+}
+
+function recommendationResponse(title: string) {
+  return {
+    recommendationDate: getJstDateKey(),
+    bills: [
+      {
+        id: "55555555-5555-4555-8555-555555555555",
+        name: title,
+        bill_content: { title },
+        tags: [],
+      } as unknown as BillCardData,
+    ],
+    selectedSmallTags: ["不登校支援", "学校改築", "防災情報"] as const,
+    selectedParentCategoryIds: ["education", "disaster-prevention"] as const,
+    preferenceVersion: 1,
+    pushEnabled: false,
+    vapidPublicKey: null,
+  };
 }
