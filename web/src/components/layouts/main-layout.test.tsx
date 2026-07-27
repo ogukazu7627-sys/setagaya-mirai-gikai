@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe("MainLayout", () => {
-  it("reserves the shared fixed-header offset on mobile and desktop", () => {
+  it("uses safe-area offset on mobile and the measured header offset from 768px", () => {
     const { container } = render(
       <MainLayout>
         <div>content</div>
@@ -27,8 +27,8 @@ describe("MainLayout", () => {
 
     expect(container.firstElementChild).toHaveClass(
       "pt-[var(--app-header-layout-offset)]",
-      "md:pt-0",
-      "md:mt-[var(--app-header-layout-offset)]"
+      "min-[768px]:pt-0",
+      "min-[768px]:mt-[var(--app-header-layout-offset)]"
     );
   });
 
@@ -70,6 +70,19 @@ describe("MainLayout", () => {
       </MainLayout>
     );
     expect(container.firstElementChild).not.toHaveClass(
+      "layout-with-mobile-primary-navigation"
+    );
+  });
+
+  it("reserves bottom-navigation space on public interview routes", () => {
+    navigationMock.pathname = "/bills/bill-id/interview/chat";
+    const { container } = render(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+
+    expect(container.firstElementChild).toHaveClass(
       "layout-with-mobile-primary-navigation"
     );
   });

@@ -91,3 +91,9 @@ export function shouldShowPrimaryNavigation(pathname: string): boolean {
 
   return !/^\/bills\/[^/]+\/interview(?:\/|$)/u.test(pathname);
 }
+
+export function shouldShowMobilePrimaryNavigation(pathname: string): boolean {
+  return !PRIMARY_NAVIGATION_HIDDEN_PATHS.some((path) =>
+    isPathWithin(pathname, path)
+  );
+}

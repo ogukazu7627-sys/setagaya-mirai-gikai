@@ -15,6 +15,7 @@ import {
 import { getBillDetailLink } from "@/features/interview-config/shared/utils/interview-links";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useVisualViewportFrame } from "@/hooks/use-visual-viewport-frame";
+import { cn } from "@/lib/utils";
 import { isLoopFamilyMode } from "../../shared/utils/is-loop-family-mode";
 import { useInterviewChat } from "../hooks/use-interview-chat";
 import { useInterviewTimer } from "../hooks/use-interview-timer";
@@ -396,7 +397,7 @@ export function InterviewChatClient({
       className={
         isPanelLayout
           ? "flex h-full min-h-0 flex-col bg-white"
-          : "h-dvh md:h-[calc(100dvh-96px)] bg-mirai-surface-light"
+          : "h-[calc(100dvh-var(--app-header-layout-offset))] bg-mirai-surface-light"
       }
       data-testid="interview-chat-root"
     >
@@ -404,7 +405,7 @@ export function InterviewChatClient({
         className={
           isPanelLayout
             ? "flex min-h-0 flex-1 flex-col bg-white"
-            : "flex flex-col h-full pt-23 md:pt-10 bg-white md:rounded-t-[36px] md:px-12"
+            : "flex h-full flex-col bg-white pt-4 min-[768px]:rounded-t-[36px] min-[768px]:px-12 min-[768px]:pt-10"
         }
       >
         {showProgressBar && progress && (
@@ -532,7 +533,12 @@ export function InterviewChatClient({
 
         {/* 入力エリア */}
         <div
-          className="shrink-0 bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2"
+          className={cn(
+            "shrink-0 bg-white px-6 pt-2",
+            !isPanelLayout && previewToken == null
+              ? "pb-[calc(var(--mobile-primary-navigation-height)+env(safe-area-inset-bottom,0px)+0.75rem)] pc:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+              : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+          )}
           data-testid="interview-chat-composer"
         >
           {(stage === "summary" || stage === "summary_complete") && (

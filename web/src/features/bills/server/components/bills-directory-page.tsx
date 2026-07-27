@@ -2,6 +2,8 @@ import { ArrowRight, Landmark } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Container } from "@/components/layouts/container";
+import { MobileDifficultySelector } from "@/features/bill-difficulty/client/components/mobile-difficulty-selector";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { CouncilSearchSection } from "@/features/bills/client/components/bill-list/council-search-section";
 import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
@@ -27,17 +29,22 @@ export async function BillsDirectoryPage({
     { billsByMajorCategory, searchDocuments, archiveData },
     currentSession,
     committees,
+    currentDifficulty,
   ] = await Promise.all([
     loadBillsDirectoryData(now, archiveYear),
     getCurrentDietSession(now),
     findActivePublicCommittees(),
+    getDifficultyLevel(),
   ]);
   return (
     <div className="min-h-dvh bg-mirai-surface">
       <Container className="py-8 sm:py-12">
         <div className="flex flex-col gap-3">
           <p className="text-sm font-bold text-primary-accent">世田谷区議会</p>
-          <h1 className="text-3xl font-bold text-mirai-text">議会</h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-3xl font-bold text-mirai-text">議会</h1>
+            <MobileDifficultySelector currentLevel={currentDifficulty} />
+          </div>
           <p className="max-w-2xl text-[15px] leading-relaxed text-mirai-text-secondary">
             世田谷区議会で扱われている議案、質問、請願・陳情、報告事項を確認できます。
           </p>
