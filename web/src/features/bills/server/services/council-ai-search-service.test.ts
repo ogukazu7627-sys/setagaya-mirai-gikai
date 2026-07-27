@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DietSession } from "@/features/diet-sessions/shared/types";
+import type { BillCardData } from "../../shared/types";
 import type { CouncilAiSearchRequest } from "../../shared/types/council-ai-search";
 import { searchCouncilBills } from "./council-ai-search-service";
 
@@ -26,6 +27,8 @@ describe("searchCouncilBills", () => {
       },
     ]);
     const findSessions = vi.fn().mockResolvedValue([session]);
+    const card = createCard("33333333-3333-4333-8333-333333333333");
+    const loadCards = vi.fn().mockResolvedValue([card]);
 
     const result = await searchCouncilBills(input, {
       now: () => new Date("2026-07-27T12:00:00+09:00"),
@@ -33,6 +36,8 @@ describe("searchCouncilBills", () => {
       findCouncilors: async () => [],
       embedQuery: async () => Array.from({ length: 512 }, () => 0),
       search,
+      getDifficulty: async () => "normal",
+      loadCards,
     });
 
     expect(findSessions).toHaveBeenCalledWith("2026-01-01", "2026-12-31");
@@ -44,6 +49,12 @@ describe("searchCouncilBills", () => {
     );
     expect(result.mode).toBe("hybrid");
     expect(result.billIds).toHaveLength(1);
+    expect(result.bills).toEqual([card]);
+    expect(loadCards).toHaveBeenCalledWith(
+      ["33333333-3333-4333-8333-333333333333"],
+      [session.id],
+      "normal"
+    );
   });
 
   it("Embeddingが失敗しても通常検索へフォールバックする", async () => {
@@ -56,6 +67,8 @@ describe("searchCouncilBills", () => {
         throw new Error("gateway unavailable");
       },
       search,
+      getDifficulty: async () => "normal",
+      loadCards: async () => [],
     });
 
     expect(search).toHaveBeenCalledWith(
@@ -80,6 +93,7 @@ describe("searchCouncilBills", () => {
 
     expect(result).toEqual({
       billIds: [],
+      bills: [],
       total: 0,
       mode: "keyword-fallback",
     });
@@ -87,3 +101,23 @@ describe("searchCouncilBills", () => {
     expect(search).not.toHaveBeenCalled();
   });
 });
+
+function createCard(id: string): BillCardData {
+  return {
+    id,
+    name: id,
+    item_type: "bill",
+    major_category: "防災☔",
+    status: "introduced",
+    status_label: null,
+    status_note: null,
+    submitted_date: "2026-07-01",
+    thumbnail_url: null,
+    is_featured: false,
+    is_review_completed: true,
+    interview_enabled: false,
+    hasPublicInterview: false,
+    bill_content: { title: id, summary: id },
+    tags: [],
+  };
+}

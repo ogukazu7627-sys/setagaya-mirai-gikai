@@ -29,6 +29,7 @@ describe("POST /api/council-search", () => {
     mocks.consumeAnonymousRateLimit.mockResolvedValue(true);
     mocks.searchCouncilBills.mockResolvedValue({
       billIds: ["22222222-2222-4222-8222-222222222222"],
+      bills: [],
       total: 1,
       mode: "hybrid",
     });
@@ -42,6 +43,7 @@ describe("POST /api/council-search", () => {
     expect(mocks.searchCouncilBills).toHaveBeenCalledWith(validBody);
     expect(await response.json()).toEqual({
       billIds: ["22222222-2222-4222-8222-222222222222"],
+      bills: [],
       total: 1,
       mode: "hybrid",
     });

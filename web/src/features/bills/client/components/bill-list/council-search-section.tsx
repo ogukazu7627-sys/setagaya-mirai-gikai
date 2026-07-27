@@ -15,18 +15,21 @@ import {
   type KeyboardEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
+import {
+  RECOMMENDATION_CATEGORY_OPTIONS,
+  type RecommendationCategoryId,
+} from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import type { BillCardData } from "../../../shared/types";
+import type { CouncilBillCardPage } from "../../../shared/types/council-bill-directory";
 import type {
   CouncilSearchContentType,
-  CouncilSearchDocument,
   CouncilSearchFilters,
   CouncilSearchInitialFilters,
 } from "../../../shared/types/council-search";
@@ -34,10 +37,10 @@ import {
   COUNCIL_SEARCH_PAGE_SIZE,
   createCouncilSearchFilters,
   hasActiveCouncilSearch,
-  searchCouncilDocuments,
 } from "../../../shared/utils/council-search";
 import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
-import { getCouncilAiSearchInstallationId } from "../../utils/council-ai-search-storage";
+import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
 import { BillCard } from "./bill-card";
 
 const CONTENT_TYPE_OPTIONS: Array<{
@@ -61,15 +64,23 @@ const SEARCH_SKELETON_KEYS = [
 ] as const;
 
 type SearchStatus = "idle" | "loading" | "success" | "error";
+type SearchResult =
+  | {
+      kind: "ai";
+      bills: BillCardData[];
+      total: number;
+    }
+  | {
+      kind: "filters";
+      page: CouncilBillCardPage;
+    };
 
 type CouncilSearchSectionProps = {
-  documents: CouncilSearchDocument[];
   committeeNames: string[];
   initialFilters?: CouncilSearchInitialFilters;
 };
 
 export function CouncilSearchSection({
-  documents,
   committeeNames,
   initialFilters = {},
 }: CouncilSearchSectionProps) {
@@ -81,40 +92,92 @@ export function CouncilSearchSection({
   );
   const [draftQuery, setDraftQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
-  const [rankedBillIds, setRankedBillIds] = useState<string[] | null>(null);
+  const [result, setResult] = useState<SearchResult | null>(null);
   const [status, setStatus] = useState<SearchStatus>("idle");
   const [requestedPage, setRequestedPage] = useState(1);
   const requestControllerRef = useRef<AbortController | null>(null);
+  const initialFiltersRef = useRef(filters);
 
-  const documentsById = useMemo(
-    () => new Map(documents.map((document) => [document.id, document])),
-    [documents]
+  const executeSearch = useCallback(
+    async (query: string, searchFilters: CouncilSearchFilters, page = 1) => {
+      const normalizedQuery = query.trim();
+      requestControllerRef.current?.abort();
+      if (!normalizedQuery && !hasActiveCouncilSearch(searchFilters)) {
+        setSubmittedQuery("");
+        setResult(null);
+        setStatus("idle");
+        setRequestedPage(1);
+        return;
+      }
+
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
+      setSubmittedQuery(normalizedQuery);
+      setRequestedPage(page);
+      setStatus("loading");
+
+      try {
+        const installationId = getBrowserCouncilSearchInstallationId();
+        if (normalizedQuery) {
+          const response = await requestCouncilAiSearch(
+            {
+              installationId,
+              query: normalizedQuery,
+              contentType: searchFilters.contentType,
+              themeId: searchFilters.themeId as Parameters<
+                typeof requestCouncilAiSearch
+              >[0]["themeId"],
+              committeeName: searchFilters.committeeName,
+            },
+            controller.signal
+          );
+          if (!controller.signal.aborted) {
+            setResult({
+              kind: "ai",
+              bills: response.bills,
+              total: response.total,
+            });
+            setRequestedPage(1);
+            setStatus("success");
+          }
+          return;
+        }
+
+        const response = await requestCouncilBillPage(
+          {
+            installationId,
+            mode: "filters",
+            contentType: searchFilters.contentType,
+            themeId: searchFilters.themeId as RecommendationCategoryId | "",
+            committeeName: searchFilters.committeeName,
+            page,
+          },
+          controller.signal
+        );
+        if (!controller.signal.aborted) {
+          setResult({ kind: "filters", page: response });
+          setRequestedPage(response.currentPage);
+          setStatus("success");
+        }
+      } catch (error) {
+        if (
+          !controller.signal.aborted &&
+          !(error instanceof DOMException && error.name === "AbortError")
+        ) {
+          setResult(null);
+          setStatus("error");
+        }
+      }
+    },
+    []
   );
-  const localResults = useMemo(
-    () => searchCouncilDocuments(documents, filters),
-    [documents, filters]
-  );
-  const results = useMemo(
-    () =>
-      rankedBillIds === null
-        ? localResults
-        : rankedBillIds.flatMap((billId) => {
-            const document = documentsById.get(billId);
-            return document ? [document] : [];
-          }),
-    [documentsById, localResults, rankedBillIds]
-  );
-  const totalPages = Math.max(
-    1,
-    Math.ceil(results.length / COUNCIL_SEARCH_PAGE_SIZE)
-  );
-  const currentPage = Math.min(requestedPage, totalPages);
-  const visibleResults = results.slice(
-    (currentPage - 1) * COUNCIL_SEARCH_PAGE_SIZE,
-    currentPage * COUNCIL_SEARCH_PAGE_SIZE
-  );
-  const isSearchActive =
-    submittedQuery.length > 0 || hasActiveCouncilSearch(filters);
+
+  useEffect(() => {
+    const initialFilters = initialFiltersRef.current;
+    if (hasActiveCouncilSearch(initialFilters)) {
+      void executeSearch("", initialFilters);
+    }
+  }, [executeSearch]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -136,63 +199,27 @@ export function CouncilSearchSection({
     []
   );
 
-  const executeSearch = useCallback(
-    async (query: string, searchFilters: CouncilSearchFilters) => {
-      const normalizedQuery = query.trim();
-      requestControllerRef.current?.abort();
-      if (!normalizedQuery) {
-        setSubmittedQuery("");
-        setRankedBillIds(null);
-        setStatus("idle");
-        return;
-      }
-
-      const controller = new AbortController();
-      requestControllerRef.current = controller;
-      setSubmittedQuery(normalizedQuery);
-      setRankedBillIds([]);
-      setRequestedPage(1);
-      setStatus("loading");
-
-      try {
-        let storage: Storage | null = null;
-        try {
-          storage = window.localStorage;
-        } catch {
-          storage = null;
-        }
-        const installationId = getCouncilAiSearchInstallationId(
-          storage,
-          window.crypto
-        );
-        const response = await requestCouncilAiSearch(
-          {
-            installationId,
-            query: normalizedQuery,
-            contentType: searchFilters.contentType,
-            themeId: searchFilters.themeId as Parameters<
-              typeof requestCouncilAiSearch
-            >[0]["themeId"],
-            committeeName: searchFilters.committeeName,
-          },
-          controller.signal
-        );
-        if (!controller.signal.aborted) {
-          setRankedBillIds(response.billIds);
-          setStatus("success");
-        }
-      } catch (error) {
-        if (
-          !controller.signal.aborted &&
-          !(error instanceof DOMException && error.name === "AbortError")
-        ) {
-          setRankedBillIds([]);
-          setStatus("error");
-        }
-      }
-    },
-    []
-  );
+  const aiTotalPages =
+    result?.kind === "ai"
+      ? Math.max(1, Math.ceil(result.bills.length / COUNCIL_SEARCH_PAGE_SIZE))
+      : 1;
+  const currentPage =
+    result?.kind === "filters"
+      ? result.page.currentPage
+      : Math.min(requestedPage, aiTotalPages);
+  const totalPages =
+    result?.kind === "filters" ? result.page.totalPages : aiTotalPages;
+  const visibleBills =
+    result?.kind === "filters"
+      ? result.page.bills
+      : (result?.bills.slice(
+          (currentPage - 1) * COUNCIL_SEARCH_PAGE_SIZE,
+          currentPage * COUNCIL_SEARCH_PAGE_SIZE
+        ) ?? []);
+  const total =
+    result?.kind === "filters" ? result.page.total : (result?.total ?? 0);
+  const isSearchActive =
+    submittedQuery.length > 0 || hasActiveCouncilSearch(filters);
 
   function updateFilters(
     update: (current: CouncilSearchFilters) => CouncilSearchFilters
@@ -202,6 +229,12 @@ export function CouncilSearchSection({
     setRequestedPage(1);
     if (submittedQuery) {
       void executeSearch(submittedQuery, nextFilters);
+    } else if (hasActiveCouncilSearch(nextFilters)) {
+      void executeSearch("", nextFilters);
+    } else {
+      requestControllerRef.current?.abort();
+      setResult(null);
+      setStatus("idle");
     }
   }
 
@@ -230,7 +263,7 @@ export function CouncilSearchSection({
     requestControllerRef.current?.abort();
     setDraftQuery("");
     setSubmittedQuery("");
-    setRankedBillIds(null);
+    setResult(null);
     setStatus("idle");
     setFilters({
       contentType: "all",
@@ -238,6 +271,18 @@ export function CouncilSearchSection({
       committeeName: "",
     });
     setRequestedPage(1);
+  }
+
+  function changePage(page: number) {
+    if (result?.kind === "filters") {
+      void executeSearch("", filters, page);
+      return;
+    }
+    setRequestedPage(page);
+  }
+
+  function retrySearch() {
+    void executeSearch(submittedQuery, filters, currentPage);
   }
 
   return (
@@ -385,7 +430,7 @@ export function CouncilSearchSection({
                   className="mt-1 text-xs text-mirai-text-secondary"
                   aria-live="polite"
                 >
-                  {results.length}件
+                  {total}件
                 </p>
               )}
             </div>
@@ -405,22 +450,23 @@ export function CouncilSearchSection({
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => void executeSearch(submittedQuery, filters)}
+                onClick={retrySearch}
                 className="mt-4 border-mirai-border shadow-none"
               >
                 <RotateCcw aria-hidden="true" className="size-4" />
                 もう一度試す
               </Button>
             </div>
-          ) : visibleResults.length > 0 ? (
+          ) : visibleBills.length > 0 ? (
             <ul className="mt-4 flex max-w-[634px] flex-col gap-4">
-              {visibleResults.map((document) => (
-                <li key={document.id}>
+              {visibleBills.map((bill) => (
+                <li key={bill.id}>
                   <Link
-                    href={routes.billDetail(document.id) as Route}
+                    href={routes.billDetail(bill.id) as Route}
+                    prefetch={false}
                     className="block w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
                   >
-                    <BillCard bill={document.card} />
+                    <BillCard bill={bill} />
                   </Link>
                 </li>
               ))}
@@ -459,9 +505,7 @@ export function CouncilSearchSection({
                 aria-label="前のページ"
                 title="前のページ"
                 disabled={currentPage === 1}
-                onClick={() =>
-                  setRequestedPage((page) => Math.max(1, page - 1))
-                }
+                onClick={() => changePage(Math.max(1, currentPage - 1))}
                 className="border-mirai-border shadow-none"
               >
                 <ChevronLeft aria-hidden="true" />
@@ -477,7 +521,7 @@ export function CouncilSearchSection({
                 title="次のページ"
                 disabled={currentPage === totalPages}
                 onClick={() =>
-                  setRequestedPage((page) => Math.min(totalPages, page + 1))
+                  changePage(Math.min(totalPages, currentPage + 1))
                 }
                 className="border-mirai-border shadow-none"
               >

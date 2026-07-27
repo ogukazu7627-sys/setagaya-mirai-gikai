@@ -3,7 +3,6 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Container } from "@/components/layouts/container";
 import { MobileDifficultySelector } from "@/features/bill-difficulty/client/components/mobile-difficulty-selector";
-import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillsByMajorCategorySection } from "@/features/bills/client/components/bill-list/bills-by-major-category-section";
 import { CouncilSearchSection } from "@/features/bills/client/components/bill-list/council-search-section";
 import { YearArchiveSection } from "@/features/bills/server/components/year-archive-section";
@@ -26,15 +25,13 @@ export async function BillsDirectoryPage({
 }: BillsDirectoryPageProps) {
   const now = getJapanTime();
   const [
-    { billsByMajorCategory, searchDocuments, archiveData },
+    { themeData, archiveData, difficultyLevel },
     currentSession,
     committees,
-    currentDifficulty,
   ] = await Promise.all([
     loadBillsDirectoryData(now, archiveYear),
     getCurrentDietSession(now),
     findActivePublicCommittees(),
-    getDifficultyLevel(),
   ]);
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -43,7 +40,7 @@ export async function BillsDirectoryPage({
           <p className="text-sm font-bold text-primary-accent">世田谷区議会</p>
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-3xl font-bold text-mirai-text">議会</h1>
-            <MobileDifficultySelector currentLevel={currentDifficulty} />
+            <MobileDifficultySelector currentLevel={difficultyLevel} />
           </div>
           <p className="max-w-2xl text-[15px] leading-relaxed text-mirai-text-secondary">
             世田谷区議会で扱われている議案、質問、請願・陳情、報告事項を確認できます。
@@ -56,7 +53,6 @@ export async function BillsDirectoryPage({
       <Container className="py-8 sm:py-10">
         <div className="flex flex-col gap-12">
           <CouncilSearchSection
-            documents={searchDocuments}
             committeeNames={committees.map((committee) => committee.name)}
             initialFilters={initialSearch}
           />
@@ -87,9 +83,9 @@ export async function BillsDirectoryPage({
             </Link>
           </section>
 
-          {billsByMajorCategory.length > 0 ? (
+          {themeData.categories.length > 0 ? (
             <BillsByMajorCategorySection
-              billsByMajorCategory={billsByMajorCategory}
+              data={themeData}
               title="案件をテーマから探す"
               description="今年の会期に属する公開済み案件を、テーマごとに表示しています。"
             />

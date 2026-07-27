@@ -1,6 +1,5 @@
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
-import { buildCouncilSearchBillDocuments } from "@/features/bills/shared/utils/build-council-search-documents";
-import { groupBillsByMajorCategory } from "@/features/bills/shared/utils/group-bills-by-major-category";
+import { extractCommitteeName } from "@/features/committees/shared/committee-matching";
 import {
   findDietSessionsStartingBefore,
   findDietSessionsStartingBetween,
@@ -10,8 +9,10 @@ import {
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
-import { findPublishedBillsByDietSessionIds } from "../repositories/bill-repository";
-import { buildBillsWithContent } from "../utils/build-bills-with-content";
+import type { CouncilBillDirectoryEntry } from "../../shared/types/council-bill-directory";
+import { toBillCardData } from "../../shared/utils/to-bill-card-data";
+import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
+import { loadCouncilThemeSectionData } from "./load-council-theme-section-data";
 import { loadYearArchiveData } from "./load-year-archive-data";
 
 export async function loadBillsDirectoryData(
@@ -22,15 +23,32 @@ export async function loadBillsDirectoryData(
 
   if (isSetagayaMockMode) {
     const bills = getSetagayaMockBills(difficultyLevel);
+    const entries = bills.map(toCouncilBillDirectoryEntry);
+    const cardsById = new Map(
+      bills.map((bill) => [bill.id, toBillCardData(bill)])
+    );
+    const themeData = await loadCouncilThemeSectionData(
+      {
+        year: getCalendarYearFromDate(currentDate),
+        entries,
+        dietSessionIds: [],
+        difficultyLevel,
+      },
+      {
+        loadCards: async (billIds) =>
+          billIds.flatMap((billId) => {
+            const card = cardsById.get(billId);
+            return card ? [card] : [];
+          }),
+      }
+    );
     return {
-      currentBills: bills,
-      billsByMajorCategory: groupBillsByMajorCategory(bills),
-      searchDocuments: buildCouncilSearchBillDocuments(bills),
+      themeData,
       difficultyLevel,
       archiveData: {
         years: [],
         selectedYear: null,
-        billsByMajorCategory: [],
+        themeData: null,
       },
     };
   }
@@ -44,9 +62,12 @@ export async function loadBillsDirectoryData(
     ),
     findDietSessionsStartingBefore(currentYearRange.startDate),
   ]);
-  const [currentYearRows, archiveData] = await Promise.all([
-    findPublishedBillsByDietSessionIds(
-      currentYearSessions.map((session) => session.id),
+  const currentDietSessionIds = currentYearSessions.map(
+    (session) => session.id
+  );
+  const [currentEntries, archiveData] = await Promise.all([
+    findPublishedCouncilBillDirectoryEntries(
+      currentDietSessionIds,
       difficultyLevel
     ),
     loadYearArchiveData({
@@ -55,13 +76,28 @@ export async function loadBillsDirectoryData(
       pastSessions,
     }),
   ]);
-  const currentYearBills = await buildBillsWithContent(currentYearRows);
+  const themeData = await loadCouncilThemeSectionData({
+    year: currentYear,
+    entries: currentEntries,
+    dietSessionIds: currentDietSessionIds,
+    difficultyLevel,
+  });
 
   return {
-    currentBills: currentYearBills,
-    billsByMajorCategory: groupBillsByMajorCategory(currentYearBills),
-    searchDocuments: buildCouncilSearchBillDocuments(currentYearBills),
+    themeData,
     difficultyLevel,
     archiveData,
+  };
+}
+
+function toCouncilBillDirectoryEntry(
+  bill: ReturnType<typeof getSetagayaMockBills>[number]
+): CouncilBillDirectoryEntry {
+  return {
+    id: bill.id,
+    itemType: bill.item_type,
+    majorCategory: bill.major_category ?? null,
+    committeeName: extractCommitteeName(bill.status_note),
+    submittedDate: bill.submitted_date,
   };
 }

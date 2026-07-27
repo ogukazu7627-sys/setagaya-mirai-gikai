@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BillWithContent } from "../../shared/types";
 import { loadYearArchiveData } from "./load-year-archive-data";
 
 const mocks = vi.hoisted(() => ({
   findDietSessionsStartingBetween: vi.fn(),
-  findPublishedBillsByDietSessionIds: vi.fn(),
-  buildBillsWithContent: vi.fn(),
+  findEntries: vi.fn(),
+  loadCouncilThemeSectionData: vi.fn(),
 }));
 
 vi.mock(
@@ -14,34 +13,36 @@ vi.mock(
     findDietSessionsStartingBetween: mocks.findDietSessionsStartingBetween,
   })
 );
-
-vi.mock("../repositories/bill-repository", () => ({
-  findPublishedBillsByDietSessionIds: mocks.findPublishedBillsByDietSessionIds,
+vi.mock("../repositories/council-bill-directory-repository", () => ({
+  findPublishedCouncilBillDirectoryEntries: mocks.findEntries,
+}));
+vi.mock("./load-council-theme-section-data", () => ({
+  loadCouncilThemeSectionData: mocks.loadCouncilThemeSectionData,
 }));
 
-vi.mock("../utils/build-bills-with-content", () => ({
-  buildBillsWithContent: mocks.buildBillsWithContent,
-}));
+const themeData = {
+  year: 2024,
+  categories: [],
+  initialCategoryId: null,
+  initialPage: {
+    bills: [],
+    total: 0,
+    currentPage: 1,
+    totalPages: 1,
+  },
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.findDietSessionsStartingBetween.mockResolvedValue([
     { id: "session-2024" },
   ]);
-  mocks.findPublishedBillsByDietSessionIds.mockResolvedValue([
-    { id: "archive-row" },
-  ]);
-  mocks.buildBillsWithContent.mockResolvedValue([
-    {
-      id: "archive-bill",
-      major_category: "教育🏫",
-      submitted_date: "2024-06-01",
-    } as unknown as BillWithContent,
-  ]);
+  mocks.findEntries.mockResolvedValue([{ id: "archive-entry" }]);
+  mocks.loadCouncilThemeSectionData.mockResolvedValue(themeData);
 });
 
 describe("loadYearArchiveData", () => {
-  it("selects the requested past year and loads only its sessions", async () => {
+  it("選ばれた過去年だけを軽量索引と10件ページで読み込む", async () => {
     const result = await loadYearArchiveData({
       archiveYear: "2024",
       difficultyLevel: "normal",
@@ -58,25 +59,44 @@ describe("loadYearArchiveData", () => {
       "2024-01-01",
       "2024-12-31"
     );
-    expect(mocks.findPublishedBillsByDietSessionIds).toHaveBeenCalledWith(
-      ["session-2024"],
-      "normal"
-    );
-    expect(result.billsByMajorCategory[0]?.bills[0]?.id).toBe("archive-bill");
+    expect(mocks.findEntries).toHaveBeenCalledWith(["session-2024"], "normal");
+    expect(mocks.loadCouncilThemeSectionData).toHaveBeenCalledWith({
+      year: 2024,
+      entries: [{ id: "archive-entry" }],
+      dietSessionIds: ["session-2024"],
+      difficultyLevel: "normal",
+    });
+    expect(result.themeData).toBe(themeData);
   });
 
-  it("returns an empty archive without querying bills when no past year exists", async () => {
+  it("年を選ぶまでは過年度案件を取得しない", async () => {
     const result = await loadYearArchiveData({
       difficultyLevel: "normal",
-      pastSessions: [],
+      pastSessions: [
+        { start_date: "2025-02-01" },
+        { start_date: "2024-06-01" },
+      ],
     });
 
     expect(result).toEqual({
-      years: [],
+      years: [2025, 2024],
       selectedYear: null,
-      billsByMajorCategory: [],
+      themeData: null,
     });
     expect(mocks.findDietSessionsStartingBetween).not.toHaveBeenCalled();
-    expect(mocks.findPublishedBillsByDietSessionIds).not.toHaveBeenCalled();
+    expect(mocks.findEntries).not.toHaveBeenCalled();
+  });
+
+  it("過年度がない場合は空の年一覧を返す", async () => {
+    expect(
+      await loadYearArchiveData({
+        difficultyLevel: "normal",
+        pastSessions: [],
+      })
+    ).toEqual({
+      years: [],
+      selectedYear: null,
+      themeData: null,
+    });
   });
 });

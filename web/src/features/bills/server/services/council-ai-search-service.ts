@@ -1,6 +1,7 @@
 import "server-only";
 
 import { embed } from "ai";
+import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { findDietSessionsStartingBetween } from "@/features/diet-sessions/server/repositories/diet-session-repository";
 import {
   getCalendarYearFromDate,
@@ -24,6 +25,7 @@ import {
   findCouncilSearchCouncilors,
   findRankedCouncilSearchBills,
 } from "../repositories/council-search-repository";
+import { loadCouncilBillCardsByIds } from "../loaders/load-council-bill-cards";
 import { formatPostgresVector } from "../utils/council-search-embedding";
 
 type CouncilAiSearchDependencies = {
@@ -32,6 +34,8 @@ type CouncilAiSearchDependencies = {
   findCouncilors?: () => Promise<CouncilSearchCouncilor[]>;
   search?: typeof findRankedCouncilSearchBills;
   embedQuery?: (value: string) => Promise<number[]>;
+  getDifficulty?: typeof getDifficultyLevel;
+  loadCards?: typeof loadCouncilBillCardsByIds;
 };
 
 export async function searchCouncilBills(
@@ -49,12 +53,22 @@ export async function searchCouncilBills(
     (dependencies.findCouncilors ?? findCouncilSearchCouncilors)(),
   ]);
   if (sessions.length === 0) {
-    return { billIds: [], total: 0, mode: "keyword-fallback" };
+    return {
+      billIds: [],
+      bills: [],
+      total: 0,
+      mode: "keyword-fallback",
+    };
   }
 
   const intent = buildCouncilSearchIntent(input.query, councilors);
   if (intent.hasUnresolvedCouncilorMention) {
-    return { billIds: [], total: 0, mode: "keyword-fallback" };
+    return {
+      billIds: [],
+      bills: [],
+      total: 0,
+      mode: "keyword-fallback",
+    };
   }
   let queryEmbedding: string | null = null;
   let mode: CouncilAiSearchResponse["mode"] = "hybrid";
@@ -82,10 +96,20 @@ export async function searchCouncilBills(
     similarityThreshold: COUNCIL_SEARCH_SIMILARITY_THRESHOLD,
     limit: COUNCIL_SEARCH_MAX_RESULTS,
   });
+  const billIds = results.map((result) => result.billId);
+  const difficultyLevel = await (
+    dependencies.getDifficulty ?? getDifficultyLevel
+  )();
+  const bills = await (dependencies.loadCards ?? loadCouncilBillCardsByIds)(
+    billIds,
+    sessions.map((session) => session.id),
+    difficultyLevel
+  );
 
   return {
-    billIds: results.map((result) => result.billId),
-    total: results.length,
+    billIds,
+    bills,
+    total: bills.length,
     mode,
   };
 }

@@ -12,7 +12,7 @@ export function YearArchiveSection({
   archiveData,
   basePath = "/",
 }: YearArchiveSectionProps) {
-  if (archiveData.years.length === 0 || archiveData.selectedYear == null) {
+  if (archiveData.years.length === 0) {
     return null;
   }
 
@@ -50,9 +50,9 @@ export function YearArchiveSection({
         </div>
       </div>
 
-      {archiveData.billsByMajorCategory.length > 0 ? (
+      {archiveData.selectedYear == null ? null : archiveData.themeData ? (
         <BillsByMajorCategorySection
-          billsByMajorCategory={archiveData.billsByMajorCategory}
+          data={archiveData.themeData}
           title={`${archiveData.selectedYear}年の案件をテーマから探す`}
           sectionId="archive-theme-bills"
         />
