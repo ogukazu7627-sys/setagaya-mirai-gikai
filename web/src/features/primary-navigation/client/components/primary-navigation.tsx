@@ -45,7 +45,7 @@ export function PrimaryNavigation({
                   "focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong",
                   isDesktop
                     ? "h-16 gap-2 border-b-2 px-3 text-sm"
-                    : "h-full min-w-0 flex-col gap-1 border-t-2 px-1 text-xs",
+                    : "h-full min-w-0 flex-col gap-0.5 border-t-2 px-1 text-xs",
                   isActive
                     ? "border-primary-strong text-primary-strong"
                     : "border-transparent text-mirai-text hover:text-primary-strong"
@@ -53,7 +53,7 @@ export function PrimaryNavigation({
               >
                 <Icon
                   aria-hidden="true"
-                  className={cn("shrink-0", isDesktop ? "size-5" : "size-6")}
+                  className="size-5 shrink-0"
                   strokeWidth={isActive ? 2.25 : 2}
                 />
                 <span>{item.label}</span>

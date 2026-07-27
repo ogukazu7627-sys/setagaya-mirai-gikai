@@ -288,6 +288,18 @@ describe("InterviewChatClient mobile answer focus mode", () => {
     expect(document.body.style.position).toBe("fixed");
   });
 
+  it("モバイル下部ナビの分だけ入力欄の下に余白を確保する", () => {
+    renderClient();
+
+    expect(screen.getByTestId("interview-chat-root")).toHaveClass(
+      "h-[calc(100dvh-var(--app-header-layout-offset))]"
+    );
+    expect(screen.getByTestId("interview-chat-composer")).toHaveClass(
+      "pb-[calc(var(--mobile-primary-navigation-height)+env(safe-area-inset-bottom,0px)+0.75rem)]",
+      "pc:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+    );
+  });
+
   it("キーボード完了相当のblurで通常画面へ戻してスクロール位置を復元する", () => {
     mediaQueryMock.matches = true;
     interviewChatMock.state.input = "回答内容";

@@ -80,6 +80,10 @@ describe("PrimaryNavigation", () => {
     for (const link of within(navigation).getAllByRole("link")) {
       expect(link).toHaveClass("min-h-11", "whitespace-nowrap");
     }
+    expect(
+      within(navigation).getByRole("link", { name: "ホーム" })
+    ).toHaveClass("gap-0.5");
+    expect(navigation.querySelector("svg")).toHaveClass("size-5");
   });
 
   it("keeps the desktop and mobile modes mutually exclusive at pc", () => {

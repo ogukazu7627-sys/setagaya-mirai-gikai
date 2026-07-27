@@ -3,6 +3,7 @@ import { routes } from "@/lib/routes";
 import {
   getActivePrimaryNavigationItem,
   PRIMARY_NAVIGATION_ITEMS,
+  shouldShowMobilePrimaryNavigation,
   shouldShowPrimaryNavigation,
 } from "./primary-navigation";
 
@@ -41,6 +42,7 @@ describe("primary navigation", () => {
   ])("allows general pages without forcing an active item for %s", (pathname) => {
     expect(getActivePrimaryNavigationItem(pathname)).toBeNull();
     expect(shouldShowPrimaryNavigation(pathname)).toBe(true);
+    expect(shouldShowMobilePrimaryNavigation(pathname)).toBe(true);
   });
 
   it.each([
@@ -51,10 +53,17 @@ describe("primary navigation", () => {
     "/preview/bills/bill-id",
     "/report/report-id",
     "/report/report-id/complete",
+  ])("hides every primary navigation from special-purpose route %s", (pathname) => {
+    expect(shouldShowPrimaryNavigation(pathname)).toBe(false);
+    expect(shouldShowMobilePrimaryNavigation(pathname)).toBe(false);
+  });
+
+  it.each([
     "/bills/bill-id/interview",
     "/bills/bill-id/interview/disclosure",
     "/bills/bill-id/interview/chat",
-  ])("hides primary navigation from special-purpose route %s", (pathname) => {
+  ])("shows only the mobile primary navigation on interview route %s", (pathname) => {
     expect(shouldShowPrimaryNavigation(pathname)).toBe(false);
+    expect(shouldShowMobilePrimaryNavigation(pathname)).toBe(true);
   });
 });

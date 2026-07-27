@@ -23,7 +23,7 @@ export default function MainGroupLayout({
 
       <MainLayout>
         <Header />
-        <main className="min-h-dvh md:min-h-[calc(100dvh-96px)] bg-mirai-surface">
+        <main className="min-h-dvh bg-mirai-surface min-[768px]:min-h-[calc(100dvh-96px)]">
           {children}
         </main>
         <Footer />

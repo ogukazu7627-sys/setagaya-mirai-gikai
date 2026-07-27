@@ -4,6 +4,7 @@ import { Container } from "@/components/layouts/container";
 import { About } from "@/components/top/about";
 import { Hero } from "@/components/top/hero";
 import { TeamMirai } from "@/components/top/team-mirai";
+import { MobileDifficultySelector } from "@/features/bill-difficulty/client/components/mobile-difficulty-selector";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
@@ -61,6 +62,10 @@ export async function HomePage() {
   return (
     <>
       <Hero />
+
+      <Container className="flex justify-end py-3 min-[768px]:hidden">
+        <MobileDifficultySelector currentLevel={currentDifficulty} />
+      </Container>
 
       <CurrentDietSession session={currentSession} />
 

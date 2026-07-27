@@ -139,7 +139,7 @@
     var(--app-header-height) +
     var(--app-header-content-gap)
   );
-  --mobile-primary-navigation-height: 4.25rem;
+  --mobile-primary-navigation-height: 3.75rem;
   --mobile-primary-navigation-content-gap: 1rem;
   --mobile-primary-navigation-layout-offset: calc(
     var(--mobile-primary-navigation-height) +
@@ -182,6 +182,12 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --leading-relaxed: 1.875;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --app-header-layout-offset: var(--app-header-safe-top);
+  }
 }
 
 .dark {

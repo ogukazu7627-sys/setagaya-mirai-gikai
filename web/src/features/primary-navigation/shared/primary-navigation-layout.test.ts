@@ -9,13 +9,20 @@ describe("primary navigation layout styles", () => {
   );
 
   it("uses a shared mobile height and iPhone safe-area padding", () => {
-    expect(globals).toContain("--mobile-primary-navigation-height: 4.25rem");
+    expect(globals).toContain("--mobile-primary-navigation-height: 3.75rem");
     expect(globals).toContain(
       "padding-bottom: env(safe-area-inset-bottom, 0px)"
     );
     expect(globals).toContain("padding-right: env(safe-area-inset-right, 0px)");
     expect(globals).toContain("padding-left: env(safe-area-inset-left, 0px)");
     expect(globals).toContain("--mobile-primary-navigation-layout-offset");
+  });
+
+  it("reserves only the iPhone top safe area when the header is hidden", () => {
+    expect(globals).toContain("@media (max-width: 767px)");
+    expect(globals).toContain(
+      "--app-header-layout-offset: var(--app-header-safe-top)"
+    );
   });
 
   it("reserves bottom space only below the existing pc breakpoint", () => {

@@ -59,7 +59,7 @@ export function HeaderClient({ difficultyLevel }: HeaderClientProps) {
   return (
     <header
       ref={headerRef}
-      className="app-fixed-header fixed left-0 right-0 z-40 mx-auto max-w-[1240px]"
+      className="app-fixed-header fixed left-0 right-0 z-40 mx-auto hidden max-w-[1240px] min-[768px]:block"
     >
       <div className="mx-auto max-w-[1180px] rounded-2xl bg-white px-3 shadow-sm min-[360px]:px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center gap-2 pc:gap-5">

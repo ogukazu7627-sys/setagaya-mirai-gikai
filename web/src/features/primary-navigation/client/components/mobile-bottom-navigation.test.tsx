@@ -51,8 +51,16 @@ describe("MobileBottomNavigation", () => {
     );
   });
 
-  it("does not render on immersive routes", () => {
+  it("renders on interview routes so users can leave from the bottom navigation", () => {
     navigationMock.pathname = "/bills/bill-id/interview/chat";
+    render(<MobileBottomNavigation />);
+    expect(
+      screen.getByRole("navigation", { name: "主要ナビゲーション" })
+    ).toBeInTheDocument();
+  });
+
+  it("does not render on non-public utility routes", () => {
+    navigationMock.pathname = "/report/report-id/complete";
     render(<MobileBottomNavigation />);
     expect(
       screen.queryByRole("navigation", { name: "主要ナビゲーション" })

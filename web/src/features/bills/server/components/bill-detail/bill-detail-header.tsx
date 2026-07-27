@@ -3,6 +3,8 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { MobileDifficultySelector } from "@/features/bill-difficulty/client/components/mobile-difficulty-selector";
+import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { getInterviewLPLink } from "@/features/interview-config/shared/utils/interview-links";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
@@ -20,6 +22,7 @@ import { getDisplayTags } from "../../../shared/utils/display-tags";
 
 interface BillDetailHeaderProps {
   bill: BillWithContent;
+  currentDifficulty: DifficultyLevelEnum;
   hasInterviewConfig?: boolean;
   /** 意見数（トピック分析の total_opinions）。回答者数（人数）ではない点に注意。 */
   opinionCount?: number;
@@ -51,6 +54,7 @@ function DietSessionMeta({
 
 export async function BillDetailHeader({
   bill,
+  currentDifficulty,
   hasInterviewConfig,
   opinionCount,
   topicCount,
@@ -91,6 +95,10 @@ export async function BillDetailHeader({
             )}
           </h1>
         )}
+        <MobileDifficultySelector
+          currentLevel={currentDifficulty}
+          className="mb-3 ml-auto"
+        />
         <div className="flex flex-wrap items-center gap-3">
           <BillItemTypeBadge itemType={bill.item_type} />
           <BillStatusBadge

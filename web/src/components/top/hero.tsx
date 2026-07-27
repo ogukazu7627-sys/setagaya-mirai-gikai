@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <div className="pt-28 md:pt-0">
+    <div>
       <div className="relative w-full aspect-[16/9] overflow-hidden bg-[#e0f2fe]">
         <Image
           src="/img/hero_background.jpg"

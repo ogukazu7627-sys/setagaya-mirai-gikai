@@ -77,7 +77,12 @@ describe("HeaderClient", () => {
     );
 
     const header = container.querySelector("header");
-    expect(header).toHaveClass("app-fixed-header", "fixed");
+    expect(header).toHaveClass(
+      "app-fixed-header",
+      "fixed",
+      "hidden",
+      "min-[768px]:block"
+    );
     expect(screen.getByText("みらい議会＠世田谷区")).toHaveClass(
       "h-8",
       "min-[360px]:h-9",

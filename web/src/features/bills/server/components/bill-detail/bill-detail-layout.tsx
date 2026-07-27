@@ -50,6 +50,7 @@ export async function BillDetailLayout({
       >
         <BillDetailHeader
           bill={bill}
+          currentDifficulty={currentDifficulty}
           hasInterviewConfig={canUseInterview}
           opinionCount={topicAnalysis?.total_opinions ?? 0}
           topicCount={topicAnalysis?.topics.length ?? 0}
