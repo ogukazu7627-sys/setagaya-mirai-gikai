@@ -6,8 +6,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillCardData } from "../../../shared/types";
-import type { CouncilSearchDocument } from "../../../shared/types/council-search";
 import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
+import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
 import { CouncilSearchSection } from "./council-search-section";
 
 vi.mock("next/link", () => ({
@@ -19,77 +19,35 @@ vi.mock("next/link", () => ({
 vi.mock("../../utils/council-ai-search-api", () => ({
   requestCouncilAiSearch: vi.fn(),
 }));
-
+vi.mock("../../utils/council-bill-page-api", () => ({
+  requestCouncilBillPage: vi.fn(),
+}));
 vi.mock("../../utils/council-ai-search-storage", () => ({
-  getCouncilAiSearchInstallationId: () =>
+  getBrowserCouncilSearchInstallationId: () =>
     "11111111-1111-4111-8111-111111111111",
 }));
 
 const mockedRequestCouncilAiSearch = vi.mocked(requestCouncilAiSearch);
-
-function createDocument(index: number): CouncilSearchDocument {
-  const id = `bill-${index}`;
-  const title = `学校改築について${index}`;
-  const card: BillCardData = {
-    id,
-    name: `学校改築に関する報告${index}`,
-    item_type: "report",
-    major_category: "教育",
-    status: "introduced",
-    status_label: null,
-    status_note: "文教常任委員会で報告",
-    submitted_date: `2026-07-${String(index).padStart(2, "0")}`,
-    thumbnail_url: null,
-    is_featured: false,
-    is_review_completed: false,
-    interview_enabled: false,
-    hasPublicInterview: false,
-    bill_content: {
-      title,
-      summary: "学校施設の改築計画を確認します。",
-    },
-    tags: [{ id: `tag-${index}`, label: "学校" }],
-  };
-
-  return {
-    kind: "bill",
-    id,
-    title,
-    officialName: card.name,
-    summary: "学校施設の改築計画を確認します。",
-    itemType: "report",
-    majorCategoryId: "education",
-    majorCategoryLabel: "教育",
-    committeeName: "文教常任委員会",
-    tags: ["学校"],
-    submittedDate: card.submitted_date,
-    thumbnailUrl: null,
-    card,
-  };
-}
-
-const documents = [createDocument(1)];
+const mockedRequestCouncilBillPage = vi.mocked(requestCouncilBillPage);
 const committeeNames = ["文教常任委員会"];
 
 describe("CouncilSearchSection", () => {
   beforeEach(() => {
     mockedRequestCouncilAiSearch.mockReset();
+    mockedRequestCouncilBillPage.mockReset();
     window.history.replaceState(null, "", "/bills");
   });
 
   it("入力中は検索せず、Enterで初めてAI検索する", async () => {
     const user = userEvent.setup();
+    const card = createCard(1);
     mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: ["bill-1"],
+      billIds: [card.id],
+      bills: [card],
       total: 1,
       mode: "hybrid",
     });
-    render(
-      <CouncilSearchSection
-        documents={documents}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     const input = screen.getByRole("textbox", {
       name: "知りたいことを入力",
@@ -97,6 +55,7 @@ describe("CouncilSearchSection", () => {
     await user.type(input, "学校");
 
     expect(mockedRequestCouncilAiSearch).not.toHaveBeenCalled();
+    expect(mockedRequestCouncilBillPage).not.toHaveBeenCalled();
     expect(screen.queryByText("検索結果")).not.toBeInTheDocument();
 
     await user.keyboard("{Enter}");
@@ -108,22 +67,18 @@ describe("CouncilSearchSection", () => {
     expect(screen.getByText("1件")).toBeInTheDocument();
   });
 
-  it("検索結果を1列5件ずつページ送りする", async () => {
+  it("AI検索結果を1列5件ずつページ送りする", async () => {
     const user = userEvent.setup();
-    const sixDocuments = Array.from({ length: 6 }, (_, index) =>
-      createDocument(index + 1)
+    const sixCards = Array.from({ length: 6 }, (_, index) =>
+      createCard(index + 1)
     );
     mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: sixDocuments.map(({ id }) => id),
+      billIds: sixCards.map(({ id }) => id),
+      bills: sixCards,
       total: 6,
       mode: "hybrid",
     });
-    render(
-      <CouncilSearchSection
-        documents={sixDocuments}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
       screen.getByRole("textbox", { name: "知りたいことを入力" }),
@@ -131,7 +86,6 @@ describe("CouncilSearchSection", () => {
     );
 
     await waitFor(() => expect(screen.getAllByRole("link")).toHaveLength(5));
-    expect(screen.getByText("学校改築について5")).toBeInTheDocument();
     expect(screen.queryByText("学校改築について6")).not.toBeInTheDocument();
     expect(screen.getByText("1 / 2")).toBeInTheDocument();
 
@@ -142,20 +96,46 @@ describe("CouncilSearchSection", () => {
     expect(screen.getByText("2 / 2")).toBeInTheDocument();
   });
 
+  it("フィルターだけの検索は5件のページAPIを使う", async () => {
+    const user = userEvent.setup();
+    const cards = Array.from({ length: 5 }, (_, index) =>
+      createCard(index + 1)
+    );
+    mockedRequestCouncilBillPage.mockResolvedValue({
+      bills: cards,
+      total: 7,
+      currentPage: 1,
+      totalPages: 2,
+    });
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
+
+    await user.selectOptions(screen.getByLabelText("情報の種類"), "report");
+
+    await waitFor(() =>
+      expect(mockedRequestCouncilBillPage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "filters",
+          contentType: "report",
+          page: 1,
+        }),
+        expect.any(AbortSignal)
+      )
+    );
+    expect(mockedRequestCouncilBillPage).toHaveBeenCalledOnce();
+    expect(screen.getAllByRole("link")).toHaveLength(5);
+    expect(screen.getByText("7件")).toBeInTheDocument();
+  });
+
   it("検索文をURLへ保存せず、フィルター条件だけを維持する", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/bills?q=以前の検索");
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: [],
+      bills: [],
       total: 0,
       mode: "keyword-fallback",
     });
-    render(
-      <CouncilSearchSection
-        documents={documents}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
       screen.getByRole("textbox", { name: "知りたいことを入力" }),
@@ -172,15 +152,11 @@ describe("CouncilSearchSection", () => {
     const user = userEvent.setup();
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: [],
+      bills: [],
       total: 0,
       mode: "keyword-fallback",
     });
-    render(
-      <CouncilSearchSection
-        documents={documents}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     const input = screen.getByRole("textbox", {
       name: "知りたいことを入力",
@@ -201,19 +177,16 @@ describe("CouncilSearchSection", () => {
 
   it("検索失敗後に同じ条件で再試行できる", async () => {
     const user = userEvent.setup();
+    const card = createCard(1);
     mockedRequestCouncilAiSearch
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockResolvedValueOnce({
-        billIds: ["bill-1"],
+        billIds: [card.id],
+        bills: [card],
         total: 1,
         mode: "hybrid",
       });
-    render(
-      <CouncilSearchSection
-        documents={documents}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
       screen.getByRole("textbox", { name: "知りたいことを入力" }),
@@ -228,14 +201,32 @@ describe("CouncilSearchSection", () => {
   });
 
   it("情報種別に委員会を表示しない", () => {
-    render(
-      <CouncilSearchSection
-        documents={documents}
-        committeeNames={committeeNames}
-      />
-    );
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     const informationType = screen.getByLabelText("情報の種類");
     expect(informationType).not.toHaveTextContent("委員会");
   });
 });
+
+function createCard(index: number): BillCardData {
+  return {
+    id: `bill-${index}`,
+    name: `学校改築に関する報告${index}`,
+    item_type: "report",
+    major_category: "教育🏫",
+    status: "introduced",
+    status_label: null,
+    status_note: "文教常任委員会で報告",
+    submitted_date: `2026-07-${String(index).padStart(2, "0")}`,
+    thumbnail_url: null,
+    is_featured: false,
+    is_review_completed: false,
+    interview_enabled: false,
+    hasPublicInterview: false,
+    bill_content: {
+      title: `学校改築について${index}`,
+      summary: "学校施設の改築計画を確認します。",
+    },
+    tags: [{ id: `tag-${index}`, label: "学校" }],
+  };
+}

@@ -9,11 +9,10 @@ import {
   RECOMMENDATION_PROFILE_STORAGE_KEY,
   RECOMMENDATION_PROFILE_UPDATED_EVENT,
 } from "@/features/recommendations/client/utils/recommendation-storage";
-import type {
-  BillsByMajorCategory,
-  BillWithContent,
-} from "../../../shared/types";
-import { MAJOR_CATEGORY_OPTIONS } from "../../../shared/types";
+import { RECOMMENDATION_CATEGORY_OPTIONS } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
+import type { BillCardData } from "../../../shared/types";
+import type { CouncilThemeSectionData } from "../../../shared/types/council-bill-directory";
+import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
 import { BillsByMajorCategorySection } from "./bills-by-major-category-section";
 
 vi.mock("next/link", () => ({
@@ -23,42 +22,38 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("./bill-card", () => ({
-  BillCard: ({ bill }: { bill: BillWithContent }) => (
+  BillCard: ({ bill }: { bill: BillCardData }) => (
     <div data-testid="bill-card">{bill.name}</div>
   ),
 }));
+vi.mock("../../utils/council-bill-page-api", () => ({
+  requestCouncilBillPage: vi.fn(),
+}));
+vi.mock("../../utils/council-ai-search-storage", () => ({
+  getBrowserCouncilSearchInstallationId: () =>
+    "11111111-1111-4111-8111-111111111111",
+}));
 
-function createBill(name: string): BillWithContent {
-  return {
-    id: name,
-    name,
-    bill_content: null,
-  } as unknown as BillWithContent;
-}
-
-function createGroup(
-  categoryId: (typeof MAJOR_CATEGORY_OPTIONS)[number]["id"],
-  billCount: number
-): BillsByMajorCategory {
-  const category = MAJOR_CATEGORY_OPTIONS.find(
-    (option) => option.id === categoryId
-  );
-  if (!category) {
-    throw new Error(`Unknown category: ${categoryId}`);
-  }
-
-  return {
-    category,
-    bills: Array.from({ length: billCount }, (_, index) =>
-      createBill(`${categoryId}-${index + 1}`)
-    ),
-  };
-}
-
-const groups = [
-  createGroup("education", 12),
-  createGroup("disaster-prevention", 2),
-];
+const mockedRequestCouncilBillPage = vi.mocked(requestCouncilBillPage);
+const education = getCategory("education");
+const disasterPrevention = getCategory("disaster-prevention");
+const initialCards = Array.from({ length: 10 }, (_, index) =>
+  createCard(`education-${index + 1}`)
+);
+const data: CouncilThemeSectionData = {
+  year: 2026,
+  categories: [
+    { category: education, count: 12 },
+    { category: disasterPrevention, count: 2 },
+  ],
+  initialCategoryId: "education",
+  initialPage: {
+    bills: initialCards,
+    total: 12,
+    currentPage: 1,
+    totalPages: 2,
+  },
+};
 
 const storedProfile = {
   installationId: "11111111-1111-4111-8111-111111111111",
@@ -71,67 +66,58 @@ const storedProfile = {
 describe("BillsByMajorCategorySection", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    mockedRequestCouncilBillPage.mockReset();
   });
 
-  it("removes the all tab and selects the first saved category", async () => {
-    window.localStorage.setItem(
-      RECOMMENDATION_PROFILE_STORAGE_KEY,
-      JSON.stringify(storedProfile)
-    );
-
-    render(<BillsByMajorCategorySection billsByMajorCategory={groups} />);
+  it("初期HTMLに渡された10件だけを表示する", () => {
+    render(<BillsByMajorCategorySection data={data} />);
 
     expect(
       screen.queryByRole("button", { name: "すべて" })
     ).not.toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "防災☔" })).toHaveAttribute(
-        "aria-pressed",
-        "true"
-      )
-    );
-    expect(screen.getAllByTestId("bill-card")).toHaveLength(2);
-    expect(screen.getByText("disaster-prevention-1")).toBeInTheDocument();
-  });
-
-  it("shows at most ten bills and moves through pages", async () => {
-    const user = userEvent.setup();
-    render(<BillsByMajorCategorySection billsByMajorCategory={groups} />);
-
     expect(screen.getAllByTestId("bill-card")).toHaveLength(10);
     expect(screen.getByText("education-10")).toBeInTheDocument();
-    expect(screen.queryByText("education-11")).not.toBeInTheDocument();
     expect(screen.getByText("1 / 2")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "次のページ" }));
-
-    expect(screen.getAllByTestId("bill-card")).toHaveLength(2);
-    expect(screen.getByText("education-11")).toBeInTheDocument();
-    expect(screen.getByText("education-12")).toBeInTheDocument();
-    expect(screen.getByText("2 / 2")).toBeInTheDocument();
+    expect(mockedRequestCouncilBillPage).not.toHaveBeenCalled();
   });
 
-  it("returns to the first page when the category changes", async () => {
+  it("次ページは10件単位のAPIから読み込む", async () => {
     const user = userEvent.setup();
-    render(<BillsByMajorCategorySection billsByMajorCategory={groups} />);
+    mockedRequestCouncilBillPage.mockResolvedValue({
+      bills: [createCard("education-11"), createCard("education-12")],
+      total: 12,
+      currentPage: 2,
+      totalPages: 2,
+    });
+    render(<BillsByMajorCategorySection data={data} />);
 
     await user.click(screen.getByRole("button", { name: "次のページ" }));
-    expect(screen.getByText("education-11")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "防災☔" }));
-    await user.click(screen.getByRole("button", { name: "教育🏫" }));
-
-    expect(screen.getByText("education-1")).toBeInTheDocument();
-    expect(screen.queryByText("education-11")).not.toBeInTheDocument();
-    expect(screen.getByText("1 / 2")).toBeInTheDocument();
+    expect(await screen.findByText("education-11")).toBeInTheDocument();
+    expect(screen.getAllByTestId("bill-card")).toHaveLength(2);
+    expect(mockedRequestCouncilBillPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "theme",
+        year: 2026,
+        themeId: "education",
+        page: 2,
+      }),
+      expect.any(AbortSignal)
+    );
   });
 
-  it("updates the selected category after onboarding in the same tab", async () => {
-    render(<BillsByMajorCategorySection billsByMajorCategory={groups} />);
-    expect(screen.getByRole("button", { name: "教育🏫" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
+  it("保存済みテーマと同一タブの設定変更を遅延取得する", async () => {
+    const disasterPage = {
+      bills: [
+        createCard("disaster-prevention-1"),
+        createCard("disaster-prevention-2"),
+      ],
+      total: 2,
+      currentPage: 1,
+      totalPages: 1,
+    };
+    mockedRequestCouncilBillPage.mockResolvedValue(disasterPage);
+    render(<BillsByMajorCategorySection data={data} />);
 
     window.localStorage.setItem(
       RECOMMENDATION_PROFILE_STORAGE_KEY,
@@ -147,5 +133,40 @@ describe("BillsByMajorCategorySection", () => {
         "true"
       )
     );
+    expect(
+      await screen.findByText("disaster-prevention-1")
+    ).toBeInTheDocument();
   });
 });
+
+function getCategory(
+  id: (typeof RECOMMENDATION_CATEGORY_OPTIONS)[number]["id"]
+) {
+  const category = RECOMMENDATION_CATEGORY_OPTIONS.find(
+    (option) => option.id === id
+  );
+  if (!category) {
+    throw new Error(`Unknown category: ${id}`);
+  }
+  return category;
+}
+
+function createCard(id: string): BillCardData {
+  return {
+    id,
+    name: id,
+    item_type: "bill",
+    major_category: "教育🏫",
+    status: "introduced",
+    status_label: null,
+    status_note: null,
+    submitted_date: "2026-07-01",
+    thumbnail_url: null,
+    is_featured: false,
+    is_review_completed: true,
+    interview_enabled: false,
+    hasPublicInterview: false,
+    bill_content: null,
+    tags: [],
+  };
+}

@@ -1,4 +1,4 @@
-import type { BillItemType } from ".";
+import type { BillCardData, BillItemType } from ".";
 import type { RecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 
 export type CouncilAiSearchContentType = "all" | BillItemType;
@@ -15,6 +15,7 @@ export type CouncilAiSearchMode = "hybrid" | "keyword-fallback";
 
 export type CouncilAiSearchResponse = {
   billIds: string[];
+  bills: BillCardData[];
   total: number;
   mode: CouncilAiSearchMode;
 };

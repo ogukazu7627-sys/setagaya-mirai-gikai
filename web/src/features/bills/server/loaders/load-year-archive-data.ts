@@ -5,15 +5,14 @@ import {
   getCalendarYearRange,
   parseCalendarYear,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
-import type { BillsByMajorCategory } from "../../shared/types";
-import { groupBillsByMajorCategory } from "../../shared/utils/group-bills-by-major-category";
-import { findPublishedBillsByDietSessionIds } from "../repositories/bill-repository";
-import { buildBillsWithContent } from "../utils/build-bills-with-content";
+import type { CouncilThemeSectionData } from "../../shared/types/council-bill-directory";
+import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
+import { loadCouncilThemeSectionData } from "./load-council-theme-section-data";
 
 export type YearArchiveData = {
   years: number[];
   selectedYear: number | null;
-  billsByMajorCategory: BillsByMajorCategory[];
+  themeData: CouncilThemeSectionData | null;
 };
 
 type LoadYearArchiveDataOptions = {
@@ -32,13 +31,13 @@ export async function loadYearArchiveData({
   const selectedYear =
     requestedYear != null && years.includes(requestedYear)
       ? requestedYear
-      : (years[0] ?? null);
+      : null;
 
   if (selectedYear == null) {
     return {
       years,
       selectedYear: null,
-      billsByMajorCategory: [],
+      themeData: null,
     };
   }
 
@@ -47,16 +46,22 @@ export async function loadYearArchiveData({
     selectedYearRange.startDate,
     selectedYearRange.endDate
   );
-  const rows = await findPublishedBillsByDietSessionIds(
-    sessions.map((session) => session.id),
+  const dietSessionIds = sessions.map((session) => session.id);
+  const entries = await findPublishedCouncilBillDirectoryEntries(
+    dietSessionIds,
     difficultyLevel
   );
-  const bills = await buildBillsWithContent(rows);
+  const themeData = await loadCouncilThemeSectionData({
+    year: selectedYear,
+    entries,
+    dietSessionIds,
+    difficultyLevel,
+  });
 
   return {
     years,
     selectedYear,
-    billsByMajorCategory: groupBillsByMajorCategory(bills),
+    themeData,
   };
 }
 

@@ -8,3 +8,8 @@ export const COUNCIL_SEARCH_ANONYMOUS_RATE_LIMIT = {
   installationLimit: 30,
   ipLimit: 150,
 } as const;
+export const COUNCIL_BILLS_ANONYMOUS_RATE_LIMIT = {
+  windowMs: 10 * 60 * 1000,
+  installationLimit: 120,
+  ipLimit: 600,
+} as const;

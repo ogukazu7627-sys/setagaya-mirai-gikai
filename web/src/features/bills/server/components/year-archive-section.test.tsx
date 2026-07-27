@@ -19,8 +19,8 @@ describe("YearArchiveSection", () => {
         basePath="/bills"
         archiveData={{
           years: [2025, 2024],
-          selectedYear: 2025,
-          billsByMajorCategory: [],
+          selectedYear: null,
+          themeData: null,
         }}
       />
     );

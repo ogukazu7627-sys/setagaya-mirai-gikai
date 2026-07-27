@@ -3,6 +3,16 @@ import { createAnonymousInstallationId } from "@/features/recommendations/client
 export const COUNCIL_AI_SEARCH_INSTALLATION_ID_KEY =
   "mirai-gikai:council-search-installation-id:v1";
 
+export function getBrowserCouncilSearchInstallationId(): string {
+  let storage: Storage | null = null;
+  try {
+    storage = window.localStorage;
+  } catch {
+    storage = null;
+  }
+  return getCouncilAiSearchInstallationId(storage, window.crypto);
+}
+
 export function getCouncilAiSearchInstallationId(
   storage: Pick<Storage, "getItem" | "setItem"> | null,
   cryptoApi: Pick<Crypto, "getRandomValues"> & {
