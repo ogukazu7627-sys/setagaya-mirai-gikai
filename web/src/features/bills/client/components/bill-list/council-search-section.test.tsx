@@ -206,6 +206,15 @@ describe("CouncilSearchSection", () => {
     const informationType = screen.getByLabelText("情報の種類");
     expect(informationType).not.toHaveTextContent("委員会");
   });
+
+  it("AI検索欄に共通の水色グラデーション枠を表示する", () => {
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
+
+    const input = screen.getByRole("textbox", {
+      name: "知りたいことを入力",
+    });
+    expect(input.parentElement).toHaveClass("border-mirai-gradient");
+  });
 });
 
 function createCard(index: number): BillCardData {
