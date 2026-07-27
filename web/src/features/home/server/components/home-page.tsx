@@ -8,8 +8,6 @@ import { MobileDifficultySelector } from "@/features/bill-difficulty/client/comp
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
-import type { BillWithContent } from "@/features/bills/shared/types";
-import { HomeChatClient } from "@/features/chat/client/components/home-chat-client";
 import { CouncilorXPostsSection } from "@/features/councilor-x-posts/server/components/councilor-x-posts-section";
 import { loadLatestCouncilorXPosts } from "@/features/councilor-x-posts/server/loaders/load-latest-councilor-x-posts";
 import { RecommendedCouncilorsSection } from "@/features/councilors/server/components/recommended-councilors-section";
@@ -22,7 +20,7 @@ import { getJapanTime } from "@/lib/utils/date";
 export async function HomePage() {
   const now = getJapanTime();
   const [
-    { billsByMajorCategory, featuredBills },
+    { featuredBills },
     currentSession,
     currentDifficulty,
     councilors,
@@ -36,25 +34,6 @@ export async function HomePage() {
     loadRecommendedCouncilorsSafely(now),
     loadLatestCouncilorXPostsSafely(),
   ]);
-
-  const toBillChatContext = (bill: BillWithContent) => {
-    return {
-      name: `${bill.bill_content?.title}（${bill.name}）`,
-      summary: bill.bill_content?.summary,
-      tags: bill.tags?.map((tag) => tag.label) || [],
-      isFeatured: featuredBills.some(
-        (featuredBill) => featuredBill.id === bill.id
-      ),
-    };
-  };
-  const uniqueBillsForChat = Array.from(
-    new Map(
-      billsByMajorCategory
-        .flatMap((category) => category.bills)
-        .concat(featuredBills)
-        .map((bill) => [bill.id, bill])
-    ).values()
-  );
 
   return (
     <>
@@ -88,11 +67,6 @@ export async function HomePage() {
         <About />
         <TeamMirai />
       </Container>
-
-      <HomeChatClient
-        currentDifficulty={currentDifficulty}
-        bills={uniqueBillsForChat.map(toBillChatContext)}
-      />
     </>
   );
 }
