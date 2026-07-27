@@ -20,8 +20,8 @@ vi.mock("next/image", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <a href="/">{children}</a>
+  default: ({ children, ...props }: React.ComponentProps<"a">) => (
+    <a {...props}>{children}</a>
   ),
 }));
 
@@ -117,6 +117,21 @@ describe("HeaderClient", () => {
     expect(
       screen.queryByRole("navigation", { name: "主要ナビゲーション" })
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps the shared desktop navigation beside interview actions", () => {
+    navigationMock.pathname = "/bills/bill-id/interview/chat";
+
+    render(<HeaderClient difficultyLevel="normal" />);
+
+    expect(
+      screen.getByRole("navigation", { name: "主要ナビゲーション" })
+    ).toHaveAttribute("data-primary-navigation", "desktop");
+    expect(screen.getByText("議会").closest("a")).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+    expect(screen.getByText("interview")).toBeInTheDocument();
   });
 
   it("shows the explanation detail toggle on the council top page", () => {
