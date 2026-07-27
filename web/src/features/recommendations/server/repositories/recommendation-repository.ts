@@ -8,8 +8,8 @@ import {
 } from "@/features/bills/server/repositories/bill-repository";
 import type {
   Bill,
+  BillCardData,
   BillContent,
-  BillWithContent,
 } from "@/features/bills/shared/types";
 import {
   normalizeRecommendationTag,
@@ -21,7 +21,7 @@ import type {
   RecommendationPick,
 } from "../../shared/types/recommendation";
 
-type RecommendationProfileRow =
+export type RecommendationProfileRow =
   Database["public"]["Tables"]["recommendation_profiles"]["Row"];
 type DailyRecommendationRow =
   Database["public"]["Tables"]["daily_recommendations"]["Row"];
@@ -35,8 +35,25 @@ type CandidateRow = {
   }> | null;
 };
 
-type BillRowWithContents = Bill & {
-  bill_contents: BillContent[] | BillContent | null;
+type RecommendationBillRow = Pick<
+  Bill,
+  | "id"
+  | "name"
+  | "item_type"
+  | "major_category"
+  | "status"
+  | "status_label"
+  | "status_note"
+  | "submitted_date"
+  | "thumbnail_url"
+  | "is_featured"
+  | "is_review_completed"
+  | "interview_enabled"
+> & {
+  bill_contents:
+    | Array<Pick<BillContent, "title" | "summary" | "difficulty_level">>
+    | Pick<BillContent, "title" | "summary" | "difficulty_level">
+    | null;
 };
 
 export async function findRecommendationProfileByInstallationId(
@@ -273,7 +290,7 @@ export async function findPublishedBillIds(
 export async function findRecommendationBillsByIds(
   billIds: string[],
   difficultyLevel: DifficultyLevelEnum
-): Promise<BillWithContent[]> {
+): Promise<BillCardData[]> {
   if (billIds.length === 0) {
     return [];
   }
@@ -285,16 +302,22 @@ export async function findRecommendationBillsByIds(
     .from("bills")
     .select(
       `
-      *,
+      id,
+      name,
+      item_type,
+      major_category,
+      status,
+      status_label,
+      status_note,
+      submitted_date,
+      thumbnail_url,
+      is_featured,
+      is_review_completed,
+      interview_enabled,
       bill_contents!inner(
-        id,
-        bill_id,
         title,
         summary,
-        content,
-        difficulty_level,
-        created_at,
-        updated_at
+        difficulty_level
       )
     `
     )
@@ -306,13 +329,13 @@ export async function findRecommendationBillsByIds(
     throw new Error(`Failed to hydrate recommendation bills: ${error.message}`);
   }
 
-  const rows = (data ?? []) as unknown as BillRowWithContents[];
+  const rows = (data ?? []) as unknown as RecommendationBillRow[];
   const [tagsByBillId, interviewBillIds] = await Promise.all([
     findTagsByBillIds(billIds),
     findBillIdsWithPublicInterview(billIds),
   ]);
 
-  const bills = rows.map((row) => {
+  const bills: BillCardData[] = rows.map((row): BillCardData => {
     const { bill_contents: contents, ...bill } = row;
     const contentList = Array.isArray(contents)
       ? contents
@@ -326,15 +349,20 @@ export async function findRecommendationBillsByIds(
 
     return {
       ...bill,
-      bill_content: billContent ? { ...billContent, content: "" } : undefined,
+      bill_content: billContent
+        ? {
+            title: billContent.title,
+            summary: billContent.summary,
+          }
+        : undefined,
       tags: tagsByBillId.get(row.id) ?? [],
       hasPublicInterview: interviewBillIds.has(row.id),
-    } as BillWithContent;
+    };
   });
   const byId = new Map(bills.map((bill) => [bill.id, bill]));
   return billIds
     .map((billId) => byId.get(billId))
-    .filter((bill): bill is BillWithContent => bill != null);
+    .filter((bill): bill is BillCardData => bill != null);
 }
 
 export async function isPushEnabled(profileId: string): Promise<boolean> {

@@ -3,11 +3,11 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BillWithContent } from "@/features/bills/shared/types";
+import type { BillCardData } from "@/features/bills/shared/types";
 import { RecommendationBillsCarousel } from "./recommendation-bills-carousel";
 
 vi.mock("@/features/bills/client/components/bill-list/bill-card", () => ({
-  BillCard: ({ bill }: { bill: BillWithContent }) => (
+  BillCard: ({ bill }: { bill: BillCardData }) => (
     <div>{bill.bill_content?.title}</div>
   ),
 }));
@@ -19,7 +19,7 @@ const bills = Array.from({ length: 5 }, (_, index) => {
     name: `おすすめ案件${number}`,
     bill_content: { title: `おすすめ案件${number}` },
     tags: [],
-  } as unknown as BillWithContent;
+  } as unknown as BillCardData;
 });
 
 describe("RecommendationBillsCarousel", () => {

@@ -17,7 +17,6 @@ import { loadRecommendedCouncilors } from "@/features/councilors/server/loaders/
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
 import { TodayRecommendationsSection } from "@/features/recommendations/client/components/today-recommendations-section";
-import { getRecommendationAvailability } from "@/features/recommendations/server/services/recommendation-availability-service";
 import { getJapanTime } from "@/lib/utils/date";
 
 export async function HomePage() {
@@ -26,7 +25,6 @@ export async function HomePage() {
     { billsByMajorCategory, featuredBills },
     currentSession,
     currentDifficulty,
-    recommendationAvailability,
     councilors,
     councilorXPosts,
   ] = await Promise.all([
@@ -35,7 +33,6 @@ export async function HomePage() {
     }),
     getCurrentDietSession(now),
     getDifficultyLevel(),
-    getRecommendationAvailability(),
     loadRecommendedCouncilorsSafely(now),
     loadLatestCouncilorXPostsSafely(),
   ]);
@@ -69,7 +66,7 @@ export async function HomePage() {
 
       <CurrentDietSession session={currentSession} />
 
-      <TodayRecommendationsSection availability={recommendationAvailability} />
+      <TodayRecommendationsSection currentDifficulty={currentDifficulty} />
 
       <Container>
         <div className="py-10">

@@ -7,7 +7,7 @@ import {
   insertRecommendationImpressions,
   updatePushNotificationStatus,
 } from "../repositories/recommendation-repository";
-import { getOrCreateDailyRecommendations } from "./daily-recommendation-service";
+import { getOrCreateDailyRecommendationsByProfileId } from "./daily-recommendation-service";
 import { defaultWebPushSender, type WebPushSender } from "./web-push-sender";
 
 type DailyPushResult = {
@@ -38,7 +38,7 @@ export async function sendDailyRecommendationPushes(input: {
 
   for (const subscription of subscriptions) {
     try {
-      const daily = await getOrCreateDailyRecommendations(
+      const daily = await getOrCreateDailyRecommendationsByProfileId(
         subscription.profile_id,
         input.date
       );

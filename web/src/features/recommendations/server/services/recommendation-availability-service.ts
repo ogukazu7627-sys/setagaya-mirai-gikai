@@ -7,13 +7,13 @@ import {
 } from "../../shared/constants/recommendation-taxonomy";
 import type { RecommendationCandidate } from "../../shared/types/recommendation";
 import { buildRecommendationAvailability } from "../../shared/utils/recommendation-availability";
-import { findRecommendationCandidates } from "../repositories/recommendation-repository";
+import { getRecommendationCandidates } from "./recommendation-candidate-service";
 
 export async function getRecommendationAvailability() {
   try {
     const candidates = isSetagayaMockMode
       ? getMockRecommendationCandidates()
-      : await findRecommendationCandidates();
+      : await getRecommendationCandidates();
     return buildRecommendationAvailability(candidates);
   } catch {
     console.error("Failed to load recommendation availability");

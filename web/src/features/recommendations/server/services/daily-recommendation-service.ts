@@ -12,25 +12,21 @@ import { selectDailyRecommendations } from "../../shared/utils/select-daily-reco
 import {
   findDailyRecommendation,
   findImpressedBillIds,
-  findRecommendationCandidates,
   findRecommendationProfileById,
   insertDailyRecommendation,
+  type RecommendationProfileRow,
 } from "../repositories/recommendation-repository";
+import { getRecommendationCandidates } from "./recommendation-candidate-service";
 
 type DailyRecommendationRow =
   Database["public"]["Tables"]["daily_recommendations"]["Row"];
 
 export async function getOrCreateDailyRecommendations(
-  profileId: string,
+  profile: RecommendationProfileRow,
   date: string
 ): Promise<DailyRecommendationRow> {
   if (!isJstDateKey(date)) {
     throw new Error("Invalid JST recommendation date");
-  }
-
-  const profile = await findRecommendationProfileById(profileId);
-  if (!profile) {
-    throw new RecommendationProfileNotFoundError();
   }
 
   const existing = await findDailyRecommendation(
@@ -56,7 +52,7 @@ export async function getOrCreateDailyRecommendations(
   }
 
   const [candidates, displayedBillIds] = await Promise.all([
-    findRecommendationCandidates(),
+    getRecommendationCandidates(),
     findImpressedBillIds(profile.id),
   ]);
   const picks = selectDailyRecommendations({
@@ -86,6 +82,17 @@ export async function getOrCreateDailyRecommendations(
     throw new Error("Failed to resolve concurrent daily recommendation");
   }
   return winner;
+}
+
+export async function getOrCreateDailyRecommendationsByProfileId(
+  profileId: string,
+  date: string
+): Promise<DailyRecommendationRow> {
+  const profile = await findRecommendationProfileById(profileId);
+  if (!profile) {
+    throw new RecommendationProfileNotFoundError();
+  }
+  return getOrCreateDailyRecommendations(profile, date);
 }
 
 export class RecommendationProfileNotFoundError extends Error {

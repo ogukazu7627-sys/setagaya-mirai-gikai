@@ -52,5 +52,6 @@ describe("recommendation repository", () => {
       "normal"
     );
     expect(hydrated.map((bill) => bill.id)).toEqual([published.id]);
+    expect(hydrated[0]?.bill_content).not.toHaveProperty("content");
   });
 });
