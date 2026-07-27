@@ -62,8 +62,9 @@ describe("primary navigation", () => {
     "/bills/bill-id/interview",
     "/bills/bill-id/interview/disclosure",
     "/bills/bill-id/interview/chat",
-  ])("shows only the mobile primary navigation on interview route %s", (pathname) => {
-    expect(shouldShowPrimaryNavigation(pathname)).toBe(false);
+  ])("shows every primary navigation on interview route %s", (pathname) => {
+    expect(getActivePrimaryNavigationItem(pathname)?.id).toBe("council");
+    expect(shouldShowPrimaryNavigation(pathname)).toBe(true);
     expect(shouldShowMobilePrimaryNavigation(pathname)).toBe(true);
   });
 });

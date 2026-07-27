@@ -72,6 +72,12 @@ const PRIMARY_NAVIGATION_HIDDEN_PATHS = [
   "/report",
 ] as const;
 
+function isPrimaryNavigationHidden(pathname: string): boolean {
+  return PRIMARY_NAVIGATION_HIDDEN_PATHS.some((path) =>
+    isPathWithin(pathname, path)
+  );
+}
+
 export const PRIMARY_NAVIGATION_DESKTOP_MIN_WIDTH = 1000;
 
 export function getActivePrimaryNavigationItem(
@@ -83,17 +89,9 @@ export function getActivePrimaryNavigationItem(
 }
 
 export function shouldShowPrimaryNavigation(pathname: string): boolean {
-  if (
-    PRIMARY_NAVIGATION_HIDDEN_PATHS.some((path) => isPathWithin(pathname, path))
-  ) {
-    return false;
-  }
-
-  return !/^\/bills\/[^/]+\/interview(?:\/|$)/u.test(pathname);
+  return !isPrimaryNavigationHidden(pathname);
 }
 
 export function shouldShowMobilePrimaryNavigation(pathname: string): boolean {
-  return !PRIMARY_NAVIGATION_HIDDEN_PATHS.some((path) =>
-    isPathWithin(pathname, path)
-  );
+  return !isPrimaryNavigationHidden(pathname);
 }
