@@ -1,4 +1,4 @@
-export const INITIAL_X_EMBED_COUNT = 7;
+export const INITIAL_X_EMBED_COUNT = 4;
 
 export function getNextXEmbedCount(input: {
   currentCount: number;

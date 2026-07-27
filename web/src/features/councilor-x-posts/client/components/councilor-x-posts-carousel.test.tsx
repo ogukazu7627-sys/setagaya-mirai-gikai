@@ -178,7 +178,7 @@ describe("CouncilorXPostsCarousel", () => {
     }));
   });
 
-  it("peek幅のスライドを作り、初回は先頭7件だけを読み込む", () => {
+  it("peek幅のスライドを作り、初回は先頭4件だけを読み込む", () => {
     render(<CouncilorXPostsCarousel posts={posts} />);
 
     expect(
@@ -201,7 +201,7 @@ describe("CouncilorXPostsCarousel", () => {
     for (const [index, post] of posts.entries()) {
       expect(screen.getByTestId(`post-${post.postId}`)).toHaveAttribute(
         "data-should-load",
-        index < 7 ? "true" : "false"
+        index < 4 ? "true" : "false"
       );
     }
   });
@@ -227,11 +227,11 @@ describe("CouncilorXPostsCarousel", () => {
     await waitFor(() => {
       expect(screen.getByText("2 / 10")).toBeVisible();
     });
-    expect(screen.getByTestId("post-1007")).toHaveAttribute(
+    expect(screen.getByTestId("post-1004")).toHaveAttribute(
       "data-should-load",
       "true"
     );
-    expect(screen.getByTestId("post-1008")).toHaveAttribute(
+    expect(screen.getByTestId("post-1005")).toHaveAttribute(
       "data-should-load",
       "false"
     );
@@ -240,7 +240,7 @@ describe("CouncilorXPostsCarousel", () => {
     await waitFor(() => {
       expect(screen.getByText("1 / 10")).toBeVisible();
     });
-    expect(screen.getByTestId("post-1007")).toHaveAttribute(
+    expect(screen.getByTestId("post-1004")).toHaveAttribute(
       "data-should-load",
       "true"
     );
