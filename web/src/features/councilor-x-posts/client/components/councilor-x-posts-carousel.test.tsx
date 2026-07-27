@@ -188,7 +188,8 @@ describe("CouncilorXPostsCarousel", () => {
     ).toBeVisible();
     expect(screen.getByRole("group", { name: "1 / 10" })).toHaveClass(
       "basis-[88%]",
-      "md:basis-[52%]",
+      "sm:basis-[min(550px,78%)]",
+      "overflow-hidden",
       "self-start"
     );
     expect(screen.getAllByTestId("x-widgets-script")).toHaveLength(1);

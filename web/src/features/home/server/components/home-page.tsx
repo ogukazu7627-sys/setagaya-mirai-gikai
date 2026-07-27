@@ -81,7 +81,7 @@ export async function HomePage() {
         </div>
       </Container>
 
-      <div className="bg-mirai-surface-muted py-10 md:py-14">
+      <div className="bg-mirai-surface py-10 md:py-14">
         <Container>
           <CouncilorXPostsSection posts={councilorXPosts} />
         </Container>
