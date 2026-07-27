@@ -314,7 +314,7 @@ export function CouncilSearchSection({
         >
           知りたいことを入力
         </label>
-        <div className="relative mt-2 rounded-lg border border-mirai-border bg-white focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+        <div className="border-mirai-gradient relative mt-2 rounded-lg bg-white focus-within:ring-[3px] focus-within:ring-primary/30">
           <Sparkles
             aria-hidden="true"
             className="pointer-events-none absolute left-4 top-4 size-5 text-primary-accent"
