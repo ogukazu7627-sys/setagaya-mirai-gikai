@@ -215,6 +215,14 @@ describe("CouncilSearchSection", () => {
     });
     expect(input.parentElement).toHaveClass("border-mirai-gradient");
   });
+
+  it("AI検索欄に若者向けの入力例を表示する", () => {
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
+
+    expect(
+      screen.getByPlaceholderText("例：若者が知るべきこと")
+    ).toBeInTheDocument();
+  });
 });
 
 function createCard(index: number): BillCardData {
