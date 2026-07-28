@@ -33,7 +33,6 @@ describe("MainLayout", () => {
   });
 
   it.each([
-    "/",
     "/bills/abc-123",
     "/preview/bills/abc-123",
   ])("reserves desktop chat-panel space on %s", (pathname) => {
@@ -49,6 +48,21 @@ describe("MainLayout", () => {
       "pc:w-[calc(100vw-500px-2rem)]",
       "xl:ml-[calc(calc(100vw-1180px)/2)]",
       "xl:w-[700px]"
+    );
+  });
+
+  it("centers the top page without desktop chat-panel space", () => {
+    navigationMock.pathname = "/";
+    const { container } = render(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+
+    expect(container.firstElementChild).toHaveClass("mx-auto", "max-w-[700px]");
+    expect(container.firstElementChild).not.toHaveClass("pc:mr-[500px]");
+    expect(container.firstElementChild).not.toHaveClass(
+      "pc:w-[calc(100vw-500px-2rem)]"
     );
   });
 
