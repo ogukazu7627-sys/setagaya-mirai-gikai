@@ -3,7 +3,7 @@
  *
  * TOPページ、議会トップ、案件詳細ページは「メインページ」として扱う。
  * PCのチャットサイドバー用オフセットは、実際にパネルを表示する
- * TOPページと案件詳細ページだけに適用する。
+ * 案件詳細ページだけに適用する。
  */
 
 /** メインページ（TOP、議会トップ、案件詳細）かどうかを判定 */
@@ -19,7 +19,7 @@ export function isMainPage(pathname: string): boolean {
 
 /** PCで常設AIパネル分の横幅を確保するページかどうかを判定 */
 export function hasPersistentChatSidebar(pathname: string): boolean {
-  return pathname === "/" || /^\/(?:preview\/)?bills\/[^/]+$/.test(pathname);
+  return /^\/(?:preview\/)?bills\/[^/]+$/.test(pathname);
 }
 
 /** コンテンツをヘッダー幅まで広げるページかどうかを判定 */

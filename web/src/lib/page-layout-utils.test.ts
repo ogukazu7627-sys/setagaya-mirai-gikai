@@ -34,12 +34,12 @@ describe("isMainPage", () => {
 
 describe("hasPersistentChatSidebar", () => {
   it("returns true for pages with an always-visible desktop chat panel", () => {
-    expect(hasPersistentChatSidebar("/")).toBe(true);
     expect(hasPersistentChatSidebar("/bills/abc-123")).toBe(true);
     expect(hasPersistentChatSidebar("/preview/bills/abc-123")).toBe(true);
   });
 
   it("returns false for pages without the persistent chat panel", () => {
+    expect(hasPersistentChatSidebar("/")).toBe(false);
     expect(hasPersistentChatSidebar("/bills")).toBe(false);
     expect(hasPersistentChatSidebar("/bills/")).toBe(false);
     expect(hasPersistentChatSidebar("/committees")).toBe(false);
