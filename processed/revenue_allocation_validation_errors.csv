@@ -1,0 +1,1 @@
+error_id,error_type,severity,account_code,raw_allocation_id,allocation_link_id,revenue_detail_id,target_budget_program_identity_id,target_budget_program_group_id,source_file,pdf_page,budget_book_page,target_budget_book_page,message,expected_value,actual_value

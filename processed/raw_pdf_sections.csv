@@ -1,0 +1,1059 @@
+source_file,pdf_page,budget_book_page,fiscal_year,account_name,budget_side,kan_code,kan_name,kou_code,kou_name,moku_code,moku_name,moku_total_amount_thousand_yen,setsu_code,setsu_name,setsu_amount_thousand_yen,raw_text,parse_status,parse_note
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,01,報酬,600135,"01 報酬 | 600,135",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,04,共済費,92256,"04 共済費 | 92,256",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,07,報償費,105,07 報償費 | 105,parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,08,旅費,6712,"08 旅費 | 6,712",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,09,交際費,1800,"09 交際費 | 1,800",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,10,需用費,15747,"10 需用費 | 15,747",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,11,役務費,24989,"11 役務費 | 24,989",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,12,委託料,24539,"12 委託料 | 24,539",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,13,使用料及賃借料,1133,"13 使用料及賃
+借料 | 1,133",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,18,負担金補助及交付金,3137,"18 負担金補助
+及交付金 | 3,137",parsed,stateful_reconciliation=matched; section_sum=770553; moku_total=770553; moku_page_span=159
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,01,報酬,3587,"01 報酬 | 3,587",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,04,共済費,24586,"04 共済費 | 24,586",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,05,災害補償費,225,05 災害補償費 | 225,parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,07,報償費,39435,"07 報償費 | 39,435",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,08,旅費,13940,"08 旅費 | 13,940",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,09,交際費,3150,"09 交際費 | 3,150",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,10,需用費,857822,"10 需用費 | 857,822",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,11,役務費,294031,"11 役務費 | 294,031",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,12,委託料,2219532,"12 委託料 | 2,219,532",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,13,使用料及賃借料,631250,"13 使用料及賃
+借料 | 631,250",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,14,工事請負費,7405735,"14 工事請負費 | 7,405,735",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,17,備品購入費,746074,"17 備品購入費 | 746,074",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,18,負担金補助及交付金,1622919,"18 負担金補助
+及交付金 | 1,622,919",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,19,扶助費,121406,"19 扶助費 | 121,406",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,24,積立金,161031,"24 積立金 | 161,031",parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,26,公課費,2,26 公課費 | 2,parsed,stateful_reconciliation=matched; section_sum=14144725; moku_total=14144725; moku_page_span=162-163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,07,報償費,6680,"07 報償費 | 6,680",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,08,旅費,6,08 旅費 | 6,parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,10,需用費,71491,"10 需用費 | 71,491",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,11,役務費,74351,"11 役務費 | 74,351",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,12,委託料,277311,"12 委託料 | 277,311",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,13,使用料及賃借料,6707,"13 使用料及賃
+借料 | 6,707",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,02,広報広聴費,436619,18,負担金補助及交付金,73,"18 負担金補助
+及交付金 | 73",parsed,stateful_reconciliation=matched; section_sum=436619; moku_total=436619; moku_page_span=163
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,01,報酬,11719,"01 報酬 | 11,719",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,04,共済費,2574,"04 共済費 | 2,574",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,07,報償費,16448,"07 報償費 | 16,448",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,08,旅費,2043,"08 旅費 | 2,043",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,10,需用費,7339,"10 需用費 | 7,339",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,11,役務費,87373,"11 役務費 | 87,373",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,12,委託料,435881,"12 委託料 | 435,881",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,163,319,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,13,使用料及賃借料,36234,"13 使用料及賃
+借料 | 36,234",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,17,備品購入費,697,17 備品購入費 | 697,parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,03,企画調整費,602726,18,負担金補助及交付金,2418,"18 負担金補助
+及交付金 | 2,418",parsed,stateful_reconciliation=matched; section_sum=602726; moku_total=602726; moku_page_span=163-164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,01,報酬,7993,"01 報酬 | 7,993",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,04,共済費,1473,"04 共済費 | 1,473",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,07,報償費,418,07 報償費 | 418,parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,08,旅費,310,08 旅費 | 310,parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,10,需用費,182385,"10 需用費 | 182,385",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,11,役務費,516934,"11 役務費 | 516,934",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,12,委託料,9290909,"12 委託料 | 9,290,909",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,13,使用料及賃借料,4152670,"13 使用料及賃
+借料 | 4,152,670",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,14,工事請負費,16370,"14 工事請負費 | 16,370",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,17,備品購入費,11659,"17 備品購入費 | 11,659",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,04,電子計算費,14226086,18,負担金補助及交付金,44965,"18 負担金補助
+及交付金 | 44,965",parsed,stateful_reconciliation=matched; section_sum=14226086; moku_total=14226086; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,01,報酬,1097,"01 報酬 | 1,097",parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,07,報償費,124,07 報償費 | 124,parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,10,需用費,1793,"10 需用費 | 1,793",parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,11,役務費,432,11 役務費 | 432,parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,12,委託料,6043,"12 委託料 | 6,043",parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,13,使用料及賃借料,40,"13 使用料及賃
+借料 | 40",parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,05,財政管理費,9929,18,負担金補助及交付金,400,"18 負担金補助
+及交付金 | 400",parsed,stateful_reconciliation=matched; section_sum=9929; moku_total=9929; moku_page_span=164
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,01,報酬,469,01 報酬 | 469,parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,08,旅費,2640,"08 旅費 | 2,640",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,09,交際費,20,09 交際費 | 20,parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,10,需用費,6306,"10 需用費 | 6,306",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,11,役務費,4879,"11 役務費 | 4,879",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,164,321,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,12,委託料,730142,"12 委託料 | 730,142",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,13,使用料及賃借料,15809,"13 使用料及賃
+借料 | 15,809",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,14,工事請負費,214488,"14 工事請負費 | 214,488",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,06,財産管理費,994508,18,負担金補助及交付金,19755,"18 負担金補助
+及交付金 | 19,755",parsed,stateful_reconciliation=matched; section_sum=994508; moku_total=994508; moku_page_span=164-165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,10,需用費,22473,"10 需用費 | 22,473",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,11,役務費,4491,"11 役務費 | 4,491",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,12,委託料,49677,"12 委託料 | 49,677",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,13,使用料及賃借料,125148,"13 使用料及賃
+借料 | 125,148",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,17,備品購入費,3327,"17 備品購入費 | 3,327",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,07,車両管理費,205166,18,負担金補助及交付金,50,"18 負担金補助
+及交付金 | 50",parsed,stateful_reconciliation=matched; section_sum=205166; moku_total=205166; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,07,報償費,63,07 報償費 | 63,parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,08,旅費,75,08 旅費 | 75,parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,10,需用費,682,10 需用費 | 682,parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,11,役務費,218301,"11 役務費 | 218,301",parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,12,委託料,23120,"12 委託料 | 23,120",parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,165,323,2026,一般会計,expenditure,02,総務費,01,総務管理費,08,会計管理費,242559,18,負担金補助及交付金,318,"18 負担金補助
+及交付金 | 318",parsed,stateful_reconciliation=matched; section_sum=242559; moku_total=242559; moku_page_span=165
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,07,報償費,55,07 報償費 | 55,parsed,stateful_reconciliation=matched; section_sum=2182; moku_total=2182; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,10,需用費,13,10 需用費 | 13,parsed,stateful_reconciliation=matched; section_sum=2182; moku_total=2182; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,11,役務費,34,11 役務費 | 34,parsed,stateful_reconciliation=matched; section_sum=2182; moku_total=2182; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,12,委託料,880,12 委託料 | 880,parsed,stateful_reconciliation=matched; section_sum=2182; moku_total=2182; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,18,負担金補助及交付金,1200,"18 負担金補助
+及交付金 | 1,200",parsed,stateful_reconciliation=matched; section_sum=2182; moku_total=2182; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,07,報償費,423,07 報償費 | 423,parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,10,需用費,39114,"10 需用費 | 39,114",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,11,役務費,127967,"11 役務費 | 127,967",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,12,委託料,454378,"12 委託料 | 454,378",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,13,使用料及賃借料,2375,"13 使用料及賃
+借料 | 2,375",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,18,負担金補助及交付金,105313,"18 負担金補助
+及交付金 | 105,313",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,21,補償補填及賠償金,6,"21 補償補填及
+賠償金 | 6",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,22,償還金利子及割引料,650000,"22 償還金利子
+及割引料 | 650,000",parsed,stateful_reconciliation=matched; section_sum=1379576; moku_total=1379576; moku_page_span=166
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,01,報酬,1861,"01 報酬 | 1,861",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,07,報償費,13014,"07 報償費 | 13,014",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,08,旅費,5182,"08 旅費 | 5,182",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,09,交際費,35,09 交際費 | 35,parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,10,需用費,71175,"10 需用費 | 71,175",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,11,役務費,48277,"11 役務費 | 48,277",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,12,委託料,795181,"12 委託料 | 795,181",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,13,使用料及賃借料,72787,"13 使用料及賃
+借料 | 72,787",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,14,工事請負費,10470,"14 工事請負費 | 10,470",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,17,備品購入費,1057,"17 備品購入費 | 1,057",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,18,負担金補助及交付金,733174,"18 負担金補助
+及交付金 | 733,174",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,22,償還金利子及割引料,10,"22 償還金利子
+及割引料 | 10",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,24,積立金,7323,"24 積立金 | 7,323",parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,167,327,2026,一般会計,expenditure,02,総務費,03,区民費,01,区民総務費,1759553,26,公課費,7,26 公課費 | 7,parsed,stateful_reconciliation=matched; section_sum=1759553; moku_total=1759553; moku_page_span=167-169
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,01,報酬,5148,"01 報酬 | 5,148",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,04,共済費,1576,"04 共済費 | 1,576",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,07,報償費,2710,"07 報償費 | 2,710",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,08,旅費,4117,"08 旅費 | 4,117",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,09,交際費,7429,"09 交際費 | 7,429",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,10,需用費,342269,"10 需用費 | 342,269",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,11,役務費,51588,"11 役務費 | 51,588",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,12,委託料,1798837,"12 委託料 | 1,798,837",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,13,使用料及賃借料,113846,"13 使用料及賃
+借料 | 113,846",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,14,工事請負費,420334,"14 工事請負費 | 420,334",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,17,備品購入費,33226,"17 備品購入費 | 33,226",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,18,負担金補助及交付金,27363,"18 負担金補助
+及交付金 | 27,363",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,169,331,2026,一般会計,expenditure,02,総務費,03,区民費,02,支所費,2808564,21,補償補填及賠償金,121,"21 補償補填及
+賠償金 | 121",parsed,stateful_reconciliation=matched; section_sum=2808564; moku_total=2808564; moku_page_span=169-170
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,07,報償費,6443,"07 報償費 | 6,443",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,10,需用費,392757,"10 需用費 | 392,757",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,11,役務費,84796,"11 役務費 | 84,796",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,12,委託料,2630829,"12 委託料 | 2,630,829",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,13,使用料及賃借料,210899,"13 使用料及賃
+借料 | 210,899",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,14,工事請負費,771568,"14 工事請負費 | 771,568",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,17,備品購入費,58256,"17 備品購入費 | 58,256",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,18,負担金補助及交付金,107665,"18 負担金補助
+及交付金 | 107,665",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,21,補償補填及賠償金,2727,"21 補償補填及
+賠償金 | 2,727",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,170,333,2026,一般会計,expenditure,02,総務費,03,区民費,06,区民施設費,4273789,22,償還金利子及割引料,7849,"22 償還金利子
+及割引料 | 7,849",parsed,stateful_reconciliation=matched; section_sum=4273789; moku_total=4273789; moku_page_span=170-172
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,01,報酬,210,01 報酬 | 210,parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,07,報償費,28895,"07 報償費 | 28,895",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,08,旅費,314,08 旅費 | 314,parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,09,交際費,110,09 交際費 | 110,parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,10,需用費,136681,"10 需用費 | 136,681",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,11,役務費,20175,"11 役務費 | 20,175",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,12,委託料,556912,"12 委託料 | 556,912",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,13,使用料及賃借料,18029,"13 使用料及賃
+借料 | 18,029",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,14,工事請負費,24134,"14 工事請負費 | 24,134",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,17,備品購入費,20286,"17 備品購入費 | 20,286",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,18,負担金補助及交付金,57408,"18 負担金補助
+及交付金 | 57,408",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,22,償還金利子及割引料,3038,"22 償還金利子
+及割引料 | 3,038",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,172,337,2026,一般会計,expenditure,02,総務費,03,区民費,09,防災対策費,897094,24,積立金,30902,"24 積立金 | 30,902",parsed,stateful_reconciliation=matched; section_sum=897094; moku_total=897094; moku_page_span=172-173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,07,報償費,350,07 報償費 | 350,parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,08,旅費,842,08 旅費 | 842,parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,10,需用費,1460,"10 需用費 | 1,460",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,11,役務費,1243,"11 役務費 | 1,243",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,12,委託料,464034,"12 委託料 | 464,034",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,13,使用料及賃借料,17309,"13 使用料及賃
+借料 | 17,309",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,14,工事請負費,323133,"14 工事請負費 | 323,133",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,17,備品購入費,10597,"17 備品購入費 | 10,597",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,10,健康村費,844051,18,負担金補助及交付金,25083,"18 負担金補助
+及交付金 | 25,083",parsed,stateful_reconciliation=matched; section_sum=844051; moku_total=844051; moku_page_span=173
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,07,報償費,1676,"07 報償費 | 1,676",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,08,旅費,3490,"08 旅費 | 3,490",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,10,需用費,5742,"10 需用費 | 5,742",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,11,役務費,8467,"11 役務費 | 8,467",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,12,委託料,58921,"12 委託料 | 58,921",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,13,使用料及賃借料,1081,"13 使用料及賃
+借料 | 1,081",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,17,備品購入費,8345,"17 備品購入費 | 8,345",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,18,負担金補助及交付金,6342,"18 負担金補助
+及交付金 | 6,342",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,173,339,2026,一般会計,expenditure,02,総務費,03,区民費,11,文化・国際費,112674,24,積立金,18610,"24 積立金 | 18,610",parsed,stateful_reconciliation=matched; section_sum=112674; moku_total=112674; moku_page_span=173-174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,01,報酬,229,01 報酬 | 229,parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,07,報償費,271,07 報償費 | 271,parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,08,旅費,30,08 旅費 | 30,parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,10,需用費,113934,"10 需用費 | 113,934",parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,11,役務費,128,11 役務費 | 128,parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,12,委託料,1015988,"12 委託料 | 1,015,988",parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,13,使用料及賃借料,416,"13 使用料及賃
+借料 | 416",parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,14,工事請負費,1042940,"14 工事請負費 | 1,042,940",parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,12,文化施設費,4130266,18,負担金補助及交付金,1956330,"18 負担金補助
+及交付金 | 1,956,330",parsed,stateful_reconciliation=matched; section_sum=4130266; moku_total=4130266; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,01,報酬,118,01 報酬 | 118,parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,07,報償費,3653,"07 報償費 | 3,653",parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,08,旅費,63,08 旅費 | 63,parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,10,需用費,6065,"10 需用費 | 6,065",parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,11,役務費,953,11 役務費 | 953,parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,12,委託料,3064,"12 委託料 | 3,064",parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,13,消費者行政費,14019,18,負担金補助及交付金,103,"18 負担金補助
+及交付金 | 103",parsed,stateful_reconciliation=matched; section_sum=14019; moku_total=14019; moku_page_span=174
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,01,報酬,6562,"01 報酬 | 6,562",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,07,報償費,3543,"07 報償費 | 3,543",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,08,旅費,1309,"08 旅費 | 1,309",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,09,交際費,50,09 交際費 | 50,parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,10,需用費,377776,"10 需用費 | 377,776",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,11,役務費,4238,"11 役務費 | 4,238",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,12,委託料,1216617,"12 委託料 | 1,216,617",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,13,使用料及賃借料,41459,"13 使用料及賃
+借料 | 41,459",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,14,工事請負費,406124,"14 工事請負費 | 406,124",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,17,備品購入費,17728,"17 備品購入費 | 17,728",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,18,負担金補助及交付金,498939,"18 負担金補助
+及交付金 | 498,939",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,24,積立金,117745,"24 積立金 | 117,745",parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,174,341,2026,一般会計,expenditure,02,総務費,03,区民費,14,スポーツ振興費,2692179,26,公課費,89,26 公課費 | 89,parsed,stateful_reconciliation=matched; section_sum=2692179; moku_total=2692179; moku_page_span=174-175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,07,報償費,29551,"07 報償費 | 29,551",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,08,旅費,42,08 旅費 | 42,parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,10,需用費,58661,"10 需用費 | 58,661",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,11,役務費,7726,"11 役務費 | 7,726",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,12,委託料,216079,"12 委託料 | 216,079",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,13,使用料及賃借料,9446,"13 使用料及賃
+借料 | 9,446",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,17,備品購入費,77,17 備品購入費 | 77,parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,175,343,2026,一般会計,expenditure,02,総務費,03,区民費,15,生涯現役推進費,358475,18,負担金補助及交付金,36893,"18 負担金補助
+及交付金 | 36,893",parsed,stateful_reconciliation=matched; section_sum=358475; moku_total=358475; moku_page_span=175
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,07,報償費,66,07 報償費 | 66,parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,08,旅費,56,08 旅費 | 56,parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,10,需用費,16215,"10 需用費 | 16,215",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,11,役務費,2172,"11 役務費 | 2,172",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,12,委託料,96238,"12 委託料 | 96,238",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,13,使用料及賃借料,7073,"13 使用料及賃
+借料 | 7,073",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,17,備品購入費,1995,"17 備品購入費 | 1,995",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,01,戸籍事務費,123840,18,負担金補助及交付金,25,"18 負担金補助
+及交付金 | 25",parsed,stateful_reconciliation=matched; section_sum=123840; moku_total=123840; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,07,報償費,396,07 報償費 | 396,parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,08,旅費,240,08 旅費 | 240,parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,10,需用費,46232,"10 需用費 | 46,232",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,11,役務費,33807,"11 役務費 | 33,807",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,12,委託料,688062,"12 委託料 | 688,062",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,13,使用料及賃借料,15221,"13 使用料及賃
+借料 | 15,221",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,17,備品購入費,1246,"17 備品購入費 | 1,246",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,176,345,2026,一般会計,expenditure,02,総務費,04,戸籍住民基本台帳費,02,住民記録費,785324,21,補償補填及賠償金,120,"21 補償補填及
+賠償金 | 120",parsed,stateful_reconciliation=matched; section_sum=785324; moku_total=785324; moku_page_span=176
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,01,統計調査総務費,1212,08,旅費,44,08 旅費 | 44,parsed,stateful_reconciliation=matched; section_sum=1212; moku_total=1212; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,01,統計調査総務費,1212,10,需用費,464,10 需用費 | 464,parsed,stateful_reconciliation=matched; section_sum=1212; moku_total=1212; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,01,統計調査総務費,1212,12,委託料,136,12 委託料 | 136,parsed,stateful_reconciliation=matched; section_sum=1212; moku_total=1212; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,01,統計調査総務費,1212,13,使用料及賃借料,568,"13 使用料及賃
+借料 | 568",parsed,stateful_reconciliation=matched; section_sum=1212; moku_total=1212; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,01,報酬,56429,"01 報酬 | 56,429",parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,03,職員手当等,2059,"03 職員手当等 | 2,059",parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,07,報償費,28,07 報償費 | 28,parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,08,旅費,1229,"08 旅費 | 1,229",parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,10,需用費,1333,"10 需用費 | 1,333",parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,11,役務費,5806,"11 役務費 | 5,806",parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,177,347,2026,一般会計,expenditure,02,総務費,05,統計調査費,04,基幹統計調査費,67236,12,委託料,352,12 委託料 | 352,parsed,stateful_reconciliation=matched; section_sum=67236; moku_total=67236; moku_page_span=177
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,01,報酬,12161,"01 報酬 | 12,161",parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,08,旅費,858,08 旅費 | 858,parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,09,交際費,20,09 交際費 | 20,parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,10,需用費,474,10 需用費 | 474,parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,11,役務費,105,11 役務費 | 105,parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,01,選挙管理委員会費,13782,18,負担金補助及交付金,164,"18 負担金補助
+及交付金 | 164",parsed,stateful_reconciliation=matched; section_sum=13782; moku_total=13782; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,02,選挙啓発費,3856,07,報償費,1378,"07 報償費 | 1,378",parsed,stateful_reconciliation=matched; section_sum=3856; moku_total=3856; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,02,選挙啓発費,3856,10,需用費,1930,"10 需用費 | 1,930",parsed,stateful_reconciliation=matched; section_sum=3856; moku_total=3856; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,02,選挙啓発費,3856,11,役務費,533,11 役務費 | 533,parsed,stateful_reconciliation=matched; section_sum=3856; moku_total=3856; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,02,選挙啓発費,3856,12,委託料,15,12 委託料 | 15,parsed,stateful_reconciliation=matched; section_sum=3856; moku_total=3856; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,03,職員手当等,13392,"03 職員手当等 | 13,392",parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,08,旅費,16,08 旅費 | 16,parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,10,需用費,23033,"10 需用費 | 23,033",parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,11,役務費,780,11 役務費 | 780,parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,12,委託料,1252,"12 委託料 | 1,252",parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,13,使用料及賃借料,253,"13 使用料及賃
+借料 | 253",parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,178,349,2026,一般会計,expenditure,02,総務費,07,選挙費,03,地方選挙費,39624,17,備品購入費,898,17 備品購入費 | 898,parsed,stateful_reconciliation=matched; section_sum=39624; moku_total=39624; moku_page_span=178
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,01,報酬,7548,"01 報酬 | 7,548",parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,07,報償費,6,07 報償費 | 6,parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,08,旅費,190,08 旅費 | 190,parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,10,需用費,864,10 需用費 | 864,parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,11,役務費,235,11 役務費 | 235,parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,12,委託料,1021,"12 委託料 | 1,021",parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,179,351,2026,一般会計,expenditure,02,総務費,08,監査委員費,01,監査委員費,9989,18,負担金補助及交付金,125,"18 負担金補助
+及交付金 | 125",parsed,stateful_reconciliation=matched; section_sum=9989; moku_total=9989; moku_page_span=179
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,01,報酬,41664,"01 報酬 | 41,664",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,07,報償費,117350,"07 報償費 | 117,350",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,08,旅費,18440,"08 旅費 | 18,440",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,09,交際費,75,09 交際費 | 75,parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,10,需用費,104082,"10 需用費 | 104,082",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,11,役務費,35313,"11 役務費 | 35,313",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,12,委託料,1724413,"12 委託料 | 1,724,413",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,13,使用料及賃借料,20497,"13 使用料及賃
+借料 | 20,497",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,17,備品購入費,8729,"17 備品購入費 | 8,729",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,18,負担金補助及交付金,1835262,"18 負担金補助
+及交付金 | 1,835,262",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,19,扶助費,62353,"19 扶助費 | 62,353",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,20,貸付金,9700,"20 貸付金 | 9,700",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,24,積立金,76926,"24 積立金 | 76,926",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,182,357,2026,一般会計,expenditure,03,民生費,01,社会福祉費,01,社会福祉総務費,34661846,27,繰出金,30607042,"27 繰出金 | 30,607,042",parsed,stateful_reconciliation=matched; section_sum=34661846; moku_total=34661846; moku_page_span=182-185
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,07,報償費,10136,"07 報償費 | 10,136",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,08,旅費,120,08 旅費 | 120,parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,10,需用費,105751,"10 需用費 | 105,751",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,11,役務費,52655,"11 役務費 | 52,655",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,12,委託料,1818367,"12 委託料 | 1,818,367",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,13,使用料及賃借料,170985,"13 使用料及賃
+借料 | 170,985",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,17,備品購入費,1098,"17 備品購入費 | 1,098",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,18,負担金補助及交付金,28218,"18 負担金補助
+及交付金 | 28,218",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,185,363,2026,一般会計,expenditure,03,民生費,01,社会福祉費,02,高齢者福祉費,2506341,19,扶助費,319011,"19 扶助費 | 319,011",parsed,stateful_reconciliation=matched; section_sum=2506341; moku_total=2506341; moku_page_span=185-186
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,01,報酬,899,01 報酬 | 899,parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,07,報償費,197695,"07 報償費 | 197,695",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,10,需用費,11549,"10 需用費 | 11,549",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,11,役務費,7326,"11 役務費 | 7,326",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,12,委託料,1073798,"12 委託料 | 1,073,798",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,13,使用料及賃借料,6899,"13 使用料及賃
+借料 | 6,899",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,18,負担金補助及交付金,11582,"18 負担金補助
+及交付金 | 11,582",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,19,扶助費,28244057,"19 扶助費 | 28,244,057",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,187,367,2026,一般会計,expenditure,03,民生費,01,社会福祉費,03,障害者福祉費,29559527,22,償還金利子及割引料,5722,"22 償還金利子
+及割引料 | 5,722",parsed,stateful_reconciliation=matched; section_sum=29559527; moku_total=29559527; moku_page_span=187-188
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,07,報償費,1078,"07 報償費 | 1,078",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,08,旅費,264,08 旅費 | 264,parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,10,需用費,71318,"10 需用費 | 71,318",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,11,役務費,18646,"11 役務費 | 18,646",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,12,委託料,5327809,"12 委託料 | 5,327,809",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,13,使用料及賃借料,254111,"13 使用料及賃
+借料 | 254,111",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,14,工事請負費,294621,"14 工事請負費 | 294,621",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,17,備品購入費,4512,"17 備品購入費 | 4,512",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,188,369,2026,一般会計,expenditure,03,民生費,01,社会福祉費,16,障害者施設費,8082382,18,負担金補助及交付金,2110023,"18 負担金補助
+及交付金 | 2,110,023",parsed,stateful_reconciliation=matched; section_sum=8082382; moku_total=8082382; moku_page_span=188-189
+r8tousyoyosanallpage.pdf,189,371,2026,一般会計,expenditure,03,民生費,01,社会福祉費,17,高齢者施設費,111921,14,工事請負費,111921,"14 工事請負費 | 111,921",parsed,stateful_reconciliation=matched; section_sum=111921; moku_total=111921; moku_page_span=189
+r8tousyoyosanallpage.pdf,189,371,2026,一般会計,expenditure,03,民生費,01,社会福祉費,20,国民年金総務費,3009,10,需用費,1692,"10 需用費 | 1,692",parsed,stateful_reconciliation=matched; section_sum=3009; moku_total=3009; moku_page_span=189
+r8tousyoyosanallpage.pdf,189,371,2026,一般会計,expenditure,03,民生費,01,社会福祉費,20,国民年金総務費,3009,11,役務費,935,11 役務費 | 935,parsed,stateful_reconciliation=matched; section_sum=3009; moku_total=3009; moku_page_span=189
+r8tousyoyosanallpage.pdf,189,371,2026,一般会計,expenditure,03,民生費,01,社会福祉費,20,国民年金総務費,3009,12,委託料,196,12 委託料 | 196,parsed,stateful_reconciliation=matched; section_sum=3009; moku_total=3009; moku_page_span=189
+r8tousyoyosanallpage.pdf,189,371,2026,一般会計,expenditure,03,民生費,01,社会福祉費,20,国民年金総務費,3009,13,使用料及賃借料,186,"13 使用料及賃
+借料 | 186",parsed,stateful_reconciliation=matched; section_sum=3009; moku_total=3009; moku_page_span=189
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,01,報酬,17509,"01 報酬 | 17,509",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,07,報償費,43250,"07 報償費 | 43,250",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,08,旅費,12567,"08 旅費 | 12,567",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,09,交際費,10,09 交際費 | 10,parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,10,需用費,575959,"10 需用費 | 575,959",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,11,役務費,20350,"11 役務費 | 20,350",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,12,委託料,3247211,"12 委託料 | 3,247,211",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,13,使用料及賃借料,65952,"13 使用料及賃
+借料 | 65,952",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,14,工事請負費,157439,"14 工事請負費 | 157,439",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,17,備品購入費,29610,"17 備品購入費 | 29,610",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,18,負担金補助及交付金,9844089,"18 負担金補助
+及交付金 | 9,844,089",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,19,扶助費,1989098,"19 扶助費 | 1,989,098",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,191,375,2026,一般会計,expenditure,03,民生費,02,児童福祉費,01,児童福祉総務費,16186471,24,積立金,183427,"24 積立金 | 183,427",parsed,stateful_reconciliation=matched; section_sum=16186471; moku_total=16186471; moku_page_span=191-193
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,10,需用費,2624,"10 需用費 | 2,624",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,11,役務費,30471,"11 役務費 | 30,471",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,12,委託料,197935,"12 委託料 | 197,935",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,13,使用料及賃借料,309087,"13 使用料及賃
+借料 | 309,087",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,18,負担金補助及交付金,1648984,"18 負担金補助
+及交付金 | 1,648,984",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,19,扶助費,67741931,"19 扶助費 | 67,741,931",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,03,児童措置費,69931955,22,償還金利子及割引料,923,"22 償還金利子
+及割引料 | 923",parsed,stateful_reconciliation=matched; section_sum=69931955; moku_total=69931955; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,01,報酬,33565,"01 報酬 | 33,565",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,07,報償費,541,07 報償費 | 541,parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,08,旅費,91,08 旅費 | 91,parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,10,需用費,1086145,"10 需用費 | 1,086,145",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,11,役務費,47989,"11 役務費 | 47,989",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,12,委託料,620993,"12 委託料 | 620,993",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,13,使用料及賃借料,12066,"13 使用料及賃
+借料 | 12,066",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,17,備品購入費,43980,"17 備品購入費 | 43,980",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,18,負担金補助及交付金,2858,"18 負担金補助
+及交付金 | 2,858",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,194,381,2026,一般会計,expenditure,03,民生費,02,児童福祉費,05,保育所費,1848456,22,償還金利子及割引料,228,"22 償還金利子
+及割引料 | 228",parsed,stateful_reconciliation=matched; section_sum=1848456; moku_total=1848456; moku_page_span=194
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,07,報償費,34324,"07 報償費 | 34,324",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,08,旅費,989,08 旅費 | 989,parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,09,交際費,113,09 交際費 | 113,parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,10,需用費,324198,"10 需用費 | 324,198",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,11,役務費,10452,"11 役務費 | 10,452",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,12,委託料,578676,"12 委託料 | 578,676",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,13,使用料及賃借料,39349,"13 使用料及賃
+借料 | 39,349",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,17,備品購入費,6916,"17 備品購入費 | 6,916",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,18,負担金補助及交付金,1807783,"18 負担金補助
+及交付金 | 1,807,783",parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,06,児童育成費,2802950,19,扶助費,150,19 扶助費 | 150,parsed,stateful_reconciliation=matched; section_sum=2802950; moku_total=2802950; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,10,需用費,64840,"10 需用費 | 64,840",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,11,役務費,65704,"11 役務費 | 65,704",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,12,委託料,277219,"12 委託料 | 277,219",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,14,工事請負費,910619,"14 工事請負費 | 910,619",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,15,原材料費,1280,"15 原材料費 | 1,280",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,17,備品購入費,1903,"17 備品購入費 | 1,903",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,195,383,2026,一般会計,expenditure,03,民生費,02,児童福祉費,12,保育児童施設費,3531639,18,負担金補助及交付金,2210074,"18 負担金補助
+及交付金 | 2,210,074",parsed,stateful_reconciliation=matched; section_sum=3531639; moku_total=3531639; moku_page_span=195
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,01,報酬,8575,"01 報酬 | 8,575",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,07,報償費,7878,"07 報償費 | 7,878",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,08,旅費,7161,"08 旅費 | 7,161",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,10,需用費,65606,"10 需用費 | 65,606",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,11,役務費,9815,"11 役務費 | 9,815",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,12,委託料,456947,"12 委託料 | 456,947",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,13,使用料及賃借料,3978,"13 使用料及賃
+借料 | 3,978",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,14,工事請負費,2420,"14 工事請負費 | 2,420",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,18,負担金補助及交付金,1342386,"18 負担金補助
+及交付金 | 1,342,386",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,196,385,2026,一般会計,expenditure,03,民生費,02,児童福祉費,13,児童相談所費,2314601,19,扶助費,409835,"19 扶助費 | 409,835",parsed,stateful_reconciliation=matched; section_sum=2314601; moku_total=2314601; moku_page_span=196
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,07,報償費,44,07 報償費 | 44,parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,08,旅費,375,08 旅費 | 375,parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,10,需用費,6456,"10 需用費 | 6,456",parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,11,役務費,5700,"11 役務費 | 5,700",parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,12,委託料,183355,"12 委託料 | 183,355",parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,13,使用料及賃借料,9102,"13 使用料及賃
+借料 | 9,102",parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,01,生活保護総務費,206157,18,負担金補助及交付金,1125,"18 負担金補助
+及交付金 | 1,125",parsed,stateful_reconciliation=matched; section_sum=206157; moku_total=206157; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,03,扶助費,23104327,10,需用費,470,10 需用費 | 470,parsed,stateful_reconciliation=matched; section_sum=23104327; moku_total=23104327; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,03,扶助費,23104327,12,委託料,112,12 委託料 | 112,parsed,stateful_reconciliation=matched; section_sum=23104327; moku_total=23104327; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,03,扶助費,23104327,18,負担金補助及交付金,16000,"18 負担金補助
+及交付金 | 16,000",parsed,stateful_reconciliation=matched; section_sum=23104327; moku_total=23104327; moku_page_span=197
+r8tousyoyosanallpage.pdf,197,387,2026,一般会計,expenditure,03,民生費,03,生活保護費,03,扶助費,23104327,19,扶助費,23087745,"19 扶助費 | 23,087,745",parsed,stateful_reconciliation=matched; section_sum=23104327; moku_total=23104327; moku_page_span=197
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,01,報酬,1380,"01 報酬 | 1,380",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,07,報償費,232,07 報償費 | 232,parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,08,旅費,2717,"08 旅費 | 2,717",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,09,交際費,102,09 交際費 | 102,parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,10,需用費,11103,"10 需用費 | 11,103",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,11,役務費,4371,"11 役務費 | 4,371",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,12,委託料,284805,"12 委託料 | 284,805",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,13,使用料及賃借料,15143,"13 使用料及賃
+借料 | 15,143",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,14,工事請負費,238,14 工事請負費 | 238,parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,17,備品購入費,4899,"17 備品購入費 | 4,899",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,18,負担金補助及交付金,105940,"18 負担金補助
+及交付金 | 105,940",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,199,391,2026,一般会計,expenditure,04,環境費,02,環境費,01,環境対策費,464852,24,積立金,33922,"24 積立金 | 33,922",parsed,stateful_reconciliation=matched; section_sum=464852; moku_total=464852; moku_page_span=199
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,01,報酬,1913,"01 報酬 | 1,913",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,07,報償費,556,07 報償費 | 556,parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,08,旅費,36,08 旅費 | 36,parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,10,需用費,141588,"10 需用費 | 141,588",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,11,役務費,46066,"11 役務費 | 46,066",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,12,委託料,278558,"12 委託料 | 278,558",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,13,使用料及賃借料,6351,"13 使用料及賃
+借料 | 6,351",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,17,備品購入費,1651,"17 備品購入費 | 1,651",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,18,負担金補助及交付金,5211582,"18 負担金補助
+及交付金 | 5,211,582",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,200,393,2026,一般会計,expenditure,04,環境費,03,清掃費,01,清掃管理費,5688751,22,償還金利子及割引料,450,"22 償還金利子
+及割引料 | 450",parsed,stateful_reconciliation=matched; section_sum=5688751; moku_total=5688751; moku_page_span=200
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,10,需用費,25590,"10 需用費 | 25,590",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,11,役務費,3147435,"11 役務費 | 3,147,435",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,12,委託料,1017417,"12 委託料 | 1,017,417",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,13,使用料及賃借料,50520,"13 使用料及賃
+借料 | 50,520",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,17,備品購入費,59527,"17 備品購入費 | 59,527",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,18,負担金補助及交付金,13,"18 負担金補助
+及交付金 | 13",parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,02,廃棄物対策費,4300778,26,公課費,276,26 公課費 | 276,parsed,stateful_reconciliation=matched; section_sum=4300778; moku_total=4300778; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,07,報償費,68299,"07 報償費 | 68,299",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,10,需用費,42288,"10 需用費 | 42,288",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,11,役務費,895187,"11 役務費 | 895,187",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,12,委託料,2716113,"12 委託料 | 2,716,113",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,13,使用料及賃借料,64,"13 使用料及賃
+借料 | 64",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,17,備品購入費,1175,"17 備品購入費 | 1,175",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,03,省資源対策費,3723230,18,負担金補助及交付金,104,"18 負担金補助
+及交付金 | 104",parsed,stateful_reconciliation=matched; section_sum=3723230; moku_total=3723230; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,04,施設整備費,200236,12,委託料,105184,"12 委託料 | 105,184",parsed,stateful_reconciliation=matched; section_sum=200236; moku_total=200236; moku_page_span=201
+r8tousyoyosanallpage.pdf,201,395,2026,一般会計,expenditure,04,環境費,03,清掃費,04,施設整備費,200236,14,工事請負費,95052,"14 工事請負費 | 95,052",parsed,stateful_reconciliation=matched; section_sum=200236; moku_total=200236; moku_page_span=201
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,07,報償費,145,07 報償費 | 145,parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,10,需用費,2382,"10 需用費 | 2,382",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,11,役務費,3942,"11 役務費 | 3,942",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,12,委託料,639699,"12 委託料 | 639,699",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,13,使用料及賃借料,63772,"13 使用料及賃
+借料 | 63,772",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,14,工事請負費,54000,"14 工事請負費 | 54,000",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,17,備品購入費,2869,"17 備品購入費 | 2,869",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,202,397,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,01,衛生総務費,807064,18,負担金補助及交付金,40255,"18 負担金補助
+及交付金 | 40,255",parsed,stateful_reconciliation=matched; section_sum=807064; moku_total=807064; moku_page_span=202
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,03,衛生統計費,3886,01,報酬,1441,"01 報酬 | 1,441",parsed,stateful_reconciliation=matched; section_sum=3886; moku_total=3886; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,03,衛生統計費,3886,08,旅費,19,08 旅費 | 19,parsed,stateful_reconciliation=matched; section_sum=3886; moku_total=3886; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,03,衛生統計費,3886,10,需用費,756,10 需用費 | 756,parsed,stateful_reconciliation=matched; section_sum=3886; moku_total=3886; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,03,衛生統計費,3886,11,役務費,1670,"11 役務費 | 1,670",parsed,stateful_reconciliation=matched; section_sum=3886; moku_total=3886; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,10,需用費,800,10 需用費 | 800,parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,11,役務費,15,11 役務費 | 15,parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,12,委託料,400147,"12 委託料 | 400,147",parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,17,備品購入費,12337,"17 備品購入費 | 12,337",parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,18,負担金補助及交付金,97979,"18 負担金補助
+及交付金 | 97,979",parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,203,399,2026,一般会計,expenditure,05,衛生費,01,衛生管理費,04,保健センター費,511288,21,補償補填及賠償金,10,"21 補償補填及
+賠償金 | 10",parsed,stateful_reconciliation=matched; section_sum=511288; moku_total=511288; moku_page_span=203
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,07,報償費,52619,"07 報償費 | 52,619",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,08,旅費,3145,"08 旅費 | 3,145",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,09,交際費,50,09 交際費 | 50,parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,10,需用費,31425,"10 需用費 | 31,425",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,11,役務費,8259,"11 役務費 | 8,259",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,12,委託料,120888,"12 委託料 | 120,888",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,13,使用料及賃借料,7986,"13 使用料及賃
+借料 | 7,986",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,17,備品購入費,528,17 備品購入費 | 528,parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,18,負担金補助及交付金,8098,"18 負担金補助
+及交付金 | 8,098",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,204,401,2026,一般会計,expenditure,05,衛生費,02,保健所費,01,保健所費,233048,21,補償補填及賠償金,50,"21 補償補填及
+賠償金 | 50",parsed,stateful_reconciliation=matched; section_sum=233048; moku_total=233048; moku_page_span=204
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,01,報酬,806,01 報酬 | 806,parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,07,報償費,1121,"07 報償費 | 1,121",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,10,需用費,80477,"10 需用費 | 80,477",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,11,役務費,79734,"11 役務費 | 79,734",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,12,委託料,2214407,"12 委託料 | 2,214,407",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,13,使用料及賃借料,231,"13 使用料及賃
+借料 | 231",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,17,備品購入費,2229,"17 備品購入費 | 2,229",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,18,負担金補助及交付金,80178,"18 負担金補助
+及交付金 | 80,178",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,19,扶助費,297,19 扶助費 | 297,parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,21,補償補填及賠償金,10,"21 補償補填及
+賠償金 | 10",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,205,403,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,03,成人病予防費,2459500,22,償還金利子及割引料,10,"22 償還金利子
+及割引料 | 10",parsed,stateful_reconciliation=matched; section_sum=2459500; moku_total=2459500; moku_page_span=205
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,01,報酬,1068,"01 報酬 | 1,068",parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,07,報償費,4770,"07 報償費 | 4,770",parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,10,需用費,3004,"10 需用費 | 3,004",parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,11,役務費,141,11 役務費 | 141,parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,12,委託料,454,12 委託料 | 454,parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,04,栄養指導費,9960,13,使用料及賃借料,523,"13 使用料及賃
+借料 | 523",parsed,stateful_reconciliation=matched; section_sum=9960; moku_total=9960; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,01,報酬,816,01 報酬 | 816,parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,07,報償費,180992,"07 報償費 | 180,992",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,08,旅費,138,08 旅費 | 138,parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,10,需用費,25287,"10 需用費 | 25,287",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,11,役務費,9279,"11 役務費 | 9,279",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,12,委託料,1114068,"12 委託料 | 1,114,068",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,17,備品購入費,1438,"17 備品購入費 | 1,438",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,18,負担金補助及交付金,669,"18 負担金補助
+及交付金 | 669",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,206,405,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,05,母子保健費,2344731,19,扶助費,1012044,"19 扶助費 | 1,012,044",parsed,stateful_reconciliation=matched; section_sum=2344731; moku_total=2344731; moku_page_span=206
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,06,公害保健費,1870,01,報酬,984,01 報酬 | 984,parsed,stateful_reconciliation=matched; section_sum=1870; moku_total=1870; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,06,公害保健費,1870,10,需用費,604,10 需用費 | 604,parsed,stateful_reconciliation=matched; section_sum=1870; moku_total=1870; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,06,公害保健費,1870,11,役務費,282,11 役務費 | 282,parsed,stateful_reconciliation=matched; section_sum=1870; moku_total=1870; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,01,報酬,3479,"01 報酬 | 3,479",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,07,報償費,4517,"07 報償費 | 4,517",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,10,需用費,43494,"10 需用費 | 43,494",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,11,役務費,25822,"11 役務費 | 25,822",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,12,委託料,3906295,"12 委託料 | 3,906,295",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,18,負担金補助及交付金,672555,"18 負担金補助
+及交付金 | 672,555",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,207,407,2026,一般会計,expenditure,05,衛生費,03,公衆衛生費,07,感染症予防費,4768450,19,扶助費,112288,"19 扶助費 | 112,288",parsed,stateful_reconciliation=matched; section_sum=4768450; moku_total=4768450; moku_page_span=207
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,07,報償費,5698,"07 報償費 | 5,698",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,08,旅費,276,08 旅費 | 276,parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,10,需用費,38240,"10 需用費 | 38,240",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,11,役務費,2072,"11 役務費 | 2,072",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,12,委託料,138156,"12 委託料 | 138,156",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,13,使用料及賃借料,95585,"13 使用料及賃
+借料 | 95,585",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,17,備品購入費,6568,"17 備品購入費 | 6,568",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,208,409,2026,一般会計,expenditure,05,衛生費,04,環境衛生費,01,環境衛生費,304121,18,負担金補助及交付金,17526,"18 負担金補助
+及交付金 | 17,526",parsed,stateful_reconciliation=matched; section_sum=304121; moku_total=304121; moku_page_span=208
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,01,報酬,953,01 報酬 | 953,parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,07,報償費,755,07 報償費 | 755,parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,08,旅費,1170,"08 旅費 | 1,170",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,10,需用費,10827,"10 需用費 | 10,827",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,11,役務費,1590,"11 役務費 | 1,590",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,12,委託料,288904,"12 委託料 | 288,904",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,13,使用料及賃借料,1495,"13 使用料及賃
+借料 | 1,495",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,17,備品購入費,250,17 備品購入費 | 250,parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,209,411,2026,一般会計,expenditure,06,産業経済費,01,商工費,01,商工振興費,2501199,18,負担金補助及交付金,2195255,"18 負担金補助
+及交付金 | 2,195,255",parsed,stateful_reconciliation=matched; section_sum=2501199; moku_total=2501199; moku_page_span=209-210
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,01,報酬,7380,"01 報酬 | 7,380",parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,07,報償費,100,07 報償費 | 100,parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,08,旅費,298,08 旅費 | 298,parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,09,交際費,120,09 交際費 | 120,parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,10,需用費,512,10 需用費 | 512,parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,11,役務費,1153,"11 役務費 | 1,153",parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,12,委託料,787,12 委託料 | 787,parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,13,使用料及賃借料,233,"13 使用料及賃
+借料 | 233",parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,01,農業委員会費,11052,18,負担金補助及交付金,469,"18 負担金補助
+及交付金 | 469",parsed,stateful_reconciliation=matched; section_sum=11052; moku_total=11052; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,01,報酬,762,01 報酬 | 762,parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,07,報償費,5170,"07 報償費 | 5,170",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,10,需用費,14599,"10 需用費 | 14,599",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,11,役務費,2110,"11 役務費 | 2,110",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,12,委託料,146670,"12 委託料 | 146,670",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,13,使用料及賃借料,1833,"13 使用料及賃
+借料 | 1,833",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,16,公有財産購入費,419,"16 公有財産購
+入費 | 419",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,17,備品購入費,561,17 備品購入費 | 561,parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,18,負担金補助及交付金,50631,"18 負担金補助
+及交付金 | 50,631",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,211,415,2026,一般会計,expenditure,06,産業経済費,02,農業費,02,農業総務費,222803,22,償還金利子及割引料,48,"22 償還金利子
+及割引料 | 48",parsed,stateful_reconciliation=matched; section_sum=222803; moku_total=222803; moku_page_span=211
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,08,旅費,1707,"08 旅費 | 1,707",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,10,需用費,51883,"10 需用費 | 51,883",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,11,役務費,14186,"11 役務費 | 14,186",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,12,委託料,62486,"12 委託料 | 62,486",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,13,使用料及賃借料,2207,"13 使用料及賃
+借料 | 2,207",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,14,工事請負費,1868,"14 工事請負費 | 1,868",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,18,負担金補助及交付金,1317,"18 負担金補助
+及交付金 | 1,317",parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,213,419,2026,一般会計,expenditure,07,土木費,01,土木管理費,01,土木総務費,135910,26,公課費,256,26 公課費 | 256,parsed,stateful_reconciliation=matched; section_sum=135910; moku_total=135910; moku_page_span=213
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,07,報償費,44,07 報償費 | 44,parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,08,旅費,2139,"08 旅費 | 2,139",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,10,需用費,7691,"10 需用費 | 7,691",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,11,役務費,964,11 役務費 | 964,parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,12,委託料,324928,"12 委託料 | 324,928",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,13,使用料及賃借料,15279,"13 使用料及賃
+借料 | 15,279",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,15,原材料費,1831,"15 原材料費 | 1,831",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,214,421,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,01,道路橋梁総務費,362335,18,負担金補助及交付金,9459,"18 負担金補助
+及交付金 | 9,459",parsed,stateful_reconciliation=matched; section_sum=362335; moku_total=362335; moku_page_span=214
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,07,報償費,983,07 報償費 | 983,parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,10,需用費,11250,"10 需用費 | 11,250",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,11,役務費,637521,"11 役務費 | 637,521",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,12,委託料,227767,"12 委託料 | 227,767",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,14,工事請負費,656840,"14 工事請負費 | 656,840",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,15,原材料費,19256,"15 原材料費 | 19,256",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,02,道路維持費,1570059,17,備品購入費,16442,"17 備品購入費 | 16,442",parsed,stateful_reconciliation=matched; section_sum=1570059; moku_total=1570059; moku_page_span=215
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,07,報償費,361,07 報償費 | 361,parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,08,旅費,996,08 旅費 | 996,parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,10,需用費,3580,"10 需用費 | 3,580",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,11,役務費,47419,"11 役務費 | 47,419",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,12,委託料,1786037,"12 委託料 | 1,786,037",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,14,工事請負費,3596603,"14 工事請負費 | 3,596,603",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,15,原材料費,548,15 原材料費 | 548,parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,16,公有財産購入費,3574678,"16 公有財産購
+入費 | 3,574,678",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,18,負担金補助及交付金,58550,"18 負担金補助
+及交付金 | 58,550",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,21,補償補填及賠償金,228872,"21 補償補填及
+賠償金 | 228,872",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,215,423,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,03,道路新設改良費,9500311,22,償還金利子及割引料,202667,"22 償還金利子
+及割引料 | 202,667",parsed,stateful_reconciliation=matched; section_sum=9500311; moku_total=9500311; moku_page_span=215-216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,04,私道整備費,39000,18,負担金補助及交付金,39000,"18 負担金補助
+及交付金 | 39,000",parsed,stateful_reconciliation=matched; section_sum=39000; moku_total=39000; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,01,報酬,670,01 報酬 | 670,parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,07,報償費,49,07 報償費 | 49,parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,10,需用費,18790,"10 需用費 | 18,790",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,11,役務費,2461,"11 役務費 | 2,461",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,12,委託料,471647,"12 委託料 | 471,647",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,13,使用料及賃借料,167098,"13 使用料及賃
+借料 | 167,098",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,14,工事請負費,295267,"14 工事請負費 | 295,267",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,15,原材料費,4145,"15 原材料費 | 4,145",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,06,交通安全対策費,966363,18,負担金補助及交付金,6236,"18 負担金補助
+及交付金 | 6,236",parsed,stateful_reconciliation=matched; section_sum=966363; moku_total=966363; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,10,需用費,297325,"10 需用費 | 297,325",parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,11,役務費,216,11 役務費 | 216,parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,12,委託料,49702,"12 委託料 | 49,702",parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,14,工事請負費,501051,"14 工事請負費 | 501,051",parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,15,原材料費,4186,"15 原材料費 | 4,186",parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,07,街路照明費,853614,18,負担金補助及交付金,1134,"18 負担金補助
+及交付金 | 1,134",parsed,stateful_reconciliation=matched; section_sum=853614; moku_total=853614; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,08,旅費,400,08 旅費 | 400,parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,10,需用費,91,10 需用費 | 91,parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,11,役務費,1,11 役務費 | 1,parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,12,委託料,80203,"12 委託料 | 80,203",parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,14,工事請負費,348000,"14 工事請負費 | 348,000",parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,08,公共下水道建設費,428894,18,負担金補助及交付金,199,"18 負担金補助
+及交付金 | 199",parsed,stateful_reconciliation=matched; section_sum=428894; moku_total=428894; moku_page_span=216
+r8tousyoyosanallpage.pdf,216,425,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,09,水洗化促進費,3500,18,負担金補助及交付金,3500,"18 負担金補助
+及交付金 | 3,500",parsed,stateful_reconciliation=matched; section_sum=3500; moku_total=3500; moku_page_span=216
+r8tousyoyosanallpage.pdf,217,427,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,10,橋梁新設改良費,1474413,12,委託料,135087,"12 委託料 | 135,087",parsed,stateful_reconciliation=matched; section_sum=1474413; moku_total=1474413; moku_page_span=217
+r8tousyoyosanallpage.pdf,217,427,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,10,橋梁新設改良費,1474413,13,使用料及賃借料,1488,"13 使用料及賃
+借料 | 1,488",parsed,stateful_reconciliation=matched; section_sum=1474413; moku_total=1474413; moku_page_span=217
+r8tousyoyosanallpage.pdf,217,427,2026,一般会計,expenditure,07,土木費,02,道路橋梁費,10,橋梁新設改良費,1474413,14,工事請負費,1337838,"14 工事請負費 | 1,337,838",parsed,stateful_reconciliation=matched; section_sum=1474413; moku_total=1474413; moku_page_span=217
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,10,需用費,8270,"10 需用費 | 8,270",parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,11,役務費,129788,"11 役務費 | 129,788",parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,12,委託料,84243,"12 委託料 | 84,243",parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,14,工事請負費,30345,"14 工事請負費 | 30,345",parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,15,原材料費,938,15 原材料費 | 938,parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,17,備品購入費,605,17 備品購入費 | 605,parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,01,河川総務費,254631,18,負担金補助及交付金,442,"18 負担金補助
+及交付金 | 442",parsed,stateful_reconciliation=matched; section_sum=254631; moku_total=254631; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,05,河川整備費,91349,12,委託料,11041,"12 委託料 | 11,041",parsed,stateful_reconciliation=matched; section_sum=91349; moku_total=91349; moku_page_span=218
+r8tousyoyosanallpage.pdf,218,429,2026,一般会計,expenditure,07,土木費,03,河川費,05,河川整備費,91349,14,工事請負費,80308,"14 工事請負費 | 80,308",parsed,stateful_reconciliation=matched; section_sum=91349; moku_total=91349; moku_page_span=218
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,07,報償費,22822,"07 報償費 | 22,822",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,08,旅費,1129,"08 旅費 | 1,129",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,09,交際費,66,09 交際費 | 66,parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,10,需用費,313670,"10 需用費 | 313,670",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,11,役務費,1720975,"11 役務費 | 1,720,975",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,12,委託料,1650949,"12 委託料 | 1,650,949",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,13,使用料及賃借料,61718,"13 使用料及賃
+借料 | 61,718",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,14,工事請負費,226625,"14 工事請負費 | 226,625",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,15,原材料費,1319,"15 原材料費 | 1,319",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,18,負担金補助及交付金,46895,"18 負担金補助
+及交付金 | 46,895",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,21,補償補填及賠償金,16687,"21 補償補填及
+賠償金 | 16,687",parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,219,431,2026,一般会計,expenditure,07,土木費,04,公園費,01,公園管理費,4062930,26,公課費,75,26 公課費 | 75,parsed,stateful_reconciliation=matched; section_sum=4062930; moku_total=4062930; moku_page_span=219
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,07,報償費,384,07 報償費 | 384,parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,10,需用費,258,10 需用費 | 258,parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,11,役務費,173,11 役務費 | 173,parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,12,委託料,589856,"12 委託料 | 589,856",parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,13,使用料及賃借料,800,"13 使用料及賃
+借料 | 800",parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,14,工事請負費,1713513,"14 工事請負費 | 1,713,513",parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,02,公園新設改良費,5514694,16,公有財産購入費,3209710,"16 公有財産購
+入費 | 3,209,710",parsed,stateful_reconciliation=matched; section_sum=5514694; moku_total=5514694; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,07,報償費,1108,"07 報償費 | 1,108",parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,10,需用費,17693,"10 需用費 | 17,693",parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,11,役務費,711,11 役務費 | 711,parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,12,委託料,289759,"12 委託料 | 289,759",parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,18,負担金補助及交付金,45033,"18 負担金補助
+及交付金 | 45,033",parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,05,緑化推進費,463497,24,積立金,109193,"24 積立金 | 109,193",parsed,stateful_reconciliation=matched; section_sum=463497; moku_total=463497; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,06,公衆トイレ費,35133,10,需用費,6438,"10 需用費 | 6,438",parsed,stateful_reconciliation=matched; section_sum=35133; moku_total=35133; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,06,公衆トイレ費,35133,11,役務費,27109,"11 役務費 | 27,109",parsed,stateful_reconciliation=matched; section_sum=35133; moku_total=35133; moku_page_span=220
+r8tousyoyosanallpage.pdf,220,433,2026,一般会計,expenditure,07,土木費,04,公園費,06,公衆トイレ費,35133,12,委託料,1586,"12 委託料 | 1,586",parsed,stateful_reconciliation=matched; section_sum=35133; moku_total=35133; moku_page_span=220
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,01,報酬,914,01 報酬 | 914,parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,07,報償費,713,07 報償費 | 713,parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,10,需用費,5591,"10 需用費 | 5,591",parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,11,役務費,2548,"11 役務費 | 2,548",parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,12,委託料,126350,"12 委託料 | 126,350",parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,17,備品購入費,68,17 備品購入費 | 68,parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,221,435,2026,一般会計,expenditure,07,土木費,05,建築費,01,建築行政費,539756,18,負担金補助及交付金,403572,"18 負担金補助
+及交付金 | 403,572",parsed,stateful_reconciliation=matched; section_sum=539756; moku_total=539756; moku_page_span=221
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,01,報酬,1512,"01 報酬 | 1,512",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,07,報償費,8272,"07 報償費 | 8,272",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,08,旅費,81,08 旅費 | 81,parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,10,需用費,25613,"10 需用費 | 25,613",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,11,役務費,2879,"11 役務費 | 2,879",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,12,委託料,989007,"12 委託料 | 989,007",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,13,使用料及賃借料,483757,"13 使用料及賃
+借料 | 483,757",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,14,工事請負費,574817,"14 工事請負費 | 574,817",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,18,負担金補助及交付金,250184,"18 負担金補助
+及交付金 | 250,184",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,222,437,2026,一般会計,expenditure,07,土木費,05,建築費,02,住宅費,2420376,24,積立金,84254,"24 積立金 | 84,254",parsed,stateful_reconciliation=matched; section_sum=2420376; moku_total=2420376; moku_page_span=222
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,01,報酬,4546,"01 報酬 | 4,546",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,07,報償費,6413,"07 報償費 | 6,413",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,08,旅費,4745,"08 旅費 | 4,745",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,09,交際費,55,09 交際費 | 55,parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,10,需用費,55546,"10 需用費 | 55,546",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,11,役務費,14982,"11 役務費 | 14,982",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,12,委託料,560817,"12 委託料 | 560,817",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,13,使用料及賃借料,1005,"13 使用料及賃
+借料 | 1,005",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,14,工事請負費,65513,"14 工事請負費 | 65,513",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,18,負担金補助及交付金,2502575,"18 負担金補助
+及交付金 | 2,502,575",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,223,439,2026,一般会計,expenditure,07,土木費,06,都市計画費,01,都市計画総務費,6160328,20,貸付金,2944131,"20 貸付金 | 2,944,131",parsed,stateful_reconciliation=matched; section_sum=6160328; moku_total=6160328; moku_page_span=223-224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,07,報償費,264,07 報償費 | 264,parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,10,需用費,2861,"10 需用費 | 2,861",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,11,役務費,4548,"11 役務費 | 4,548",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,12,委託料,107982,"12 委託料 | 107,982",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,14,工事請負費,51578,"14 工事請負費 | 51,578",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,16,公有財産購入費,132953,"16 公有財産購
+入費 | 132,953",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,18,負担金補助及交付金,383799,"18 負担金補助
+及交付金 | 383,799",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,21,補償補填及賠償金,2870,"21 補償補填及
+賠償金 | 2,870",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,224,441,2026,一般会計,expenditure,07,土木費,06,都市計画費,02,市街地開発費,765024,24,積立金,78169,"24 積立金 | 78,169",parsed,stateful_reconciliation=matched; section_sum=765024; moku_total=765024; moku_page_span=224
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,01,報酬,11556,"01 報酬 | 11,556",parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,07,報償費,66,07 報償費 | 66,parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,08,旅費,454,08 旅費 | 454,parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,09,交際費,360,09 交際費 | 360,parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,10,需用費,11,10 需用費 | 11,parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,225,443,2026,一般会計,expenditure,08,教育費,01,教育総務費,01,教育委員会費,13371,11,役務費,924,11 役務費 | 924,parsed,stateful_reconciliation=matched; section_sum=13371; moku_total=13371; moku_page_span=225
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,07,報償費,5459,"07 報償費 | 5,459",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,08,旅費,3546,"08 旅費 | 3,546",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,10,需用費,37019,"10 需用費 | 37,019",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,11,役務費,57301,"11 役務費 | 57,301",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,12,委託料,1416819,"12 委託料 | 1,416,819",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,13,使用料及賃借料,710470,"13 使用料及賃
+借料 | 710,470",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,17,備品購入費,44083,"17 備品購入費 | 44,083",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,02,事務局費,2275173,18,負担金補助及交付金,476,"18 負担金補助
+及交付金 | 476",parsed,stateful_reconciliation=matched; section_sum=2275173; moku_total=2275173; moku_page_span=226
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,01,報酬,30576,"01 報酬 | 30,576",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,07,報償費,794000,"07 報償費 | 794,000",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,08,旅費,9446,"08 旅費 | 9,446",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,10,需用費,109289,"10 需用費 | 109,289",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,11,役務費,17318,"11 役務費 | 17,318",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,12,委託料,2410527,"12 委託料 | 2,410,527",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,13,使用料及賃借料,281744,"13 使用料及賃
+借料 | 281,744",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,17,備品購入費,3041,"17 備品購入費 | 3,041",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,18,負担金補助及交付金,22624,"18 負担金補助
+及交付金 | 22,624",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,19,扶助費,996,19 扶助費 | 996,parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,226,445,2026,一般会計,expenditure,08,教育費,01,教育総務費,03,教育指導費,3682294,24,積立金,2733,"24 積立金 | 2,733",parsed,stateful_reconciliation=matched; section_sum=3682294; moku_total=3682294; moku_page_span=226-227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,04,教育振興費,1647359,19,扶助費,1647359,"19 扶助費 | 1,647,359",parsed,stateful_reconciliation=matched; section_sum=1647359; moku_total=1647359; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,07,報償費,2725,"07 報償費 | 2,725",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,08,旅費,1244,"08 旅費 | 1,244",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,10,需用費,38693,"10 需用費 | 38,693",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,11,役務費,20338,"11 役務費 | 20,338",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,12,委託料,282813,"12 委託料 | 282,813",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,13,使用料及賃借料,3271,"13 使用料及賃
+借料 | 3,271",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,14,工事請負費,4975,"14 工事請負費 | 4,975",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,17,備品購入費,2513,"17 備品購入費 | 2,513",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,227,447,2026,一般会計,expenditure,08,教育費,01,教育総務費,07,教育センター費,363502,18,負担金補助及交付金,6930,"18 負担金補助
+及交付金 | 6,930",parsed,stateful_reconciliation=matched; section_sum=363502; moku_total=363502; moku_page_span=227
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,07,報償費,6671,"07 報償費 | 6,671",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,08,旅費,2156,"08 旅費 | 2,156",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,09,交際費,3660,"09 交際費 | 3,660",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,10,需用費,1801555,"10 需用費 | 1,801,555",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,11,役務費,101494,"11 役務費 | 101,494",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,12,委託料,2589790,"12 委託料 | 2,589,790",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,13,使用料及賃借料,705025,"13 使用料及賃
+借料 | 705,025",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,17,備品購入費,65426,"17 備品購入費 | 65,426",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,01,学校管理費,5279289,18,負担金補助及交付金,3512,"18 負担金補助
+及交付金 | 3,512",parsed,stateful_reconciliation=matched; section_sum=5279289; moku_total=5279289; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,02,教育振興費,328270,19,扶助費,328270,"19 扶助費 | 328,270",parsed,stateful_reconciliation=matched; section_sum=328270; moku_total=328270; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,01,報酬,137616,"01 報酬 | 137,616",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,07,報償費,29692,"07 報償費 | 29,692",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,10,需用費,64450,"10 需用費 | 64,450",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,11,役務費,7029,"11 役務費 | 7,029",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,12,委託料,112512,"12 委託料 | 112,512",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,13,使用料及賃借料,6960,"13 使用料及賃
+借料 | 6,960",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,17,備品購入費,8744,"17 備品購入費 | 8,744",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,228,449,2026,一般会計,expenditure,08,教育費,02,小学校費,04,学校保健費,402067,18,負担金補助及交付金,35064,"18 負担金補助
+及交付金 | 35,064",parsed,stateful_reconciliation=matched; section_sum=402067; moku_total=402067; moku_page_span=228
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,06,学校施設充実費,4428354,10,需用費,145563,"10 需用費 | 145,563",parsed,stateful_reconciliation=matched; section_sum=4428354; moku_total=4428354; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,06,学校施設充実費,4428354,11,役務費,2050,"11 役務費 | 2,050",parsed,stateful_reconciliation=matched; section_sum=4428354; moku_total=4428354; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,06,学校施設充実費,4428354,12,委託料,90677,"12 委託料 | 90,677",parsed,stateful_reconciliation=matched; section_sum=4428354; moku_total=4428354; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,06,学校施設充実費,4428354,14,工事請負費,4188664,"14 工事請負費 | 4,188,664",parsed,stateful_reconciliation=matched; section_sum=4428354; moku_total=4428354; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,06,学校施設充実費,4428354,15,原材料費,1400,"15 原材料費 | 1,400",parsed,stateful_reconciliation=matched; section_sum=4428354; moku_total=4428354; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,07,報償費,319,07 報償費 | 319,parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,10,需用費,353,10 需用費 | 353,parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,11,役務費,1230,"11 役務費 | 1,230",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,12,委託料,292298,"12 委託料 | 292,298",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,13,使用料及賃借料,1272251,"13 使用料及賃
+借料 | 1,272,251",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,14,工事請負費,242958,"14 工事請負費 | 242,958",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,16,公有財産購入費,92635,"16 公有財産購
+入費 | 92,635",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,10,学校施設建設費,1903420,17,備品購入費,1376,"17 備品購入費 | 1,376",parsed,stateful_reconciliation=matched; section_sum=1903420; moku_total=1903420; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,07,報償費,15985,"07 報償費 | 15,985",parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,08,旅費,1903,"08 旅費 | 1,903",parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,10,需用費,786,10 需用費 | 786,parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,11,役務費,306,11 役務費 | 306,parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,12,委託料,16362,"12 委託料 | 16,362",parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,13,使用料及賃借料,99344,"13 使用料及賃
+借料 | 99,344",parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,229,451,2026,一般会計,expenditure,08,教育費,02,小学校費,11,校外施設費,136557,18,負担金補助及交付金,1871,"18 負担金補助
+及交付金 | 1,871",parsed,stateful_reconciliation=matched; section_sum=136557; moku_total=136557; moku_page_span=229
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,07,報償費,1799,"07 報償費 | 1,799",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,08,旅費,1660,"08 旅費 | 1,660",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,09,交際費,1800,"09 交際費 | 1,800",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,10,需用費,987454,"10 需用費 | 987,454",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,11,役務費,41204,"11 役務費 | 41,204",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,12,委託料,1087639,"12 委託料 | 1,087,639",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,13,使用料及賃借料,303155,"13 使用料及賃
+借料 | 303,155",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,17,備品購入費,56275,"17 備品購入費 | 56,275",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,01,学校管理費,2482941,18,負担金補助及交付金,1955,"18 負担金補助
+及交付金 | 1,955",parsed,stateful_reconciliation=matched; section_sum=2482941; moku_total=2482941; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,02,教育振興費,198479,19,扶助費,198479,"19 扶助費 | 198,479",parsed,stateful_reconciliation=matched; section_sum=198479; moku_total=198479; moku_page_span=230
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,01,報酬,68726,"01 報酬 | 68,726",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,07,報償費,6389,"07 報償費 | 6,389",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,10,需用費,42258,"10 需用費 | 42,258",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,11,役務費,3311,"11 役務費 | 3,311",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,12,委託料,45085,"12 委託料 | 45,085",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,13,使用料及賃借料,3430,"13 使用料及賃
+借料 | 3,430",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,230,453,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,17,備品購入費,4500,"17 備品購入費 | 4,500",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,04,学校保健費,185032,18,負担金補助及交付金,11333,"18 負担金補助
+及交付金 | 11,333",parsed,stateful_reconciliation=matched; section_sum=185032; moku_total=185032; moku_page_span=230-231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,10,需用費,86218,"10 需用費 | 86,218",parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,11,役務費,1435,"11 役務費 | 1,435",parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,12,委託料,43785,"12 委託料 | 43,785",parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,14,工事請負費,2207116,"14 工事請負費 | 2,207,116",parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,15,原材料費,682,15 原材料費 | 682,parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,05,学校施設充実費,2339256,22,償還金利子及割引料,20,"22 償還金利子
+及割引料 | 20",parsed,stateful_reconciliation=matched; section_sum=2339256; moku_total=2339256; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,07,報償費,440,07 報償費 | 440,parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,10,需用費,6,10 需用費 | 6,parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,12,委託料,382874,"12 委託料 | 382,874",parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,13,使用料及賃借料,569367,"13 使用料及賃
+借料 | 569,367",parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,14,工事請負費,3553811,"14 工事請負費 | 3,553,811",parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,09,学校施設建設費,4847958,24,積立金,341460,"24 積立金 | 341,460",parsed,stateful_reconciliation=matched; section_sum=4847958; moku_total=4847958; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,07,報償費,309,07 報償費 | 309,parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,08,旅費,187,08 旅費 | 187,parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,10,需用費,14994,"10 需用費 | 14,994",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,11,役務費,12394,"11 役務費 | 12,394",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,12,委託料,69591,"12 委託料 | 69,591",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,13,使用料及賃借料,92302,"13 使用料及賃
+借料 | 92,302",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,14,工事請負費,7369,"14 工事請負費 | 7,369",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,15,原材料費,50,15 原材料費 | 50,parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,18,負担金補助及交付金,1999,"18 負担金補助
+及交付金 | 1,999",parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,231,455,2026,一般会計,expenditure,08,教育費,03,中学校費,10,校外施設費,199204,26,公課費,9,26 公課費 | 9,parsed,stateful_reconciliation=matched; section_sum=199204; moku_total=199204; moku_page_span=231
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,07,報償費,554,07 報償費 | 554,parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,08,旅費,1604,"08 旅費 | 1,604",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,09,交際費,154,09 交際費 | 154,parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,10,需用費,45202,"10 需用費 | 45,202",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,11,役務費,4616,"11 役務費 | 4,616",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,12,委託料,98809,"12 委託料 | 98,809",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,13,使用料及賃借料,1882,"13 使用料及賃
+借料 | 1,882",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,14,工事請負費,504814,"14 工事請負費 | 504,814",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,17,備品購入費,16986,"17 備品購入費 | 16,986",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,18,負担金補助及交付金,173,"18 負担金補助
+及交付金 | 173",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,01,幼稚園管理費,679063,19,扶助費,4269,"19 扶助費 | 4,269",parsed,stateful_reconciliation=matched; section_sum=679063; moku_total=679063; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,01,報酬,5684,"01 報酬 | 5,684",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,07,報償費,1221,"07 報償費 | 1,221",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,10,需用費,1449,"10 需用費 | 1,449",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,11,役務費,219,11 役務費 | 219,parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,12,委託料,1373,"12 委託料 | 1,373",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,13,使用料及賃借料,328,"13 使用料及賃
+借料 | 328",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,232,457,2026,一般会計,expenditure,08,教育費,05,幼稚園費,02,幼稚園保健費,10390,18,負担金補助及交付金,116,"18 負担金補助
+及交付金 | 116",parsed,stateful_reconciliation=matched; section_sum=10390; moku_total=10390; moku_page_span=232
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,07,報償費,619964,"07 報償費 | 619,964",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,08,旅費,1178,"08 旅費 | 1,178",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,10,需用費,53746,"10 需用費 | 53,746",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,11,役務費,21786,"11 役務費 | 21,786",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,12,委託料,495613,"12 委託料 | 495,613",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,13,使用料及賃借料,10758,"13 使用料及賃
+借料 | 10,758",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,01,社会教育総務費,1209241,17,備品購入費,6196,"17 備品購入費 | 6,196",parsed,stateful_reconciliation=matched; section_sum=1209241; moku_total=1209241; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,01,報酬,7935,"01 報酬 | 7,935",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,07,報償費,6156,"07 報償費 | 6,156",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,08,旅費,988,08 旅費 | 988,parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,10,需用費,6886,"10 需用費 | 6,886",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,11,役務費,3163,"11 役務費 | 3,163",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,12,委託料,42003,"12 委託料 | 42,003",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,13,使用料及賃借料,3668,"13 使用料及賃
+借料 | 3,668",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,233,459,2026,一般会計,expenditure,08,教育費,06,社会教育費,02,社会教育活動費,80053,18,負担金補助及交付金,9254,"18 負担金補助
+及交付金 | 9,254",parsed,stateful_reconciliation=matched; section_sum=80053; moku_total=80053; moku_page_span=233
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,01,報酬,1315,"01 報酬 | 1,315",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,07,報償費,4973,"07 報償費 | 4,973",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,08,旅費,232,08 旅費 | 232,parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,10,需用費,12742,"10 需用費 | 12,742",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,11,役務費,6198,"11 役務費 | 6,198",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,12,委託料,175018,"12 委託料 | 175,018",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,13,使用料及賃借料,2037,"13 使用料及賃
+借料 | 2,037",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,14,工事請負費,45241,"14 工事請負費 | 45,241",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,15,原材料費,348,15 原材料費 | 348,parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,17,備品購入費,297,17 備品購入費 | 297,parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,03,文化財費,258039,18,負担金補助及交付金,9638,"18 負担金補助
+及交付金 | 9,638",parsed,stateful_reconciliation=matched; section_sum=258039; moku_total=258039; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,07,報償費,5070,"07 報償費 | 5,070",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,08,旅費,204,08 旅費 | 204,parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,10,需用費,338342,"10 需用費 | 338,342",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,11,役務費,78221,"11 役務費 | 78,221",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,12,委託料,1193443,"12 委託料 | 1,193,443",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,13,使用料及賃借料,72044,"13 使用料及賃
+借料 | 72,044",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,14,工事請負費,39344,"14 工事請負費 | 39,344",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,17,備品購入費,21113,"17 備品購入費 | 21,113",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,18,負担金補助及交付金,4198,"18 負担金補助
+及交付金 | 4,198",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,04,図書館費,1752147,21,補償補填及賠償金,168,"21 補償補填及
+賠償金 | 168",parsed,stateful_reconciliation=matched; section_sum=1752147; moku_total=1752147; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,07,報償費,3844,"07 報償費 | 3,844",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,10,需用費,13289,"10 需用費 | 13,289",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,11,役務費,3599,"11 役務費 | 3,599",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,12,委託料,7972,"12 委託料 | 7,972",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,13,使用料及賃借料,147,"13 使用料及賃
+借料 | 147",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,14,工事請負費,3190,"14 工事請負費 | 3,190",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,17,備品購入費,5445,"17 備品購入費 | 5,445",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,234,461,2026,一般会計,expenditure,08,教育費,06,社会教育費,06,資料館費,55312,18,負担金補助及交付金,17826,"18 負担金補助
+及交付金 | 17,826",parsed,stateful_reconciliation=matched; section_sum=55312; moku_total=55312; moku_page_span=234
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,07,報償費,2401,"07 報償費 | 2,401",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,10,需用費,4679148,"10 需用費 | 4,679,148",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,11,役務費,173096,"11 役務費 | 173,096",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,12,委託料,4020870,"12 委託料 | 4,020,870",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,13,使用料及賃借料,691,"13 使用料及賃
+借料 | 691",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,14,工事請負費,69278,"14 工事請負費 | 69,278",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,17,備品購入費,270504,"17 備品購入費 | 270,504",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,18,負担金補助及交付金,38770,"18 負担金補助
+及交付金 | 38,770",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,22,償還金利子及割引料,1500,"22 償還金利子
+及割引料 | 1,500",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,235,463,2026,一般会計,expenditure,08,教育費,08,学校給食管理費,01,学校給食管理費,9261258,26,公課費,5000,"26 公課費 | 5,000",parsed,stateful_reconciliation=matched; section_sum=9261258; moku_total=9261258; moku_page_span=235
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,01,議会職員費,244157,02,給料,105212,"02 給料 | 105,212",parsed,stateful_reconciliation=matched; section_sum=244157; moku_total=244157; moku_page_span=236
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,01,議会職員費,244157,03,職員手当等,98845,"03 職員手当等 | 98,845",parsed,stateful_reconciliation=matched; section_sum=244157; moku_total=244157; moku_page_span=236
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,01,議会職員費,244157,04,共済費,40100,"04 共済費 | 40,100",parsed,stateful_reconciliation=matched; section_sum=244157; moku_total=244157; moku_page_span=236
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,01,報酬,3017874,"01 報酬 | 3,017,874",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,02,給料,5096108,"02 給料 | 5,096,108",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,03,職員手当等,12850539,"03 職員手当等 | 12,850,539",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,04,共済費,4118396,"04 共済費 | 4,118,396",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,05,災害補償費,2580,"05 災害補償費 | 2,580",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,236,465,2026,一般会計,expenditure,09,職員費,01,職員費,02,総務職員費,25207658,08,旅費,122161,"08 旅費 | 122,161",parsed,stateful_reconciliation=matched; section_sum=25207658; moku_total=25207658; moku_page_span=236-237
+r8tousyoyosanallpage.pdf,237,467,2026,一般会計,expenditure,09,職員費,01,職員費,03,民生職員費,22389142,01,報酬,1908763,"01 報酬 | 1,908,763",parsed,stateful_reconciliation=matched; section_sum=22389142; moku_total=22389142; moku_page_span=237-238
+r8tousyoyosanallpage.pdf,237,467,2026,一般会計,expenditure,09,職員費,01,職員費,03,民生職員費,22389142,02,給料,9063208,"02 給料 | 9,063,208",parsed,stateful_reconciliation=matched; section_sum=22389142; moku_total=22389142; moku_page_span=237-238
+r8tousyoyosanallpage.pdf,237,467,2026,一般会計,expenditure,09,職員費,01,職員費,03,民生職員費,22389142,03,職員手当等,7701605,"03 職員手当等 | 7,701,605",parsed,stateful_reconciliation=matched; section_sum=22389142; moku_total=22389142; moku_page_span=237-238
+r8tousyoyosanallpage.pdf,237,467,2026,一般会計,expenditure,09,職員費,01,職員費,03,民生職員費,22389142,04,共済費,3657805,"04 共済費 | 3,657,805",parsed,stateful_reconciliation=matched; section_sum=22389142; moku_total=22389142; moku_page_span=237-238
+r8tousyoyosanallpage.pdf,237,467,2026,一般会計,expenditure,09,職員費,01,職員費,03,民生職員費,22389142,08,旅費,57761,"08 旅費 | 57,761",parsed,stateful_reconciliation=matched; section_sum=22389142; moku_total=22389142; moku_page_span=237-238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,04,環境職員費,757277,01,報酬,9839,"01 報酬 | 9,839",parsed,stateful_reconciliation=matched; section_sum=757277; moku_total=757277; moku_page_span=238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,04,環境職員費,757277,02,給料,329736,"02 給料 | 329,736",parsed,stateful_reconciliation=matched; section_sum=757277; moku_total=757277; moku_page_span=238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,04,環境職員費,757277,03,職員手当等,292899,"03 職員手当等 | 292,899",parsed,stateful_reconciliation=matched; section_sum=757277; moku_total=757277; moku_page_span=238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,04,環境職員費,757277,04,共済費,123843,"04 共済費 | 123,843",parsed,stateful_reconciliation=matched; section_sum=757277; moku_total=757277; moku_page_span=238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,04,環境職員費,757277,08,旅費,960,08 旅費 | 960,parsed,stateful_reconciliation=matched; section_sum=757277; moku_total=757277; moku_page_span=238
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,05,衛生職員費,2794547,01,報酬,157293,"01 報酬 | 157,293",parsed,stateful_reconciliation=matched; section_sum=2794547; moku_total=2794547; moku_page_span=238-239
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,05,衛生職員費,2794547,02,給料,1130777,"02 給料 | 1,130,777",parsed,stateful_reconciliation=matched; section_sum=2794547; moku_total=2794547; moku_page_span=238-239
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,05,衛生職員費,2794547,03,職員手当等,1039714,"03 職員手当等 | 1,039,714",parsed,stateful_reconciliation=matched; section_sum=2794547; moku_total=2794547; moku_page_span=238-239
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,05,衛生職員費,2794547,04,共済費,459872,"04 共済費 | 459,872",parsed,stateful_reconciliation=matched; section_sum=2794547; moku_total=2794547; moku_page_span=238-239
+r8tousyoyosanallpage.pdf,238,469,2026,一般会計,expenditure,09,職員費,01,職員費,05,衛生職員費,2794547,08,旅費,6891,"08 旅費 | 6,891",parsed,stateful_reconciliation=matched; section_sum=2794547; moku_total=2794547; moku_page_span=238-239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,06,産業経済職員費,532618,02,給料,227631,"02 給料 | 227,631",parsed,stateful_reconciliation=matched; section_sum=532618; moku_total=532618; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,06,産業経済職員費,532618,03,職員手当等,218487,"03 職員手当等 | 218,487",parsed,stateful_reconciliation=matched; section_sum=532618; moku_total=532618; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,06,産業経済職員費,532618,04,共済費,86500,"04 共済費 | 86,500",parsed,stateful_reconciliation=matched; section_sum=532618; moku_total=532618; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,07,土木職員費,5593694,01,報酬,2518,"01 報酬 | 2,518",parsed,stateful_reconciliation=matched; section_sum=5593694; moku_total=5593694; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,07,土木職員費,5593694,02,給料,2463709,"02 給料 | 2,463,709",parsed,stateful_reconciliation=matched; section_sum=5593694; moku_total=5593694; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,07,土木職員費,5593694,03,職員手当等,2213968,"03 職員手当等 | 2,213,968",parsed,stateful_reconciliation=matched; section_sum=5593694; moku_total=5593694; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,07,土木職員費,5593694,04,共済費,913169,"04 共済費 | 913,169",parsed,stateful_reconciliation=matched; section_sum=5593694; moku_total=5593694; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,07,土木職員費,5593694,08,旅費,330,08 旅費 | 330,parsed,stateful_reconciliation=matched; section_sum=5593694; moku_total=5593694; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,08,教育職員費,9805691,01,報酬,4561598,"01 報酬 | 4,561,598",parsed,stateful_reconciliation=matched; section_sum=9805691; moku_total=9805691; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,08,教育職員費,9805691,02,給料,1807157,"02 給料 | 1,807,157",parsed,stateful_reconciliation=matched; section_sum=9805691; moku_total=9805691; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,08,教育職員費,9805691,03,職員手当等,1405051,"03 職員手当等 | 1,405,051",parsed,stateful_reconciliation=matched; section_sum=9805691; moku_total=9805691; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,08,教育職員費,9805691,04,共済費,1833208,"04 共済費 | 1,833,208",parsed,stateful_reconciliation=matched; section_sum=9805691; moku_total=9805691; moku_page_span=239
+r8tousyoyosanallpage.pdf,239,471,2026,一般会計,expenditure,09,職員費,01,職員費,08,教育職員費,9805691,08,旅費,198677,"08 旅費 | 198,677",parsed,stateful_reconciliation=matched; section_sum=9805691; moku_total=9805691; moku_page_span=239
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,09,学校職員費,1896509,02,給料,856176,"02 給料 | 856,176",parsed,stateful_reconciliation=matched; section_sum=1896509; moku_total=1896509; moku_page_span=240
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,09,学校職員費,1896509,03,職員手当等,686165,"03 職員手当等 | 686,165",parsed,stateful_reconciliation=matched; section_sum=1896509; moku_total=1896509; moku_page_span=240
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,09,学校職員費,1896509,04,共済費,354168,"04 共済費 | 354,168",parsed,stateful_reconciliation=matched; section_sum=1896509; moku_total=1896509; moku_page_span=240
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,10,清掃職員費,2539915,02,給料,1072833,"02 給料 | 1,072,833",parsed,stateful_reconciliation=matched; section_sum=2539915; moku_total=2539915; moku_page_span=240
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,10,清掃職員費,2539915,03,職員手当等,1045078,"03 職員手当等 | 1,045,078",parsed,stateful_reconciliation=matched; section_sum=2539915; moku_total=2539915; moku_page_span=240
+r8tousyoyosanallpage.pdf,240,473,2026,一般会計,expenditure,09,職員費,01,職員費,10,清掃職員費,2539915,04,共済費,422004,"04 共済費 | 422,004",parsed,stateful_reconciliation=matched; section_sum=2539915; moku_total=2539915; moku_page_span=240
+r8tousyoyosanallpage.pdf,241,475,2026,一般会計,expenditure,10,公債費,01,公債費,01,一時借入金,5137,22,償還金利子及割引料,5137,"22 償還金利子
+及割引料 | 5,137",parsed,stateful_reconciliation=matched; section_sum=5137; moku_total=5137; moku_page_span=241
+r8tousyoyosanallpage.pdf,241,475,2026,一般会計,expenditure,10,公債費,01,公債費,02,元金,3408955,22,償還金利子及割引料,3408955,"22 償還金利子
+及割引料 | 3,408,955",parsed,stateful_reconciliation=matched; section_sum=3408955; moku_total=3408955; moku_page_span=241
+r8tousyoyosanallpage.pdf,241,475,2026,一般会計,expenditure,10,公債費,01,公債費,03,利子,357591,22,償還金利子及割引料,357591,"22 償還金利子
+及割引料 | 357,591",parsed,stateful_reconciliation=matched; section_sum=357591; moku_total=357591; moku_page_span=241
+r8tousyoyosanallpage.pdf,241,475,2026,一般会計,expenditure,10,公債費,01,公債費,04,公債諸費,14117,11,役務費,2957,"11 役務費 | 2,957",parsed,stateful_reconciliation=matched; section_sum=14117; moku_total=14117; moku_page_span=241
+r8tousyoyosanallpage.pdf,241,475,2026,一般会計,expenditure,10,公債費,01,公債費,04,公債諸費,14117,22,償還金利子及割引料,11160,"22 償還金利子
+及割引料 | 11,160",parsed,stateful_reconciliation=matched; section_sum=14117; moku_total=14117; moku_page_span=241
+r8tousyoyosanallpage.pdf,242,477,2026,一般会計,expenditure,11,諸支出金,01,財政積立金,01,財政積立金,287299,24,積立金,287299,"24 積立金 | 287,299",parsed,stateful_reconciliation=matched; section_sum=287299; moku_total=287299; moku_page_span=242
+r8tousyoyosanallpage.pdf,243,479,2026,一般会計,expenditure,12,予備費,01,予備費,01,予備費,500000,30,予備費,500000,"30 予備費 | 500,000",parsed,stateful_reconciliation=matched; section_sum=500000; moku_total=500000; moku_page_span=243

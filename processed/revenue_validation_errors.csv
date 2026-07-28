@@ -1,0 +1,1 @@
+error_id,error_type,severity,account_code,revenue_item_key,revenue_section_id,revenue_detail_id,source_file,source_row_number,message,expected_amount_thousand_yen,actual_amount_thousand_yen,diff_amount_thousand_yen

@@ -1,0 +1,59 @@
+raw_section_id,fiscal_year,account_code,account_name,budget_side,kan_code,kan_name,kou_code,kou_name,moku_code,moku_name,setsu_code,setsu_name,amount_thousand_yen,budget_book_page,pdf_page,raw_text,parse_status,review_reason
+2026_national_health_insurance_expenditure_21_01_01_setsu_07_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,07,報償費,189,591,299,07 報償費 | 189,matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_08_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,08,旅費,337,591,299,08 旅費 | 337,matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_10_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,10,需用費,47211,591,299,"10 需用費 | 47,211",matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_11_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,11,役務費,127054,591,299,"11 役務費 | 127,054",matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_12_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,12,委託料,948534,591,299,"12 委託料 | 948,534",matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_13_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,13,使用料及賃借料,5817,591,299,"13 使用料及賃
+借料 | 5,817",matched,
+2026_national_health_insurance_expenditure_21_01_01_setsu_18_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,01,一般管理費,18,負担金補助及交付金,8471,591,299,"18 負担金補助
+及交付金 | 8,471",matched,
+2026_national_health_insurance_expenditure_21_01_02_setsu_01_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,02,運営協議会費,01,報酬,384,593,300,01 報酬 | 384,matched,
+2026_national_health_insurance_expenditure_21_01_02_setsu_10_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,02,運営協議会費,10,需用費,77,593,300,10 需用費 | 77,matched,
+2026_national_health_insurance_expenditure_21_01_02_setsu_11_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,02,運営協議会費,11,役務費,63,593,300,11 役務費 | 63,matched,
+2026_national_health_insurance_expenditure_21_01_03_setsu_10_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,03,趣旨普及費,10,需用費,5300,593,300,"10 需用費 | 5,300",matched,
+2026_national_health_insurance_expenditure_21_01_03_setsu_11_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,03,趣旨普及費,11,役務費,167,593,300,11 役務費 | 167,matched,
+2026_national_health_insurance_expenditure_21_01_03_setsu_12_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,03,趣旨普及費,12,委託料,139,593,300,12 委託料 | 139,matched,
+2026_national_health_insurance_expenditure_21_01_04_setsu_18_01,2026,national_health_insurance,国民健康保険事業会計,expenditure,21,総務費,01,総務管理費,04,連合会負担金,18,負担金補助及交付金,16525,593,300,"18 負担金補助
+及交付金 | 16,525",matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_08_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,08,旅費,80,669,338,08 旅費 | 80,matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_10_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,10,需用費,32873,669,338,"10 需用費 | 32,873",matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_11_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,11,役務費,82446,669,338,"11 役務費 | 82,446",matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_12_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,12,委託料,143932,669,338,"12 委託料 | 143,932",matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_13_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,13,使用料及賃借料,1540,669,338,"13 使用料及賃
+借料 | 1,540",matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_17_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,17,備品購入費,65,669,338,17 備品購入費 | 65,matched,
+2026_latter_stage_elderly_healthcare_expenditure_61_01_01_setsu_18_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,61,総務費,01,総務管理費,01,一般管理費,18,負担金補助及交付金,419020,669,338,"18 負担金補助
+及交付金 | 419,020",matched,
+2026_latter_stage_elderly_healthcare_expenditure_62_01_01_setsu_18_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,62,分担金及負担金,01,広域連合負担金,01,広域連合分賦金,18,負担金補助及交付金,27794600,671,339,"18 負担金補助
+及交付金 | 27,794,600",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_01_setsu_10_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,01,健康診査費,10,需用費,13082,673,340,"10 需用費 | 13,082",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_01_setsu_11_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,01,健康診査費,11,役務費,19773,673,340,"11 役務費 | 19,773",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_01_setsu_12_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,01,健康診査費,12,委託料,634148,673,340,"12 委託料 | 634,148",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_01_setsu_18_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,01,健康診査費,18,負担金補助及交付金,84,673,340,"18 負担金補助
+及交付金 | 84",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_01_setsu_22_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,01,健康診査費,22,償還金利子及割引料,5,673,340,"22 償還金利子
+及割引料 | 5",matched,
+2026_latter_stage_elderly_healthcare_expenditure_63_01_02_setsu_12_01,2026,latter_stage_elderly_healthcare,後期高齢者医療会計,expenditure,63,保健事業費,01,保健事業費,02,その他健康保持増進費,12,委託料,4642,673,340,"12 委託料 | 4,642",matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_08_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,08,旅費,300,751,379,08 旅費 | 300,matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_10_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,10,需用費,19558,751,379,"10 需用費 | 19,558",matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_11_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,11,役務費,63153,751,379,"11 役務費 | 63,153",matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_12_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,12,委託料,288932,751,379,"12 委託料 | 288,932",matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_13_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,13,使用料及賃借料,1809,751,379,"13 使用料及賃
+借料 | 1,809",matched,
+2026_long_term_care_insurance_expenditure_41_01_01_setsu_18_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,41,総務費,01,総務管理費,01,一般管理費,18,負担金補助及交付金,411,751,379,"18 負担金補助
+及交付金 | 411",matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_01_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,01,報酬,1925,785,396,"01 報酬 | 1,925",matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_07_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,07,報償費,1837,785,396,"07 報償費 | 1,837",matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_10_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,10,需用費,1262,785,396,"10 需用費 | 1,262",matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_11_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,11,役務費,550,785,396,11 役務費 | 550,matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_12_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,12,委託料,166003,785,396,"12 委託料 | 166,003",matched,
+2026_long_term_care_insurance_expenditure_49_02_01_setsu_18_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,01,包括的支援事業費,18,負担金補助及交付金,450,785,396,"18 負担金補助
+及交付金 | 450",matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_07_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,07,報償費,3567,785,396,"07 報償費 | 3,567",matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_10_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,10,需用費,572,785,396,10 需用費 | 572,matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_11_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,11,役務費,43,785,396,11 役務費 | 43,matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_12_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,12,委託料,241831,785,396,"12 委託料 | 241,831",matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_18_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,18,負担金補助及交付金,24363,785,396,"18 負担金補助
+及交付金 | 24,363",matched,
+2026_long_term_care_insurance_expenditure_49_02_02_setsu_19_01,2026,long_term_care_insurance,介護保険事業会計,expenditure,49,地域支援事業費,02,包括支援事業・任意事業費,02,任意事業費,19,扶助費,19770,785,396,"19 扶助費 | 19,770",matched,

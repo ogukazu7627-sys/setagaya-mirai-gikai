@@ -1,0 +1,1 @@
+error_id,error_type,severity,account_code,account_name,budget_item_key,source_file,pdf_page,budget_book_page,message,expected_amount_thousand_yen,actual_amount_thousand_yen,diff_amount_thousand_yen,raw_text

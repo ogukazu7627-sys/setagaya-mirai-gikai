@@ -1,0 +1,49 @@
+source_file,pdf_page,budget_book_page,fiscal_year,account_name,budget_side,kan_code,kan_name,kou_code,kou_name,moku_code,moku_name,moku_total_amount_thousand_yen,setsu_code,setsu_name,setsu_amount_thousand_yen,raw_text,parse_status,parse_note
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,01,報酬,600135,"01 報酬 | 600,135",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,04,共済費,92256,"04 共済費 | 92,256",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,07,報償費,105,07 報償費 | 105,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,08,旅費,6712,"08 旅費 | 6,712",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,09,交際費,1800,"09 交際費 | 1,800",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,10,需用費,15747,"10 需用費 | 15,747",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,11,役務費,24989,"11 役務費 | 24,989",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,12,委託料,24539,"12 委託料 | 24,539",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,13,使用料及賃借料,1133,"13 使用料及賃
+借料 | 1,133",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,159,311,2026,一般会計,expenditure,01,議会費,01,議会費,01,議会費,770553,18,負担金補助及交付金,3137,"18 負担金補助
+及交付金 | 3,137",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,01,報酬,3587,"01 報酬 | 3,587",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,04,共済費,24586,"04 共済費 | 24,586",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,05,災害補償費,225,05 災害補償費 | 225,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,07,報償費,39435,"07 報償費 | 39,435",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,08,旅費,13940,"08 旅費 | 13,940",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,09,交際費,3150,"09 交際費 | 3,150",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,10,需用費,857822,"10 需用費 | 857,822",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,11,役務費,294031,"11 役務費 | 294,031",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,12,委託料,2219532,"12 委託料 | 2,219,532",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,13,使用料及賃借料,631250,"13 使用料及賃
+借料 | 631,250",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,14,工事請負費,7405735,"14 工事請負費 | 7,405,735",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,17,備品購入費,746074,"17 備品購入費 | 746,074",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,18,負担金補助及交付金,1622919,"18 負担金補助
+及交付金 | 1,622,919",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,19,扶助費,121406,"19 扶助費 | 121,406",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,24,積立金,161031,"24 積立金 | 161,031",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,162,317,2026,一般会計,expenditure,02,総務費,01,総務管理費,01,一般管理費,14144725,26,公課費,2,26 公課費 | 2,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,07,報償費,55,07 報償費 | 55,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,10,需用費,13,10 需用費 | 13,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,11,役務費,34,11 役務費 | 34,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,12,委託料,880,12 委託料 | 880,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,01,税務総務費,2182,18,負担金補助及交付金,1200,"18 負担金補助
+及交付金 | 1,200",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,07,報償費,423,07 報償費 | 423,parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,10,需用費,39114,"10 需用費 | 39,114",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,11,役務費,127967,"11 役務費 | 127,967",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,12,委託料,454378,"12 委託料 | 454,378",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,13,使用料及賃借料,2375,"13 使用料及賃
+借料 | 2,375",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,18,負担金補助及交付金,105313,"18 負担金補助
+及交付金 | 105,313",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,21,補償補填及賠償金,6,"21 補償補填及
+賠償金 | 6",parsed,節金額合計が目本年度予算額と一致
+r8tousyoyosanallpage.pdf,166,325,2026,一般会計,expenditure,02,総務費,02,徴税費,02,賦課徴収費,1379576,22,償還金利子及割引料,650000,"22 償還金利子
+及割引料 | 650,000",parsed,節金額合計が目本年度予算額と一致

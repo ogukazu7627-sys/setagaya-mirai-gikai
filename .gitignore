@@ -1,4 +1,7 @@
 node_modules
+packages/budget-data/.venv
+__pycache__/
+*.pyc
 
 # misc
 .DS_Store

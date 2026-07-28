@@ -1,0 +1,105 @@
+{
+  "fiscal_year": 2026,
+  "accounts": [
+    {
+      "account_code": "general",
+      "account_name": "一般会計",
+      "account_type": "general",
+      "budget_side": "expenditure",
+      "csv_account_name": "一般会計",
+      "expected_amount_thousand_yen": 431353010,
+      "pdf_budget_book_start_page": 310,
+      "pdf_budget_book_end_page": 479,
+      "pdf_page_start": 159,
+      "pdf_page_end": 243,
+      "status": "active",
+      "revenue": {
+        "expected_amount_thousand_yen": 431353010,
+        "pdf_budget_book_start_page": 67,
+        "pdf_budget_book_end_page": 307,
+        "pdf_page_start": 37,
+        "pdf_page_end": 157,
+        "status": "active"
+      }
+    },
+    {
+      "account_code": "national_health_insurance",
+      "account_name": "国民健康保険事業会計",
+      "account_type": "special",
+      "budget_side": "expenditure",
+      "csv_account_name": "国民健康保険事業会計",
+      "expected_amount_thousand_yen": 84206905,
+      "pdf_budget_book_start_page": 590,
+      "pdf_budget_book_end_page": 621,
+      "pdf_page_start": 299,
+      "pdf_page_end": 314,
+      "status": "active",
+      "revenue": {
+        "expected_amount_thousand_yen": 84206905,
+        "pdf_budget_book_start_page": 563,
+        "pdf_budget_book_end_page": 587,
+        "pdf_page_start": 285,
+        "pdf_page_end": 297,
+        "status": "active"
+      }
+    },
+    {
+      "account_code": "latter_stage_elderly_healthcare",
+      "account_name": "後期高齢者医療会計",
+      "account_type": "special",
+      "budget_side": "expenditure",
+      "csv_account_name": "後期高齢者医療会計",
+      "expected_amount_thousand_yen": 29414796,
+      "pdf_budget_book_start_page": 668,
+      "pdf_budget_book_end_page": 679,
+      "pdf_page_start": 338,
+      "pdf_page_end": 343,
+      "status": "active",
+      "revenue": {
+        "expected_amount_thousand_yen": 29414796,
+        "pdf_budget_book_start_page": 647,
+        "pdf_budget_book_end_page": 665,
+        "pdf_page_start": 327,
+        "pdf_page_end": 336,
+        "status": "active"
+      }
+    },
+    {
+      "account_code": "long_term_care_insurance",
+      "account_name": "介護保険事業会計",
+      "account_type": "special",
+      "budget_side": "expenditure",
+      "csv_account_name": "介護保険事業会計",
+      "expected_amount_thousand_yen": 76058953,
+      "pdf_budget_book_start_page": 750,
+      "pdf_budget_book_end_page": 791,
+      "pdf_page_start": 379,
+      "pdf_page_end": 399,
+      "status": "active",
+      "revenue": {
+        "expected_amount_thousand_yen": 76058953,
+        "pdf_budget_book_start_page": 707,
+        "pdf_budget_book_end_page": 747,
+        "pdf_page_start": 357,
+        "pdf_page_end": 377,
+        "status": "active"
+      }
+    },
+    {
+      "account_code": "school_lunch_fee",
+      "account_name": "学校給食費会計",
+      "account_type": "special",
+      "budget_side": "expenditure",
+      "csv_account_name": "学校給食費会計",
+      "expected_amount_thousand_yen": 0,
+      "pdf_budget_book_start_page": null,
+      "pdf_budget_book_end_page": null,
+      "pdf_page_start": null,
+      "pdf_page_end": null,
+      "status": "abolished_zero",
+      "revenue": {
+        "status": "abolished_zero"
+      }
+    }
+  ]
+}
