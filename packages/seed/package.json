@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "budget:web:import": "tsx budget/import-public-budget-cli.ts",
     "budget:web:validate": "tsx budget/validate-public-budget-cli.ts",
     "seed": "tsx main/run.ts",
     "generate:setagaya-csv": "node csv/generate-setagaya-csv.mjs",

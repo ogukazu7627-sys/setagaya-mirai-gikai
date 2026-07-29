@@ -54,6 +54,8 @@ export interface PublicBudgetLoadedFile {
 export interface PublicBudgetDataset {
   manifest: PublicDatasetManifest;
   manifestFileName: string;
+  manifestFilePath: string;
+  manifestSha256: string;
   files: PublicBudgetLoadedFile[];
   programIdentities: PublicBudgetProgramIdentityRow[];
   programs: PublicBudgetProgramRow[];
@@ -446,6 +448,8 @@ export function readPublicBudgetDataset(
   return {
     manifest,
     manifestFileName: path.basename(manifestPath),
+    manifestFilePath: manifestPath,
+    manifestSha256: sha256File(manifestPath),
     files,
     programIdentities: identities.records,
     programs: programs.records,
