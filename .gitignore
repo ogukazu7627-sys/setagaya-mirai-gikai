@@ -30,6 +30,9 @@ yarn-error.log*
 # generated Setagaya content cache
 packages/seed/csv/data/setagaya_ai_bill_contents.json
 
+# local public budget dataset inputs
+packages/seed/budget/data/
+
 # Supabase local state
 .supabase
 supabase/.branches

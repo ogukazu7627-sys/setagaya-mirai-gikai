@@ -4,19 +4,23 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "budget:web:validate": "tsx budget/validate-public-budget-cli.ts",
     "seed": "tsx main/run.ts",
     "generate:setagaya-csv": "node csv/generate-setagaya-csv.mjs",
     "seed:csv": "tsx csv/import-csv.ts",
+    "test": "vitest run budget",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@mirai-gikai/supabase": "workspace:*",
     "@supabase/supabase-js": "^2.57.0",
-    "csv-parse": "^6.1.0"
+    "csv-parse": "^6.1.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",
     "tsx": "^4.19.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   }
 }
