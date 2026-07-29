@@ -5,6 +5,7 @@ import type { XApiPost } from "../../shared/utils/x-api-post";
 
 const X_API_BASE_URL = "https://api.x.com/2";
 const X_API_TIMEOUT_MS = 15_000;
+const X_API_ERROR_BODY_MAX_LENGTH = 1_000;
 
 export type XApiUser = {
   id: string;
@@ -31,6 +32,32 @@ export class XApiResourceUnavailableError extends Error {
   constructor() {
     super("X account is unavailable");
     this.name = "XApiResourceUnavailableError";
+  }
+}
+
+export class XApiRequestError extends Error {
+  readonly requestLabel: string;
+  readonly status: number | null;
+  readonly statusText: string | null;
+  readonly responseBody: string | null;
+  readonly cause: unknown;
+
+  constructor(input: {
+    requestLabel: string;
+    status?: number;
+    statusText?: string;
+    responseBody?: string | null;
+    cause?: unknown;
+  }) {
+    const statusDetail =
+      input.status !== undefined ? `, status ${input.status}` : "";
+    super(`X API request failed (${input.requestLabel}${statusDetail})`);
+    this.name = "XApiRequestError";
+    this.requestLabel = input.requestLabel;
+    this.status = input.status ?? null;
+    this.statusText = input.statusText ?? null;
+    this.responseBody = input.responseBody ?? null;
+    this.cause = input.cause;
   }
 }
 
@@ -63,8 +90,8 @@ export function createXApiClient(options: XApiClientOptions = {}): XApiClient {
         },
         signal: AbortSignal.timeout(X_API_TIMEOUT_MS),
       });
-    } catch {
-      throw new Error(`X API request failed (${requestLabel})`);
+    } catch (cause) {
+      throw new XApiRequestError({ requestLabel, cause });
     }
 
     if (
@@ -75,9 +102,12 @@ export function createXApiClient(options: XApiClientOptions = {}): XApiClient {
     }
 
     if (!response.ok) {
-      throw new Error(
-        `X API request failed (${requestLabel}, status ${response.status})`
-      );
+      throw new XApiRequestError({
+        requestLabel,
+        status: response.status,
+        statusText: response.statusText,
+        responseBody: await readErrorResponseBody(response),
+      });
     }
 
     try {
@@ -117,6 +147,22 @@ export function createXApiClient(options: XApiClientOptions = {}): XApiClient {
       return parsePostPage(payload);
     },
   };
+}
+
+async function readErrorResponseBody(
+  response: Response
+): Promise<string | null> {
+  try {
+    const body = await response.text();
+    if (!body) {
+      return null;
+    }
+    return body.length > X_API_ERROR_BODY_MAX_LENGTH
+      ? `${body.slice(0, X_API_ERROR_BODY_MAX_LENGTH)}...[truncated]`
+      : body;
+  } catch {
+    return null;
+  }
 }
 
 function parseUsers(payload: unknown): XApiUser[] {
