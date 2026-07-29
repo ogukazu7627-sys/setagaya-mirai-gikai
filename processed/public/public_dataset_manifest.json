@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "public-budget-v1",
+  "fiscalYear": 2026,
+  "datasetKind": "public_budget",
+  "budgetType": "initial_budget",
+  "currencyUnit": "thousand_yen",
+  "generatedCommand": "pnpm budget:public:manifest",
+  "publicFiles": [
+    {
+      "path": "processed/public/public_budget_program_identities.csv",
+      "format": "csv",
+      "sha256": "baee6d07fa0b4e55742e2e706239b272b2b545d3461152281da2ab7e507e7d58",
+      "rowCount": 1156,
+      "columnCount": 21,
+      "role": "public_expenditure_program_identity_master",
+      "requiredForProduction": true
+    },
+    {
+      "path": "processed/public/public_budget_programs.csv",
+      "format": "csv",
+      "sha256": "7864a1856fd708129b912b61ad0cb6cc10dfc3a7c28b3ca7ad54ae907c217f24",
+      "rowCount": 1170,
+      "columnCount": 21,
+      "role": "public_expenditure_program_detail_records",
+      "requiredForProduction": true
+    },
+    {
+      "path": "processed/public/public_budget_items.json",
+      "format": "json",
+      "sha256": "01790675b33a28a9b1bb692052012136e5f99de373811600d4d9446ea23a7625",
+      "itemCount": 190,
+      "role": "public_expenditure_budget_item_read_model",
+      "requiredForProduction": true
+    },
+    {
+      "path": "processed/public/public_budget_revenue_details.csv",
+      "format": "csv",
+      "sha256": "80a44ea866e616c822a61818e7f4cdaabea18bed5cebf51d4e4a259c1417be0e",
+      "rowCount": 2192,
+      "columnCount": 26,
+      "role": "public_revenue_detail_records",
+      "requiredForProduction": true
+    },
+    {
+      "path": "processed/public/public_budget_revenue_items.json",
+      "format": "json",
+      "sha256": "b89d0d0181931318ae6fd9f257bd2242e28c791d4a3a321cd7cdb1d241d29f81",
+      "itemCount": 175,
+      "role": "public_revenue_budget_item_read_model",
+      "requiredForProduction": true
+    },
+    {
+      "path": "processed/public/public_budget_revenue_allocations.json",
+      "format": "json",
+      "sha256": "cb1a35734936f89ce3be59de27f9f8b7b4be6b236298ff68a38b501f4c92fb1c",
+      "itemCount": 1948,
+      "role": "public_revenue_expenditure_relation_read_model",
+      "requiredForProduction": true
+    }
+  ],
+  "totals": {
+    "expenditureTotalAmountThousandYen": 621033664,
+    "revenueTotalAmountThousandYen": 621033664
+  },
+  "accountTotals": [
+    {
+      "account_code": "general",
+      "account_name": "一般会計",
+      "expenditure_amount_thousand_yen": 431353010,
+      "revenue_amount_thousand_yen": 431353010
+    },
+    {
+      "account_code": "national_health_insurance",
+      "account_name": "国民健康保険事業会計",
+      "expenditure_amount_thousand_yen": 84206905,
+      "revenue_amount_thousand_yen": 84206905
+    },
+    {
+      "account_code": "latter_stage_elderly_healthcare",
+      "account_name": "後期高齢者医療会計",
+      "expenditure_amount_thousand_yen": 29414796,
+      "revenue_amount_thousand_yen": 29414796
+    },
+    {
+      "account_code": "long_term_care_insurance",
+      "account_name": "介護保険事業会計",
+      "expenditure_amount_thousand_yen": 76058953,
+      "revenue_amount_thousand_yen": 76058953
+    },
+    {
+      "account_code": "school_lunch_fee",
+      "account_name": "学校給食費会計",
+      "expenditure_amount_thousand_yen": 0,
+      "revenue_amount_thousand_yen": 0
+    }
+  ],
+  "counts": {
+    "publicBudgetProgramIdentityCount": 1156,
+    "publicBudgetProgramCount": 1170,
+    "publicBudgetItemCount": 190,
+    "publicBudgetRevenueDetailCount": 2192,
+    "publicBudgetRevenueItemCount": 175,
+    "publicBudgetRevenueAllocationCount": 1948,
+    "exactGroupAllocationCount": 1909,
+    "publicIdentityAllocationCount": 39,
+    "allocationAmountNonNullCount": 0,
+    "zeroAmountRevenueDetailCount": 226,
+    "zeroAmountRevenueItemCount": 9,
+    "zeroAmountProgramIdentityCount": 43
+  },
+  "validation": {
+    "status": "PASS",
+    "errors": []
+  }
+}

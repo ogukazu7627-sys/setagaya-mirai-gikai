@@ -8,6 +8,7 @@ import {
   BUDGET_REVENUE_BUILD_OUTPUTS,
   BUDGET_REVENUE_BUILD_PHASES,
   BUDGET_REVENUE_POSTFLIGHT_PHASE,
+  BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE,
 } from "./budget-revenue-pipeline";
 import { REVENUE_VALIDATION_ERROR_COLUMNS } from "./budget-revenue-validation";
 import { REVENUE_ALLOCATION_VALIDATION_ERROR_COLUMNS } from "./revenue-allocation-validation";
@@ -126,7 +127,7 @@ beforeAll(async () => {
 });
 
 describe("Phase 32 revenue build pipeline", () => {
-  it("Phase 32-Aを含む11工程を順番どおり実行し、manifestを後処理にする", () => {
+  it("公開生成11工程の後にコア・公開manifestを順番に更新する", () => {
     expect(BUDGET_REVENUE_BUILD_PHASES.map((phase) => phase.script)).toEqual([
       "build:revenue-details",
       "build:revenue-sections",
@@ -141,6 +142,9 @@ describe("Phase 32 revenue build pipeline", () => {
       "build:public-program-identities",
     ]);
     expect(BUDGET_REVENUE_POSTFLIGHT_PHASE.script).toBe("build:manifest");
+    expect(BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE.script).toBe(
+      "build:public-manifest",
+    );
     expect(
       BUDGET_REVENUE_BUILD_PHASES.some((phase) =>
         phase.script.includes("sample"),
@@ -152,6 +156,9 @@ describe("Phase 32 revenue build pipeline", () => {
     expect(BUDGET_REVENUE_BUILD_OUTPUTS).toContain(
       "processed/public/public_budget_program_identities.csv",
     );
+    expect(BUDGET_REVENUE_BUILD_OUTPUTS).toContain(
+      "processed/public/public_dataset_manifest.json",
+    );
   });
 
   it("ルートpackage scriptsに指定された歳入コマンドがそろっている", async () => {
@@ -160,6 +167,7 @@ describe("Phase 32 revenue build pipeline", () => {
     ) as { scripts: Record<string, string> };
     expect(Object.keys(packageJson.scripts)).toEqual(
       expect.arrayContaining([
+        "budget:public:manifest",
         "budget:public:program-identities",
         "budget:revenue:details",
         "budget:revenue:sections",

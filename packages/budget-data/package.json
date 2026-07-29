@@ -8,6 +8,7 @@
     "build:items": "tsx src/build-budget-items.ts",
     "build:manifest": "tsx src/build-budget-dataset-manifest.ts",
     "build:public": "tsx src/build-public-budget.ts",
+    "build:public-manifest": "tsx src/build-public-dataset-manifest.ts",
     "build:public-program-identities": "tsx src/build-public-budget-program-identities.ts",
     "build:public-revenue": "tsx src/build-public-budget-revenue.ts",
     "build:program-groups": "tsx src/build-budget-program-groups.ts",

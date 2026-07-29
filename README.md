@@ -66,6 +66,7 @@ pnpm dev
 | `processed/public/public_budget_revenue_details.csv` | 内部部署名と査定情報を除いた市民向け歳入細節データ |
 | `processed/public/public_budget_revenue_items.json` | 歳入の目単位で節と細節を兄弟配列にした公開用リードモデル |
 | `processed/public/public_budget_revenue_allocations.json` | 歳入細節と歳出予算事業の金額を持たない公開用関係データ |
+| `processed/public/public_dataset_manifest.json` | 公開用6ファイルのハッシュ、件数、合計、参照整合性を固定したリリース・監査用メタデータ |
 | `processed/raw_pdf_revenue_allocations.csv` | 歳入PDFの「充当事業」を会計ごとに連続抽出した中間データ |
 | `processed/staging/revenue_allocation_source_matches.csv` | PDFの歳入細節を公式歳入CSVの `revenue_detail_id` へ接続したステージングデータ |
 | `processed/budget_program_groups.csv` | 内訳事業を予算事業単位へ集約した充当先候補マスタ |
@@ -178,7 +179,10 @@ pnpm budget:revenue:public
 # 公開allocation生成後に、公開用予算事業identityとprogram参照を生成
 pnpm budget:public:program-identities
 
-# サンプル以外の歳入工程、公開identity、manifestを順番に一括再生成
+# 公開用6ファイルを検証して公開専用manifestを生成
+pnpm budget:public:manifest
+
+# サンプル以外の歳入工程、公開identity、2種類のmanifestを順番に一括再生成
 pnpm budget:revenue:build-all
 ```
 
@@ -186,7 +190,9 @@ pnpm budget:revenue:build-all
 
 `budget:public:program-identities` は、非公開の予算事業identity・member・groupを相互検算して公開用identityマスタを生成し、`public_budget_programs.csv` の既存20列を変更せず末尾に `budget_program_identity_id` を追加します。歳入allocationの1,948関係をidentityへ照合し、公式PDFで内部groupを区別できない39関係も公開identityまで接続します。
 
-`budget:revenue:build-all` は、details、sections、items、歳入コア検証、PDF全範囲抽出、source match、予算事業group、allocation link、allocation検証、歳入公開用3ファイル、公開用予算事業identityの順に実行し、最後に `dataset_manifest.json` を更新します。サンプル抽出は含みません。途中でFAILになった場合は後続工程を実行せず、歳出コア3CSVの開始前後ハッシュが異なる場合も失敗します。
+`budget:public:manifest` は、本番投入対象の公開用6ファイルだけを対象に、SHA-256、CSV行列数、JSON件数、会計別歳入・歳出合計、identity・歳入detail参照、allocationの金額非帰属を検証します。出力はリリース・監査、データバージョン表示、キャッシュ更新判定に使い、画面検索やAI回答の業務データには使用しません。
+
+`budget:revenue:build-all` は、details、sections、items、歳入コア検証、PDF全範囲抽出、source match、予算事業group、allocation link、allocation検証、歳入公開用3ファイル、公開用予算事業identityの順に実行します。最後に生成基盤用 `dataset_manifest.json`、公開リリース用 `public_dataset_manifest.json` の順で更新します。サンプル抽出は含みません。途中でFAILになった場合は後続工程を実行せず、歳出コア3CSVの開始前後ハッシュが異なる場合も失敗します。
 
 `budget:revenue:allocations:raw` は、PDF物理67ページを含む25ページ固定ゲートを先に検証し、通過した場合だけ4会計の歳入範囲を連続処理します。この中間データ自体は `revenue_detail_id` や歳出事業へ結合しません。後続コマンドが別成果物として接続し、原本を保持します。
 

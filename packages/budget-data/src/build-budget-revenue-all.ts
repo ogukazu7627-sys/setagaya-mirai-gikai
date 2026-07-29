@@ -8,6 +8,7 @@ import {
   BUDGET_REVENUE_BUILD_PHASES,
   BUDGET_REVENUE_IMMUTABLE_EXPENDITURE_FILES,
   BUDGET_REVENUE_POSTFLIGHT_PHASE,
+  BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE,
 } from "./budget-revenue-pipeline";
 
 async function assertPathsExist(
@@ -123,7 +124,13 @@ async function main(): Promise<void> {
     repoRoot,
     packageRoot,
     BUDGET_REVENUE_POSTFLIGHT_PHASE,
-    "postflight",
+    "postflight 1/2",
+  );
+  await runPhase(
+    repoRoot,
+    packageRoot,
+    BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE,
+    "postflight 2/2",
   );
 
   await assertPathsExist(

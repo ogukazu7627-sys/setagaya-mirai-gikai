@@ -19,6 +19,7 @@
     "budget:items": "pnpm --filter @mirai-gikai/budget-data build:items",
     "budget:manifest": "pnpm --filter @mirai-gikai/budget-data build:manifest",
     "budget:public": "pnpm --filter @mirai-gikai/budget-data build:public",
+    "budget:public:manifest": "pnpm --filter @mirai-gikai/budget-data build:public-manifest",
     "budget:public:program-identities": "pnpm --filter @mirai-gikai/budget-data build:public-program-identities",
     "budget:pdf-sections": "pnpm --filter @mirai-gikai/budget-data extract:pdf-sections",
     "budget:pdf-sections:extended": "pnpm --filter @mirai-gikai/budget-data extract:pdf-sections:extended",

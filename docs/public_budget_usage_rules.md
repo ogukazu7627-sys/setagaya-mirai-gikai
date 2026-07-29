@@ -115,6 +115,7 @@ AI回答用コンテキストには、次の3文を改変せず含めます。
 ```bash
 pnpm budget:public
 pnpm budget:public:program-identities
+pnpm budget:public:manifest
 ```
 
 主な関数：
@@ -124,3 +125,5 @@ pnpm budget:public:program-identities
 - `buildBudgetAiContext(queryResult)`
 
 公開画面とAI回答ではコアCSVを直接参照せず、公開モデルを利用します。
+
+`public_dataset_manifest.json` は公開用6ファイルのリリース・監査用メタデータです。本番投入前の整合性確認、データバージョン表示、キャッシュ更新判定には利用できますが、画面・検索インデックス・AI回答コンテキストの業務データとして取り込んではいけません。

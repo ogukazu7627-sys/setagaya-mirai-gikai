@@ -119,7 +119,15 @@ export const BUDGET_REVENUE_POSTFLIGHT_PHASE: BudgetRevenueBuildPhase = {
   outputs: ["processed/dataset_manifest.json"],
 };
 
+export const BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE: BudgetRevenueBuildPhase =
+  {
+    label: "public dataset manifest",
+    script: "build:public-manifest",
+    outputs: ["processed/public/public_dataset_manifest.json"],
+  };
+
 export const BUDGET_REVENUE_BUILD_OUTPUTS = [
   ...BUDGET_REVENUE_BUILD_PHASES.flatMap((phase) => phase.outputs),
   ...BUDGET_REVENUE_POSTFLIGHT_PHASE.outputs,
+  ...BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE.outputs,
 ] as const;
