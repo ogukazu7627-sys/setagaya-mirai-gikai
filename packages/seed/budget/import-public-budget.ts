@@ -33,6 +33,11 @@ const validationResultSchema = z.strictObject({
   accountTotals: z.array(z.record(z.string(), z.unknown())),
 });
 
+const persistedDatasetSchema = z.strictObject({
+  id: z.string().uuid(),
+  status: datasetStatusSchema,
+});
+
 export type BudgetDatasetValidationResult = z.infer<
   typeof validationResultSchema
 >;
@@ -173,20 +178,38 @@ async function callActivationRpc(
   return activationResultSchema.parse(data);
 }
 
+async function findDatasetByManifestHash(
+  client: AdminClient,
+  manifestSha256: string
+): Promise<z.infer<typeof persistedDatasetSchema> | undefined> {
+  const { data, error } = await client
+    .from("budget_datasets")
+    .select("id, status")
+    .eq("manifest_sha256", manifestSha256)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`既存datasetの確認に失敗しました: ${error.message}`);
+  }
+  return data === null ? undefined : persistedDatasetSchema.parse(data);
+}
+
 async function cleanupNewDataset(
   client: AdminClient,
   datasetId: string
-): Promise<void> {
-  const { error } = await client
+): Promise<boolean> {
+  const { data, error } = await client
     .from("budget_datasets")
     .delete()
     .eq("id", datasetId)
-    .eq("status", "staging");
+    .eq("status", "staging")
+    .select("id")
+    .maybeSingle();
   if (error) {
     throw new Error(
       `stagingデータのロールバックに失敗しました: ${error.message}`
     );
   }
+  return data !== null;
 }
 
 export async function applyPublicBudgetDataset(
@@ -202,6 +225,16 @@ export async function applyPublicBudgetDataset(
   const adminClient = client ?? (createAdminClient() as AdminClient);
 
   const { payload, artifacts } = buildBudgetImportPayload(dataset);
+  const existingDataset = await findDatasetByManifestHash(
+    adminClient,
+    dataset.manifestSha256
+  );
+  if (existingDataset?.status === "archived") {
+    throw new Error(
+      "同じmanifestはarchivedとして既に存在するため再有効化しません"
+    );
+  }
+
   const newlyUploadedPaths: string[] = [];
   let importResult: z.infer<typeof importResultSchema> | undefined;
 
@@ -237,10 +270,28 @@ export async function applyPublicBudgetDataset(
     };
   } catch (error) {
     const rollbackErrors: string[] = [];
-    if (importResult && !importResult.alreadyImported) {
+    let removeUploadedArtifacts = existingDataset === undefined;
+
+    if (removeUploadedArtifacts) {
       try {
-        await cleanupNewDataset(adminClient, importResult.datasetId);
+        const persistedDataset = await findDatasetByManifestHash(
+          adminClient,
+          dataset.manifestSha256
+        );
+        if (
+          persistedDataset?.status === "staging" &&
+          importResult?.alreadyImported === false &&
+          persistedDataset.id === importResult.datasetId
+        ) {
+          removeUploadedArtifacts = await cleanupNewDataset(
+            adminClient,
+            persistedDataset.id
+          );
+        } else if (persistedDataset !== undefined) {
+          removeUploadedArtifacts = false;
+        }
       } catch (cleanupError) {
+        removeUploadedArtifacts = false;
         rollbackErrors.push(
           cleanupError instanceof Error
             ? cleanupError.message
@@ -248,14 +299,16 @@ export async function applyPublicBudgetDataset(
         );
       }
     }
-    try {
-      await removeArtifacts(adminClient, newlyUploadedPaths);
-    } catch (cleanupError) {
-      rollbackErrors.push(
-        cleanupError instanceof Error
-          ? cleanupError.message
-          : String(cleanupError)
-      );
+    if (removeUploadedArtifacts) {
+      try {
+        await removeArtifacts(adminClient, newlyUploadedPaths);
+      } catch (cleanupError) {
+        rollbackErrors.push(
+          cleanupError instanceof Error
+            ? cleanupError.message
+            : String(cleanupError)
+        );
+      }
     }
 
     const message = error instanceof Error ? error.message : String(error);

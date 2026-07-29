@@ -82,4 +82,62 @@ describe("applyPublicBudgetDataset", () => {
       .eq("manifest_sha256", testDataset.dataset.manifestSha256);
     expect(count).toBe(0);
   });
+
+  it("active化後の応答喪失ではactive datasetとStorageを保持する", async () => {
+    const testDataset = createBudgetTestDataset();
+    testDatasets.push(testDataset);
+    storagePaths.push(
+      ...testDataset.builtImport.artifacts.map(
+        (artifact) => artifact.storageObjectPath
+      )
+    );
+
+    const responseLossClient = new Proxy(client, {
+      get(target, property) {
+        if (property === "rpc") {
+          return async (
+            functionName: string,
+            args: Record<string, unknown>
+          ) => {
+            const response = await target.rpc(functionName, args);
+            if (
+              functionName === "activate_budget_dataset" &&
+              response.error === null
+            ) {
+              return {
+                data: null,
+                error: { message: "simulated activation response loss" },
+              };
+            }
+            return response;
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    }) as SupabaseClient;
+
+    await expect(
+      applyPublicBudgetDataset(testDataset.dataset, responseLossClient)
+    ).rejects.toThrow("active切替に失敗");
+
+    const { data: persisted, error: persistedError } = await client
+      .from("budget_datasets")
+      .select("id, status")
+      .eq("manifest_sha256", testDataset.dataset.manifestSha256)
+      .single();
+    expect(persistedError).toBeNull();
+    expect(persisted?.status).toBe("active");
+    if (persisted) {
+      importedDatasetIds.push(persisted.id);
+    }
+
+    for (const artifact of testDataset.builtImport.artifacts) {
+      const { data, error } = await client.storage
+        .from("budget-datasets")
+        .download(artifact.storageObjectPath);
+      expect(error).toBeNull();
+      expect(data?.size).toBeGreaterThan(0);
+    }
+  });
 });
