@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { createXApiClient, XApiResourceUnavailableError } from "./x-api-client";
+import {
+  createXApiClient,
+  XApiRequestError,
+  XApiResourceUnavailableError,
+} from "./x-api-client";
 
 describe("createXApiClient", () => {
   it("ユーザー名を一括検索し、公開状態と不正行を安全に変換する", async () => {
@@ -112,23 +116,30 @@ describe("createXApiClient", () => {
     ).rejects.toBeInstanceOf(XApiResourceUnavailableError);
   });
 
-  it("APIエラーへトークンやレスポンス本文を含めない", async () => {
+  it("APIエラー詳細を保持しつつError messageへトークンやレスポンス本文を含めない", async () => {
     const client = createXApiClient({
       bearerToken: "never-log-this-token",
-      fetchImpl: vi
-        .fn()
-        .mockResolvedValue(
-          new Response('{"detail":"sensitive response"}', { status: 429 })
-        ),
+      fetchImpl: vi.fn().mockResolvedValue(
+        new Response('{"detail":"rate limit exceeded"}', {
+          status: 429,
+          statusText: "Too Many Requests",
+        })
+      ),
     });
 
     const error = await client
       .findUsersByUsernames(["example"])
       .catch((caught: unknown) => caught);
 
-    expect(error).toBeInstanceOf(Error);
+    expect(error).toBeInstanceOf(XApiRequestError);
     expect((error as Error).message).not.toContain("never-log-this-token");
-    expect((error as Error).message).not.toContain("sensitive response");
+    expect((error as Error).message).not.toContain("rate limit exceeded");
     expect((error as Error).message).toContain("status 429");
+    expect(error).toMatchObject({
+      requestLabel: "user lookup",
+      status: 429,
+      statusText: "Too Many Requests",
+      responseBody: '{"detail":"rate limit exceeded"}',
+    });
   });
 });
