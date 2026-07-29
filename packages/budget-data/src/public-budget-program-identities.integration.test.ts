@@ -17,6 +17,7 @@ import {
   type PublicBudgetProgramIdentityBuildResult,
   buildPublicBudgetProgramIdentities,
   serializePublicBudgetProgramIdentities,
+  serializePublicRevenueAllocationReferencesFromCoreCsv,
   validatePublicBudgetProgramIdentityCsv,
   validatePublicBudgetProgramIdentityExtension,
 } from "./public-budget-program-identities";
@@ -41,6 +42,8 @@ const INPUT_HASHES = {
     "01790675b33a28a9b1bb692052012136e5f99de373811600d4d9446ea23a7625",
   publicRevenueAllocations:
     "cb1a35734936f89ce3be59de27f9f8b7b4be6b236298ff68a38b501f4c92fb1c",
+  revenueAllocations:
+    "002e2d6dd857e20a88806145cc8c7e61fa35642bec43ac4c81982d4d1f7ab022",
   departmentMap:
     "4951ea3aac3c98635d9607e508a7903e2b7188c3e4f8f1cfe696f13757b58ef4",
 } as const;
@@ -67,6 +70,7 @@ describe("Phase 32-A 実データ回帰", () => {
   let publicProgramsCsv: string;
   let publicItemsJson: string;
   let publicAllocationsJson: string;
+  let revenueAllocationsCsv: string;
   let departmentMapCsv: string;
   let publicIdentitiesCsv: string;
   let result: PublicBudgetProgramIdentityBuildResult;
@@ -81,6 +85,7 @@ describe("Phase 32-A 実データ回帰", () => {
       publicProgramsCsv,
       publicItemsJson,
       publicAllocationsJson,
+      revenueAllocationsCsv,
       departmentMapCsv,
       publicIdentitiesCsv,
     ] = await Promise.all([
@@ -140,6 +145,14 @@ describe("Phase 32-A 実データ回帰", () => {
           "processed",
           "public",
           "public_budget_revenue_allocations.json",
+        ),
+        "utf8",
+      ),
+      fs.readFile(
+        path.join(
+          repoRoot,
+          "processed",
+          "budget_revenue_allocations.csv",
         ),
         "utf8",
       ),
@@ -297,6 +310,29 @@ describe("Phase 32-A 実データ回帰", () => {
     ).not.toThrow();
   });
 
+  it("公開allocation未生成でもコアallocationから同じidentity参照を再構築できる", () => {
+    const rebuilt = buildPublicBudgetProgramIdentities({
+      identitiesCsv,
+      identityMembersCsv: membersCsv,
+      programGroupsCsv: groupsCsv,
+      programsCsv,
+      itemsCsv,
+      publicProgramsCsv,
+      publicRevenueAllocationsJson:
+        serializePublicRevenueAllocationReferencesFromCoreCsv(
+          revenueAllocationsCsv,
+        ),
+      departmentMapCsv,
+    });
+
+    expect(rebuilt.identities).toEqual(result.identities);
+    expect(rebuilt.publicProgramsCsv).toBe(result.publicProgramsCsv);
+    expect(rebuilt.validation.allocationRowCount).toBe(1_948);
+    expect(
+      rebuilt.validation.publicIdentityResolutionAllocationCount,
+    ).toBe(39);
+  });
+
   it("コア・既存公開JSON・部署設定の固定ハッシュを維持する", () => {
     expect(sha256(identitiesCsv)).toBe(INPUT_HASHES.identities);
     expect(sha256(membersCsv)).toBe(INPUT_HASHES.members);
@@ -306,6 +342,9 @@ describe("Phase 32-A 実データ回帰", () => {
     expect(sha256(publicItemsJson)).toBe(INPUT_HASHES.publicItems);
     expect(sha256(publicAllocationsJson)).toBe(
       INPUT_HASHES.publicRevenueAllocations,
+    );
+    expect(sha256(revenueAllocationsCsv)).toBe(
+      INPUT_HASHES.revenueAllocations,
     );
     expect(sha256(departmentMapCsv)).toBe(
       INPUT_HASHES.departmentMap,

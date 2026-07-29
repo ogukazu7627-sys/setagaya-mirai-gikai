@@ -135,7 +135,17 @@ describe("all-account budget build manifest", () => {
         "budget:public",
         "budget:validate",
         "budget:build-all",
+        "budget:expenditure:build-all",
       ]),
+    );
+    expect(packageJson.scripts["budget:build-all"]).toContain(
+      "build:complete",
+    );
+    expect(packageJson.scripts["budget:public"]).toContain(
+      "build:public-all",
+    );
+    expect(packageJson.scripts["budget:expenditure:build-all"]).toContain(
+      "build:all",
     );
   });
 });

@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "build:all": "tsx src/build-budget-all.ts",
+    "build:complete": "tsx src/build-budget-complete.ts",
     "build:items": "tsx src/build-budget-items.ts",
     "build:manifest": "tsx src/build-budget-dataset-manifest.ts",
     "build:public": "tsx src/build-public-budget.ts",
+    "build:public-all": "tsx src/build-public-budget-all.ts",
     "build:public-manifest": "tsx src/build-public-dataset-manifest.ts",
     "build:public-program-identities": "tsx src/build-public-budget-program-identities.ts",
     "build:public-revenue": "tsx src/build-public-budget-revenue.ts",

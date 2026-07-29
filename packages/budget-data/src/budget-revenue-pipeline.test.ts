@@ -127,7 +127,7 @@ beforeAll(async () => {
 });
 
 describe("Phase 32 revenue build pipeline", () => {
-  it("公開生成11工程の後にコア・公開manifestを順番に更新する", () => {
+  it("公開生成12工程の後にコア・公開manifestを順番に更新する", () => {
     expect(BUDGET_REVENUE_BUILD_PHASES.map((phase) => phase.script)).toEqual([
       "build:revenue-details",
       "build:revenue-sections",
@@ -138,6 +138,7 @@ describe("Phase 32 revenue build pipeline", () => {
       "build:program-groups",
       "build:revenue-allocation-links",
       "validate:revenue-allocations",
+      "build:public",
       "build:public-revenue",
       "build:public-program-identities",
     ]);

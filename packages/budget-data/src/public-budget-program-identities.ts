@@ -19,6 +19,7 @@ import {
   PUBLIC_BUDGET_PROGRAM_COLUMNS_WITH_IDENTITY,
 } from "./public-budget";
 import { EXPECTED_PUBLIC_BUDGET_REVENUE_ALLOCATION_ROW_COUNT } from "./public-budget-revenue";
+import { IDENTITY_RESOLVED_BUDGET_REVENUE_ALLOCATION_COLUMNS } from "./revenue-allocation-identity-resolution";
 
 export const EXPECTED_PUBLIC_BUDGET_PROGRAM_IDENTITY_ROW_COUNT = 1_156;
 export const EXPECTED_PUBLIC_MULTIPLE_GROUP_IDENTITY_COUNT = 7;
@@ -595,6 +596,53 @@ function parsePublicRevenueAllocationReferences(
       resolutionLevel,
     };
   });
+}
+
+export function serializePublicRevenueAllocationReferencesFromCoreCsv(
+  csvText: string,
+): string {
+  const { rows } = parseCsvTable(
+    csvText,
+    IDENTITY_RESOLVED_BUDGET_REVENUE_ALLOCATION_COLUMNS,
+    "budget_revenue_allocations.csv",
+  );
+  const references = rows.map((row, index) => {
+    const prefix = `budget_revenue_allocations.csv ${index + 1}行目`;
+    const resolutionLevel = requiredText(
+      row.target_resolution_level,
+      `${prefix}.target_resolution_level`,
+    );
+    if (
+      resolutionLevel !== "exact_group" &&
+      resolutionLevel !== "public_identity"
+    ) {
+      throw new Error(`${prefix}.target_resolution_levelが不正です。`);
+    }
+    const groupId = row.target_budget_program_group_id.trim() || null;
+    if (resolutionLevel === "exact_group" && groupId === null) {
+      throw new Error(
+        `${prefix}のexact_groupにbudget_program_group_idがありません。`,
+      );
+    }
+    if (resolutionLevel === "public_identity" && groupId !== null) {
+      throw new Error(
+        `${prefix}のpublic_identityにbudget_program_group_idが設定されています。`,
+      );
+    }
+    return {
+      allocationLinkId: requiredText(
+        row.allocation_link_id,
+        `${prefix}.allocation_link_id`,
+      ),
+      targetBudgetProgramIdentityId: requiredText(
+        row.target_budget_program_identity_id,
+        `${prefix}.target_budget_program_identity_id`,
+      ),
+      targetBudgetProgramGroupId: groupId,
+      targetResolutionLevel: resolutionLevel,
+    };
+  });
+  return JSON.stringify(references);
 }
 
 function departmentDisplayName(

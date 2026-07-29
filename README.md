@@ -93,6 +93,23 @@ pnpm dev
 | `docs/budget_revenue_data_dictionary.md` | 歳入3テーブルと充当関係の粒度・結合・利用禁止事項 |
 | `docs/validation_report.md` | 会計別・全体の検証レポート |
 
+#### 本番アプリが取り込む公開用ファイル
+
+- `processed/public/public_budget_program_identities.csv`
+- `processed/public/public_budget_programs.csv`
+- `processed/public/public_budget_items.json`
+- `processed/public/public_budget_revenue_details.csv`
+- `processed/public/public_budget_revenue_items.json`
+- `processed/public/public_budget_revenue_allocations.json`
+
+歳出事業の検索、詳細URL、議会質問とのリンクには `budget_program_identity_id` を主キーとして使います。非公開の `processed/budget_program_identities.csv` や内部照合用の `budget_program_group_id` を、本番画面の主キーとして直接取り込んではいけません。
+
+#### リリース・監査用ファイル
+
+- `processed/public/public_dataset_manifest.json`
+
+公開manifestは本番投入前の整合性確認、データバージョン表示、キャッシュ更新判定に使います。画面・AI・検索インデックスの検索対象にはしません。
+
 `budget_programs.csv`、`budget_sections.csv`、`budget_items.csv` は一般会計と特別会計を同じファイルで扱い、`account_code` で区別します。`budget_sections.csv` はPDF由来データだけを保持し、0円会計・0円項目の補完行は追加しません。
 
 `budget_item_key` は年度・会計・予算区分・款・項・目を結ぶ共通キーです。たとえば `2026_general_expenditure_01_01_01` は、2026年度・一般会計・歳出・款01・項01・目01を表します。事業と節を直接1対1に結ばず、どちらもこのキーで同じ「目」にぶら下げます。
@@ -128,7 +145,7 @@ pnpm dev
 - allocationsを合計しない
 - allocationを金額付きサンキー図や事業別財源額に使わない
 
-関連があることと、その歳入全額が当該事業へ充当されることは同義ではありません。公式PDFで内部予算事業groupを区別できない39件は、groupを推測せず `public_identity` として保持します。
+関連があることと、その歳入全額が当該事業へ充当されることは同義ではありません。公式PDFで内部予算事業groupを区別できない39件は、公式資料上の事業identityまでを確定し、groupを推測せず `public_identity` として保持します。
 
 ### 当初予算の範囲
 
@@ -151,10 +168,13 @@ pnpm budget:items
 pnpm budget:validate
 pnpm budget:manifest
 
-# コア成果物を順番に再生成
+# 歳出コアだけを順番に再生成
+pnpm budget:expenditure:build-all
+
+# 歳出・歳入・allocation・公開7成果物・manifestを一括再生成
 pnpm budget:build-all
 
-# 検証済みコア3CSVから公開用データを派生生成
+# 検証済みコアから公開7成果物を指定順に再生成・検証
 pnpm budget:public
 
 # 公式歳入CSVから3層のコアデータを生成・検証
@@ -176,23 +196,27 @@ pnpm budget:revenue:allocations:validate
 # 検証済み歳入・充当関係から公開用3ファイルを生成
 pnpm budget:revenue:public
 
-# 公開allocation生成後に、公開用予算事業identityとprogram参照を生成
+# コアallocationから公開用予算事業identityとprogram参照を生成
 pnpm budget:public:program-identities
 
 # 公開用6ファイルを検証して公開専用manifestを生成
 pnpm budget:public:manifest
 
-# サンプル以外の歳入工程、公開identity、2種類のmanifestを順番に一括再生成
+# 歳入工程、歳出・歳入公開モデル、公開identity、2種類のmanifestを一括再生成
 pnpm budget:revenue:build-all
 ```
 
-`budget:build-all` は事業、一般会計PDF中間データ、特別会計PDF中間データ、節、目、全体検証、dataset manifestの順に実行します。途中の検証が失敗した場合はその時点で終了します。公開用データは、検証済みのコア3CSVを入力として `budget:public` で生成します。
+`budget:expenditure:build-all` は、歳出の事業、一般会計PDF中間データ、特別会計PDF中間データ、節、目、歳出検証、生成基盤manifestの順に実行します。
 
-`budget:public:program-identities` は、非公開の予算事業identity・member・groupを相互検算して公開用identityマスタを生成し、`public_budget_programs.csv` の既存20列を変更せず末尾に `budget_program_identity_id` を追加します。歳入allocationの1,948関係をidentityへ照合し、公式PDFで内部groupを区別できない39関係も公開identityまで接続します。
+`budget:build-all` は最終統合コマンドです。歳出コア、歳入コア、PDF充当関係、歳入・歳出接続、公開用6ファイル、公開manifestを順に再生成し、3つのvalidation error CSVがヘッダーのみであることと、公開manifestが `PASS` であることを最後に確認します。
+
+`budget:public` は、`public_budget_programs.csv`、`public_budget_items.json`、`public_budget_program_identities.csv`、歳入公開用3ファイル、`public_dataset_manifest.json` の順で公開7成果物を再生成します。古い公開allocationには依存せず、公開identityの関連件数は検証済みのコアallocationから再構築します。
+
+`budget:public:program-identities` は、非公開の予算事業identity・member・groupとコアallocationを相互検算して公開用identityマスタを生成し、`public_budget_programs.csv` の既存20列を変更せず末尾に `budget_program_identity_id` を追加します。歳入allocationの1,948関係をidentityへ照合し、公式PDFで内部groupを区別できない39関係も公開identityまで接続します。
 
 `budget:public:manifest` は、本番投入対象の公開用6ファイルだけを対象に、SHA-256、CSV行列数、JSON件数、会計別歳入・歳出合計、identity・歳入detail参照、allocationの金額非帰属を検証します。出力はリリース・監査、データバージョン表示、キャッシュ更新判定に使い、画面検索やAI回答の業務データには使用しません。
 
-`budget:revenue:build-all` は、details、sections、items、歳入コア検証、PDF全範囲抽出、source match、予算事業group、allocation link、allocation検証、歳入公開用3ファイル、公開用予算事業identityの順に実行します。最後に生成基盤用 `dataset_manifest.json`、公開リリース用 `public_dataset_manifest.json` の順で更新します。サンプル抽出は含みません。途中でFAILになった場合は後続工程を実行せず、歳出コア3CSVの開始前後ハッシュが異なる場合も失敗します。
+`budget:revenue:build-all` は、details、sections、items、歳入コア検証、PDF全範囲抽出、source match、予算事業group、allocation link、allocation検証、歳出公開用2ファイル、歳入公開用3ファイル、公開用予算事業identityの順に実行します。最後に生成基盤用 `dataset_manifest.json`、公開リリース用 `public_dataset_manifest.json` の順で更新・検証します。サンプル抽出は含みません。途中でFAILになった場合は後続工程を実行せず、歳出コア3CSVの開始前後ハッシュが異なる場合も失敗します。
 
 `budget:revenue:allocations:raw` は、PDF物理67ページを含む25ページ固定ゲートを先に検証し、通過した場合だけ4会計の歳入範囲を連続処理します。この中間データ自体は `revenue_detail_id` や歳出事業へ結合しません。後続コマンドが別成果物として接続し、原本を保持します。
 
@@ -210,7 +234,7 @@ pnpm budget:revenue:build-all
 4. `department_name_map.csv` は新年度のraw部署名を全件照合し、根拠のない名称を推測しない。
 5. 前年度のoverrideを自動で引き継がず、いったんヘッダーのみから開始する。必要な行だけ新年度PDF・CSVで再確認する。
 6. PDFサンプル2コマンドを先に実行し、改行、ページ継続、複数事業、冊子ページ対応を回帰確認する。
-7. 歳出 `pnpm budget:build-all` と歳入 `pnpm budget:revenue:build-all` を実行し、両方のエラーCSVがヘッダーのみ、manifestの入力ハッシュ・会計別合計・行数が新年度期待値と一致することを確認する。
+7. `pnpm budget:build-all` を実行し、歳出・歳入・allocationのエラーCSVがヘッダーのみ、2種類のmanifestの入力ハッシュ・会計別合計・行数が新年度期待値と一致することを確認する。
 8. 公開用6ファイルをstagingへ投入して検証してから、本番データを切り替える。
 
 年度を変えるとIDの年度部分も変わります。旧年度IDへ上書きせず、年度別データとして保持してください。

@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   buildPublicBudgetProgramIdentities,
   serializePublicBudgetProgramIdentities,
+  serializePublicRevenueAllocationReferencesFromCoreCsv,
   validatePublicBudgetProgramIdentityCsv,
 } from "./public-budget-program-identities";
 
@@ -15,7 +16,8 @@ interface CliOptions {
   itemsPath: string;
   publicProgramsPath: string;
   publicProgramsOutputPath: string;
-  publicRevenueAllocationsPath: string;
+  revenueAllocationsPath: string;
+  revenueAllocationFormat: "core_csv" | "public_json";
   departmentMapPath: string;
   outputPath: string;
 }
@@ -49,10 +51,12 @@ function readCliOptions(args: string[]): CliOptions {
     "public_budget_programs.csv",
   );
   let publicProgramsOutputPath: string | null = null;
-  let publicRevenueAllocationsPath = path.join(
-    publicPath,
-    "public_budget_revenue_allocations.json",
+  let revenueAllocationsPath = path.join(
+    processedPath,
+    "budget_revenue_allocations.csv",
   );
+  let revenueAllocationFormat: CliOptions["revenueAllocationFormat"] =
+    "core_csv";
   let departmentMapPath = path.join(
     repoRoot,
     "config",
@@ -86,8 +90,12 @@ function readCliOptions(args: string[]): CliOptions {
       publicProgramsPath = path.resolve(value);
     } else if (argument === "--public-programs-output") {
       publicProgramsOutputPath = path.resolve(value);
+    } else if (argument === "--revenue-allocations") {
+      revenueAllocationsPath = path.resolve(value);
+      revenueAllocationFormat = "core_csv";
     } else if (argument === "--public-revenue-allocations") {
-      publicRevenueAllocationsPath = path.resolve(value);
+      revenueAllocationsPath = path.resolve(value);
+      revenueAllocationFormat = "public_json";
     } else if (argument === "--department-map") {
       departmentMapPath = path.resolve(value);
     } else if (argument === "--output") {
@@ -107,7 +115,8 @@ function readCliOptions(args: string[]): CliOptions {
     publicProgramsPath,
     publicProgramsOutputPath:
       publicProgramsOutputPath ?? publicProgramsPath,
-    publicRevenueAllocationsPath,
+    revenueAllocationsPath,
+    revenueAllocationFormat,
     departmentMapPath,
     outputPath,
   };
@@ -120,7 +129,7 @@ function assertOutputPathsSafe(options: CliOptions): void {
     options.programGroupsPath,
     options.programsPath,
     options.itemsPath,
-    options.publicRevenueAllocationsPath,
+    options.revenueAllocationsPath,
     options.departmentMapPath,
   ]);
   if (immutableInputPaths.has(options.outputPath)) {
@@ -224,7 +233,7 @@ async function main(): Promise<void> {
     readInput(options.programsPath),
     readInput(options.itemsPath),
     readInput(options.publicProgramsPath),
-    readInput(options.publicRevenueAllocationsPath),
+    readInput(options.revenueAllocationsPath),
     readInput(options.departmentMapPath),
   ]);
   const [
@@ -234,7 +243,7 @@ async function main(): Promise<void> {
     programs,
     items,
     publicPrograms,
-    publicRevenueAllocations,
+    revenueAllocations,
     departmentMap,
   ] = inputs;
   const result = buildPublicBudgetProgramIdentities({
@@ -245,7 +254,11 @@ async function main(): Promise<void> {
     itemsCsv: items.bytes.toString("utf8"),
     publicProgramsCsv: publicPrograms.bytes.toString("utf8"),
     publicRevenueAllocationsJson:
-      publicRevenueAllocations.bytes.toString("utf8"),
+      options.revenueAllocationFormat === "core_csv"
+        ? serializePublicRevenueAllocationReferencesFromCoreCsv(
+            revenueAllocations.bytes.toString("utf8"),
+          )
+        : revenueAllocations.bytes.toString("utf8"),
     departmentMapCsv: departmentMap.bytes.toString("utf8"),
   });
   const publicIdentitiesCsv = serializePublicBudgetProgramIdentities(

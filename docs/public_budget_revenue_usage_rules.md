@@ -43,6 +43,11 @@ related:
 
 `exact_group`は内部予算事業groupまで一意に確定した関係で、`targetBudgetProgramGroupId`を持つ。`public_identity`は公式PDFから内部groupを区別できず、group IDを`null`のまま`targetBudgetProgramIdentityId`へ接続する。public identityを候補groupへ推測で割り当ててはいけない。
 
+- `targetBudgetProgramIdentityId` は必ず `public_budget_program_identities.csv` の公開identityへ接続する
+- `targetBudgetProgramGroupId=null` の `public_identity` 行は正常データとして扱う
+- `public_identity` 行について内部groupを推測して画面やAI回答へ表示しない
+- 歳入細節と予算事業に関係があることは表示してよいが、配分額は表示しない
+
 ## 0円データ
 
 0円のdetails・itemsは公開成果物に保持する。通常検索では`is_zero_amount=true`を除外し、`includeZeroAmount=true`の場合だけ含める。
@@ -89,4 +94,7 @@ AIコンテキストには次の4文を改変せず含める。
 
 ```bash
 pnpm budget:revenue:public
+pnpm budget:public
 ```
+
+`budget:revenue:public` は歳入公開用3ファイルだけを部分生成する。`budget:public` は歳出公開モデル、公開予算事業identity、歳入公開モデル、公開manifestを依存順に一括生成・検証する本番投入前の最終公開コマンドである。

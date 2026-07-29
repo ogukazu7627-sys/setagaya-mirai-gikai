@@ -20,12 +20,20 @@
 | `budget_sections.csv` | 公式PDF由来の、款・項・目のうち「目」全体の節別内訳 |
 | `budget_items.csv` | 事業合計と節合計を款・項・目単位で結ぶマスタ |
 | `public_budget_program_identities.csv` | 市民向けの予算事業identity単位の検索・詳細・歳入相互リンク用マスタ |
-| `public_budget_programs.csv` | 画面・検索で利用可能な許可列だけを持つ事業データ |
+| `public_budget_programs.csv` | identityに属する内訳事業の表示・検索補助に使う許可列だけのデータ |
 | `public_budget_items.json` | 目単位の詳細表示・AIコンテキスト用リードモデル |
 
 公開モデルはコア3CSVから派生生成します。コアCSVの行、列、値、IDは変更しません。
 
 公開identityは、公式PDF上で同一に見える予算事業をまとめた単位です。内部の `budget_program_group_id` をPDFから区別できない場合も、推測で1件へ絞らず公開identityまでを確定します。公開identity CSVには内部部署名、正規化名、候補group一覧、監査メモを含めません。
+
+## 本番の事業識別子
+
+- 歳出事業の検索、詳細URL、議会質問とのリンクでは `budget_program_identity_id` を主キーにする
+- `public_budget_program_identities.csv` を市民向け予算事業の主マスタとして使う
+- `public_budget_programs.csv` はidentityに属する内訳事業の一覧・表示に使う
+- `budget_program_group_id` は内部照合用であり、原則として本番画面の主キーにしない
+- 非公開の `budget_program_identities.csv` を本番DBや検索基盤へ直接取り込まない
 
 ## 事業と節の関係
 
@@ -117,6 +125,8 @@ pnpm budget:public
 pnpm budget:public:program-identities
 pnpm budget:public:manifest
 ```
+
+`pnpm budget:public` は歳出公開用2ファイル、公開予算事業identity、歳入公開用3ファイル、公開manifestを依存順に一括生成します。個別コマンドは部分更新・調査用です。本番投入前は一括コマンドの最後に `public_dataset_manifest.json` が `PASS` になったことを確認します。
 
 主な関数：
 

@@ -15,7 +15,6 @@ export const BUDGET_REVENUE_BUILD_INPUTS = [
   "processed/budget_programs.csv",
   "processed/budget_sections.csv",
   "processed/budget_items.csv",
-  "processed/public/public_budget_programs.csv",
 ] as const;
 
 export const BUDGET_REVENUE_IMMUTABLE_EXPENDITURE_FILES = [
@@ -94,6 +93,14 @@ export const BUDGET_REVENUE_BUILD_PHASES: readonly BudgetRevenueBuildPhase[] =
       ],
     },
     {
+      label: "public expenditure read models",
+      script: "build:public",
+      outputs: [
+        "processed/public/public_budget_programs.csv",
+        "processed/public/public_budget_items.json",
+      ],
+    },
+    {
       label: "public revenue read model",
       script: "build:public-revenue",
       outputs: [
@@ -127,7 +134,9 @@ export const BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE: BudgetRevenueBuildPhase =
   };
 
 export const BUDGET_REVENUE_BUILD_OUTPUTS = [
-  ...BUDGET_REVENUE_BUILD_PHASES.flatMap((phase) => phase.outputs),
-  ...BUDGET_REVENUE_POSTFLIGHT_PHASE.outputs,
-  ...BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE.outputs,
+  ...new Set([
+    ...BUDGET_REVENUE_BUILD_PHASES.flatMap((phase) => phase.outputs),
+    ...BUDGET_REVENUE_POSTFLIGHT_PHASE.outputs,
+    ...BUDGET_REVENUE_PUBLIC_POSTFLIGHT_PHASE.outputs,
+  ]),
 ] as const;
