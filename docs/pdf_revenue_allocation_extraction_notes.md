@@ -19,7 +19,7 @@ Phase 26以降の必須ゲートとする。
 
 - 入力: `raw/r8tousyoyosanallpage.pdf`
 - 設定: `config/budget-accounts.json`の各会計`revenue`範囲
-- 出力: `processed/raw_pdf_revenue_allocations_sample.csv`
+- 出力: `processed/audit/raw_pdf_revenue_allocations_sample.csv`
 - 金額単位: 千円
 
 ## 対象ページ
@@ -121,7 +121,7 @@ Phase 26以降の必須ゲートとする。
 
 ## このPhaseで作成していないもの
 
-- `processed/budget_revenue_allocations.csv`
+- `processed/core/budget_revenue_allocations.csv`
 - 全ページのPDF抽出CSV
 - 細節金額の充当先別配分
 - 歳出事業との結合

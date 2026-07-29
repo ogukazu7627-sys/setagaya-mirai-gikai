@@ -93,15 +93,15 @@ beforeAll(async () => {
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_programs.csv"),
+      path.join(repoRoot, "processed", "core", "budget_programs.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_sections.csv"),
+      path.join(repoRoot, "processed", "core", "budget_sections.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_items.csv"),
+      path.join(repoRoot, "processed", "core", "budget_items.csv"),
       "utf8",
     ),
     fs.readFile(path.join(repoRoot, "raw", "ippansaisyutu.csv")),
@@ -110,7 +110,7 @@ beforeAll(async () => {
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "dataset_manifest.json"),
+      path.join(repoRoot, "processed", "validation", "dataset_manifest.json"),
       "utf8",
     ),
   ]);
@@ -311,14 +311,14 @@ describe("Phase 16 sections, items, and manifest", () => {
         schema_version: "1.3.0",
         fiscal_year: 2026,
         output_row_counts: {
-          "processed/budget_programs.csv": 1_170,
-          "processed/budget_sections.csv": 994,
-          "processed/budget_items.csv": 190,
+          "processed/core/budget_programs.csv": 1_170,
+          "processed/core/budget_sections.csv": 994,
+          "processed/core/budget_items.csv": 190,
         },
         output_column_counts: {
-          "processed/budget_programs.csv": 30,
-          "processed/budget_sections.csv": 19,
-          "processed/budget_items.csv": 19,
+          "processed/core/budget_programs.csv": 30,
+          "processed/core/budget_sections.csv": 19,
+          "processed/core/budget_items.csv": 19,
         },
         account_totals: {
           general: 431_353_010,

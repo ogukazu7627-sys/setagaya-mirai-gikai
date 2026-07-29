@@ -56,8 +56,7 @@ describe("Phase 29.5 実データ回帰", () => {
         fs.readFile(
           path.join(
             repoRoot,
-            "processed",
-            "budget_revenue_allocations.csv",
+            "processed", "core", "budget_revenue_allocations.csv",
           ),
           "utf8",
         ),
@@ -70,22 +69,21 @@ describe("Phase 29.5 実データ回帰", () => {
           "utf8",
         ),
         fs.readFile(
-          path.join(repoRoot, "processed", "budget_programs.csv"),
+          path.join(repoRoot, "processed", "core", "budget_programs.csv"),
           "utf8",
         ),
         fs.readFile(
-          path.join(repoRoot, "processed", "budget_sections.csv"),
+          path.join(repoRoot, "processed", "core", "budget_sections.csv"),
           "utf8",
         ),
         fs.readFile(
-          path.join(repoRoot, "processed", "budget_items.csv"),
+          path.join(repoRoot, "processed", "core", "budget_items.csv"),
           "utf8",
         ),
         fs.readFile(
           path.join(
             repoRoot,
-            "processed",
-            "budget_program_groups.csv",
+            "processed", "core", "budget_program_groups.csv",
           ),
           "utf8",
         ),

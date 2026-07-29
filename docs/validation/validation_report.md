@@ -14,11 +14,11 @@
 
 | ファイル | 用途 |
 | --- | --- |
-| `processed/budget_programs.csv` | 公式CSV由来の全会計事業別予算 |
-| `processed/budget_sections.csv` | PDF由来の全会計節別予算 |
-| `processed/budget_items.csv` | 全会計の款・項・目単位突合結果 |
-| `processed/raw_pdf_sections.csv` | 一般会計PDF節抽出の中間データ |
-| `processed/raw_pdf_sections_special.csv` | 特別会計PDF節抽出の中間データ |
+| `processed/core/budget_programs.csv` | 公式CSV由来の全会計事業別予算 |
+| `processed/core/budget_sections.csv` | PDF由来の全会計節別予算 |
+| `processed/core/budget_items.csv` | 全会計の款・項・目単位突合結果 |
+| `processed/audit/raw_pdf_sections.csv` | 一般会計PDF節抽出の中間データ |
+| `processed/audit/raw_pdf_sections_special.csv` | 特別会計PDF節抽出の中間データ |
 | `config/budget-accounts.json` | 会計定義・期待額・状態 |
 
 ## 会計別の金額検証
@@ -161,7 +161,7 @@
 
 エラー件数: 0 件
 
-`processed/validation_errors.csv` はヘッダーのみ。要確認事項はない。
+`processed/validation/validation_errors.csv` はヘッダーのみ。要確認事項はない。
 
 ## 関連資料
 

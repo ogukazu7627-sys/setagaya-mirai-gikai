@@ -27,9 +27,7 @@ const configPath = path.join(
 );
 const outputPath = path.join(
   repoRoot,
-  "processed",
-  "budget_revenue_details.csv",
-);
+  "processed", "core", "budget_revenue_details.csv",);
 
 describe("budget revenue details integration", () => {
   let details: BudgetRevenueDetail[];

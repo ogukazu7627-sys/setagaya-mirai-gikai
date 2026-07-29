@@ -53,7 +53,7 @@ PDF物理67ページ固定回帰:
 | `latter_stage_elderly_healthcare` | 10 | 29 | 29 | 0 | 0 |
 | `long_term_care_insurance` | 21 | 209 | 209 | 0 | 0 |
 
-- 出力: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/processed/raw_pdf_revenue_allocations.csv`
+- 出力: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/processed/audit/raw_pdf_revenue_allocations.csv`
 - 出力SHA-256: `afd411a37cbdee0e6d5617855279efa962fa90019d2496d4560625c8a9682d61`
 
 ## ページ種別
@@ -261,7 +261,7 @@ PDF物理53ページは冊子99ページ、PDF物理358ページは冊子709ペ�
 
 ## このPhaseで作成していないもの
 
-- `processed/budget_revenue_allocations.csv`
+- `processed/core/budget_revenue_allocations.csv`
 - CSV側`revenue_detail_id`との結合
 - 歳出`budget_program_group_id`との結合
 - 充当先別金額

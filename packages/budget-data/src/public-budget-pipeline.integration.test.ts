@@ -23,11 +23,11 @@ type CsvRow = Record<string, string>;
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const EXPECTED_CORE_HASHES = {
-  "processed/budget_programs.csv":
+  "processed/core/budget_programs.csv":
     "6ae0a0fda94e2498be8749688cdab3427f3d1d54520b3e952152265672b81a27",
-  "processed/budget_sections.csv":
+  "processed/core/budget_sections.csv":
     "5616dc3e29949fd8cf83128ea017b252f78587f8486d4091014d60ee7a1e2ad0",
-  "processed/budget_items.csv":
+  "processed/core/budget_items.csv":
     "a7edcf294bfd4256401ae396c63758f2fe28a0ffbd6fe26f3788fd35526b6822",
 } as const;
 const EXPECTED_PUBLIC_REVENUE_HASHES = {

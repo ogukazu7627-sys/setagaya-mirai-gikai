@@ -531,12 +531,11 @@ def build_argument_parser(repo_root: Path) -> argparse.ArgumentParser:
         type=Path,
         default=(
             repo_root
-            / "processed"
-            / "raw_pdf_sections_special_sample.csv"
+            / "processed" / "audit" / "raw_pdf_sections_special_sample.csv"
         ),
         help=(
             "出力CSV"
-            "（既定: processed/raw_pdf_sections_special_sample.csv）"
+            "（既定: processed/audit/raw_pdf_sections_special_sample.csv）"
         ),
     )
     return parser

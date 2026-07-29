@@ -41,29 +41,24 @@ function readCliOptions(args: string[]): CliOptions {
     rawPath: path.join(repoRoot, "raw", "ippansainyu.csv"),
     detailsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_details.csv",
+      "processed", "core", "budget_revenue_details.csv",
     ),
     sectionsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_sections.csv",
+      "processed", "core", "budget_revenue_sections.csv",
     ),
     itemsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_items.csv",
+      "processed", "core", "budget_revenue_items.csv",
     ),
     configPath: path.join(repoRoot, "config", "budget-accounts.json"),
     errorsOutputPath: path.join(
       repoRoot,
-      "processed",
-      "revenue_validation_errors.csv",
+      "processed", "validation", "revenue_validation_errors.csv",
     ),
     reportOutputPath: path.join(
       repoRoot,
-      "docs",
-      "revenue_validation_report.md",
+      "docs", "validation", "revenue_validation_report.md",
     ),
   };
   const optionNames: Record<string, keyof CliOptions> = {

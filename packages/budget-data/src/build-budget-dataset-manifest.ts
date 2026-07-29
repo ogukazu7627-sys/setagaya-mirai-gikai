@@ -15,8 +15,7 @@ async function main(): Promise<void> {
   );
   const outputPath = path.join(
     repoRoot,
-    "processed",
-    "dataset_manifest.json",
+    "processed", "validation", "dataset_manifest.json",
   );
   const config = parseBudgetAccountsConfig(
     await fs.readFile(configPath, "utf8"),

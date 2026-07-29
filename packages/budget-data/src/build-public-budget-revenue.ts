@@ -42,28 +42,23 @@ function readCliOptions(args: string[]): CliOptions {
   const options: CliOptions = {
     detailsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_details.csv",
+      "processed", "core", "budget_revenue_details.csv",
     ),
     sectionsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_sections.csv",
+      "processed", "core", "budget_revenue_sections.csv",
     ),
     itemsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_items.csv",
+      "processed", "core", "budget_revenue_items.csv",
     ),
     allocationsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_revenue_allocations.csv",
+      "processed", "core", "budget_revenue_allocations.csv",
     ),
     programGroupsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_program_groups.csv",
+      "processed", "core", "budget_program_groups.csv",
     ),
     departmentMapPath: path.join(
       repoRoot,

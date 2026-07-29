@@ -38,9 +38,9 @@
 | ファイル | 用途 |
 | --- | --- |
 | `raw/ippansainyu.csv` | 公式歳入CSV・元行復元 |
-| `processed/budget_revenue_details.csv` | 歳入明細 |
-| `processed/budget_revenue_sections.csv` | 歳入節集約 |
-| `processed/budget_revenue_items.csv` | 歳入目マスタ |
+| `processed/core/budget_revenue_details.csv` | 歳入明細 |
+| `processed/core/budget_revenue_sections.csv` | 歳入節集約 |
+| `processed/core/budget_revenue_items.csv` | 歳入目マスタ |
 | `config/budget-accounts.json` | 会計定義・期待額 |
 
 ## 行数・ID一意性
@@ -120,7 +120,7 @@
 
 エラー件数: 0件
 
-`processed/revenue_validation_errors.csv` はヘッダーのみ。
+`processed/validation/revenue_validation_errors.csv` はヘッダーのみ。
 
 CSV由来の歳入3テーブルはPASS。PDF処理へ進むための前提を満たしている。
 

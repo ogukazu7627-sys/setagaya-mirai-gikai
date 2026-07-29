@@ -136,7 +136,9 @@ describe("budget dataset manifest", () => {
     await Promise.all([
       fs.mkdir(path.join(repoRoot, "raw"), { recursive: true }),
       fs.mkdir(path.join(repoRoot, "config"), { recursive: true }),
-      fs.mkdir(path.join(repoRoot, "processed"), { recursive: true }),
+      fs.mkdir(path.join(repoRoot, "processed", "core"), {
+        recursive: true,
+      }),
     ]);
     await Promise.all([
       fs.writeFile(
@@ -164,15 +166,15 @@ describe("budget dataset manifest", () => {
           "already_display,official_csv,テスト\n",
       ),
       fs.writeFile(
-        path.join(repoRoot, "processed", "budget_programs.csv"),
+        path.join(repoRoot, "processed", "core", "budget_programs.csv"),
         serializeBudgetPrograms([program]),
       ),
       fs.writeFile(
-        path.join(repoRoot, "processed", "budget_sections.csv"),
+        path.join(repoRoot, "processed", "core", "budget_sections.csv"),
         serializeBudgetSections([section]),
       ),
       fs.writeFile(
-        path.join(repoRoot, "processed", "budget_items.csv"),
+        path.join(repoRoot, "processed", "core", "budget_items.csv"),
         serializeBudgetItems([item]),
       ),
     ]);
@@ -186,14 +188,14 @@ describe("budget dataset manifest", () => {
 
     expect(manifest.schema_version).toBe(BUDGET_DATASET_SCHEMA_VERSION);
     expect(manifest.output_row_counts).toEqual({
-      "processed/budget_programs.csv": 1,
-      "processed/budget_sections.csv": 1,
-      "processed/budget_items.csv": 1,
+      "processed/core/budget_programs.csv": 1,
+      "processed/core/budget_sections.csv": 1,
+      "processed/core/budget_items.csv": 1,
     });
     expect(manifest.output_column_counts).toEqual({
-      "processed/budget_programs.csv": 30,
-      "processed/budget_sections.csv": 19,
-      "processed/budget_items.csv": 19,
+      "processed/core/budget_programs.csv": 30,
+      "processed/core/budget_sections.csv": 19,
+      "processed/core/budget_items.csv": 19,
     });
     expect(manifest.account_totals).toEqual({ general: 100 });
     expect(manifest.overall_total_amount_thousand_yen).toBe(100);

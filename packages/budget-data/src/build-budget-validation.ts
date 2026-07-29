@@ -28,35 +28,29 @@ function readCliOptions(args: string[]): CliOptions {
   const options: CliOptions = {
     programsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_programs.csv",
+      "processed", "core", "budget_programs.csv",
     ),
     sectionsPath: path.join(
       repoRoot,
-      "processed",
-      "budget_sections.csv",
+      "processed", "core", "budget_sections.csv",
     ),
-    itemsPath: path.join(repoRoot, "processed", "budget_items.csv"),
+    itemsPath: path.join(repoRoot, "processed", "core", "budget_items.csv"),
     rawSectionsPath: path.join(
       repoRoot,
-      "processed",
-      "raw_pdf_sections.csv",
+      "processed", "audit", "raw_pdf_sections.csv",
     ),
     rawSpecialSectionsPath: path.join(
       repoRoot,
-      "processed",
-      "raw_pdf_sections_special.csv",
+      "processed", "audit", "raw_pdf_sections_special.csv",
     ),
     configPath: path.join(repoRoot, "config", "budget-accounts.json"),
     errorsOutputPath: path.join(
       repoRoot,
-      "processed",
-      "validation_errors.csv",
+      "processed", "validation", "validation_errors.csv",
     ),
     reportOutputPath: path.join(
       repoRoot,
-      "docs",
-      "validation_report.md",
+      "docs", "validation", "validation_report.md",
     ),
   };
   const optionNames: Record<string, keyof CliOptions> = {

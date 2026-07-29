@@ -27,16 +27,14 @@ describe("Phase 28 実データ回帰", () => {
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "raw_pdf_revenue_allocations.csv",
+          "processed", "audit", "raw_pdf_revenue_allocations.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_details.csv",
+          "processed", "core", "budget_revenue_details.csv",
         ),
         "utf8",
       ),

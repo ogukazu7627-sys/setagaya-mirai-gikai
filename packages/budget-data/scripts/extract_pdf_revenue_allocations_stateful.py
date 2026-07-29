@@ -896,7 +896,7 @@ def render_full_report(
             "",
             "## このPhaseで作成していないもの",
             "",
-            "- `processed/budget_revenue_allocations.csv`",
+            "- `processed/core/budget_revenue_allocations.csv`",
             "- CSV側`revenue_detail_id`との結合",
             "- 歳出`budget_program_group_id`との結合",
             "- 充当先別金額",
@@ -943,8 +943,7 @@ def main() -> None:
         type=Path,
         default=(
             repo_root
-            / "processed"
-            / "raw_pdf_revenue_allocations_sample.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations_sample.csv"
         ),
     )
     parser.add_argument(
@@ -957,8 +956,7 @@ def main() -> None:
         type=Path,
         default=(
             repo_root
-            / "processed"
-            / "raw_pdf_revenue_allocations.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations.csv"
         ),
     )
     parser.add_argument(

@@ -36,8 +36,7 @@ function readCliOptions(args: string[]): CliOptions {
   let configPath = path.join(repoRoot, "config", "budget-accounts.json");
   let outputPath = path.join(
     repoRoot,
-    "processed",
-    "budget_revenue_details.csv",
+    "processed", "core", "budget_revenue_details.csv",
   );
 
   for (let index = 0; index < args.length; index += 1) {

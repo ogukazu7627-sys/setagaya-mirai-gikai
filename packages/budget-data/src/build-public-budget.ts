@@ -27,15 +27,13 @@ function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   let programsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_programs.csv",
+    "processed", "core", "budget_programs.csv",
   );
   let sectionsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_sections.csv",
+    "processed", "core", "budget_sections.csv",
   );
-  let itemsPath = path.join(repoRoot, "processed", "budget_items.csv");
+  let itemsPath = path.join(repoRoot, "processed", "core", "budget_items.csv");
   let publicProgramsPath = path.join(
     repoRoot,
     "processed",

@@ -885,8 +885,7 @@ def main() -> None:
         type=Path,
         default=(
             repo_root
-            / "processed"
-            / "raw_pdf_revenue_allocations_sample.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations_sample.csv"
         ),
     )
     parser.add_argument(
@@ -899,8 +898,7 @@ def main() -> None:
         type=Path,
         default=(
             repo_root
-            / "processed"
-            / "raw_pdf_revenue_allocations_extended_sample.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations_extended_sample.csv"
         ),
     )
     parser.add_argument(

@@ -68,19 +68,19 @@ beforeAll(async () => {
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_programs.csv"),
+      path.join(repoRoot, "processed", "core", "budget_programs.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_sections.csv"),
+      path.join(repoRoot, "processed", "core", "budget_sections.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_items.csv"),
+      path.join(repoRoot, "processed", "core", "budget_items.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "validation_errors.csv"),
+      path.join(repoRoot, "processed", "validation", "validation_errors.csv"),
       "utf8",
     ),
   ]);
@@ -107,16 +107,33 @@ describe("all-account budget build manifest", () => {
       "build:manifest",
     ]);
     expect(BUDGET_BUILD_OUTPUTS).toEqual([
-      "processed/budget_programs.csv",
+      "processed/core/budget_programs.csv",
       "docs/department_mapping_report.md",
-      "processed/raw_pdf_sections.csv",
-      "processed/raw_pdf_sections_special.csv",
-      "processed/budget_sections.csv",
-      "processed/budget_items.csv",
-      "processed/validation_errors.csv",
-      "docs/validation_report.md",
-      "processed/dataset_manifest.json",
+      "processed/audit/raw_pdf_sections.csv",
+      "processed/audit/raw_pdf_sections_special.csv",
+      "processed/core/budget_sections.csv",
+      "processed/core/budget_items.csv",
+      "processed/validation/validation_errors.csv",
+      "docs/validation/validation_report.md",
+      "processed/validation/dataset_manifest.json",
     ]);
+  });
+
+  it("processed直下をpublic・core・audit・validationに分離する", async () => {
+    const entries = await fs.readdir(path.join(repoRoot, "processed"), {
+      withFileTypes: true,
+    });
+    expect(
+      entries
+        .filter((entry) => entry.isFile())
+        .map((entry) => entry.name),
+    ).toEqual([]);
+    expect(
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort(),
+    ).toEqual(["audit", "core", "public", "validation"]);
   });
 
   it("ルートpackage scriptsに公開コマンドがそろっている", async () => {

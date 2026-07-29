@@ -3,7 +3,7 @@
 - 実施日: 2026-07-28
 - 入力: `raw/r8tousyoyosanallpage.pdf`
 - 実験時の実体: ユーザー提供の `Downloads/r8tousyoyosanallpage.pdf`
-- 出力: `processed/raw_pdf_sections_sample.csv`
+- 出力: `processed/audit/raw_pdf_sections_sample.csv`
 - 関連資料: [入力ファイルプロファイル](budget_data_input_profile.md)
 
 ## 結論
@@ -57,7 +57,7 @@ python3 -m pip install \
 
 python3 packages/budget-data/scripts/extract_pdf_sections_sample.py \
   --input raw/r8tousyoyosanallpage.pdf \
-  --output processed/raw_pdf_sections_sample.csv \
+  --output processed/audit/raw_pdf_sections_sample.csv \
   --pages 159,162,166
 ```
 
@@ -135,7 +135,7 @@ Phase 2の3ページでは全行を抽出できたため、全ページ処理へ
 
 - 対象PDFページ:
   `160, 164, 169, 187, 196, 216, 220, 226, 229, 234`
-- 出力: `processed/raw_pdf_sections_sample_extended.csv`
+- 出力: `processed/audit/raw_pdf_sections_sample_extended.csv`
 - 出力形式: Phase 2と同じ19列
 - 抽出器: Phase 2の `extract_page_records` を変更せず再利用
 - 追加した処理: ページ単位の空振り記録、`needs_review` の原因分類、集計
@@ -266,7 +266,7 @@ PDF 165ページ冒頭には同じ目の続きとして、次の3節がある。
 ```bash
 python3 packages/budget-data/scripts/extract_pdf_sections_extended_sample.py \
   --input raw/r8tousyoyosanallpage.pdf \
-  --output processed/raw_pdf_sections_sample_extended.csv \
+  --output processed/audit/raw_pdf_sections_sample_extended.csv \
   --pages 160,164,169,187,196,216,220,226,229,234
 ```
 
@@ -291,7 +291,7 @@ python3 packages/budget-data/scripts/extract_pdf_sections_extended_sample.py \
 誤って処理しない。
 
 - 入力: `raw/r8tousyoyosanallpage.pdf`
-- 出力: `processed/raw_pdf_sections.csv`
+- 出力: `processed/audit/raw_pdf_sections.csv`
 - 抽出器:
   `packages/budget-data/scripts/extract_pdf_sections_stateful.py`
 - 出力形式: Phase 2から継続する19列の中間形式
@@ -469,7 +469,7 @@ python3 -m unittest discover \
 ```bash
 python3 packages/budget-data/scripts/extract_pdf_sections_stateful.py \
   --input raw/r8tousyoyosanallpage.pdf \
-  --output processed/raw_pdf_sections.csv
+  --output processed/audit/raw_pdf_sections.csv
 ```
 
 ### このPhaseで行っていないこと

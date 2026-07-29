@@ -207,8 +207,7 @@ class RevenueAllocationPdfSampleTest(unittest.TestCase):
     def test_formal_outputs_match_the_current_extraction(self) -> None:
         output_path = (
             repo_root()
-            / "processed"
-            / "raw_pdf_revenue_allocations_sample.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations_sample.csv"
         )
         notes_path = (
             repo_root()

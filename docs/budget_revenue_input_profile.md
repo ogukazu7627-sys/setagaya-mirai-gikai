@@ -31,9 +31,9 @@
 | --- | --- | --- |
 | `raw/ippansainyu.csv` | `/Users/ogukazu/Downloads/ippansainyu.csv` | `--csv`で指定。`raw/`へのコピーはしていない |
 | `raw/r8tousyoyosanallpage.pdf` | `/Users/ogukazu/Downloads/r8tousyoyosanallpage.pdf` | プロジェクト内`raw/`のPDFと同一バイト列 |
-| `processed/budget_programs.csv` | 既存ファイル | 読み取りのみ |
-| `processed/budget_sections.csv` | 既存ファイル | 読み取りのみ |
-| `processed/budget_items.csv` | 既存ファイル | 読み取りのみ |
+| `processed/core/budget_programs.csv` | 既存ファイル | 読み取りのみ |
+| `processed/core/budget_sections.csv` | 既存ファイル | 読み取りのみ |
+| `processed/core/budget_items.csv` | 既存ファイル | 読み取りのみ |
 | `config/budget-accounts.json` | 既存設定を拡張 | 既存の歳出設定値は変更していない |
 
 ### ファイル情報
@@ -407,9 +407,9 @@ current_allocation_target
 pnpm budget:revenue:profile -- \
   --csv /Users/ogukazu/Downloads/ippansainyu.csv \
   --pdf /Users/ogukazu/Downloads/r8tousyoyosanallpage.pdf \
-  --programs processed/budget_programs.csv \
-  --sections processed/budget_sections.csv \
-  --items processed/budget_items.csv \
+  --programs processed/core/budget_programs.csv \
+  --sections processed/core/budget_sections.csv \
+  --items processed/core/budget_items.csv \
   --config config/budget-accounts.json
 ```
 
@@ -421,9 +421,9 @@ CLIはJSONを標準出力へ表示するだけで、ファイルを作成・変�
 
 ## Phase 20で作成していないもの
 
-- `processed/budget_revenue_details.csv`
-- `processed/budget_revenue_sections.csv`
-- `processed/budget_revenue_items.csv`
+- `processed/core/budget_revenue_details.csv`
+- `processed/core/budget_revenue_sections.csv`
+- `processed/core/budget_revenue_items.csv`
 - 歳入PDF抽出CSV
 - 歳入と歳出事業を結ぶ関係テーブル
 - 公開用歳入データ

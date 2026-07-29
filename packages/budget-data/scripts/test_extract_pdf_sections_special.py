@@ -230,7 +230,7 @@ class SpecialAccountFullExtractionTest(unittest.TestCase):
             input_path=self.pdf_path,
             config_path=config_path(),
             output_path=Path(
-                "processed/raw_pdf_sections_special.csv"
+                "processed/audit/raw_pdf_sections_special.csv"
             ),
             result=self.result,
             metrics=self.metrics,

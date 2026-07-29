@@ -17,7 +17,7 @@ status: complete
 
 - 入力PDF: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/raw/r8tousyoyosanallpage.pdf`
 - 会計設定: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/config/budget-accounts.json`
-- 出力CSV: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/processed/raw_pdf_sections_special.csv`
+- 出力CSV: `/Users/ogukazu/Documents/デジタル民主主義/tools/mirai-gikai-budget-data-input-profile/processed/audit/raw_pdf_sections_special.csv`
 - 関連: [[special_account_extraction_notes]]、[[special_accounts_plan]]、[[pdf_section_extraction_notes]]
 - 対象: 国民健康保険事業会計、後期高齢者医療会計、介護保険事業会計
 - 対象外: 学校給食費会計（`abolished_zero`）
@@ -28,7 +28,7 @@ status: complete
 
 設定された43 PDFページから122節・58目を抽出した。`parse_status=needs_review` は0件で、目別一致率は100.0%（58/58）だった。
 3会計の節合計は`189,680,654千円`で、設定済み期待額の合計と一致した。
-`processed/budget_sections.csv` はこのPhaseでは更新していない。
+`processed/core/budget_sections.csv` はこのPhaseでは更新していない。
 
 ## 会計別結果
 
@@ -145,14 +145,14 @@ status: complete
 ## 次の処理へ進む条件
 
 今回の全体抽出は金額・目照合・parse_statusの条件を満たしたため、
-`processed/budget_sections.csv` へ正規化・追加する次Phaseへ進める。
+`processed/core/budget_sections.csv` へ正規化・追加する次Phaseへ進める。
 追加時は一般会計とのunionを取り、`account_code`を含む
 `budget_item_key`で会計間衝突を防ぐ。
 
 ## このPhaseで行っていないこと
 
-- `processed/budget_sections.csv` の更新
-- `processed/budget_items.csv` の更新
+- `processed/core/budget_sections.csv` の更新
+- `processed/core/budget_items.csv` の更新
 - 一般会計と特別会計の節データ統合
 - 学校給食費会計のPDF抽出
 - DB投入

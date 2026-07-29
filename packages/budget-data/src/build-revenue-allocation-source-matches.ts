@@ -38,19 +38,15 @@ function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   let rawAllocationsPath = path.join(
     repoRoot,
-    "processed",
-    "raw_pdf_revenue_allocations.csv",
+    "processed", "audit", "raw_pdf_revenue_allocations.csv",
   );
   let revenueDetailsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_revenue_details.csv",
+    "processed", "core", "budget_revenue_details.csv",
   );
   let outputPath = path.join(
     repoRoot,
-    "processed",
-    "staging",
-    "revenue_allocation_source_matches.csv",
+    "processed", "audit", "staging", "revenue_allocation_source_matches.csv",
   );
   let overridesPath = path.join(
     repoRoot,

@@ -251,17 +251,17 @@ def main() -> None:
     parser.add_argument(
         "--programs",
         type=Path,
-        default=repo_root / "processed" / "budget_programs.csv",
+        default=repo_root / "processed" / "core" / "budget_programs.csv",
     )
     parser.add_argument(
         "--sections",
         type=Path,
-        default=repo_root / "processed" / "budget_sections.csv",
+        default=repo_root / "processed" / "core" / "budget_sections.csv",
     )
     parser.add_argument(
         "--items",
         type=Path,
-        default=repo_root / "processed" / "budget_items.csv",
+        default=repo_root / "processed" / "core" / "budget_items.csv",
     )
     parser.add_argument(
         "--config",

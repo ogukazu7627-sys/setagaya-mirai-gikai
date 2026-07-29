@@ -33,14 +33,13 @@ function resolveCliPath(value: string, repoRoot: string): string {
 function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   const options: CliOptions = {
-    programsPath: path.join(repoRoot, "processed", "budget_programs.csv"),
-    sectionsPath: path.join(repoRoot, "processed", "budget_sections.csv"),
-    itemsPath: path.join(repoRoot, "processed", "budget_items.csv"),
+    programsPath: path.join(repoRoot, "processed", "core", "budget_programs.csv"),
+    sectionsPath: path.join(repoRoot, "processed", "core", "budget_sections.csv"),
+    itemsPath: path.join(repoRoot, "processed", "core", "budget_items.csv"),
     accountsPath: path.join(repoRoot, "config", "budget-accounts.json"),
     outputPath: path.join(
       repoRoot,
-      "processed",
-      "budget_program_groups.csv",
+      "processed", "core", "budget_program_groups.csv",
     ),
   };
   const argumentMap: Record<keyof CliOptions, string> = {

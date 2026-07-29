@@ -43,8 +43,7 @@ describe("budget revenue validation", () => {
         fs.readFileSync(
           path.join(
             repoRoot,
-            "processed",
-            "budget_revenue_details.csv",
+            "processed", "core", "budget_revenue_details.csv",
           ),
           "utf8",
         ),
@@ -53,8 +52,7 @@ describe("budget revenue validation", () => {
         fs.readFileSync(
           path.join(
             repoRoot,
-            "processed",
-            "budget_revenue_sections.csv",
+            "processed", "core", "budget_revenue_sections.csv",
           ),
           "utf8",
         ),
@@ -63,8 +61,7 @@ describe("budget revenue validation", () => {
         fs.readFileSync(
           path.join(
             repoRoot,
-            "processed",
-            "budget_revenue_items.csv",
+            "processed", "core", "budget_revenue_items.csv",
           ),
           "utf8",
         ),
@@ -77,11 +74,11 @@ describe("budget revenue validation", () => {
     const errorsCsv = serializeRevenueValidationErrors(result.errors);
     const report = renderRevenueValidationReport(result, {
       raw: "raw/ippansainyu.csv",
-      details: "processed/budget_revenue_details.csv",
-      sections: "processed/budget_revenue_sections.csv",
-      items: "processed/budget_revenue_items.csv",
+      details: "processed/core/budget_revenue_details.csv",
+      sections: "processed/core/budget_revenue_sections.csv",
+      items: "processed/core/budget_revenue_items.csv",
       config: "config/budget-accounts.json",
-      errors: "processed/revenue_validation_errors.csv",
+      errors: "processed/validation/revenue_validation_errors.csv",
     });
 
     expect(result.isPass).toBe(true);
@@ -98,26 +95,25 @@ describe("budget revenue validation", () => {
     const expectedErrors = serializeRevenueValidationErrors(result.errors);
     const expectedReport = renderRevenueValidationReport(result, {
       raw: "raw/ippansainyu.csv",
-      details: "processed/budget_revenue_details.csv",
-      sections: "processed/budget_revenue_sections.csv",
-      items: "processed/budget_revenue_items.csv",
+      details: "processed/core/budget_revenue_details.csv",
+      sections: "processed/core/budget_revenue_sections.csv",
+      items: "processed/core/budget_revenue_items.csv",
       config: "config/budget-accounts.json",
-      errors: "processed/revenue_validation_errors.csv",
+      errors: "processed/validation/revenue_validation_errors.csv",
     });
 
     expect(
       fs.readFileSync(
         path.join(
           repoRoot,
-          "processed",
-          "revenue_validation_errors.csv",
+          "processed", "validation", "revenue_validation_errors.csv",
         ),
         "utf8",
       ),
     ).toBe(expectedErrors);
     expect(
       fs.readFileSync(
-        path.join(repoRoot, "docs", "revenue_validation_report.md"),
+        path.join(repoRoot, "docs", "validation", "revenue_validation_report.md"),
         "utf8",
       ),
     ).toBe(expectedReport);

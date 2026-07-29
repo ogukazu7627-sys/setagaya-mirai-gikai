@@ -16,13 +16,13 @@ status: draft
 
 - 入力PDF: `/Users/ogukazu/Downloads/r8tousyoyosanallpage.pdf`
 - 会計設定: `config/budget-accounts.json`
-- 出力CSV: `processed/raw_pdf_sections_special_sample.csv`
+- 出力CSV: `processed/audit/raw_pdf_sections_special_sample.csv`
 - 関連: [[special_accounts_plan]]、[[pdf_section_extraction_notes]]
 - 対象外: 学校給食費会計（`abolished_zero`）
 
 このPhaseでは、国民健康保険事業会計、後期高齢者医療会計、介護保険事業会計
 から合計8 PDFページだけを選び、一般会計のstateful extractorを流用できるか
-検証した。`processed/budget_sections.csv` は更新していない。
+検証した。`processed/core/budget_sections.csv` は更新していない。
 
 ## 結論
 
@@ -143,7 +143,7 @@ PDF 397ページは `continuation_page` と分類され、目のページ範囲�
 3. 節行のない集計ページは正常スキップし、説明継続ページとは区別する。
 4. 全目を閉じた後、会計別の節合計を設定済み期待額と照合する。
 5. `needs_review` が残る場合は、原因別に解消してから
-   `processed/budget_sections.csv` へ追加する。
+   `processed/core/budget_sections.csv` へ追加する。
 6. 学校給食費会計は `abolished_zero` のためPDF抽出対象に含めない。
 
 ## 実装と再現方法
@@ -159,7 +159,7 @@ PDF 397ページは `continuation_page` と分類され、目のページ範囲�
 python3 packages/budget-data/scripts/extract_pdf_sections_special_sample.py \
   --input raw/r8tousyoyosanallpage.pdf \
   --config config/budget-accounts.json \
-  --output processed/raw_pdf_sections_special_sample.csv
+  --output processed/audit/raw_pdf_sections_special_sample.csv
 ```
 
 PDF実体を使う全抽出テストでは、一般会計の既存回帰を含む20テストが成功した。
@@ -174,7 +174,7 @@ python3 -m unittest discover \
 ## このPhaseで行っていないこと
 
 - 特別会計の全ページ抽出
-- `processed/budget_sections.csv` の更新
-- `processed/budget_items.csv` の更新
+- `processed/core/budget_sections.csv` の更新
+- `processed/core/budget_items.csv` の更新
 - 一般会計・特別会計の節データ統合
 - DBスキーマ変更やデータ投入

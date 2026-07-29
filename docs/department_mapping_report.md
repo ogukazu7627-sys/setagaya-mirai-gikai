@@ -12,10 +12,10 @@
 
 ## 入力と出力
 
-- 入力: `processed/budget_programs.csv`（Phase 16基準）
+- 入力: `processed/core/budget_programs.csv`（Phase 16基準）
 - 根拠: `raw/r8tousyoyosanallpage.pdf`
 - 設定: `config/department_name_map.csv`
-- 出力: `processed/budget_programs.csv`
+- 出力: `processed/core/budget_programs.csv`
 
 ## 照合方法
 

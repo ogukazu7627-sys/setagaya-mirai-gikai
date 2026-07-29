@@ -76,7 +76,9 @@ const VALIDATION_OPTION_KEYS: Record<
 function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   const processedPath = path.join(repoRoot, "processed");
+  const corePath = path.join(processedPath, "core");
   const publicPath = path.join(processedPath, "public");
+  const validationPath = path.join(processedPath, "validation");
   const options: CliOptions = {
     publicBudgetProgramIdentitiesPath: path.join(
       publicPath,
@@ -103,24 +105,24 @@ function readCliOptions(args: string[]): CliOptions {
       "public_budget_revenue_allocations.json",
     ),
     datasetManifestPath: path.join(
-      processedPath,
+      validationPath,
       "dataset_manifest.json",
     ),
-    budgetItemsPath: path.join(processedPath, "budget_items.csv"),
+    budgetItemsPath: path.join(corePath, "budget_items.csv"),
     budgetProgramsPath: path.join(
-      processedPath,
+      corePath,
       "budget_programs.csv",
     ),
     budgetRevenueItemsPath: path.join(
-      processedPath,
+      corePath,
       "budget_revenue_items.csv",
     ),
     budgetRevenueDetailsPath: path.join(
-      processedPath,
+      corePath,
       "budget_revenue_details.csv",
     ),
     budgetRevenueAllocationsPath: path.join(
-      processedPath,
+      corePath,
       "budget_revenue_allocations.csv",
     ),
     outputPath: path.join(

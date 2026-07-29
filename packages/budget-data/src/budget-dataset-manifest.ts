@@ -54,24 +54,24 @@ export const BUDGET_DATASET_INPUT_FILES = [
 ] as const;
 
 export const BUDGET_DATASET_OUTPUT_FILES = [
-  "processed/budget_programs.csv",
-  "processed/budget_sections.csv",
-  "processed/budget_items.csv",
+  "processed/core/budget_programs.csv",
+  "processed/core/budget_sections.csv",
+  "processed/core/budget_items.csv",
 ] as const;
 
 export const BUDGET_REVENUE_DATASET_CSV_OUTPUT_FILES = [
-  "processed/budget_revenue_details.csv",
-  "processed/budget_revenue_sections.csv",
-  "processed/budget_revenue_items.csv",
-  "processed/raw_pdf_revenue_allocations.csv",
-  "processed/staging/revenue_allocation_source_matches.csv",
-  "processed/budget_program_groups.csv",
-  "processed/budget_program_identities.csv",
-  "processed/budget_program_identity_members.csv",
-  "processed/budget_revenue_allocations.csv",
-  "processed/staging/revenue_allocation_group_ambiguities.csv",
-  "processed/revenue_validation_errors.csv",
-  "processed/revenue_allocation_validation_errors.csv",
+  "processed/core/budget_revenue_details.csv",
+  "processed/core/budget_revenue_sections.csv",
+  "processed/core/budget_revenue_items.csv",
+  "processed/audit/raw_pdf_revenue_allocations.csv",
+  "processed/audit/staging/revenue_allocation_source_matches.csv",
+  "processed/core/budget_program_groups.csv",
+  "processed/core/budget_program_identities.csv",
+  "processed/core/budget_program_identity_members.csv",
+  "processed/core/budget_revenue_allocations.csv",
+  "processed/audit/staging/revenue_allocation_group_ambiguities.csv",
+  "processed/validation/revenue_validation_errors.csv",
+  "processed/validation/revenue_allocation_validation_errors.csv",
   "processed/public/public_budget_revenue_details.csv",
 ] as const;
 
@@ -288,29 +288,29 @@ async function buildRevenueDatasetManifest(
     RevenueDatasetCsvOutputFile,
     readonly string[]
   > = {
-    "processed/budget_revenue_details.csv":
+    "processed/core/budget_revenue_details.csv":
       BUDGET_REVENUE_DETAIL_COLUMNS,
-    "processed/budget_revenue_sections.csv":
+    "processed/core/budget_revenue_sections.csv":
       BUDGET_REVENUE_SECTION_COLUMNS,
-    "processed/budget_revenue_items.csv":
+    "processed/core/budget_revenue_items.csv":
       BUDGET_REVENUE_ITEM_COLUMNS,
-    "processed/raw_pdf_revenue_allocations.csv":
+    "processed/audit/raw_pdf_revenue_allocations.csv":
       RAW_PDF_REVENUE_ALLOCATION_COLUMNS,
-    "processed/staging/revenue_allocation_source_matches.csv":
+    "processed/audit/staging/revenue_allocation_source_matches.csv":
       REVENUE_ALLOCATION_SOURCE_MATCH_COLUMNS,
-    "processed/budget_program_groups.csv":
+    "processed/core/budget_program_groups.csv":
       BUDGET_PROGRAM_GROUP_COLUMNS,
-    "processed/budget_program_identities.csv":
+    "processed/core/budget_program_identities.csv":
       BUDGET_PROGRAM_IDENTITY_COLUMNS,
-    "processed/budget_program_identity_members.csv":
+    "processed/core/budget_program_identity_members.csv":
       BUDGET_PROGRAM_IDENTITY_MEMBER_COLUMNS,
-    "processed/budget_revenue_allocations.csv":
+    "processed/core/budget_revenue_allocations.csv":
       IDENTITY_RESOLVED_BUDGET_REVENUE_ALLOCATION_COLUMNS,
-    "processed/staging/revenue_allocation_group_ambiguities.csv":
+    "processed/audit/staging/revenue_allocation_group_ambiguities.csv":
       REVENUE_ALLOCATION_GROUP_AMBIGUITY_COLUMNS,
-    "processed/revenue_validation_errors.csv":
+    "processed/validation/revenue_validation_errors.csv":
       REVENUE_VALIDATION_ERROR_COLUMNS,
-    "processed/revenue_allocation_validation_errors.csv":
+    "processed/validation/revenue_allocation_validation_errors.csv":
       REVENUE_ALLOCATION_VALIDATION_ERROR_COLUMNS,
     "processed/public/public_budget_revenue_details.csv":
       PUBLIC_BUDGET_REVENUE_DETAIL_COLUMNS,
@@ -338,22 +338,22 @@ async function buildRevenueDatasetManifest(
   ) as Record<RevenueDatasetJsonOutputFile, unknown[]>;
 
   const details =
-    csvOutputs["processed/budget_revenue_details.csv"].rows;
+    csvOutputs["processed/core/budget_revenue_details.csv"].rows;
   const sections =
-    csvOutputs["processed/budget_revenue_sections.csv"].rows;
+    csvOutputs["processed/core/budget_revenue_sections.csv"].rows;
   const items =
-    csvOutputs["processed/budget_revenue_items.csv"].rows;
+    csvOutputs["processed/core/budget_revenue_items.csv"].rows;
   const sourceMatches =
     csvOutputs[
-      "processed/staging/revenue_allocation_source_matches.csv"
+      "processed/audit/staging/revenue_allocation_source_matches.csv"
     ].rows;
   const allocations =
-    csvOutputs["processed/budget_revenue_allocations.csv"].rows;
+    csvOutputs["processed/core/budget_revenue_allocations.csv"].rows;
   const coreErrors =
-    csvOutputs["processed/revenue_validation_errors.csv"].rows;
+    csvOutputs["processed/validation/revenue_validation_errors.csv"].rows;
   const allocationErrors =
     csvOutputs[
-      "processed/revenue_allocation_validation_errors.csv"
+      "processed/validation/revenue_allocation_validation_errors.csv"
     ].rows;
   if (
     details.length !== EXPECTED_BUDGET_REVENUE_DETAIL_ROW_COUNT ||
@@ -435,14 +435,13 @@ async function buildRevenueDatasetManifest(
 
   const [coreReport, allocationReport] = await Promise.all([
     fs.readFile(
-      path.join(repoRoot, "docs", "revenue_validation_report.md"),
+      path.join(repoRoot, "docs", "validation", "revenue_validation_report.md"),
       "utf8",
     ),
     fs.readFile(
       path.join(
         repoRoot,
-        "docs",
-        "revenue_allocation_validation_report.md",
+        "docs", "validation", "revenue_allocation_validation_report.md",
       ),
       "utf8",
     ),
@@ -548,9 +547,9 @@ export async function buildBudgetDatasetManifest(
   ) as Record<DatasetOutputFile, ParsedCsv>;
 
   const expectedColumns: Record<DatasetOutputFile, readonly string[]> = {
-    "processed/budget_programs.csv": BUDGET_PROGRAM_COLUMNS,
-    "processed/budget_sections.csv": BUDGET_SECTION_COLUMNS,
-    "processed/budget_items.csv": BUDGET_ITEM_COLUMNS,
+    "processed/core/budget_programs.csv": BUDGET_PROGRAM_COLUMNS,
+    "processed/core/budget_sections.csv": BUDGET_SECTION_COLUMNS,
+    "processed/core/budget_items.csv": BUDGET_ITEM_COLUMNS,
   };
   for (const outputFile of BUDGET_DATASET_OUTPUT_FILES) {
     if (
@@ -562,22 +561,22 @@ export async function buildBudgetDatasetManifest(
   }
 
   const programTotals = sumByAccount(
-    outputs["processed/budget_programs.csv"].rows,
+    outputs["processed/core/budget_programs.csv"].rows,
     "amount_thousand_yen",
     config,
   );
   const sectionTotals = sumByAccount(
-    outputs["processed/budget_sections.csv"].rows,
+    outputs["processed/core/budget_sections.csv"].rows,
     "amount_thousand_yen",
     config,
   );
   const itemProgramTotals = sumByAccount(
-    outputs["processed/budget_items.csv"].rows,
+    outputs["processed/core/budget_items.csv"].rows,
     "program_total_amount_thousand_yen",
     config,
   );
   const itemSectionTotals = sumByAccount(
-    outputs["processed/budget_items.csv"].rows,
+    outputs["processed/core/budget_items.csv"].rows,
     "section_total_amount_thousand_yen",
     config,
   );

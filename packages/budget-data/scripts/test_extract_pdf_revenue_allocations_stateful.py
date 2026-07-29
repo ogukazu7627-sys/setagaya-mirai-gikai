@@ -36,8 +36,7 @@ def find_budget_pdf() -> Path:
 def phase25_sample_path() -> Path:
     return (
         repo_root()
-        / "processed"
-        / "raw_pdf_revenue_allocations_sample.csv"
+        / "processed" / "audit" / "raw_pdf_revenue_allocations_sample.csv"
     )
 
 
@@ -245,8 +244,7 @@ class FullRevenueAllocationPdfTest(unittest.TestCase):
     def test_formal_outputs_match_current_extraction(self) -> None:
         output_path = (
             repo_root()
-            / "processed"
-            / "raw_pdf_revenue_allocations.csv"
+            / "processed" / "audit" / "raw_pdf_revenue_allocations.csv"
         )
         report_path = (
             repo_root()

@@ -4,9 +4,9 @@
 
 ## 入出力
 
-- PDF抽出入力: `processed/raw_pdf_revenue_allocations.csv`
-- 公式CSV由来明細: `processed/budget_revenue_details.csv`
-- 接続結果: `processed/staging/revenue_allocation_source_matches.csv`
+- PDF抽出入力: `processed/audit/raw_pdf_revenue_allocations.csv`
+- 公式CSV由来明細: `processed/core/budget_revenue_details.csv`
+- 接続結果: `processed/audit/staging/revenue_allocation_source_matches.csv`
 - 手動補正: `config/revenue_allocation_source_overrides.csv`
 
 ## 集計

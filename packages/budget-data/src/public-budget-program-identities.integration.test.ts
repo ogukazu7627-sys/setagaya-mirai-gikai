@@ -92,33 +92,30 @@ describe("Phase 32-A 実データ回帰", () => {
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_program_identities.csv",
+          "processed", "core", "budget_program_identities.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_program_identity_members.csv",
+          "processed", "core", "budget_program_identity_members.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_program_groups.csv",
+          "processed", "core", "budget_program_groups.csv",
         ),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_programs.csv"),
+        path.join(repoRoot, "processed", "core", "budget_programs.csv"),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_items.csv"),
+        path.join(repoRoot, "processed", "core", "budget_items.csv"),
         "utf8",
       ),
       fs.readFile(
@@ -151,8 +148,7 @@ describe("Phase 32-A 実データ回帰", () => {
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_allocations.csv",
+          "processed", "core", "budget_revenue_allocations.csv",
         ),
         "utf8",
       ),

@@ -68,15 +68,15 @@ beforeAll(async () => {
     publicItemsJson,
   ] = await Promise.all([
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_programs.csv"),
+      path.join(repoRoot, "processed", "core", "budget_programs.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_sections.csv"),
+      path.join(repoRoot, "processed", "core", "budget_sections.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_items.csv"),
+      path.join(repoRoot, "processed", "core", "budget_items.csv"),
       "utf8",
     ),
     fs.readFile(

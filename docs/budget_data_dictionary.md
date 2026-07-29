@@ -9,9 +9,9 @@
 
 | ファイル | データの由来 | 粒度 | 役割 |
 | --- | --- | --- | --- |
-| `processed/budget_programs.csv` | 世田谷区公式CSV | 内訳事業 | 事業別予算額と公式CSV原値の保持 |
-| `processed/budget_sections.csv` | 世田谷区公式PDF | 節 | 予算説明書の節別金額の保持 |
-| `processed/budget_items.csv` | 上記2ファイルから派生 | 款・項・目 | 事業合計と節合計の突合 |
+| `processed/core/budget_programs.csv` | 世田谷区公式CSV | 内訳事業 | 事業別予算額と公式CSV原値の保持 |
+| `processed/core/budget_sections.csv` | 世田谷区公式PDF | 節 | 予算説明書の節別金額の保持 |
+| `processed/core/budget_items.csv` | 上記2ファイルから派生 | 款・項・目 | 事業合計と節合計の突合 |
 
 `budget_programs` と `budget_sections` は、どちらも
 `budget_item_key` で款・項・目に属するが、相互に直接1対1対応しない。
@@ -138,7 +138,7 @@
 
 ## dataset_manifest.json
 
-`processed/dataset_manifest.json` は、スキーマバージョン、入力ファイルの
+`processed/validation/dataset_manifest.json` は、スキーマバージョン、入力ファイルの
 SHA-256、出力ファイル、行列数、会計別合計、全会計合計、再生成コマンドを
 保持する。再現性を保つため、実行日時など実行ごとに変化する値は含めない。
 入力ハッシュには `config/department_name_map.csv` も含める。

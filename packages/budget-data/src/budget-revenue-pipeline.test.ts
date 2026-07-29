@@ -17,11 +17,11 @@ type CsvRow = Record<string, string>;
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const EXPECTED_EXPENDITURE_HASHES = {
-  "processed/budget_programs.csv":
+  "processed/core/budget_programs.csv":
     "6ae0a0fda94e2498be8749688cdab3427f3d1d54520b3e952152265672b81a27",
-  "processed/budget_sections.csv":
+  "processed/core/budget_sections.csv":
     "5616dc3e29949fd8cf83128ea017b252f78587f8486d4091014d60ee7a1e2ad0",
-  "processed/budget_items.csv":
+  "processed/core/budget_items.csv":
     "a7edcf294bfd4256401ae396c63758f2fe28a0ffbd6fe26f3788fd35526b6822",
 } as const;
 const EXPECTED_ACCOUNT_TOTALS = {
@@ -77,35 +77,34 @@ beforeAll(async () => {
     allocationErrorsCsv,
     manifestJson,
   ] = await Promise.all([
-    fs.readFile(path.join(repoRoot, "processed", "budget_programs.csv"), "utf8"),
-    fs.readFile(path.join(repoRoot, "processed", "budget_sections.csv"), "utf8"),
-    fs.readFile(path.join(repoRoot, "processed", "budget_items.csv"), "utf8"),
+    fs.readFile(path.join(repoRoot, "processed", "core", "budget_programs.csv"), "utf8"),
+    fs.readFile(path.join(repoRoot, "processed", "core", "budget_sections.csv"), "utf8"),
+    fs.readFile(path.join(repoRoot, "processed", "core", "budget_items.csv"), "utf8"),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_revenue_details.csv"),
+      path.join(repoRoot, "processed", "core", "budget_revenue_details.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_revenue_sections.csv"),
+      path.join(repoRoot, "processed", "core", "budget_revenue_sections.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "budget_revenue_items.csv"),
+      path.join(repoRoot, "processed", "core", "budget_revenue_items.csv"),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "revenue_validation_errors.csv"),
+      path.join(repoRoot, "processed", "validation", "revenue_validation_errors.csv"),
       "utf8",
     ),
     fs.readFile(
       path.join(
         repoRoot,
-        "processed",
-        "revenue_allocation_validation_errors.csv",
+        "processed", "validation", "revenue_allocation_validation_errors.csv",
       ),
       "utf8",
     ),
     fs.readFile(
-      path.join(repoRoot, "processed", "dataset_manifest.json"),
+      path.join(repoRoot, "processed", "validation", "dataset_manifest.json"),
       "utf8",
     ),
   ]);
@@ -152,7 +151,7 @@ describe("Phase 32 revenue build pipeline", () => {
       ),
     ).toBe(false);
     expect(BUDGET_REVENUE_BUILD_OUTPUTS).toContain(
-      "processed/dataset_manifest.json",
+      "processed/validation/dataset_manifest.json",
     );
     expect(BUDGET_REVENUE_BUILD_OUTPUTS).toContain(
       "processed/public/public_budget_program_identities.csv",
@@ -307,12 +306,12 @@ describe("Phase 32 revenue regression", () => {
     );
     expect(manifest.revenue?.output_row_counts).toEqual(
       expect.objectContaining({
-        "processed/budget_revenue_details.csv": 2_192,
-        "processed/budget_revenue_sections.csv": 650,
-        "processed/budget_revenue_items.csv": 175,
-        "processed/budget_revenue_allocations.csv": 1_948,
-        "processed/revenue_validation_errors.csv": 0,
-        "processed/revenue_allocation_validation_errors.csv": 0,
+        "processed/core/budget_revenue_details.csv": 2_192,
+        "processed/core/budget_revenue_sections.csv": 650,
+        "processed/core/budget_revenue_items.csv": 175,
+        "processed/core/budget_revenue_allocations.csv": 1_948,
+        "processed/validation/revenue_validation_errors.csv": 0,
+        "processed/validation/revenue_allocation_validation_errors.csv": 0,
       }),
     );
   });

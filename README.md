@@ -48,18 +48,33 @@ pnpm dev
 | `config/budget-accounts.json` | 対象会計、会計コード、期待金額、PDFページ範囲 |
 | `config/department_name_map.csv` | 公式CSVの内部部署名と市民向け表示名の根拠付き対応 |
 
+### ディレクトリ構成
+
+| ディレクトリ | 役割 |
+| --- | --- |
+| `processed/public/` | 本番投入用の公開リードモデル6ファイルと公開manifest |
+| `processed/core/` | 正規化済みの歳出・歳入コアデータと関係マスタ |
+| `processed/audit/` | PDF抽出結果、固定サンプル、再確認用の中間データ |
+| `processed/audit/staging/` | 歳入細節・歳出事業の照合過程と曖昧性を保持するステージングデータ |
+| `processed/validation/` | 検証エラーCSVと生成基盤用manifest |
+| `config/` | 会計・部署名・手動overrideの設定 |
+| `docs/validation/` | 歳出、歳入、歳入歳出関係の最終検証レポート |
+| `raw/` | 再生成に使う公式CSV・公式PDF原資料 |
+
+`processed/` 直下にはデータファイルを置きません。本番アプリが取り込む業務データは `processed/public/` の6ファイルに限定し、`public_dataset_manifest.json` は投入前検証、リリース管理、キャッシュ更新判定にだけ使用します。
+
 ### 出力ファイル
 
 | パス | 内容 |
 | --- | --- |
-| `processed/budget_programs.csv` | 公式CSV由来の事業別予算 |
-| `processed/raw_pdf_sections.csv` | 一般会計のPDF節抽出中間データ |
-| `processed/raw_pdf_sections_special.csv` | 特別会計3会計のPDF節抽出中間データ |
-| `processed/budget_sections.csv` | PDF由来の正規化済み節別予算 |
-| `processed/budget_items.csv` | 款・項・目単位の事業合計と節合計の照合結果 |
-| `processed/budget_revenue_details.csv` | 公式歳入CSV由来の細節×所属単位データ |
-| `processed/budget_revenue_sections.csv` | 歳入detailsを節単位へ集約したデータ |
-| `processed/budget_revenue_items.csv` | 歳入detailsを款・項・目単位へ直接集約し、sectionsと突合したマスタ |
+| `processed/core/budget_programs.csv` | 公式CSV由来の事業別予算 |
+| `processed/audit/raw_pdf_sections.csv` | 一般会計のPDF節抽出中間データ |
+| `processed/audit/raw_pdf_sections_special.csv` | 特別会計3会計のPDF節抽出中間データ |
+| `processed/core/budget_sections.csv` | PDF由来の正規化済み節別予算 |
+| `processed/core/budget_items.csv` | 款・項・目単位の事業合計と節合計の照合結果 |
+| `processed/core/budget_revenue_details.csv` | 公式歳入CSV由来の細節×所属単位データ |
+| `processed/core/budget_revenue_sections.csv` | 歳入detailsを節単位へ集約したデータ |
+| `processed/core/budget_revenue_items.csv` | 歳入detailsを款・項・目単位へ直接集約し、sectionsと突合したマスタ |
 | `processed/public/public_budget_program_identities.csv` | 市民向けの予算事業identity単位で検索・詳細表示・歳入相互リンクに使う公開マスタ |
 | `processed/public/public_budget_programs.csv` | 財源列と内部部署名を除いた市民向け事業データ。各行から公開identityを参照できる |
 | `processed/public/public_budget_items.json` | 目単位で事業と節を兄弟配列にした公開用リードモデル |
@@ -67,19 +82,19 @@ pnpm dev
 | `processed/public/public_budget_revenue_items.json` | 歳入の目単位で節と細節を兄弟配列にした公開用リードモデル |
 | `processed/public/public_budget_revenue_allocations.json` | 歳入細節と歳出予算事業の金額を持たない公開用関係データ |
 | `processed/public/public_dataset_manifest.json` | 公開用6ファイルのハッシュ、件数、合計、参照整合性を固定したリリース・監査用メタデータ |
-| `processed/raw_pdf_revenue_allocations.csv` | 歳入PDFの「充当事業」を会計ごとに連続抽出した中間データ |
-| `processed/staging/revenue_allocation_source_matches.csv` | PDFの歳入細節を公式歳入CSVの `revenue_detail_id` へ接続したステージングデータ |
-| `processed/budget_program_groups.csv` | 内訳事業を予算事業単位へ集約した充当先候補マスタ |
-| `processed/budget_program_identities.csv` | 公式PDF上で識別可能な予算事業同一性の単位 |
-| `processed/budget_program_identity_members.csv` | identityと内部予算事業groupの所属関係 |
-| `processed/budget_revenue_allocations.csv` | 歳入細節と歳出予算事業identityの関係データ。内部groupは一意な場合だけ保持し、金額配分は持たない |
-| `processed/staging/revenue_allocation_group_ambiguities.csv` | 公式PDFでは区別できない内部group候補を将来精緻化用に保持 |
-| `processed/revenue_allocation_validation_errors.csv` | 歳入3テーブル・PDF充当関係・歳出事業接続の総合検証エラー |
-| `processed/revenue_validation_errors.csv` | 歳入3テーブルの集約・金額・ID・元CSV復元に関する検証エラー |
+| `processed/audit/raw_pdf_revenue_allocations.csv` | 歳入PDFの「充当事業」を会計ごとに連続抽出した中間データ |
+| `processed/audit/staging/revenue_allocation_source_matches.csv` | PDFの歳入細節を公式歳入CSVの `revenue_detail_id` へ接続したステージングデータ |
+| `processed/core/budget_program_groups.csv` | 内訳事業を予算事業単位へ集約した充当先候補マスタ |
+| `processed/core/budget_program_identities.csv` | 公式PDF上で識別可能な予算事業同一性の単位 |
+| `processed/core/budget_program_identity_members.csv` | identityと内部予算事業groupの所属関係 |
+| `processed/core/budget_revenue_allocations.csv` | 歳入細節と歳出予算事業identityの関係データ。内部groupは一意な場合だけ保持し、金額配分は持たない |
+| `processed/audit/staging/revenue_allocation_group_ambiguities.csv` | 公式PDFでは区別できない内部group候補を将来精緻化用に保持 |
+| `processed/validation/revenue_allocation_validation_errors.csv` | 歳入3テーブル・PDF充当関係・歳出事業接続の総合検証エラー |
+| `processed/validation/revenue_validation_errors.csv` | 歳入3テーブルの集約・金額・ID・元CSV復元に関する検証エラー |
 | `config/revenue_allocation_source_overrides.csv` | 歳入細節側の手動確認設定 |
 | `config/revenue_allocation_target_overrides.csv` | identityまで決まらない真の未解決候補と手動確認設定 |
-| `processed/validation_errors.csv` | 全会計検証で見つかったエラー |
-| `processed/dataset_manifest.json` | 入力ハッシュ、行列数、会計別合計、再生成コマンド |
+| `processed/validation/validation_errors.csv` | 全会計検証で見つかったエラー |
+| `processed/validation/dataset_manifest.json` | 入力ハッシュ、行列数、会計別合計、再生成コマンド |
 | `docs/budget_data_dictionary.md` | 列定義、データ間の関係、財源データの利用上の注意 |
 | `docs/department_mapping_report.md` | 部署名マッピング件数、照合方法、要確認一覧 |
 | `docs/public_budget_usage_rules.md` | 画面表示・検索・AI回答で守る公開利用ルール |
@@ -88,10 +103,10 @@ pnpm dev
 | `docs/revenue_allocation_source_match_report.md` | PDF歳入細節と公式歳入CSVの接続結果 |
 | `docs/revenue_allocation_target_match_report.md` | 歳入細節と歳出予算事業グループの接続結果 |
 | `docs/revenue_allocation_identity_resolution_report.md` | PDF上の予算事業identityによる内部group曖昧性の解決結果 |
-| `docs/revenue_allocation_validation_report.md` | 歳入・歳出事業接続を含むPhase 30総合検証レポート |
-| `docs/revenue_validation_report.md` | 歳入details・sections・itemsの総合検証レポート |
+| `docs/validation/revenue_allocation_validation_report.md` | 歳入・歳出事業接続を含むPhase 30総合検証レポート |
+| `docs/validation/revenue_validation_report.md` | 歳入details・sections・itemsの総合検証レポート |
 | `docs/budget_revenue_data_dictionary.md` | 歳入3テーブルと充当関係の粒度・結合・利用禁止事項 |
-| `docs/validation_report.md` | 会計別・全体の検証レポート |
+| `docs/validation/validation_report.md` | 会計別・全体の検証レポート |
 
 #### 本番アプリが取り込む公開用ファイル
 
@@ -102,7 +117,7 @@ pnpm dev
 - `processed/public/public_budget_revenue_items.json`
 - `processed/public/public_budget_revenue_allocations.json`
 
-歳出事業の検索、詳細URL、議会質問とのリンクには `budget_program_identity_id` を主キーとして使います。非公開の `processed/budget_program_identities.csv` や内部照合用の `budget_program_group_id` を、本番画面の主キーとして直接取り込んではいけません。
+歳出事業の検索、詳細URL、議会質問とのリンクには `budget_program_identity_id` を主キーとして使います。非公開の `processed/core/budget_program_identities.csv` や内部照合用の `budget_program_group_id` を、本番画面の主キーとして直接取り込んではいけません。
 
 #### リリース・監査用ファイル
 

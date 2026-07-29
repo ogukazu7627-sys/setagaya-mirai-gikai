@@ -22,7 +22,7 @@ export const BUDGET_COMPLETE_BUILD_INPUTS = [
       (relativePath) =>
         !relativePath.startsWith("processed/") ||
         relativePath ===
-          "processed/raw_pdf_revenue_allocations_sample.csv",
+          "processed/audit/raw_pdf_revenue_allocations_sample.csv",
     ),
   ]),
 ] as const;
@@ -49,7 +49,7 @@ export const BUDGET_COMPLETE_BUILD_OUTPUTS = [
 ] as const;
 
 export const BUDGET_COMPLETE_VALIDATION_ERROR_FILES = [
-  "processed/validation_errors.csv",
-  "processed/revenue_validation_errors.csv",
-  "processed/revenue_allocation_validation_errors.csv",
+  "processed/validation/validation_errors.csv",
+  "processed/validation/revenue_validation_errors.csv",
+  "processed/validation/revenue_allocation_validation_errors.csv",
 ] as const;

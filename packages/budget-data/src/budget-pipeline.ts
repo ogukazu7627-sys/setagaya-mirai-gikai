@@ -16,42 +16,42 @@ export const BUDGET_BUILD_PHASES: readonly BudgetBuildPhase[] = [
     label: "budget programs",
     script: "build:programs",
     outputs: [
-      "processed/budget_programs.csv",
+      "processed/core/budget_programs.csv",
       "docs/department_mapping_report.md",
     ],
   },
   {
     label: "general-account raw PDF sections",
     script: "build:raw-sections:general",
-    outputs: ["processed/raw_pdf_sections.csv"],
+    outputs: ["processed/audit/raw_pdf_sections.csv"],
   },
   {
     label: "special-account raw PDF sections",
     script: "build:raw-sections:special",
-    outputs: ["processed/raw_pdf_sections_special.csv"],
+    outputs: ["processed/audit/raw_pdf_sections_special.csv"],
   },
   {
     label: "normalized budget sections",
     script: "build:sections",
-    outputs: ["processed/budget_sections.csv"],
+    outputs: ["processed/core/budget_sections.csv"],
   },
   {
     label: "budget items",
     script: "build:items",
-    outputs: ["processed/budget_items.csv"],
+    outputs: ["processed/core/budget_items.csv"],
   },
   {
     label: "all-account validation",
     script: "validate:all",
     outputs: [
-      "processed/validation_errors.csv",
-      "docs/validation_report.md",
+      "processed/validation/validation_errors.csv",
+      "docs/validation/validation_report.md",
     ],
   },
   {
     label: "dataset manifest",
     script: "build:manifest",
-    outputs: ["processed/dataset_manifest.json"],
+    outputs: ["processed/validation/dataset_manifest.json"],
   },
 ] as const;
 

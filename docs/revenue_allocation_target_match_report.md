@@ -4,13 +4,13 @@
 
 ## 入出力
 
-- 歳入細節接続結果: `processed/staging/revenue_allocation_source_matches.csv`
-- 歳出予算事業: `processed/budget_programs.csv`
-- 歳出節: `processed/budget_sections.csv`
-- 歳出目マスタ: `processed/budget_items.csv`
+- 歳入細節接続結果: `processed/audit/staging/revenue_allocation_source_matches.csv`
+- 歳出予算事業: `processed/core/budget_programs.csv`
+- 歳出節: `processed/core/budget_sections.csv`
+- 歳出目マスタ: `processed/core/budget_items.csv`
 - 会計設定: `config/budget-accounts.json`
-- 予算事業グループ: `processed/budget_program_groups.csv`
-- 充当関係: `processed/budget_revenue_allocations.csv`
+- 予算事業グループ: `processed/core/budget_program_groups.csv`
+- 充当関係: `processed/core/budget_revenue_allocations.csv`
 - 手動補正: `config/revenue_allocation_target_overrides.csv`
 
 ## 予算事業グループ

@@ -31,28 +31,29 @@ interface InputFile {
 function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   const processedPath = path.join(repoRoot, "processed");
+  const corePath = path.join(processedPath, "core");
   const publicPath = path.join(processedPath, "public");
   let identitiesPath = path.join(
-    processedPath,
+    corePath,
     "budget_program_identities.csv",
   );
   let identityMembersPath = path.join(
-    processedPath,
+    corePath,
     "budget_program_identity_members.csv",
   );
   let programGroupsPath = path.join(
-    processedPath,
+    corePath,
     "budget_program_groups.csv",
   );
-  let programsPath = path.join(processedPath, "budget_programs.csv");
-  let itemsPath = path.join(processedPath, "budget_items.csv");
+  let programsPath = path.join(corePath, "budget_programs.csv");
+  let itemsPath = path.join(corePath, "budget_items.csv");
   let publicProgramsPath = path.join(
     publicPath,
     "public_budget_programs.csv",
   );
   let publicProgramsOutputPath: string | null = null;
   let revenueAllocationsPath = path.join(
-    processedPath,
+    corePath,
     "budget_revenue_allocations.csv",
   );
   let revenueAllocationFormat: CliOptions["revenueAllocationFormat"] =

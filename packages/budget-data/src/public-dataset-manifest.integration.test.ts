@@ -45,12 +45,12 @@ beforeAll(async () => {
     read("processed/public/public_budget_revenue_details.csv"),
     read("processed/public/public_budget_revenue_items.json"),
     read("processed/public/public_budget_revenue_allocations.json"),
-    read("processed/dataset_manifest.json"),
-    read("processed/budget_items.csv"),
-    read("processed/budget_programs.csv"),
-    read("processed/budget_revenue_items.csv"),
-    read("processed/budget_revenue_details.csv"),
-    read("processed/budget_revenue_allocations.csv"),
+    read("processed/validation/dataset_manifest.json"),
+    read("processed/core/budget_items.csv"),
+    read("processed/core/budget_programs.csv"),
+    read("processed/core/budget_revenue_items.csv"),
+    read("processed/core/budget_revenue_details.csv"),
+    read("processed/core/budget_revenue_allocations.csv"),
     read("processed/public/public_dataset_manifest.json"),
   ]);
   input = {

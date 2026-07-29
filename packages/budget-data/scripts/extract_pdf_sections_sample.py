@@ -418,8 +418,8 @@ def build_argument_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=repo_root / "processed" / "raw_pdf_sections_sample.csv",
-        help="出力CSV（既定: processed/raw_pdf_sections_sample.csv）",
+        default=repo_root / "processed" / "audit" / "raw_pdf_sections_sample.csv",
+        help="出力CSV（既定: processed/audit/raw_pdf_sections_sample.csv）",
     )
     parser.add_argument(
         "--pages",

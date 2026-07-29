@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.3.0",
+  "fiscal_year": 2026,
+  "input_files": [
+    "raw/ippansaisyutu.csv",
+    "raw/ippansainyu.csv",
+    "raw/r8tousyoyosanallpage.pdf",
+    "config/budget-accounts.json",
+    "config/department_name_map.csv"
+  ],
+  "input_file_hashes": {
+    "raw/ippansaisyutu.csv": "c9aa48b12232671e1ee18e2ee2f808f1fd5e7e3731bf1ba0a4edb6f008c5e34d",
+    "raw/ippansainyu.csv": "e13bceb14ffe232a184e853843e424a6c0dd27a41bbea85c6fce66f2509b8cc1",
+    "raw/r8tousyoyosanallpage.pdf": "82a3dae90d26a627fa7b52a6ced49455e6a9f7ce8d8d943bfe852e9d47fd44d9",
+    "config/budget-accounts.json": "46ea61c16aede648728abf9eeb965136f6fb5ef3b61709239d0d423c5f086737",
+    "config/department_name_map.csv": "4951ea3aac3c98635d9607e508a7903e2b7188c3e4f8f1cfe696f13757b58ef4"
+  },
+  "output_files": [
+    "processed/core/budget_programs.csv",
+    "processed/core/budget_sections.csv",
+    "processed/core/budget_items.csv"
+  ],
+  "output_row_counts": {
+    "processed/core/budget_programs.csv": 1170,
+    "processed/core/budget_sections.csv": 994,
+    "processed/core/budget_items.csv": 190
+  },
+  "output_column_counts": {
+    "processed/core/budget_programs.csv": 30,
+    "processed/core/budget_sections.csv": 19,
+    "processed/core/budget_items.csv": 19
+  },
+  "account_totals": {
+    "general": 431353010,
+    "national_health_insurance": 84206905,
+    "latter_stage_elderly_healthcare": 29414796,
+    "long_term_care_insurance": 76058953,
+    "school_lunch_fee": 0
+  },
+  "overall_total_amount_thousand_yen": 621033664,
+  "generated_command": "pnpm budget:build-all",
+  "revenue": {
+    "input_file": "raw/ippansainyu.csv",
+    "input_file_hash": "e13bceb14ffe232a184e853843e424a6c0dd27a41bbea85c6fce66f2509b8cc1",
+    "output_files": [
+      "processed/core/budget_revenue_details.csv",
+      "processed/core/budget_revenue_sections.csv",
+      "processed/core/budget_revenue_items.csv",
+      "processed/audit/raw_pdf_revenue_allocations.csv",
+      "processed/audit/staging/revenue_allocation_source_matches.csv",
+      "processed/core/budget_program_groups.csv",
+      "processed/core/budget_program_identities.csv",
+      "processed/core/budget_program_identity_members.csv",
+      "processed/core/budget_revenue_allocations.csv",
+      "processed/audit/staging/revenue_allocation_group_ambiguities.csv",
+      "processed/validation/revenue_validation_errors.csv",
+      "processed/validation/revenue_allocation_validation_errors.csv",
+      "processed/public/public_budget_revenue_details.csv",
+      "processed/public/public_budget_revenue_items.json",
+      "processed/public/public_budget_revenue_allocations.json"
+    ],
+    "output_file_hashes": {
+      "processed/core/budget_revenue_details.csv": "15fe8f1649f9384c8481c477a473c629e1e7f46ec2a0b9500e8fc39baf745477",
+      "processed/core/budget_revenue_sections.csv": "dfe1866632e7288847593b1914cb7f1169081acd1dc4907b0b71fa5a01dd88a4",
+      "processed/core/budget_revenue_items.csv": "6abbfc3e09e33d85f15de886e0d283edffe8309c9d8f9092b6daeee2cc63f1fe",
+      "processed/audit/raw_pdf_revenue_allocations.csv": "afd411a37cbdee0e6d5617855279efa962fa90019d2496d4560625c8a9682d61",
+      "processed/audit/staging/revenue_allocation_source_matches.csv": "37b4e3a474c682131bb5a4c67e91b9fb5b793a334b72b19d546029d4dee78622",
+      "processed/core/budget_program_groups.csv": "09a666931d3deb6eb33be727eac635b32381cd85826c4a232a4c3ce4801cf59f",
+      "processed/core/budget_program_identities.csv": "ba33c037a9c77ccac6673cac84499542571aea3bc9582088d0af2d01c171ded3",
+      "processed/core/budget_program_identity_members.csv": "86696d86c17d90d7faaeda934b9b03b3264d8376623305d2be599d0a05c6c9af",
+      "processed/core/budget_revenue_allocations.csv": "002e2d6dd857e20a88806145cc8c7e61fa35642bec43ac4c81982d4d1f7ab022",
+      "processed/audit/staging/revenue_allocation_group_ambiguities.csv": "0d003b7722129e3ebb7f3b68145a573f1efb36acccdf3c779ee9d3851073133a",
+      "processed/validation/revenue_validation_errors.csv": "f045cb4d0673f0c0fc86a0fe77ff5d2404d5788daa1131df40681f982999f797",
+      "processed/validation/revenue_allocation_validation_errors.csv": "3a3168a1d5668dc0c14e6e9323daf9b70d58466be8414702d0a47f7ac2384ae0",
+      "processed/public/public_budget_revenue_details.csv": "80a44ea866e616c822a61818e7f4cdaabea18bed5cebf51d4e4a259c1417be0e",
+      "processed/public/public_budget_revenue_items.json": "b89d0d0181931318ae6fd9f257bd2242e28c791d4a3a321cd7cdb1d241d29f81",
+      "processed/public/public_budget_revenue_allocations.json": "cb1a35734936f89ce3be59de27f9f8b7b4be6b236298ff68a38b501f4c92fb1c"
+    },
+    "output_row_counts": {
+      "processed/core/budget_revenue_details.csv": 2192,
+      "processed/core/budget_revenue_sections.csv": 650,
+      "processed/core/budget_revenue_items.csv": 175,
+      "processed/audit/raw_pdf_revenue_allocations.csv": 1948,
+      "processed/audit/staging/revenue_allocation_source_matches.csv": 1948,
+      "processed/core/budget_program_groups.csv": 1166,
+      "processed/core/budget_program_identities.csv": 1156,
+      "processed/core/budget_program_identity_members.csv": 1166,
+      "processed/core/budget_revenue_allocations.csv": 1948,
+      "processed/audit/staging/revenue_allocation_group_ambiguities.csv": 39,
+      "processed/validation/revenue_validation_errors.csv": 0,
+      "processed/validation/revenue_allocation_validation_errors.csv": 0,
+      "processed/public/public_budget_revenue_details.csv": 2192,
+      "processed/public/public_budget_revenue_items.json": 175,
+      "processed/public/public_budget_revenue_allocations.json": 1948
+    },
+    "account_totals": {
+      "general": 431353010,
+      "national_health_insurance": 84206905,
+      "latter_stage_elderly_healthcare": 29414796,
+      "long_term_care_insurance": 76058953,
+      "school_lunch_fee": 0
+    },
+    "overall_total_amount_thousand_yen": 621033664,
+    "general_account_revenue_composition": {
+      "general_revenue_thousand_yen": 279402113,
+      "specific_revenue_thousand_yen": 151950897
+    },
+    "allocation_relation_count": 1948,
+    "source_match_result": {
+      "relation_count": 1948,
+      "matched": 1948,
+      "manually_confirmed": 0,
+      "ambiguous": 0,
+      "unmatched": 0
+    },
+    "target_match_result": {
+      "relation_count": 1948,
+      "matched": 1948,
+      "manually_confirmed": 0,
+      "ambiguous": 0,
+      "unmatched": 0,
+      "exact_group": 1909,
+      "public_identity": 39
+    },
+    "validation_result": {
+      "core_validation": "PASS",
+      "allocation_validation": "PASS",
+      "core_error_count": 0,
+      "allocation_error_count": 0
+    },
+    "generated_command": "pnpm budget:revenue:build-all"
+  }
+}

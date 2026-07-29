@@ -24,23 +24,20 @@ interface CliOptions {
 
 function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
-  let outputPath = path.join(repoRoot, "processed", "budget_sections.csv");
+  let outputPath = path.join(repoRoot, "processed", "core", "budget_sections.csv");
   let baselinePath = outputPath;
   let generalInputPath = path.join(
     repoRoot,
-    "processed",
-    "raw_pdf_sections.csv",
+    "processed", "audit", "raw_pdf_sections.csv",
   );
   let specialInputPath = path.join(
     repoRoot,
-    "processed",
-    "raw_pdf_sections_special.csv",
+    "processed", "audit", "raw_pdf_sections_special.csv",
   );
   let configPath = path.join(repoRoot, "config", "budget-accounts.json");
   let programsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_programs.csv",
+    "processed", "core", "budget_programs.csv",
   );
 
   for (let index = 0; index < args.length; index += 1) {

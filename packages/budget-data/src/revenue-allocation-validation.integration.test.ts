@@ -55,61 +55,55 @@ describe("Phase 30 実データ総合検証", () => {
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_details.csv",
+          "processed", "core", "budget_revenue_details.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_sections.csv",
+          "processed", "core", "budget_revenue_sections.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_items.csv",
+          "processed", "core", "budget_revenue_items.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "raw_pdf_revenue_allocations.csv",
+          "processed", "audit", "raw_pdf_revenue_allocations.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_program_groups.csv",
+          "processed", "core", "budget_program_groups.csv",
         ),
         "utf8",
       ),
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "budget_revenue_allocations.csv",
+          "processed", "core", "budget_revenue_allocations.csv",
         ),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_programs.csv"),
+        path.join(repoRoot, "processed", "core", "budget_programs.csv"),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_sections.csv"),
+        path.join(repoRoot, "processed", "core", "budget_sections.csv"),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_items.csv"),
+        path.join(repoRoot, "processed", "core", "budget_items.csv"),
         "utf8",
       ),
     ]);
@@ -218,19 +212,19 @@ describe("Phase 30 実データ総合検証", () => {
     const report = renderRevenueAllocationValidationReport(result, {
       rawRevenueCsv: "raw/ippansainyu.csv",
       accountsConfig: "config/budget-accounts.json",
-      revenueDetails: "processed/budget_revenue_details.csv",
-      revenueSections: "processed/budget_revenue_sections.csv",
-      revenueItems: "processed/budget_revenue_items.csv",
+      revenueDetails: "processed/core/budget_revenue_details.csv",
+      revenueSections: "processed/core/budget_revenue_sections.csv",
+      revenueItems: "processed/core/budget_revenue_items.csv",
       rawPdfAllocations:
-        "processed/raw_pdf_revenue_allocations.csv",
-      budgetProgramGroups: "processed/budget_program_groups.csv",
+        "processed/audit/raw_pdf_revenue_allocations.csv",
+      budgetProgramGroups: "processed/core/budget_program_groups.csv",
       revenueAllocations:
-        "processed/budget_revenue_allocations.csv",
-      budgetPrograms: "processed/budget_programs.csv",
-      budgetSections: "processed/budget_sections.csv",
-      budgetItems: "processed/budget_items.csv",
+        "processed/core/budget_revenue_allocations.csv",
+      budgetPrograms: "processed/core/budget_programs.csv",
+      budgetSections: "processed/core/budget_sections.csv",
+      budgetItems: "processed/core/budget_items.csv",
       errors:
-        "processed/revenue_allocation_validation_errors.csv",
+        "processed/validation/revenue_allocation_validation_errors.csv",
       dictionary: "docs/budget_revenue_data_dictionary.md",
     });
     const dictionary = renderBudgetRevenueDataDictionary();
@@ -249,8 +243,7 @@ describe("Phase 30 実データ総合検証", () => {
       await fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "revenue_allocation_validation_errors.csv",
+          "processed", "validation", "revenue_allocation_validation_errors.csv",
         ),
         "utf8",
       ),
@@ -259,8 +252,7 @@ describe("Phase 30 実データ総合検証", () => {
       await fs.readFile(
         path.join(
           repoRoot,
-          "docs",
-          "revenue_allocation_validation_report.md",
+          "docs", "validation", "revenue_allocation_validation_report.md",
         ),
         "utf8",
       ),

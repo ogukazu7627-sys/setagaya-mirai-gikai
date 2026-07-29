@@ -752,7 +752,7 @@ function validateDatasetManifest(
   const privateIdentityCount = nestedValue(datasetManifest, [
     "revenue",
     "output_row_counts",
-    "processed/budget_program_identities.csv",
+    "processed/core/budget_program_identities.csv",
   ]);
   if (privateIdentityCount !== counts.publicBudgetProgramIdentityCount) {
     addError(

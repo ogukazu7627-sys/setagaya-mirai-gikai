@@ -44,22 +44,20 @@ describe("Phase 29 実データ回帰", () => {
       fs.readFile(
         path.join(
           repoRoot,
-          "processed",
-          "staging",
-          "revenue_allocation_source_matches.csv",
+          "processed", "audit", "staging", "revenue_allocation_source_matches.csv",
         ),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_programs.csv"),
+        path.join(repoRoot, "processed", "core", "budget_programs.csv"),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_sections.csv"),
+        path.join(repoRoot, "processed", "core", "budget_sections.csv"),
         "utf8",
       ),
       fs.readFile(
-        path.join(repoRoot, "processed", "budget_items.csv"),
+        path.join(repoRoot, "processed", "core", "budget_items.csv"),
         "utf8",
       ),
       fs.readFile(

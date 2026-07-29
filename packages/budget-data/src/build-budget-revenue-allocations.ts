@@ -74,13 +74,11 @@ function readCliOptions(args: string[]): CliOptions {
   const repoRoot = path.resolve(import.meta.dirname, "../../..");
   let groupsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_program_groups.csv",
+    "processed", "core", "budget_program_groups.csv",
   );
   let allocationsInputPath = path.join(
     repoRoot,
-    "processed",
-    "budget_revenue_allocations.csv",
+    "processed", "core", "budget_revenue_allocations.csv",
   );
   let allocationsOutputPath = allocationsInputPath;
   let overridesInputPath = path.join(
@@ -91,18 +89,15 @@ function readCliOptions(args: string[]): CliOptions {
   let overridesOutputPath = overridesInputPath;
   let programsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_programs.csv",
+    "processed", "core", "budget_programs.csv",
   );
   let sectionsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_sections.csv",
+    "processed", "core", "budget_sections.csv",
   );
   let itemsPath = path.join(
     repoRoot,
-    "processed",
-    "budget_items.csv",
+    "processed", "core", "budget_items.csv",
   );
   let accountsPath = path.join(
     repoRoot,
@@ -111,19 +106,15 @@ function readCliOptions(args: string[]): CliOptions {
   );
   let identitiesOutputPath = path.join(
     repoRoot,
-    "processed",
-    "budget_program_identities.csv",
+    "processed", "core", "budget_program_identities.csv",
   );
   let identityMembersOutputPath = path.join(
     repoRoot,
-    "processed",
-    "budget_program_identity_members.csv",
+    "processed", "core", "budget_program_identity_members.csv",
   );
   let ambiguitiesOutputPath = path.join(
     repoRoot,
-    "processed",
-    "staging",
-    "revenue_allocation_group_ambiguities.csv",
+    "processed", "audit", "staging", "revenue_allocation_group_ambiguities.csv",
   );
   let reportPath = path.join(
     repoRoot,

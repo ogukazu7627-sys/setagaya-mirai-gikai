@@ -358,7 +358,7 @@ def build_full_extraction_report(
             f"`{metrics.section_sum_thousand_yen:,}千円`で、"
             "設定済み期待額の合計と一致した。"
         ),
-        "`processed/budget_sections.csv` はこのPhaseでは更新していない。",
+        "`processed/core/budget_sections.csv` はこのPhaseでは更新していない。",
         "",
         "## 会計別結果",
         "",
@@ -459,14 +459,14 @@ def build_full_extraction_report(
             "## 次の処理へ進む条件",
             "",
             "今回の全体抽出は金額・目照合・parse_statusの条件を満たしたため、",
-            "`processed/budget_sections.csv` へ正規化・追加する次Phaseへ進める。",
+            "`processed/core/budget_sections.csv` へ正規化・追加する次Phaseへ進める。",
             "追加時は一般会計とのunionを取り、`account_code`を含む",
             "`budget_item_key`で会計間衝突を防ぐ。",
             "",
             "## このPhaseで行っていないこと",
             "",
-            "- `processed/budget_sections.csv` の更新",
-            "- `processed/budget_items.csv` の更新",
+            "- `processed/core/budget_sections.csv` の更新",
+            "- `processed/core/budget_items.csv` の更新",
             "- 一般会計と特別会計の節データ統合",
             "- 学校給食費会計のPDF抽出",
             "- DB投入",
@@ -539,8 +539,8 @@ def build_argument_parser(repo_root: Path) -> argparse.ArgumentParser:
     parser.add_argument(
         "--output",
         type=Path,
-        default=repo_root / "processed" / "raw_pdf_sections_special.csv",
-        help="出力CSV（既定: processed/raw_pdf_sections_special.csv）",
+        default=repo_root / "processed" / "audit" / "raw_pdf_sections_special.csv",
+        help="出力CSV（既定: processed/audit/raw_pdf_sections_special.csv）",
     )
     parser.add_argument(
         "--report",

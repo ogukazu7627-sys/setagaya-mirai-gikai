@@ -47,15 +47,15 @@ Phase 29.5で公式PDFから内部groupを区別できない39件は、`target_b
 
 | ファイル | 用途 |
 | --- | --- |
-| `processed/budget_revenue_details.csv` | 公式CSV由来の歳入細節×所属 |
-| `processed/budget_revenue_sections.csv` | 歳入節集約 |
-| `processed/budget_revenue_items.csv` | 歳入目集約 |
-| `processed/raw_pdf_revenue_allocations.csv` | PDF充当事業の抽出原本 |
-| `processed/budget_program_groups.csv` | 歳出予算事業group |
-| `processed/budget_revenue_allocations.csv` | 歳入・歳出事業関係 |
-| `processed/budget_programs.csv` | 歳出事業コア |
-| `processed/budget_sections.csv` | 歳出節コア |
-| `processed/budget_items.csv` | 歳出目コア |
+| `processed/core/budget_revenue_details.csv` | 公式CSV由来の歳入細節×所属 |
+| `processed/core/budget_revenue_sections.csv` | 歳入節集約 |
+| `processed/core/budget_revenue_items.csv` | 歳入目集約 |
+| `processed/audit/raw_pdf_revenue_allocations.csv` | PDF充当事業の抽出原本 |
+| `processed/core/budget_program_groups.csv` | 歳出予算事業group |
+| `processed/core/budget_revenue_allocations.csv` | 歳入・歳出事業関係 |
+| `processed/core/budget_programs.csv` | 歳出事業コア |
+| `processed/core/budget_sections.csv` | 歳出節コア |
+| `processed/core/budget_items.csv` | 歳出目コア |
 | `raw/ippansainyu.csv` | Phase 24元行復元用の公式歳入CSV |
 | `config/budget-accounts.json` | 会計別期待額・PDF対象範囲 |
 
@@ -162,7 +162,7 @@ Phase 29.5で公式PDFから内部groupを区別できない39件は、`target_b
 
 エラー件数: 0件
 
-`processed/revenue_allocation_validation_errors.csv` はヘッダーのみ。
+`processed/validation/revenue_allocation_validation_errors.csv` はヘッダーのみ。
 
 歳入CSV、PDF充当事業、歳出予算事業の接続は総合検証を通過した。allocationは関係のみを表し、金額集計には使用しない。
 

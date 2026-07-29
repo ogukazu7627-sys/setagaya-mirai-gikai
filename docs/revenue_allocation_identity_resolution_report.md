@@ -4,16 +4,16 @@
 
 ## 入出力
 
-- 予算事業group: `processed/budget_program_groups.csv`
-- Phase 29充当関係: `in-memory target matches from processed/staging/revenue_allocation_source_matches.csv`
+- 予算事業group: `processed/core/budget_program_groups.csv`
+- Phase 29充当関係: `in-memory target matches from processed/audit/staging/revenue_allocation_source_matches.csv`
 - Phase 29 target override: `config/revenue_allocation_target_overrides.csv`
-- 歳出予算事業: `processed/budget_programs.csv`
-- 歳出節: `processed/budget_sections.csv`
-- 歳出目マスタ: `processed/budget_items.csv`
-- 予算事業identity: `processed/budget_program_identities.csv`
-- identity member: `processed/budget_program_identity_members.csv`
-- identity解決済み充当関係: `processed/budget_revenue_allocations.csv`
-- 内部group曖昧性: `processed/staging/revenue_allocation_group_ambiguities.csv`
+- 歳出予算事業: `processed/core/budget_programs.csv`
+- 歳出節: `processed/core/budget_sections.csv`
+- 歳出目マスタ: `processed/core/budget_items.csv`
+- 予算事業identity: `processed/core/budget_program_identities.csv`
+- identity member: `processed/core/budget_program_identity_members.csv`
+- identity解決済み充当関係: `processed/core/budget_revenue_allocations.csv`
+- 内部group曖昧性: `processed/audit/staging/revenue_allocation_group_ambiguities.csv`
 - 真の未解決override: `config/revenue_allocation_target_overrides.csv`
 
 ## identity

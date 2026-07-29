@@ -22,19 +22,13 @@ import {
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const detailsPath = path.join(
   repoRoot,
-  "processed",
-  "budget_revenue_details.csv",
-);
+  "processed", "core", "budget_revenue_details.csv",);
 const sectionsPath = path.join(
   repoRoot,
-  "processed",
-  "budget_revenue_sections.csv",
-);
+  "processed", "core", "budget_revenue_sections.csv",);
 const itemsPath = path.join(
   repoRoot,
-  "processed",
-  "budget_revenue_items.csv",
-);
+  "processed", "core", "budget_revenue_items.csv",);
 
 describe("budget revenue items integration", () => {
   let details: BudgetRevenueSectionSourceDetail[];

@@ -5,17 +5,17 @@ export interface PublicBudgetBuildPhase {
 }
 
 export const PUBLIC_BUDGET_BUILD_INPUTS = [
-  "processed/budget_programs.csv",
-  "processed/budget_sections.csv",
-  "processed/budget_items.csv",
-  "processed/budget_program_groups.csv",
-  "processed/budget_program_identities.csv",
-  "processed/budget_program_identity_members.csv",
-  "processed/budget_revenue_details.csv",
-  "processed/budget_revenue_sections.csv",
-  "processed/budget_revenue_items.csv",
-  "processed/budget_revenue_allocations.csv",
-  "processed/dataset_manifest.json",
+  "processed/core/budget_programs.csv",
+  "processed/core/budget_sections.csv",
+  "processed/core/budget_items.csv",
+  "processed/core/budget_program_groups.csv",
+  "processed/core/budget_program_identities.csv",
+  "processed/core/budget_program_identity_members.csv",
+  "processed/core/budget_revenue_details.csv",
+  "processed/core/budget_revenue_sections.csv",
+  "processed/core/budget_revenue_items.csv",
+  "processed/core/budget_revenue_allocations.csv",
+  "processed/validation/dataset_manifest.json",
   "config/department_name_map.csv",
 ] as const;
 

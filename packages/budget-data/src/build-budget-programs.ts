@@ -39,7 +39,7 @@ function readCliOptions(args: string[]): CliOptions {
     "config",
     "department_name_map.csv",
   );
-  let outputPath = path.join(repoRoot, "processed", "budget_programs.csv");
+  let outputPath = path.join(repoRoot, "processed", "core", "budget_programs.csv");
   let reportPath = path.join(
     repoRoot,
     "docs",
