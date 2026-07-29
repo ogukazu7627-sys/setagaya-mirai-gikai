@@ -215,25 +215,6 @@ async function findDatasetByManifestHash(
   return data === null ? undefined : persistedDatasetSchema.parse(data);
 }
 
-async function cleanupNewDataset(
-  client: AdminClient,
-  datasetId: string
-): Promise<boolean> {
-  const { data, error } = await client
-    .from("budget_datasets")
-    .delete()
-    .eq("id", datasetId)
-    .eq("status", "staging")
-    .select("id")
-    .maybeSingle();
-  if (error) {
-    throw new Error(
-      `stagingデータのロールバックに失敗しました: ${error.message}`
-    );
-  }
-  return data !== null;
-}
-
 export async function applyPublicBudgetDataset(
   dataset: PublicBudgetDataset,
   client?: AdminClient
@@ -299,7 +280,9 @@ export async function applyPublicBudgetDataset(
       importResult === undefined &&
       !(error instanceof BudgetImportRpcError && error.transactionRolledBack);
     let removeUploadedArtifacts =
-      existingDataset === undefined && !importOutcomeUnknown;
+      existingDataset === undefined &&
+      importResult === undefined &&
+      !importOutcomeUnknown;
 
     if (removeUploadedArtifacts) {
       try {
@@ -307,16 +290,7 @@ export async function applyPublicBudgetDataset(
           adminClient,
           dataset.manifestSha256
         );
-        if (
-          persistedDataset?.status === "staging" &&
-          importResult?.alreadyImported === false &&
-          persistedDataset.id === importResult.datasetId
-        ) {
-          removeUploadedArtifacts = await cleanupNewDataset(
-            adminClient,
-            persistedDataset.id
-          );
-        } else if (persistedDataset !== undefined) {
+        if (persistedDataset !== undefined) {
           removeUploadedArtifacts = false;
         }
       } catch (cleanupError) {
@@ -343,7 +317,9 @@ export async function applyPublicBudgetDataset(
     const message = error instanceof Error ? error.message : String(error);
     const retentionNote = importOutcomeUnknown
       ? "import結果が通信上不明なため、hash単位のStorageファイルは再実行用に保持しました"
-      : undefined;
+      : importResult !== undefined
+        ? "DB投入完了後の失敗のため、datasetとhash単位のStorageファイルは再実行・調査用に保持しました"
+        : undefined;
     const notes = [
       retentionNote,
       ...rollbackErrors.map((rollbackError) => `rollback: ${rollbackError}`),

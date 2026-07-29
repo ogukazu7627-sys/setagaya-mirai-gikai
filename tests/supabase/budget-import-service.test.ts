@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -258,5 +258,73 @@ describe("applyPublicBudgetDataset", () => {
       expect(error).toBeNull();
       expect(data?.size).toBeGreaterThan(0);
     }
+  });
+
+  it("active化失敗時はstaging datasetとStorageを保持して再試行できる", async () => {
+    const testDataset = createBudgetTestDataset();
+    testDatasets.push(testDataset);
+    storagePaths.push(
+      ...testDataset.builtImport.artifacts.map(
+        (artifact) => artifact.storageObjectPath
+      )
+    );
+
+    const activationFailureClient = new Proxy(client, {
+      get(target, property) {
+        if (property === "rpc") {
+          return async (
+            functionName: string,
+            args: Record<string, unknown>
+          ) => {
+            if (functionName === "activate_budget_dataset") {
+              return {
+                data: null,
+                error: { message: "simulated activation failure" },
+              };
+            }
+            return target.rpc(functionName, args);
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    }) as SupabaseClient;
+
+    await expect(
+      applyPublicBudgetDataset(testDataset.dataset, activationFailureClient)
+    ).rejects.toThrow("再実行・調査用に保持しました");
+
+    const { data: staging, error: stagingError } = await client
+      .from("budget_datasets")
+      .select("id, status")
+      .eq("manifest_sha256", testDataset.dataset.manifestSha256)
+      .single();
+    expect(stagingError).toBeNull();
+    expect(staging?.status).toBe("staging");
+    if (staging) {
+      importedDatasetIds.push(staging.id);
+    }
+
+    for (const artifact of testDataset.builtImport.artifacts) {
+      const { data, error } = await client.storage
+        .from("budget-datasets")
+        .download(artifact.storageObjectPath);
+      expect(error).toBeNull();
+      expect(data?.size).toBeGreaterThan(0);
+    }
+
+    const retried = await applyPublicBudgetDataset(testDataset.dataset, client);
+    expect(retried).toMatchObject({
+      datasetId: staging?.id,
+      alreadyImported: true,
+      validation: { status: "PASS" },
+    });
+    const { data: active, error: activeError } = await client
+      .from("budget_datasets")
+      .select("status")
+      .eq("id", retried.datasetId)
+      .single();
+    expect(activeError).toBeNull();
+    expect(active?.status).toBe("active");
   });
 });
