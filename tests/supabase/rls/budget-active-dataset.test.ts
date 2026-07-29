@@ -26,6 +26,7 @@ describe("budget dataset RLS", () => {
   let email: string;
   const password = "test-password-123";
   const storagePath = `rls/${crypto.randomUUID()}/test.json`;
+  const serviceStoragePath = `rls/${crypto.randomUUID()}/service.json`;
 
   beforeAll(async () => {
     activeDataset = createBudgetTestDataset();
@@ -113,7 +114,7 @@ describe("budget dataset RLS", () => {
     expect(staging).toEqual([]);
   });
 
-  it("anon/authenticatedからの書き込みとimport RPCを拒否する", async () => {
+  it("anon/authenticatedからの書き込みと全管理RPCを拒否する", async () => {
     const authenticated = (await getAuthenticatedClient(
       email,
       password
@@ -135,37 +136,97 @@ describe("budget dataset RLS", () => {
     const { error: authenticatedInsertError } = await authenticated
       .from("budget_datasets")
       .insert({ ...insertRow, manifest_sha256: "b".repeat(64) });
-    const { error: anonRpcError } = await anon.rpc("import_budget_dataset", {
-      p_payload: {},
-    });
-    const { error: authenticatedRpcError } = await authenticated.rpc(
-      "import_budget_dataset",
-      { p_payload: {} }
+    const deniedRpcCalls = await Promise.all(
+      [anon, authenticated].flatMap((roleClient) => [
+        roleClient.rpc("import_budget_dataset", { p_payload: {} }),
+        roleClient.rpc("validate_budget_dataset", {
+          p_dataset_id: activeDatasetId,
+        }),
+        roleClient.rpc("activate_budget_dataset", {
+          p_dataset_id: activeDatasetId,
+        }),
+      ])
     );
 
     expect(anonInsertError).not.toBeNull();
     expect(authenticatedInsertError).not.toBeNull();
-    expect(anonRpcError).not.toBeNull();
-    expect(authenticatedRpcError).not.toBeNull();
+    expect(deniedRpcCalls.every((result) => result.error !== null)).toBe(true);
+
+    const { error: serviceValidationError } = await admin.rpc(
+      "validate_budget_dataset",
+      { p_dataset_id: activeDatasetId }
+    );
+    const { error: serviceActivationError } = await admin.rpc(
+      "activate_budget_dataset",
+      { p_dataset_id: activeDatasetId }
+    );
+    expect(serviceValidationError).toBeNull();
+    expect(serviceActivationError).toBeNull();
   });
 
-  it("budget-datasets bucketはservice roleだけが読み書きできる", async () => {
+  it("budget-datasets bucketは非公開でservice roleだけが操作できる", async () => {
     const authenticated = (await getAuthenticatedClient(
       email,
       password
     )) as SupabaseClient;
-    const { error: anonDownloadError } = await anon.storage
-      .from("budget-datasets")
-      .download(storagePath);
-    const { error: authDownloadError } = await authenticated.storage
-      .from("budget-datasets")
-      .download(storagePath);
-    const { error: anonUploadError } = await anon.storage
-      .from("budget-datasets")
-      .upload(`${storagePath}.anon`, "{}");
+    const { data: bucket, error: bucketError } =
+      await admin.storage.getBucket("budget-datasets");
+    expect(bucketError).toBeNull();
+    expect(bucket?.public).toBe(false);
 
-    expect(anonDownloadError).not.toBeNull();
-    expect(authDownloadError).not.toBeNull();
-    expect(anonUploadError).not.toBeNull();
+    for (const [roleName, roleClient] of [
+      ["anon", anon],
+      ["authenticated", authenticated],
+    ] as const) {
+      const roleBucket = roleClient.storage.from("budget-datasets");
+      const { data: listed, error: listError } = await roleBucket.list(
+        storagePath.split("/").slice(0, -1).join("/")
+      );
+      const { error: downloadError } = await roleBucket.download(storagePath);
+      const { error: uploadError } = await roleBucket.upload(
+        `${storagePath}.${roleName}`,
+        "{}"
+      );
+      const { error: updateError } = await roleBucket.update(storagePath, "{}");
+      const { data: removed, error: removeError } = await roleBucket.remove([
+        storagePath,
+      ]);
+
+      expect(
+        listError !== null || listed?.length === 0,
+        `${roleName}:list`
+      ).toBe(true);
+      expect(downloadError, `${roleName}:download`).not.toBeNull();
+      expect(uploadError, `${roleName}:upload`).not.toBeNull();
+      expect(updateError, `${roleName}:update`).not.toBeNull();
+      expect(
+        removeError !== null || removed?.length === 0,
+        `${roleName}:remove`
+      ).toBe(true);
+    }
+
+    const serviceBucket = admin.storage.from("budget-datasets");
+    const { error: serviceUploadError } = await serviceBucket.upload(
+      serviceStoragePath,
+      JSON.stringify({ version: 1 })
+    );
+    const { error: serviceUpdateError } = await serviceBucket.update(
+      serviceStoragePath,
+      JSON.stringify({ version: 2 })
+    );
+    const { data: serviceDownload, error: serviceDownloadError } =
+      await serviceBucket.download(serviceStoragePath);
+    const { error: protectedObjectError } =
+      await serviceBucket.download(storagePath);
+    const { error: serviceRemoveError } = await serviceBucket.remove([
+      serviceStoragePath,
+    ]);
+
+    expect(serviceUploadError).toBeNull();
+    expect(serviceUpdateError).toBeNull();
+    expect(serviceDownloadError).toBeNull();
+    expect(await serviceDownload?.text()).toContain('"version":2');
+    expect(protectedObjectError).toBeNull();
+    expect(serviceRemoveError).toBeNull();
   });
 });

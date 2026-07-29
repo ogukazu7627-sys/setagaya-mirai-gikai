@@ -114,30 +114,160 @@ describe("budget dataset RPC", () => {
     expect(count).toBe(1);
   });
 
-  it("新しいactive化と旧datasetのarchived化を同時に行う", async () => {
+  it("同じ外部IDを持つ改訂版を共存させ、dataset単位でactiveを切り替える", async () => {
     const firstDataset = createBudgetTestDataset();
     const secondDataset = createBudgetTestDataset();
     testDatasets.push(firstDataset, secondDataset);
-    const first = await importDataset(firstDataset);
-    await client.rpc("activate_budget_dataset", {
-      p_dataset_id: first.datasetId,
-    });
-    const second = await importDataset(secondDataset);
-    await client.rpc("activate_budget_dataset", {
-      p_dataset_id: second.datasetId,
-    });
 
-    const { data } = await client
+    expect(
+      firstDataset.builtImport.payload.budget_programs[0]?.program_id
+    ).toBe(secondDataset.builtImport.payload.budget_programs[0]?.program_id);
+    expect(
+      firstDataset.builtImport.payload.budget_program_identities[0]
+        ?.budget_program_identity_id
+    ).toBe(
+      secondDataset.builtImport.payload.budget_program_identities[0]
+        ?.budget_program_identity_id
+    );
+    expect(
+      firstDataset.builtImport.payload.budget_items[0]?.budget_item_key
+    ).toBe(secondDataset.builtImport.payload.budget_items[0]?.budget_item_key);
+
+    const first = await importDataset(firstDataset);
+    const { error: firstActivationError } = await client.rpc(
+      "activate_budget_dataset",
+      {
+        p_dataset_id: first.datasetId,
+      }
+    );
+    expect(firstActivationError).toBeNull();
+
+    const second = await importDataset(secondDataset);
+    expect(second.status).toBe("staging");
+
+    const expectedCounts = new Map<string, number>([
+      [
+        "budget_program_identities",
+        firstDataset.builtImport.payload.budget_program_identities.length,
+      ],
+      [
+        "budget_programs",
+        firstDataset.builtImport.payload.budget_programs.length,
+      ],
+      ["budget_items", firstDataset.builtImport.payload.budget_items.length],
+      [
+        "budget_item_sections",
+        firstDataset.builtImport.payload.budget_item_sections.length,
+      ],
+      [
+        "budget_revenue_items",
+        firstDataset.builtImport.payload.budget_revenue_items.length,
+      ],
+      [
+        "budget_revenue_sections",
+        firstDataset.builtImport.payload.budget_revenue_sections.length,
+      ],
+      [
+        "budget_revenue_details",
+        firstDataset.builtImport.payload.budget_revenue_details.length,
+      ],
+      [
+        "budget_revenue_allocations",
+        firstDataset.builtImport.payload.budget_revenue_allocations.length,
+      ],
+      [
+        "budget_source_documents",
+        firstDataset.builtImport.payload.budget_source_documents.length,
+      ],
+    ]);
+    for (const [tableName, expectedCount] of expectedCounts) {
+      for (const datasetId of [first.datasetId, second.datasetId]) {
+        const { count, error } = await client
+          .from(tableName)
+          .select("*", { count: "exact", head: true })
+          .eq("dataset_id", datasetId);
+        expect(error, `${tableName}:${datasetId}`).toBeNull();
+        expect(count, `${tableName}:${datasetId}`).toBe(expectedCount);
+      }
+    }
+
+    const { data: programs, error: programsError } = await client
+      .from("budget_programs")
+      .select("dataset_id, program_id, budget_program_identity_id")
+      .in("dataset_id", [first.datasetId, second.datasetId]);
+    expect(programsError).toBeNull();
+    expect(programs).toEqual(
+      expect.arrayContaining([
+        {
+          dataset_id: first.datasetId,
+          program_id: "program_test",
+          budget_program_identity_id: "bpi_test",
+        },
+        {
+          dataset_id: second.datasetId,
+          program_id: "program_test",
+          budget_program_identity_id: "bpi_test",
+        },
+      ])
+    );
+
+    const { error: secondActivationError } = await client.rpc(
+      "activate_budget_dataset",
+      {
+        p_dataset_id: second.datasetId,
+      }
+    );
+    expect(secondActivationError).toBeNull();
+
+    const { data, error: statusError } = await client
       .from("budget_datasets")
       .select("id, status")
-      .in("id", [first.datasetId, second.datasetId])
-      .order("status");
-
+      .in("id", [first.datasetId, second.datasetId]);
+    expect(statusError).toBeNull();
     expect(data).toEqual(
       expect.arrayContaining([
         { id: first.datasetId, status: "archived" },
         { id: second.datasetId, status: "active" },
       ])
+    );
+    expect(data?.filter((dataset) => dataset.status === "active")).toHaveLength(
+      1
+    );
+  });
+
+  it("同一年度・予算種別を並行active化してもactiveは1件になる", async () => {
+    const firstDataset = createBudgetTestDataset();
+    const secondDataset = createBudgetTestDataset();
+    testDatasets.push(firstDataset, secondDataset);
+    const first = await importDataset(firstDataset);
+    const second = await importDataset(secondDataset);
+
+    const activationResults = await Promise.all([
+      client.rpc("activate_budget_dataset", {
+        p_dataset_id: first.datasetId,
+      }),
+      client.rpc("activate_budget_dataset", {
+        p_dataset_id: second.datasetId,
+      }),
+    ]);
+    expect(activationResults.every((result) => result.error === null)).toBe(
+      true
+    );
+
+    const { data, error } = await client
+      .from("budget_datasets")
+      .select("id, status")
+      .in("id", [first.datasetId, second.datasetId]);
+
+    expect(error).toBeNull();
+    expect(data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: "archived" }),
+        expect.objectContaining({ status: "active" }),
+      ])
+    );
+    expect(data?.filter((dataset) => dataset.status === "active")).toHaveLength(
+      1
     );
   });
 

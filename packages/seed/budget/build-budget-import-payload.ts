@@ -6,6 +6,7 @@ export const budgetDatasetStorageBucket = "budget-datasets";
 export interface BudgetImportArtifact {
   logicalFileName: string;
   filePath: string;
+  content: Buffer;
   sha256: string;
   storageObjectPath: string;
   contentType: "application/json" | "text/csv";
@@ -36,10 +37,10 @@ export interface BuiltBudgetImport {
 }
 
 function budgetTypeStorageSegment(budgetType: string): string {
-  if (budgetType === "initial_budget") {
-    return "initial";
+  if (budgetType !== "initial_budget") {
+    throw new Error(`未対応の予算種別です: ${budgetType}`);
   }
-  return budgetType.replace(/_budget$/, "").replaceAll("_", "-");
+  return "initial";
 }
 
 export function buildBudgetDatasetStoragePrefix(
@@ -62,6 +63,7 @@ function buildArtifacts(dataset: PublicBudgetDataset): BudgetImportArtifact[] {
     {
       logicalFileName: "public_dataset_manifest.json",
       filePath: dataset.manifestFilePath,
+      content: dataset.manifestContent,
       sha256: dataset.manifestSha256,
       storageObjectPath: `${storagePrefix}/public_dataset_manifest.json`,
       contentType: "application/json",
@@ -69,6 +71,7 @@ function buildArtifacts(dataset: PublicBudgetDataset): BudgetImportArtifact[] {
     ...dataset.files.map((file) => ({
       logicalFileName: file.logicalFileName,
       filePath: file.filePath,
+      content: file.content,
       sha256: file.actualSha256,
       storageObjectPath: `${storagePrefix}/${file.logicalFileName}`,
       contentType: contentType(file.logicalFileName),

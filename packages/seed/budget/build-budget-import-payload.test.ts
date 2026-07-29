@@ -41,6 +41,18 @@ describe("buildBudgetImportPayload", () => {
         artifact.storageObjectPath.startsWith(`${expectedPrefix}/`)
       )
     ).toBe(true);
+    expect(
+      first.artifacts.every(
+        (artifact) =>
+          !artifact.storageObjectPath.includes("..") &&
+          /^2026\/initial\/[a-f0-9]{64}\/[a-z0-9_.-]+$/.test(
+            artifact.storageObjectPath
+          )
+      )
+    ).toBe(true);
+    expect(
+      first.artifacts.every((artifact) => artifact.content.byteLength > 0)
+    ).toBe(true);
     expect(first.artifacts.map((artifact) => artifact.logicalFileName)).toEqual(
       [...first.artifacts.map((artifact) => artifact.logicalFileName)].sort()
     );
@@ -64,6 +76,13 @@ describe("buildBudgetImportPayload", () => {
       revenue_section_count: 1,
       source_document_count: 10,
     });
+  });
+
+  it("Storageパスへ未対応の予算種別を使用しない", () => {
+    const dataset = readFixtureDataset();
+    dataset.manifest.budgetType = "../initial_budget";
+
+    expect(() => buildBudgetImportPayload(dataset)).toThrow("未対応の予算種別");
   });
 
   it("節をprogramへ結び付けずbudget_item_keyだけへ所属させる", () => {

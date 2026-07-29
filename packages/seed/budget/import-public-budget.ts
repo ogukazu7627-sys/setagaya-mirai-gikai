@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import fs from "node:fs";
 import { createAdminClient, type Json } from "@mirai-gikai/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
@@ -37,6 +36,16 @@ const persistedDatasetSchema = z.strictObject({
   id: z.string().uuid(),
   status: datasetStatusSchema,
 });
+
+class BudgetImportRpcError extends Error {
+  readonly transactionRolledBack: boolean;
+
+  constructor(message: string, transactionRolledBack: boolean) {
+    super(message);
+    this.name = "BudgetImportRpcError";
+    this.transactionRolledBack = transactionRolledBack;
+  }
+}
 
 export type BudgetDatasetValidationResult = z.infer<
   typeof validationResultSchema
@@ -99,11 +108,19 @@ async function uploadArtifact(
   artifact: BudgetImportArtifact
 ): Promise<boolean> {
   const bucket = client.storage.from(budgetDatasetStorageBucket);
-  const content = fs.readFileSync(artifact.filePath);
-  const { error } = await bucket.upload(artifact.storageObjectPath, content, {
-    contentType: artifact.contentType,
-    upsert: false,
-  });
+  if (sha256Buffer(artifact.content) !== artifact.sha256) {
+    throw new Error(
+      `読み込み後に入力スナップショットが変更されました: ${artifact.logicalFileName}`
+    );
+  }
+  const { error } = await bucket.upload(
+    artifact.storageObjectPath,
+    artifact.content,
+    {
+      contentType: artifact.contentType,
+      upsert: false,
+    }
+  );
 
   if (!error) {
     return true;
@@ -147,7 +164,12 @@ async function callImportRpc(
     p_payload: payload,
   });
   if (error) {
-    throw new Error(`予算データのstaging投入に失敗しました: ${error.message}`);
+    const errorCode =
+      typeof error.code === "string" ? error.code.toUpperCase() : "";
+    throw new BudgetImportRpcError(
+      `予算データのstaging投入に失敗しました: ${error.message}`,
+      /^[0-9A-Z]{5}$/.test(errorCode)
+    );
   }
   return importResultSchema.parse(data);
 }
@@ -237,6 +259,7 @@ export async function applyPublicBudgetDataset(
 
   const newlyUploadedPaths: string[] = [];
   let importResult: z.infer<typeof importResultSchema> | undefined;
+  let importRpcStarted = false;
 
   try {
     for (const artifact of artifacts) {
@@ -245,6 +268,7 @@ export async function applyPublicBudgetDataset(
       }
     }
 
+    importRpcStarted = true;
     importResult = await callImportRpc(adminClient, payload as unknown as Json);
     const validation = await callValidationRpc(
       adminClient,
@@ -270,7 +294,12 @@ export async function applyPublicBudgetDataset(
     };
   } catch (error) {
     const rollbackErrors: string[] = [];
-    let removeUploadedArtifacts = existingDataset === undefined;
+    const importOutcomeUnknown =
+      importRpcStarted &&
+      importResult === undefined &&
+      !(error instanceof BudgetImportRpcError && error.transactionRolledBack);
+    let removeUploadedArtifacts =
+      existingDataset === undefined && !importOutcomeUnknown;
 
     if (removeUploadedArtifacts) {
       try {
@@ -312,10 +341,15 @@ export async function applyPublicBudgetDataset(
     }
 
     const message = error instanceof Error ? error.message : String(error);
+    const retentionNote = importOutcomeUnknown
+      ? "import結果が通信上不明なため、hash単位のStorageファイルは再実行用に保持しました"
+      : undefined;
+    const notes = [
+      retentionNote,
+      ...rollbackErrors.map((rollbackError) => `rollback: ${rollbackError}`),
+    ].filter((note): note is string => note !== undefined);
     throw new Error(
-      rollbackErrors.length === 0
-        ? message
-        : `${message}; rollback: ${rollbackErrors.join("; ")}`
+      notes.length === 0 ? message : `${message}; ${notes.join("; ")}`
     );
   }
 }

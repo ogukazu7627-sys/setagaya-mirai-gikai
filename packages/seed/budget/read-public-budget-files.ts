@@ -36,6 +36,13 @@ export const publicBudgetLogicalFileNames = [
 export const publicBudgetManifestLogicalFileName =
   "public_dataset_manifest.json";
 
+export const publicBudgetInputLimits = {
+  manifestBytes: 1024 * 1024,
+  dataFileBytes: 32 * 1024 * 1024,
+  totalBytes: 64 * 1024 * 1024,
+  candidatesPerLogicalFile: 20,
+} as const;
+
 export type PublicBudgetLogicalFileName =
   (typeof publicBudgetLogicalFileNames)[number];
 
@@ -49,6 +56,7 @@ export interface PublicBudgetLoadedFile {
   actualCount: number;
   expectedColumnCount?: number;
   actualColumnCount?: number;
+  content: Buffer;
 }
 
 export interface PublicBudgetDataset {
@@ -56,6 +64,7 @@ export interface PublicBudgetDataset {
   manifestFileName: string;
   manifestFilePath: string;
   manifestSha256: string;
+  manifestContent: Buffer;
   files: PublicBudgetLoadedFile[];
   programIdentities: PublicBudgetProgramIdentityRow[];
   programs: PublicBudgetProgramRow[];
@@ -96,15 +105,56 @@ function listFileCandidates(
   logicalFileName: string
 ): string[] {
   const pattern = downloadedFileNamePattern(logicalFileName);
-  return fs
+  const candidates = fs
     .readdirSync(inputDirectory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && pattern.test(entry.name))
     .map((entry) => entry.name)
     .sort((left, right) => left.localeCompare(right));
+  if (candidates.length > publicBudgetInputLimits.candidatesPerLogicalFile) {
+    throw new PublicBudgetDatasetReadError(
+      "TOO_MANY_FILE_CANDIDATES",
+      `${logicalFileName} の候補が上限 ${publicBudgetInputLimits.candidatesPerLogicalFile} 件を超えています`
+    );
+  }
+  return candidates;
 }
 
-function sha256File(filePath: string): string {
-  return createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+function sha256Buffer(content: Buffer): string {
+  return createHash("sha256").update(content).digest("hex");
+}
+
+function readFileSnapshot(
+  filePath: string,
+  maxBytes: number,
+  logicalFileName: string
+): Buffer {
+  const descriptor = fs.openSync(filePath, "r");
+  try {
+    const stat = fs.fstatSync(descriptor);
+    if (!stat.isFile()) {
+      throw new PublicBudgetDatasetReadError(
+        "INPUT_NOT_REGULAR_FILE",
+        `${logicalFileName} は通常ファイルではありません`
+      );
+    }
+    if (stat.size > maxBytes) {
+      throw new PublicBudgetDatasetReadError(
+        "FILE_TOO_LARGE",
+        `${logicalFileName} が上限 ${maxBytes} bytes を超えています: ${stat.size} bytes`
+      );
+    }
+
+    const content = fs.readFileSync(descriptor);
+    if (content.byteLength > maxBytes) {
+      throw new PublicBudgetDatasetReadError(
+        "FILE_TOO_LARGE",
+        `${logicalFileName} が上限 ${maxBytes} bytes を超えています: ${content.byteLength} bytes`
+      );
+    }
+    return content;
+  } finally {
+    fs.closeSync(descriptor);
+  }
 }
 
 function resolveManifestPath({
@@ -157,10 +207,14 @@ function formatZodError(error: z.ZodError): string {
     .join("; ");
 }
 
-function readJsonWithSchema<T>(filePath: string, schema: ZodType<T>): T {
+function readJsonWithSchema<T>(
+  filePath: string,
+  content: Buffer,
+  schema: ZodType<T>
+): T {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    parsed = JSON.parse(content.toString("utf8"));
   } catch (error) {
     throw new PublicBudgetDatasetReadError(
       "INVALID_JSON",
@@ -182,10 +236,11 @@ function readJsonWithSchema<T>(filePath: string, schema: ZodType<T>): T {
 
 function readCsvWithSchema<T>(
   filePath: string,
+  fileContent: Buffer,
   expectedHeaders: readonly string[],
   rowSchema: ZodType<T>
 ): { records: T[]; columnCount: number } {
-  const content = fs.readFileSync(filePath, "utf8");
+  const content = fileContent.toString("utf8");
   let headerRows: string[][];
   let rawRecords: Record<string, string>[];
 
@@ -255,7 +310,12 @@ function resolveDataFile(
   inputDirectory: string,
   logicalFileName: PublicBudgetLogicalFileName,
   expectedSha256: string
-): { actualFileName: string; filePath: string; actualSha256: string } {
+): {
+  actualFileName: string;
+  filePath: string;
+  actualSha256: string;
+  content: Buffer;
+} {
   const candidates = listFileCandidates(inputDirectory, logicalFileName);
   if (candidates.length === 0) {
     throw new PublicBudgetDatasetReadError(
@@ -264,27 +324,46 @@ function resolveDataFile(
     );
   }
 
-  const candidatesWithHashes = candidates.map((actualFileName) => {
+  const preferredCandidates = [...candidates].sort((left, right) => {
+    if (left === logicalFileName) {
+      return -1;
+    }
+    if (right === logicalFileName) {
+      return 1;
+    }
+    return left.localeCompare(right);
+  });
+  let onlyCandidate:
+    | {
+        actualFileName: string;
+        filePath: string;
+        actualSha256: string;
+        content: Buffer;
+      }
+    | undefined;
+
+  for (const actualFileName of preferredCandidates) {
     const filePath = path.join(inputDirectory, actualFileName);
-    return {
+    const content = readFileSnapshot(
+      filePath,
+      publicBudgetInputLimits.dataFileBytes,
+      logicalFileName
+    );
+    const candidate = {
       actualFileName,
       filePath,
-      actualSha256: sha256File(filePath),
+      actualSha256: sha256Buffer(content),
+      content,
     };
-  });
-  const hashMatches = candidatesWithHashes.filter(
-    (candidate) => candidate.actualSha256 === expectedSha256
-  );
-
-  if (hashMatches.length > 0) {
-    return (
-      hashMatches.find(
-        (candidate) => candidate.actualFileName === logicalFileName
-      ) ?? hashMatches[0]
-    );
+    if (candidate.actualSha256 === expectedSha256) {
+      return candidate;
+    }
+    if (preferredCandidates.length === 1) {
+      onlyCandidate = candidate;
+    }
   }
-  if (candidatesWithHashes.length === 1) {
-    return candidatesWithHashes[0];
+  if (onlyCandidate) {
+    return onlyCandidate;
   }
 
   throw new PublicBudgetDatasetReadError(
@@ -315,8 +394,14 @@ export function readPublicBudgetDataset(
     ...options,
     inputDirectory,
   });
+  const manifestContent = readFileSnapshot(
+    manifestPath,
+    publicBudgetInputLimits.manifestBytes,
+    publicBudgetManifestLogicalFileName
+  );
   const manifest = readJsonWithSchema(
     manifestPath,
+    manifestContent,
     publicDatasetManifestSchema
   );
   const entries = manifestEntriesByFileName(manifest);
@@ -336,6 +421,19 @@ export function readPublicBudgetDataset(
     resolvedFiles.set(
       logicalFileName,
       resolveDataFile(inputDirectory, logicalFileName, entry.sha256)
+    );
+  }
+
+  const totalInputBytes =
+    manifestContent.byteLength +
+    [...resolvedFiles.values()].reduce(
+      (total, file) => total + file.content.byteLength,
+      0
+    );
+  if (totalInputBytes > publicBudgetInputLimits.totalBytes) {
+    throw new PublicBudgetDatasetReadError(
+      "DATASET_TOO_LARGE",
+      `公開用予算データセットが上限 ${publicBudgetInputLimits.totalBytes} bytes を超えています: ${totalInputBytes} bytes`
     );
   }
 
@@ -368,29 +466,35 @@ export function readPublicBudgetDataset(
 
   const identities = readCsvWithSchema(
     identityFile.filePath,
+    identityFile.content,
     publicBudgetProgramIdentityHeaders,
     publicBudgetProgramIdentityRowSchema
   );
   const programs = readCsvWithSchema(
     programFile.filePath,
+    programFile.content,
     publicBudgetProgramHeaders,
     publicBudgetProgramRowSchema
   );
   const budgetItems = readJsonWithSchema(
     budgetItemFile.filePath,
+    budgetItemFile.content,
     publicBudgetItemsSchema
   );
   const revenueDetails = readCsvWithSchema(
     revenueDetailFile.filePath,
+    revenueDetailFile.content,
     publicBudgetRevenueDetailHeaders,
     publicBudgetRevenueDetailRowSchema
   );
   const revenueItems = readJsonWithSchema(
     revenueItemFile.filePath,
+    revenueItemFile.content,
     publicBudgetRevenueItemsSchema
   );
   const revenueAllocations = readJsonWithSchema(
     allocationFile.filePath,
+    allocationFile.content,
     publicBudgetRevenueAllocationsSchema
   );
 
@@ -442,6 +546,7 @@ export function readPublicBudgetDataset(
       expectedColumnCount:
         entry.format === "csv" ? entry.columnCount : undefined,
       actualColumnCount: parsedFile.columnCount,
+      content: resolvedFile.content,
     };
   });
 
@@ -449,7 +554,8 @@ export function readPublicBudgetDataset(
     manifest,
     manifestFileName: path.basename(manifestPath),
     manifestFilePath: manifestPath,
-    manifestSha256: sha256File(manifestPath),
+    manifestSha256: sha256Buffer(manifestContent),
+    manifestContent,
     files,
     programIdentities: identities.records,
     programs: programs.records,

@@ -8,6 +8,7 @@ import {
 } from "./public-budget-test-fixture";
 import {
   type PublicBudgetDatasetReadError,
+  publicBudgetInputLimits,
   readPublicBudgetDataset,
 } from "./read-public-budget-files";
 import { validatePublicBudgetDataset } from "./validate-public-budget-files";
@@ -133,5 +134,113 @@ describe("readPublicBudgetDataset", () => {
         code: "SCHEMA_VALIDATION_FAILED",
       })
     );
+  });
+
+  it("manifestと個別データファイルのサイズ上限を読み込み前に適用する", () => {
+    const oversizedManifest = writePublicBudgetTestFixture(
+      makeTemporaryDirectory()
+    );
+    fs.truncateSync(
+      oversizedManifest.actualFilePaths["public_dataset_manifest.json"],
+      publicBudgetInputLimits.manifestBytes + 1
+    );
+
+    expect(() =>
+      readPublicBudgetDataset({
+        inputDirectory: oversizedManifest.inputDirectory,
+      })
+    ).toThrowError(
+      expect.objectContaining<Partial<PublicBudgetDatasetReadError>>({
+        code: "FILE_TOO_LARGE",
+      })
+    );
+
+    const oversizedData = writePublicBudgetTestFixture(
+      makeTemporaryDirectory()
+    );
+    fs.truncateSync(
+      oversizedData.actualFilePaths["public_budget_items.json"],
+      publicBudgetInputLimits.dataFileBytes + 1
+    );
+
+    expect(() =>
+      readPublicBudgetDataset({ inputDirectory: oversizedData.inputDirectory })
+    ).toThrowError(
+      expect.objectContaining<Partial<PublicBudgetDatasetReadError>>({
+        code: "FILE_TOO_LARGE",
+      })
+    );
+  });
+
+  it("データセット全体のサイズ上限を適用する", () => {
+    const fixture = writePublicBudgetTestFixture(makeTemporaryDirectory());
+    const perFileBytes =
+      Math.floor(
+        publicBudgetInputLimits.totalBytes /
+          Object.keys(fixture.actualFilePaths).filter(
+            (fileName) => fileName !== "public_dataset_manifest.json"
+          ).length
+      ) + 1;
+    for (const [logicalFileName, filePath] of Object.entries(
+      fixture.actualFilePaths
+    )) {
+      if (logicalFileName !== "public_dataset_manifest.json") {
+        fs.truncateSync(filePath, perFileBytes);
+      }
+    }
+
+    expect(() =>
+      readPublicBudgetDataset({ inputDirectory: fixture.inputDirectory })
+    ).toThrowError(
+      expect.objectContaining<Partial<PublicBudgetDatasetReadError>>({
+        code: "DATASET_TOO_LARGE",
+      })
+    );
+  });
+
+  it("同一論理ファイルの候補数を制限する", () => {
+    const fixture = writePublicBudgetTestFixture(makeTemporaryDirectory());
+    const sourcePath = fixture.actualFilePaths["public_budget_programs.csv"];
+    for (
+      let index = 1;
+      index <= publicBudgetInputLimits.candidatesPerLogicalFile;
+      index += 1
+    ) {
+      fs.copyFileSync(
+        sourcePath,
+        path.join(
+          fixture.inputDirectory,
+          `public_budget_programs (${index}).csv`
+        )
+      );
+    }
+
+    expect(() =>
+      readPublicBudgetDataset({ inputDirectory: fixture.inputDirectory })
+    ).toThrowError(
+      expect.objectContaining<Partial<PublicBudgetDatasetReadError>>({
+        code: "TOO_MANY_FILE_CANDIDATES",
+      })
+    );
+  });
+
+  it("読み込み後に元ファイルが変わっても検証済みスナップショットを保持する", () => {
+    const fixture = writePublicBudgetTestFixture(makeTemporaryDirectory());
+    const dataset = readPublicBudgetDataset({
+      inputDirectory: fixture.inputDirectory,
+    });
+    const loadedProgramFile = dataset.files.find(
+      (file) => file.logicalFileName === "public_budget_programs.csv"
+    );
+    const snapshot = Buffer.from(loadedProgramFile?.content ?? []);
+
+    fs.appendFileSync(
+      fixture.actualFilePaths["public_budget_programs.csv"],
+      "\nchanged",
+      "utf8"
+    );
+
+    expect(loadedProgramFile?.content).toEqual(snapshot);
+    expect(dataset.programs).toHaveLength(1);
   });
 });
