@@ -48,6 +48,7 @@
     "includes": [
       "web/src/**/*",
       "admin/src/**/*",
+      "packages/seed/budget/**/*",
       "tests/**/*",
       "!.claude/worktrees"
     ]
