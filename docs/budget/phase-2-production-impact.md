@@ -5,7 +5,7 @@
 - PR: [#142](https://github.com/ogukazu7627-sys/setagaya-mirai-gikai/pull/142)
 - base: `main`
 - head: `agent/touchable-budget-phase-2`
-- 監査対象head: `cf144ed3595cfcd50d52deaa60881cd2c82d7418`
+- 監査対象head: `6bb7bccb91d128b6220d7f5a6d31a3afd739eec1`
 
 この文書はPRを`main`へマージした場合の自動処理と、停止・復旧方法を
 整理したものである。本番migration、データ投入、deployは実施していない。
@@ -86,5 +86,10 @@ DB migration成功後にVercel hookだけ失敗した場合、DB schemaは適用
 ## 現時点の判断
 
 migration自体に既存テーブルへの破壊的変更はない。一方、実データ全量を
-CLIからPostgREST経由で送信する非本番試験が未完了のため、Phase 2.1監査が
-完了するまではPR #142を本番マージしない。
+CLIからPostgREST経由で送信するHosted試験は未実施であり、全量RPCの処理時間と
+timeout余裕は残余リスクである。2026-07-30にデータオーナーがこのリスクを
+受容し、PRの基盤migrationとVercel deployだけを先行する方針を承認した。
+
+重要監査項目にFAILがなく、最新CIが成功し、未解決レビューがない場合は
+PR #142を本番マージできる。ただし予算データの本番投入・active化はこの承認に
+含まれず、別途明示的な許可を受けるまで実施しない。
