@@ -6,6 +6,7 @@ import {
   formatBudgetAmount,
   formatJapaneseFiscalYear,
   formatRawThousandYen,
+  shortenBudgetDepartmentName,
 } from "./budget-page-view";
 
 const activeDataset = {
@@ -117,5 +118,13 @@ describe("budget page view", () => {
     expect(() => formatBudgetAmount(Number.MAX_SAFE_INTEGER + 1)).toThrow(
       "予算額が安全整数ではありません"
     );
+  });
+
+  it("市民向け正式部署名の末尾をグラフ用に短縮表示する", () => {
+    expect(shortenBudgetDepartmentName("教育委員会事務局 教育環境課")).toBe(
+      "教育環境課"
+    );
+    expect(shortenBudgetDepartmentName("財務部")).toBe("財務部");
+    expect(shortenBudgetDepartmentName("")).toBe("担当部署表示なし");
   });
 });

@@ -15,7 +15,7 @@ export const BUDGET_NETWORK_TOPICS = [
     desktop: { x: 18, y: 38 },
   },
   {
-    id: "childcare",
+    id: "child-rearing",
     label: "子育て",
     tone: "mint",
     mobile: { x: 50, y: 43 },
@@ -43,7 +43,7 @@ export const BUDGET_NETWORK_TOPICS = [
     desktop: { x: 86, y: 31 },
   },
   {
-    id: "administration",
+    id: "administration-finance",
     label: "行財政",
     tone: "mint",
     mobile: { x: 82, y: 58 },
@@ -167,12 +167,20 @@ const BUDGET_NETWORK_DECORATIONS = [
 ] as const satisfies readonly BudgetNetworkDecoration[];
 
 const BUDGET_NETWORK_EDGES = [
-  { source: "education", target: "childcare", strength: "primary" },
+  { source: "education", target: "child-rearing", strength: "primary" },
   { source: "education", target: "culture-sports", strength: "primary" },
-  { source: "childcare", target: "welfare", strength: "primary" },
-  { source: "childcare", target: "administration", strength: "secondary" },
+  { source: "child-rearing", target: "welfare", strength: "primary" },
+  {
+    source: "child-rearing",
+    target: "administration-finance",
+    strength: "secondary",
+  },
   { source: "welfare", target: "daily-life", strength: "primary" },
-  { source: "welfare", target: "administration", strength: "primary" },
+  {
+    source: "welfare",
+    target: "administration-finance",
+    strength: "primary",
+  },
   {
     source: "urban-development",
     target: "disaster-prevention",
@@ -186,23 +194,31 @@ const BUDGET_NETWORK_EDGES = [
   },
   {
     source: "disaster-prevention",
-    target: "administration",
+    target: "administration-finance",
     strength: "secondary",
   },
-  { source: "administration", target: "industry", strength: "primary" },
+  {
+    source: "administration-finance",
+    target: "industry",
+    strength: "primary",
+  },
   { source: "industry", target: "environment", strength: "secondary" },
   { source: "environment", target: "daily-life", strength: "primary" },
   { source: "culture-sports", target: "daily-life", strength: "secondary" },
   { source: "education", target: "d02", strength: "secondary" },
-  { source: "d02", target: "childcare", strength: "secondary" },
-  { source: "childcare", target: "d03", strength: "secondary" },
+  { source: "d02", target: "child-rearing", strength: "secondary" },
+  { source: "child-rearing", target: "d03", strength: "secondary" },
   { source: "welfare", target: "d04", strength: "secondary" },
   {
     source: "urban-development",
     target: "d10",
     strength: "secondary",
   },
-  { source: "d06", target: "administration", strength: "secondary" },
+  {
+    source: "d06",
+    target: "administration-finance",
+    strength: "secondary",
+  },
   { source: "culture-sports", target: "d11", strength: "secondary" },
   { source: "environment", target: "d12", strength: "secondary" },
   { source: "industry", target: "d13", strength: "secondary" },

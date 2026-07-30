@@ -15,6 +15,16 @@ export const routes = {
   reportProblemThanks: () => "/report-problem/thanks" as const,
   bills: () => "/bills" as const,
   budget: () => "/budget" as const,
+  budgetCategory: (categorySlug: string) =>
+    `/budget?category=${encodeURIComponent(categorySlug)}` as const,
+  budgetTopic: (categorySlug: string, topicSlug: string) =>
+    `/budget?category=${encodeURIComponent(categorySlug)}&topic=${encodeURIComponent(topicSlug)}` as const,
+  budgetOfficialHierarchy: (accountCode?: string) =>
+    accountCode
+      ? (`/budget/official?account=${encodeURIComponent(accountCode)}` as const)
+      : ("/budget/official" as const),
+  budgetProgramDetail: (budgetProgramIdentityId: string) =>
+    `/budget/programs/${budgetProgramIdentityId}` as const,
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,
