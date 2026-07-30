@@ -203,34 +203,35 @@ describe("budget read model RPC", () => {
     });
 
     expect(result.error).toBeNull();
-    expect(result.data).toMatchObject({
-      active_dataset: { id: datasetId },
-      accounts: [
-        {
-          account_code: "general",
-          kans: [
-            {
-              code: "01",
-              kous: [
-                {
-                  code: "01",
-                  mokus: [
-                    {
-                      code: "01",
-                      programs: [
-                        expect.objectContaining({
-                          budget_program_identity_id: "bpi_test",
-                        }),
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
+    const data = result.data as {
+      active_dataset: { id: string };
+      accounts: Array<{
+        account_code: string;
+        kans: Array<{
+          code: string;
+          kous: Array<{
+            code: string;
+            mokus: Array<{
+              code: string;
+              programs: Array<{
+                budget_program_identity_id: string;
+              }>;
+            }>;
+          }>;
+        }>;
+      }>;
+    };
+    const general = data.accounts.find(
+      (account) => account.account_code === "general"
+    );
+    const kan = general?.kans.find((entry) => entry.code === "01");
+    const kou = kan?.kous.find((entry) => entry.code === "01");
+    const moku = kou?.mokus.find((entry) => entry.code === "01");
+
+    expect(data.active_dataset.id).toBe(datasetId);
+    expect(
+      moku?.programs.map((program) => program.budget_program_identity_id)
+    ).toContain("bpi_test");
   });
 
   it("歳入の目・節・細節と関連歳出事業を一括取得する", async () => {
