@@ -5,7 +5,7 @@
 - PR: [#142](https://github.com/ogukazu7627-sys/setagaya-mirai-gikai/pull/142)
 - base: `main`
 - head: `agent/touchable-budget-phase-2`
-- 監査対象head: `8716238d4565c2576ea70d002436d6d110d412f8`
+- 監査対象head: `cf144ed3595cfcd50d52deaa60881cd2c82d7418`
 
 この文書はPRを`main`へマージした場合の自動処理と、停止・復旧方法を
 整理したものである。本番migration、データ投入、deployは実施していない。
@@ -16,6 +16,7 @@
 | --- | --- | --- |
 | `Code Check` | lint、型検査、build、unit test | 実行される |
 | `Integration Tests` | ローカルSupabase起動、migration、実DB統合テスト | 実行される |
+| `Pinact Check` | GitHub Actions参照を固定SHAで検証 | workflow変更のため実行される |
 | `Migrate DB then Deploy` | Supabase差分検知、`db push`、config push、Vercel hook | 実行される |
 | `Deploy Topic Analysis Worker` | worker image build、Cloud Run Job更新 | `packages/supabase/**`変更のため実行対象 |
 
