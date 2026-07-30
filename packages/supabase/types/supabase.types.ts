@@ -2658,6 +2658,31 @@ export type Database = {
           stance: string
         }[]
       }
+      get_budget_official_hierarchy: {
+        Args: {
+          p_account_code?: string | null
+          p_fiscal_year?: number | null
+        }
+        Returns: Json
+      }
+      get_budget_overview: {
+        Args: { p_fiscal_year?: number | null }
+        Returns: Json
+      }
+      get_budget_program_detail: {
+        Args: {
+          p_budget_program_identity_id: string
+          p_fiscal_year?: number | null
+        }
+        Returns: Json
+      }
+      get_budget_revenue_item: {
+        Args: {
+          p_fiscal_year?: number | null
+          p_revenue_item_key: string
+        }
+        Returns: Json
+      }
       count_reactions_by_report_ids: {
         Args: { report_ids: string[] }
         Returns: {
@@ -2846,6 +2871,10 @@ export type Database = {
         Args: { p_extracted_at: string; p_ids: string[] }
         Returns: undefined
       }
+      normalize_budget_search_text: {
+        Args: { p_value: string | null }
+        Returns: string
+      }
       publish_topic_analysis_version: {
         Args: { p_version_id: string }
         Returns: undefined
@@ -2883,6 +2912,41 @@ export type Database = {
           keyword_score: number
           score: number
           semantic_similarity: number
+        }[]
+      }
+      search_budget_programs: {
+        Args: {
+          p_account_code?: string | null
+          p_fiscal_year?: number | null
+          p_include_zero_amount?: boolean
+          p_page?: number
+          p_page_size?: number
+          p_query: string
+        }
+        Returns: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_program_identity_id: string
+          dataset_id: string
+          department_display_name: string
+          display_program_name: string
+          fiscal_year: number
+          has_public_identity_resolution: boolean
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          matched_field: string
+          member_group_count: number
+          member_program_count: number
+          moku_code: string
+          moku_name: string
+          related_revenue_count: number
+          score: number
+          total_count: number
         }[]
       }
       save_push_subscription: {
