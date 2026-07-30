@@ -4,18 +4,20 @@ import {
   Landmark,
   type LucideIcon,
   UsersRound,
+  WalletCards,
 } from "lucide-react";
 import { routes } from "@/lib/routes";
 
 export type PrimaryNavigationItemId =
   | "home"
   | "council"
+  | "budget"
   | "councilors"
   | "learn";
 
 export type PrimaryNavigationItem = {
   id: PrimaryNavigationItemId;
-  label: "ホーム" | "議会" | "議員" | "学ぶ";
+  label: "ホーム" | "議会" | "予算" | "議員" | "学ぶ";
   href: string;
   icon: LucideIcon;
   matches: (pathname: string) => boolean;
@@ -47,6 +49,13 @@ export const PRIMARY_NAVIGATION_ITEMS: readonly PrimaryNavigationItem[] = [
     href: routes.bills(),
     icon: Landmark,
     matches: isCouncilPath,
+  },
+  {
+    id: "budget",
+    label: "予算",
+    href: routes.budget(),
+    icon: WalletCards,
+    matches: (pathname) => isPathWithin(pathname, routes.budget()),
   },
   {
     id: "councilors",

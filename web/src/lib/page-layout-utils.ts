@@ -24,7 +24,12 @@ export function hasPersistentChatSidebar(pathname: string): boolean {
 
 /** コンテンツをヘッダー幅まで広げるページかどうかを判定 */
 export function isWidePage(pathname: string): boolean {
-  return pathname === "/learn" || pathname.startsWith("/learn/");
+  return (
+    pathname === "/budget" ||
+    pathname.startsWith("/budget/") ||
+    pathname === "/learn" ||
+    pathname.startsWith("/learn/")
+  );
 }
 
 /** インタビューチャットページかどうかを判定 */

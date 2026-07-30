@@ -14,6 +14,7 @@ describe("primary navigation", () => {
     ).toEqual([
       { label: "ホーム", href: routes.home() },
       { label: "議会", href: routes.bills() },
+      { label: "予算", href: routes.budget() },
       { label: "議員", href: routes.councilors() },
       { label: "学ぶ", href: routes.learn() },
     ]);
@@ -27,6 +28,8 @@ describe("primary navigation", () => {
     ["/committees", "council"],
     ["/committees/committee-id", "council"],
     ["/kokkai/2026-session/bills", "council"],
+    ["/budget", "budget"],
+    ["/budget/programs/program-id", "budget"],
     ["/councilors", "councilors"],
     ["/councilors/councilor-id", "councilors"],
     ["/learn", "learn"],

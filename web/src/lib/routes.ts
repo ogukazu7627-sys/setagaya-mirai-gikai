@@ -14,6 +14,7 @@ export const routes = {
   reportProblem: () => "/report-problem" as const,
   reportProblemThanks: () => "/report-problem/thanks" as const,
   bills: () => "/bills" as const,
+  budget: () => "/budget" as const,
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,

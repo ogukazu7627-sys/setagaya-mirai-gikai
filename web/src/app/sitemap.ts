@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
   const navigationUrls = [
     routes.bills(),
+    routes.budget(),
     routes.councilors(),
     routes.committees(),
     routes.learn(),

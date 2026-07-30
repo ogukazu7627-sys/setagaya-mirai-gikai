@@ -101,8 +101,8 @@ describe("MainLayout", () => {
     );
   });
 
-  it("uses the wide layout for the learn index and lesson pages", () => {
-    navigationMock.pathname = "/learn";
+  it("uses the wide layout for the budget, learn index, and lesson pages", () => {
+    navigationMock.pathname = "/budget";
     const { container, rerender } = render(
       <MainLayout>
         <main>content</main>
@@ -111,6 +111,14 @@ describe("MainLayout", () => {
 
     expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
     expect(container.firstElementChild).not.toHaveClass("max-w-[700px]");
+
+    navigationMock.pathname = "/learn";
+    rerender(
+      <MainLayout>
+        <main>content</main>
+      </MainLayout>
+    );
+    expect(container.firstElementChild).toHaveClass("max-w-[1180px]");
 
     navigationMock.pathname = "/learn/bill-process";
     rerender(
