@@ -28,7 +28,7 @@ export function PrimaryNavigation({
         className={cn(
           isDesktop
             ? "flex items-stretch justify-center gap-1"
-            : "grid h-[var(--mobile-primary-navigation-height)] grid-cols-4"
+            : "grid h-[var(--mobile-primary-navigation-height)] grid-cols-5"
         )}
       >
         {PRIMARY_NAVIGATION_ITEMS.map((item) => {

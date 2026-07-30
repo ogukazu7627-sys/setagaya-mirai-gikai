@@ -48,7 +48,9 @@ describe("hasPersistentChatSidebar", () => {
 });
 
 describe("isWidePage", () => {
-  it("returns true for the learn index and lesson pages", () => {
+  it("returns true for the budget and learn pages", () => {
+    expect(isWidePage("/budget")).toBe(true);
+    expect(isWidePage("/budget/programs/bpi-1")).toBe(true);
     expect(isWidePage("/learn")).toBe(true);
     expect(isWidePage("/learn/bill-process")).toBe(true);
   });

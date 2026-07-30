@@ -36,12 +36,14 @@ describe("PrimaryNavigation", () => {
     expect(links.map((link) => link.textContent)).toEqual([
       "ホーム",
       "議会",
+      "予算",
       "議員",
       "学ぶ",
     ]);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       routes.home(),
       routes.bills(),
+      routes.budget(),
       routes.councilors(),
       routes.learn(),
     ]);
@@ -52,7 +54,7 @@ describe("PrimaryNavigation", () => {
       within(navigation).getByRole("link", { name: "ホーム" })
     ).not.toHaveAttribute("aria-current");
     expect(navigation.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(
-      4
+      5
     );
     expect(within(navigation).getByRole("link", { name: "議会" })).toHaveClass(
       "border-primary-strong",
@@ -66,7 +68,7 @@ describe("PrimaryNavigation", () => {
     );
   });
 
-  it("uses four equal columns and 44px minimum tap targets on mobile", () => {
+  it("uses five equal columns and 44px minimum tap targets on mobile", () => {
     render(<PrimaryNavigation pathname="/" variant="mobile" />);
 
     const navigation = screen.getByRole("navigation", {
@@ -74,7 +76,7 @@ describe("PrimaryNavigation", () => {
     });
     expect(navigation.querySelector("ul")).toHaveClass(
       "grid",
-      "grid-cols-4",
+      "grid-cols-5",
       "h-[var(--mobile-primary-navigation-height)]"
     );
     for (const link of within(navigation).getAllByRole("link")) {
