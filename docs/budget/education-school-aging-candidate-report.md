@@ -8,12 +8,13 @@
 - high: 10件
 - medium: 3件
 - low: 3件
-- `review_decision`: 全16件で空欄
+- `review_decision`: approve 13件 / reject 3件
 - Supabaseへの登録・公開: 未実施
 
-highを含め、候補は公式な政策分類でも公開判断でもない。公開7ファイルには
-「老朽化への対応」という目的が直接記載されていないため、すべて
-approve / reject / revise の人間レビューを要する。
+候補は公式な政策分類ではない。公開7ファイルには「老朽化への対応」という
+目的が直接記載されていないため、2026-07-30に人間レビューを行い、highと
+mediumの13件を承認し、lowの3件を対象外と判断した。この判断結果だけを
+CSVへ記録し、Supabaseへの登録や一般公開は行っていない。
 
 ## 入力と整合性
 
@@ -92,6 +93,8 @@ approve / reject / revise の人間レビューを要する。
 
 参考金額合計: 13,083,893千円
 
+レビュー結果: 10件すべてapprove
+
 ### Medium
 
 | 予算事業identity | 金額（千円） | 提案関係 |
@@ -101,6 +104,8 @@ approve / reject / revise の人間レビューを要する。
 | 義務教育施設整備基金積立金 | 341,460 | enables |
 
 参考金額合計: 4,788,713千円
+
+レビュー結果: 3件すべてapprove
 
 ### Low
 
@@ -112,9 +117,12 @@ approve / reject / revise の人間レビューを要する。
 
 参考金額合計: 1,041,073千円
 
-全候補の参考金額合計は18,913,679千円である。この合計は
-「学校施設の老朽化対策費」という公式集計ではなく、未レビュー候補の予算額を
-機械的に合計した参考値にすぎない。レビュー完了前に画面表示やAI回答で
+レビュー結果: 3件すべてreject
+
+approveされた13件の参考金額合計は17,872,606千円、rejectされた3件は
+1,041,073千円、全候補は18,913,679千円である。approve分を含め、これらは
+「学校施設の老朽化対策費」という公式集計ではなく、編集上関連付けた事業の
+予算額を機械的に合計した参考値にすぎない。画面表示やAI回答で公式の
 課題別予算額として使用してはいけない。
 
 ## Evidence fields
@@ -172,19 +180,18 @@ CSVの`evidence_fields`はJSON文字列で、各候補について次を保持�
 | confidence | high 10 / medium 3 / low 3 |
 | evidence_level | B 13 / C 3 / A 0 |
 | `evidence_fields` JSON | 全件parse可能 |
-| `review_decision` | 全件空欄 |
-| `review_note` | 全件空欄 |
+| `review_decision` | approve 13 / reject 3 / revise 0 / 空欄 0 |
+| `review_note` | 全16件にレビュー日と判断を記録 |
 | Supabase書き込み | 0件 |
 
-## 次の人間レビュー
+## 人間レビュー結果と次の扱い
 
-レビュー担当者はCSVの各行について、次のいずれかを
-`review_decision`へ記入する。
+2026-07-30のチャットレビューで、次の判断を確定した。
 
-- `approve`: 提案された課題・関係・説明を承認する
-- `reject`: この課題との関係候補から外す
-- `revise`: 関係種別、説明、confidenceなどの修正が必要
+- 1〜13行目（high 10件、medium 3件）: approve
+- 14〜16行目（low 3件）: reject
+- revise、未判断: 0件
 
-判断根拠や修正内容は`review_note`へ記録する。レビューが完了するまで、
-Supabaseの`budget_topics`や`budget_topic_programs`へ登録せず、
-一般ユーザーへ公開しない。
+このレビューは候補関係の編集判断であり、公式分類への変更ではない。
+Supabaseの`budget_topics`や`budget_topic_programs`への登録、および
+一般ユーザーへの公開は、別Phaseで明示的に実施するまで行わない。
