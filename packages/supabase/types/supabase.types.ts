@@ -203,6 +203,33 @@ export type Database = {
           },
         ]
       }
+      budget_categories: {
+        Row: {
+          id: string
+          name: string
+          short_description: string
+          slug: string
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          short_description: string
+          slug: string
+          sort_order: number
+          status?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          short_description?: string
+          slug?: string
+          sort_order?: number
+          status?: string
+        }
+        Relationships: []
+      }
       budget_datasets: {
         Row: {
           activated_at: string | null
@@ -898,6 +925,132 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      budget_topic_categories: {
+        Row: {
+          category_id: string
+          is_primary: boolean
+          relevance_weight: number
+          topic_id: string
+        }
+        Insert: {
+          category_id: string
+          is_primary?: boolean
+          relevance_weight?: number
+          topic_id: string
+        }
+        Update: {
+          category_id?: string
+          is_primary?: boolean
+          relevance_weight?: number
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_topic_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_topic_categories_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "budget_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_topic_programs: {
+        Row: {
+          budget_program_identity_id: string
+          dataset_id: string
+          evidence_fields: Json
+          evidence_level: string
+          evidence_source_url: string | null
+          explanation: string
+          relation_type: string
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          topic_id: string
+        }
+        Insert: {
+          budget_program_identity_id: string
+          dataset_id: string
+          evidence_fields?: Json
+          evidence_level: string
+          evidence_source_url?: string | null
+          explanation?: string
+          relation_type: string
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          topic_id: string
+        }
+        Update: {
+          budget_program_identity_id?: string
+          dataset_id?: string
+          evidence_fields?: Json
+          evidence_level?: string
+          evidence_source_url?: string | null
+          explanation?: string
+          relation_type?: string
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_topic_programs_identity_fkey"
+            columns: ["dataset_id", "budget_program_identity_id"]
+            isOneToOne: false
+            referencedRelation: "budget_program_identities"
+            referencedColumns: [
+              "dataset_id",
+              "budget_program_identity_id",
+            ]
+          },
+          {
+            foreignKeyName: "budget_topic_programs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "budget_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_topics: {
+        Row: {
+          editorial_note: string
+          id: string
+          name: string
+          short_description: string
+          slug: string
+          status: string
+          topic_kind: string
+        }
+        Insert: {
+          editorial_note?: string
+          id?: string
+          name: string
+          short_description?: string
+          slug: string
+          status?: string
+          topic_kind: string
+        }
+        Update: {
+          editorial_note?: string
+          id?: string
+          name?: string
+          short_description?: string
+          slug?: string
+          status?: string
+          topic_kind?: string
+        }
+        Relationships: []
       }
       chat_usage_events: {
         Row: {
