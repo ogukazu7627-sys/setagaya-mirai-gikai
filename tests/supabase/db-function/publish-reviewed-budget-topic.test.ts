@@ -41,6 +41,7 @@ describe("publish_reviewed_budget_topic", () => {
   let payload: ReviewedBudgetTopicPayload;
   let firstApprovedIdentityId: string;
   let firstApprovedDisplayName: string;
+  let firstApprovedBudgetItemKey: string;
   let firstRejectedIdentityId: string;
 
   beforeAll(async () => {
@@ -84,6 +85,9 @@ describe("publish_reviewed_budget_topic", () => {
     firstApprovedIdentityId =
       reviewFile.selectedRows[0].budget_program_identity_id;
     firstApprovedDisplayName = reviewFile.selectedRows[0].display_program_name;
+    firstApprovedBudgetItemKey = String(
+      reviewFile.selectedRows[0].evidence_fields.budget_item_key
+    );
     firstRejectedIdentityId =
       reviewFile.excludedRows[0].budget_program_identity_id;
 
@@ -197,7 +201,7 @@ describe("publish_reviewed_budget_topic", () => {
       relation_type: "responds_to",
       evidence_level: "B_strong_structural",
       evidence_fields: {
-        budget_item_key: "2026_general_expenditure_08_02_05",
+        budget_item_key: firstApprovedBudgetItemKey,
       },
       review_status: "published",
       reviewed_by: reviewerId,
