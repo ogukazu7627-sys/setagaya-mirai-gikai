@@ -5,14 +5,19 @@
 - 監査日: 2026-07-30
 - 対象PR: [#142](https://github.com/ogukazu7627-sys/setagaya-mirai-gikai/pull/142)
 - base: `main`
-- 監査済みhead: `cf144ed3595cfcd50d52deaa60881cd2c82d7418`
-- 総合判定: **NOT_TESTEDを含むため、現時点では本番マージ非推奨**
+- 監査済みhead: `7150711e039dd7dcb2c353e62468187244e0f3d5`
+- 総合判定: **既知リスクを受容し、基盤のみ本番マージ可**
 
 全量の公開予算データから作る6,627,790 bytesのJSON payloadを、
 非本番SupabaseのPostgREST経由で最後まで投入する試験だけが未完了である。
 小規模fixtureでは本番同等の通信経路がPASSしているが、全量RPCの処理時間と
-hosted環境のtimeout余裕は実測できていない。PRのマージ、本番migration、
-本番データ投入、Vercel deployは実施していない。
+hosted環境のtimeout余裕は実測できていない。
+
+2026-07-30、データオーナーはこの残余リスクを理解した上で、専用Hosted
+Supabase試験を省略し、PRのマージと本番データ投入を分離する方針を承認した。
+この承認は基盤migrationとVercel deployだけを対象とし、予算データの本番
+投入・active化は含まない。本番初回投入は別途明示的な許可を受けて実施し、
+全量RPCの性能試験を兼ねる。
 
 ## 項目別判定
 
@@ -21,7 +26,7 @@ hosted環境のtimeout余裕は実測できていない。PRのマージ、本�
 | 1. データセットのバージョン共存 | PASS | 全9子テーブルで同じ外部IDを持つv1/v2が共存し、dataset単位でactiveを切り替える実DBテストがPASS |
 | 2. RPC権限 | PASS | 3 RPCともPUBLIC/anon/authenticatedから実行不可、service_roleのみEXECUTE可。実DBRLSテストがPASS |
 | 3. activationの排他制御 | PASS | transaction advisory lockと部分unique indexで保証し、並行activation実DBテストがPASS |
-| 4. 実際の通信経路と全量payload | NOT_TESTED | 小規模fixtureのCLIからPostgREST/RPCはPASS。実データ全量のremote applyは未実施 |
+| 4. 実際の通信経路と全量payload | RISK_ACCEPTED | 小規模fixtureのCLIからPostgREST/RPCはPASS。実データ全量のremote applyは未実施で、本番初回投入時に計測する |
 | 5. bigintの型契約 | PASS | DBはBIGINT、境界ではsafe integer検証、BigInt直接JSON化禁止を文書・テスト化 |
 | 6. Storage | PASS | private bucket、anon/authenticated全操作拒否、冪等パス、保持・cleanup規則を実DBテスト |
 | 7. 本番マージ影響 | PASS | workflow、migration、deploy、停止・復旧方法を静的確認して文書化 |
@@ -122,10 +127,15 @@ timeout設定に依存する。公式資料:
 現在のメモリ使用量は通常のローカルCLIでは許容範囲だが、JSON全体を1 RPCで
 parse・insert・validateするため、hosted環境のtimeoutが最大の懸念となる。
 
-マージ判断前に、明示されたvalidation Supabaseへ全量`--apply`し、
-RPC時間、CLI全体時間、DB件数・合計を測る。timeoutする場合の代替案は、
-直接DB transaction/COPY、またはchunked stagingと最終validate/activate RPCで
-あり、この監査では大規模改修していない。
+データオーナーのリスク受容により、専用validation Supabaseでの全量試験は
+省略する。本番初回投入はPRマージとは分離し、別途明示的な許可を得た後に
+dry-run、全量`--apply`、投入後検証、同一manifest再実行の順で行う。
+RPC時間、CLI全体時間、timeout余裕はその際に計測する。
+
+本番`--apply`がtimeoutまたは通信結果不明になった場合は直ちに再実行せず、
+manifest hash、dataset status、子テーブル件数、Storage objectを先に照合する。
+代替案は直接DB transaction/COPY、またはchunked stagingと最終
+validate/activate RPCであり、この監査では大規模改修していない。
 
 ## bigint
 
@@ -181,9 +191,12 @@ CLI importをmockではなく実DBで検証した。結果は211 tests PASSで�
 
 ## 未解決事項とマージ判定
 
-未解決は、全量payloadをvalidation Supabaseへ送ったときのRPC処理時間、
-CLI全体時間、timeout余裕の実測だけである。
+未解決は、全量payloadをHosted Supabaseへ送ったときのRPC処理時間、
+CLI全体時間、timeout余裕の実測だけである。この残余リスクはデータオーナーが
+受容した。
 
-この項目がNOT_TESTEDのため、**PR #142は現時点ではマージしない**。
-全量の非本番apply、投入後検証、再実行の冪等性がPASSした時点で、
-マージ可否を再判定する。Phase 3には進まない。
+重要監査項目にFAILはなく、最新CIが成功し、未解決レビューがないことを
+再確認できた場合、**PR #142は基盤のみ本番マージ可**とする。マージ後は
+migration、RLS、RPC権限、private Storage、既存ページ、Vercel deployを確認し、
+予算データを投入せず一度停止する。本番データ投入とPhase 3には、別途明示的な
+許可なしに進まない。
