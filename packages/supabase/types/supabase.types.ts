@@ -2898,6 +2898,10 @@ export type Database = {
           stored_count: number
         }[]
       }
+      publish_reviewed_budget_topic: {
+        Args: { p_payload: Json }
+        Returns: Json
+      }
       find_public_reports_by_bill_id_ordered_by_reactions: {
         Args: {
           p_bill_id: string

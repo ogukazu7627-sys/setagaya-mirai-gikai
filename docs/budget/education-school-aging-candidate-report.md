@@ -9,12 +9,13 @@
 - medium: 3件
 - low: 3件
 - `review_decision`: approve 13件 / reject 3件
-- Supabaseへの登録・公開: 未実施
+- Supabaseへの登録対象: approve 13件
+- Supabaseへの登録対象外: reject 3件
 
 候補は公式な政策分類ではない。公開7ファイルには「老朽化への対応」という
 目的が直接記載されていないため、2026-07-30に人間レビューを行い、highと
-mediumの13件を承認し、lowの3件を対象外と判断した。この判断結果だけを
-CSVへ記録し、Supabaseへの登録や一般公開は行っていない。
+mediumの13件を承認し、lowの3件を対象外と判断した。Phase 5-Bではこの
+CSVを入力として、承認済み13件だけをactive予算版の公開関係へ登録する。
 
 ## 入力と整合性
 
@@ -182,7 +183,8 @@ CSVの`evidence_fields`はJSON文字列で、各候補について次を保持�
 | `evidence_fields` JSON | 全件parse可能 |
 | `review_decision` | approve 13 / reject 3 / revise 0 / 空欄 0 |
 | `review_note` | 全16件にレビュー日と判断を記録 |
-| Supabase書き込み | 0件 |
+| Supabase登録対象 | approve 13件 |
+| Supabase登録対象外 | reject 3件 |
 
 ## 人間レビュー結果と次の扱い
 
@@ -193,5 +195,7 @@ CSVの`evidence_fields`はJSON文字列で、各候補について次を保持�
 - revise、未判断: 0件
 
 このレビューは候補関係の編集判断であり、公式分類への変更ではない。
-Supabaseの`budget_topics`や`budget_topic_programs`への登録、および
-一般ユーザーへの公開は、別Phaseで明示的に実施するまで行わない。
+Phase 5-Bの登録処理は、`budget_topics`、`budget_topic_categories`、
+`budget_topic_programs`だけを対象とし、公式予算テーブルを変更しない。
+一般ユーザーへ返す関係は、人間レビュー情報を保存した
+`review_status=published`の13件だけである。

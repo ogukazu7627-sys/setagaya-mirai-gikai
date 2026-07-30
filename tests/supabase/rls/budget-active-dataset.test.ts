@@ -145,6 +145,9 @@ describe("budget dataset RLS", () => {
         roleClient.rpc("activate_budget_dataset", {
           p_dataset_id: activeDatasetId,
         }),
+        roleClient.rpc("publish_reviewed_budget_topic", {
+          p_payload: {},
+        }),
       ])
     );
 

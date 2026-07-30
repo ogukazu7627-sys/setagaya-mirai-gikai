@@ -64,6 +64,30 @@ pnpm budget:web:import -- --input-dir /path/to/budget-data --apply
 
 公開用7ファイルは非公開Storage bucket `budget-datasets` の `2026/initial/{manifest_sha256}/` に版管理用として保存されます。DBにはまず `staging` として一括投入し、件数・金額・外部キー検証がすべて通った場合だけ、同年度・同予算種別の旧版を `archived` にして新しい版を `active` に切り替えます。一般ユーザーがSELECTできるのは `active` の公開情報だけです。
 
+### 人間レビュー済み課題関係の登録
+
+教育「学校施設の老朽化への対応」の候補CSVは、`review_decision` が
+`approve` または `revise` の行だけを公開関係として登録します。`reject`
+または空欄の行は登録しません。
+
+```bash
+# dry-run（デフォルト）
+pnpm budget:web:topics:publish -- \
+  --input-file data/budget/editorial/review/education-school-aging-candidates.csv
+
+# ローカルSupabaseのactive予算版へ登録
+pnpm budget:web:topics:publish -- \
+  --input-file data/budget/editorial/review/education-school-aging-candidates.csv \
+  --reviewed-by <Supabase Auth user UUID> \
+  --reviewed-at 2026-07-30T16:33:02+09:00 \
+  --apply
+```
+
+`--apply` は予算データ投入CLIと同じ接続先制限を使い、本番環境を拒否します。
+登録先は編集データの `budget_topics`、`budget_topic_categories`、
+`budget_topic_programs` だけです。公式予算テーブルは更新しません。同じCSVを
+再実行しても関係は重複せず、却下済みの候補は公開関係として残りません。
+
 ## マイグレーション
 
 ```bash
