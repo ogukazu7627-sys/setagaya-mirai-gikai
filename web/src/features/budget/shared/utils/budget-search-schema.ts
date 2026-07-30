@@ -26,6 +26,40 @@ export const budgetProgramSearchRequestSchema =
     installationId: z.uuid(),
   });
 
+const budgetHierarchyLabelSchema = z.strictObject({
+  code: z.string(),
+  name: z.string(),
+});
+
+export const budgetProgramSearchResponseSchema = z.strictObject({
+  items: z.array(
+    z.strictObject({
+      datasetId: z.uuid(),
+      budgetProgramIdentityId: z.string().min(1),
+      fiscalYear: z.number().int().min(2000).max(2200),
+      accountCode: z.enum(BUDGET_ACCOUNT_CODES),
+      accountName: z.string(),
+      budgetItemKey: z.string().min(1),
+      kan: budgetHierarchyLabelSchema,
+      kou: budgetHierarchyLabelSchema,
+      moku: budgetHierarchyLabelSchema,
+      displayProgramName: z.string(),
+      departmentDisplayName: z.string(),
+      amountThousandYen: z.number().int().refine(Number.isSafeInteger),
+      memberGroupCount: z.number().int().nonnegative(),
+      memberProgramCount: z.number().int().nonnegative(),
+      relatedRevenueCount: z.number().int().nonnegative(),
+      hasPublicIdentityResolution: z.boolean(),
+      isZeroAmount: z.boolean(),
+      score: z.number().finite(),
+      matchedField: z.string(),
+    })
+  ),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+});
+
 export type BudgetProgramSearchRequest = z.infer<
   typeof budgetProgramSearchRequestSchema
 >;

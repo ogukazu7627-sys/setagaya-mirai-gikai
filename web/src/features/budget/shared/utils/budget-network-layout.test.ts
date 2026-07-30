@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { BUDGET_EXPLORATION_CATEGORIES } from "../constants/budget";
 import {
   BUDGET_NETWORK_TOPICS,
   getBudgetNetworkLayout,
@@ -28,6 +29,9 @@ describe("budget network layout", () => {
   it("contains exactly the ten public entry categories", () => {
     expect(BUDGET_NETWORK_TOPICS.map((topic) => topic.label)).toEqual(
       requiredLabels
+    );
+    expect(BUDGET_NETWORK_TOPICS.map((topic) => topic.id)).toEqual(
+      BUDGET_EXPLORATION_CATEGORIES.map((category) => category.slug)
     );
   });
 

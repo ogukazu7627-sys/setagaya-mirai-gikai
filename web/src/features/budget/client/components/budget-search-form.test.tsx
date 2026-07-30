@@ -50,6 +50,24 @@ describe("BudgetSearchForm", () => {
     );
   });
 
+  it("normalized queryを検索処理へ渡す", async () => {
+    const user = userEvent.setup();
+    const onSubmitQuery = vi.fn();
+    const inputRef = { current: null };
+    render(
+      <BudgetSearchForm
+        inputRef={inputRef}
+        query="  学校   改築  "
+        onQueryChange={vi.fn()}
+        onSubmitQuery={onSubmitQuery}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "検索" }));
+
+    expect(onSubmitQuery).toHaveBeenCalledWith("学校 改築");
+  });
+
   it("keeps focus in the input instead of submitting an empty query", async () => {
     const user = userEvent.setup();
     const submitListener = vi.fn();

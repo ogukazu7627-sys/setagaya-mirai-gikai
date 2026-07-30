@@ -81,3 +81,10 @@ export function formatBudgetAmount(amountThousandYen: number): string {
 export function formatRawThousandYen(amountThousandYen: number): string {
   return `${thousandYenFormatter.format(amountThousandYen)} 千円`;
 }
+
+export function shortenBudgetDepartmentName(
+  departmentDisplayName: string
+): string {
+  const segments = departmentDisplayName.trim().split(/\s+/);
+  return segments.at(-1) || "担当部署表示なし";
+}

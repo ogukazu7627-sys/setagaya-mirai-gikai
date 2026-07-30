@@ -10,12 +10,14 @@ type BudgetSearchFormProps = {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onQueryChange: (query: string) => void;
+  onSubmitQuery?: (query: string) => void;
 };
 
 export function BudgetSearchForm({
   inputRef,
   query,
   onQueryChange,
+  onSubmitQuery,
 }: BudgetSearchFormProps) {
   const handleFocus = () => {
     window.dispatchEvent(
@@ -37,6 +39,7 @@ export function BudgetSearchForm({
         detail: { query: normalizedQuery, source: "form" },
       })
     );
+    onSubmitQuery?.(normalizedQuery);
   };
 
   return (
@@ -58,6 +61,7 @@ export function BudgetSearchForm({
         placeholder="例：学校の改築、子育て支援"
         autoComplete="off"
         enterKeyHint="search"
+        maxLength={100}
         className="h-12 rounded-md border-mirai-border bg-white px-4 text-base shadow-none focus-visible:border-primary-strong focus-visible:ring-primary/30"
       />
       <Button
