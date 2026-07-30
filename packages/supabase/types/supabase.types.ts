@@ -203,6 +203,702 @@ export type Database = {
           },
         ]
       }
+      budget_datasets: {
+        Row: {
+          activated_at: string | null
+          archived_at: string | null
+          budget_type: string
+          currency_unit: string
+          fiscal_year: number
+          id: string
+          import_summary_json: Json
+          imported_at: string
+          manifest_json: Json
+          manifest_sha256: string
+          schema_version: string
+          status: string
+          validation_status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          archived_at?: string | null
+          budget_type: string
+          currency_unit: string
+          fiscal_year: number
+          id?: string
+          import_summary_json: Json
+          imported_at?: string
+          manifest_json: Json
+          manifest_sha256: string
+          schema_version: string
+          status?: string
+          validation_status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          archived_at?: string | null
+          budget_type?: string
+          currency_unit?: string
+          fiscal_year?: number
+          id?: string
+          import_summary_json?: Json
+          imported_at?: string
+          manifest_json?: Json
+          manifest_sha256?: string
+          schema_version?: string
+          status?: string
+          validation_status?: string
+        }
+        Relationships: []
+      }
+      budget_item_sections: {
+        Row: {
+          amount_thousand_yen: number
+          budget_item_key: string
+          dataset_id: string
+          scope: string
+          section_id: string
+          setsu_code: string
+          setsu_name: string
+          source_reference: Json
+        }
+        Insert: {
+          amount_thousand_yen: number
+          budget_item_key: string
+          dataset_id: string
+          scope: string
+          section_id: string
+          setsu_code: string
+          setsu_name: string
+          source_reference: Json
+        }
+        Update: {
+          amount_thousand_yen?: number
+          budget_item_key?: string
+          dataset_id?: string
+          scope?: string
+          section_id?: string
+          setsu_code?: string
+          setsu_name?: string
+          source_reference?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_item_sections_budget_item_fkey"
+            columns: ["dataset_id", "budget_item_key"]
+            isOneToOne: false
+            referencedRelation: "budget_items"
+            referencedColumns: ["dataset_id", "budget_item_key"]
+          },
+        ]
+      }
+      budget_items: {
+        Row: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_side: string
+          data_availability: Json
+          dataset_id: string
+          fiscal_year: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          source_references: Json
+          validation_status: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_side: string
+          data_availability: Json
+          dataset_id: string
+          fiscal_year: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          source_references: Json
+          validation_status: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          amount_thousand_yen?: number
+          budget_item_key?: string
+          budget_side?: string
+          data_availability?: Json
+          dataset_id?: string
+          fiscal_year?: number
+          is_zero_amount?: boolean
+          kan_code?: string
+          kan_name?: string
+          kou_code?: string
+          kou_name?: string
+          moku_code?: string
+          moku_name?: string
+          source_references?: Json
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "budget_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_program_identities: {
+        Row: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_program_identity_id: string
+          budget_side: string
+          dataset_id: string
+          department_display_name: string
+          display_program_name: string
+          fiscal_year: number
+          has_public_identity_resolution: boolean
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          member_group_count: number
+          member_program_count: number
+          moku_code: string
+          moku_name: string
+          related_revenue_count: number
+          source_type: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_program_identity_id: string
+          budget_side: string
+          dataset_id: string
+          department_display_name: string
+          display_program_name: string
+          fiscal_year: number
+          has_public_identity_resolution: boolean
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          member_group_count: number
+          member_program_count: number
+          moku_code: string
+          moku_name: string
+          related_revenue_count: number
+          source_type: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          amount_thousand_yen?: number
+          budget_item_key?: string
+          budget_program_identity_id?: string
+          budget_side?: string
+          dataset_id?: string
+          department_display_name?: string
+          display_program_name?: string
+          fiscal_year?: number
+          has_public_identity_resolution?: boolean
+          is_zero_amount?: boolean
+          kan_code?: string
+          kan_name?: string
+          kou_code?: string
+          kou_name?: string
+          member_group_count?: number
+          member_program_count?: number
+          moku_code?: string
+          moku_name?: string
+          related_revenue_count?: number
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_program_identities_budget_item_fkey"
+            columns: ["dataset_id", "budget_item_key"]
+            isOneToOne: false
+            referencedRelation: "budget_items"
+            referencedColumns: ["dataset_id", "budget_item_key"]
+          },
+        ]
+      }
+      budget_programs: {
+        Row: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_program_identity_id: string
+          budget_program_name: string
+          budget_side: string
+          dataset_id: string
+          department_display_name: string
+          detail_program_name: string
+          fiscal_year: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          major_program_name: string
+          moku_code: string
+          moku_name: string
+          program_id: string
+          source_file: string
+          source_row_number: number
+          source_type: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          amount_thousand_yen: number
+          budget_item_key: string
+          budget_program_identity_id: string
+          budget_program_name: string
+          budget_side: string
+          dataset_id: string
+          department_display_name: string
+          detail_program_name: string
+          fiscal_year: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          major_program_name: string
+          moku_code: string
+          moku_name: string
+          program_id: string
+          source_file: string
+          source_row_number: number
+          source_type: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          amount_thousand_yen?: number
+          budget_item_key?: string
+          budget_program_identity_id?: string
+          budget_program_name?: string
+          budget_side?: string
+          dataset_id?: string
+          department_display_name?: string
+          detail_program_name?: string
+          fiscal_year?: number
+          is_zero_amount?: boolean
+          kan_code?: string
+          kan_name?: string
+          kou_code?: string
+          kou_name?: string
+          major_program_name?: string
+          moku_code?: string
+          moku_name?: string
+          program_id?: string
+          source_file?: string
+          source_row_number?: number
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_programs_identity_item_fkey"
+            columns: [
+              "dataset_id",
+              "budget_program_identity_id",
+              "budget_item_key",
+            ]
+            isOneToOne: false
+            referencedRelation: "budget_program_identities"
+            referencedColumns: [
+              "dataset_id",
+              "budget_program_identity_id",
+              "budget_item_key",
+            ]
+          },
+        ]
+      }
+      budget_revenue_allocations: {
+        Row: {
+          allocation_amount_thousand_yen: number | null
+          allocation_link_id: string
+          amount_attribution_status: string
+          candidate_target_group_count: number
+          dataset_id: string
+          relation_type: string
+          revenue_detail_id: string
+          source_reference: Json
+          target_account_code: string
+          target_budget_book_page: number
+          target_budget_item_key: string
+          target_budget_program_group_id: string | null
+          target_budget_program_identity_id: string
+          target_program_name: string
+          target_resolution_level: string
+        }
+        Insert: {
+          allocation_amount_thousand_yen?: number | null
+          allocation_link_id: string
+          amount_attribution_status: string
+          candidate_target_group_count: number
+          dataset_id: string
+          relation_type: string
+          revenue_detail_id: string
+          source_reference: Json
+          target_account_code: string
+          target_budget_book_page: number
+          target_budget_item_key: string
+          target_budget_program_group_id?: string | null
+          target_budget_program_identity_id: string
+          target_program_name: string
+          target_resolution_level: string
+        }
+        Update: {
+          allocation_amount_thousand_yen?: number | null
+          allocation_link_id?: string
+          amount_attribution_status?: string
+          candidate_target_group_count?: number
+          dataset_id?: string
+          relation_type?: string
+          revenue_detail_id?: string
+          source_reference?: Json
+          target_account_code?: string
+          target_budget_book_page?: number
+          target_budget_item_key?: string
+          target_budget_program_group_id?: string | null
+          target_budget_program_identity_id?: string
+          target_program_name?: string
+          target_resolution_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_revenue_allocations_detail_fkey"
+            columns: ["dataset_id", "revenue_detail_id"]
+            isOneToOne: false
+            referencedRelation: "budget_revenue_details"
+            referencedColumns: ["dataset_id", "revenue_detail_id"]
+          },
+          {
+            foreignKeyName: "budget_revenue_allocations_identity_item_fkey"
+            columns: [
+              "dataset_id",
+              "target_budget_program_identity_id",
+              "target_budget_item_key",
+            ]
+            isOneToOne: false
+            referencedRelation: "budget_program_identities"
+            referencedColumns: [
+              "dataset_id",
+              "budget_program_identity_id",
+              "budget_item_key",
+            ]
+          },
+        ]
+      }
+      budget_revenue_details: {
+        Row: {
+          account_code: string
+          account_name: string
+          budget_side: string
+          current_amount_thousand_yen: number
+          dataset_id: string
+          department_display_name: string
+          diff_amount_thousand_yen: number
+          fiscal_year: number
+          funding_nature: string
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          previous_amount_thousand_yen: number
+          related_program_count: number
+          revenue_detail_id: string
+          revenue_item_key: string
+          revenue_section_id: string
+          saisetsu_code: string
+          saisetsu_name: string
+          setsu_code: string
+          setsu_name: string
+          source_file: string
+          source_funding_category_name: string
+          source_row_number: number
+          source_type: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          budget_side: string
+          current_amount_thousand_yen: number
+          dataset_id: string
+          department_display_name: string
+          diff_amount_thousand_yen: number
+          fiscal_year: number
+          funding_nature: string
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          previous_amount_thousand_yen: number
+          related_program_count: number
+          revenue_detail_id: string
+          revenue_item_key: string
+          revenue_section_id: string
+          saisetsu_code: string
+          saisetsu_name: string
+          setsu_code: string
+          setsu_name: string
+          source_file: string
+          source_funding_category_name: string
+          source_row_number: number
+          source_type: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          budget_side?: string
+          current_amount_thousand_yen?: number
+          dataset_id?: string
+          department_display_name?: string
+          diff_amount_thousand_yen?: number
+          fiscal_year?: number
+          funding_nature?: string
+          is_zero_amount?: boolean
+          kan_code?: string
+          kan_name?: string
+          kou_code?: string
+          kou_name?: string
+          moku_code?: string
+          moku_name?: string
+          previous_amount_thousand_yen?: number
+          related_program_count?: number
+          revenue_detail_id?: string
+          revenue_item_key?: string
+          revenue_section_id?: string
+          saisetsu_code?: string
+          saisetsu_name?: string
+          setsu_code?: string
+          setsu_name?: string
+          source_file?: string
+          source_funding_category_name?: string
+          source_row_number?: number
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_revenue_details_section_item_fkey"
+            columns: ["dataset_id", "revenue_section_id", "revenue_item_key"]
+            isOneToOne: false
+            referencedRelation: "budget_revenue_sections"
+            referencedColumns: [
+              "dataset_id",
+              "revenue_section_id",
+              "revenue_item_key",
+            ]
+          },
+        ]
+      }
+      budget_revenue_items: {
+        Row: {
+          account_code: string
+          account_name: string
+          budget_side: string
+          current_amount_thousand_yen: number
+          data_availability: Json
+          dataset_id: string
+          diff_amount_thousand_yen: number
+          fiscal_year: number
+          general_revenue_thousand_yen: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          previous_amount_thousand_yen: number
+          revenue_item_key: string
+          revenue_source_display: Json
+          source_references: Json
+          special_account_revenue_thousand_yen: number
+          specific_revenue_thousand_yen: number
+          validation_status: string
+        }
+        Insert: {
+          account_code: string
+          account_name: string
+          budget_side: string
+          current_amount_thousand_yen: number
+          data_availability: Json
+          dataset_id: string
+          diff_amount_thousand_yen: number
+          fiscal_year: number
+          general_revenue_thousand_yen: number
+          is_zero_amount: boolean
+          kan_code: string
+          kan_name: string
+          kou_code: string
+          kou_name: string
+          moku_code: string
+          moku_name: string
+          previous_amount_thousand_yen: number
+          revenue_item_key: string
+          revenue_source_display: Json
+          source_references: Json
+          special_account_revenue_thousand_yen: number
+          specific_revenue_thousand_yen: number
+          validation_status: string
+        }
+        Update: {
+          account_code?: string
+          account_name?: string
+          budget_side?: string
+          current_amount_thousand_yen?: number
+          data_availability?: Json
+          dataset_id?: string
+          diff_amount_thousand_yen?: number
+          fiscal_year?: number
+          general_revenue_thousand_yen?: number
+          is_zero_amount?: boolean
+          kan_code?: string
+          kan_name?: string
+          kou_code?: string
+          kou_name?: string
+          moku_code?: string
+          moku_name?: string
+          previous_amount_thousand_yen?: number
+          revenue_item_key?: string
+          revenue_source_display?: Json
+          source_references?: Json
+          special_account_revenue_thousand_yen?: number
+          specific_revenue_thousand_yen?: number
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_revenue_items_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "budget_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_revenue_sections: {
+        Row: {
+          current_amount_thousand_yen: number
+          dataset_id: string
+          detail_count: number
+          diff_amount_thousand_yen: number
+          previous_amount_thousand_yen: number
+          revenue_item_key: string
+          revenue_section_id: string
+          setsu_code: string
+          setsu_name: string
+          source_reference: Json
+          validation_status: string
+        }
+        Insert: {
+          current_amount_thousand_yen: number
+          dataset_id: string
+          detail_count: number
+          diff_amount_thousand_yen: number
+          previous_amount_thousand_yen: number
+          revenue_item_key: string
+          revenue_section_id: string
+          setsu_code: string
+          setsu_name: string
+          source_reference: Json
+          validation_status: string
+        }
+        Update: {
+          current_amount_thousand_yen?: number
+          dataset_id?: string
+          detail_count?: number
+          diff_amount_thousand_yen?: number
+          previous_amount_thousand_yen?: number
+          revenue_item_key?: string
+          revenue_section_id?: string
+          setsu_code?: string
+          setsu_name?: string
+          source_reference?: Json
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_revenue_sections_item_fkey"
+            columns: ["dataset_id", "revenue_item_key"]
+            isOneToOne: false
+            referencedRelation: "budget_revenue_items"
+            referencedColumns: ["dataset_id", "revenue_item_key"]
+          },
+        ]
+      }
+      budget_source_documents: {
+        Row: {
+          dataset_id: string
+          fiscal_year: number
+          note: string
+          official_url: string | null
+          sha256: string | null
+          source_file: string
+          source_type: string
+          storage_object_path: string | null
+        }
+        Insert: {
+          dataset_id: string
+          fiscal_year: number
+          note: string
+          official_url?: string | null
+          sha256?: string | null
+          source_file: string
+          source_type: string
+          storage_object_path?: string | null
+        }
+        Update: {
+          dataset_id?: string
+          fiscal_year?: number
+          note?: string
+          official_url?: string | null
+          sha256?: string | null
+          source_file?: string
+          source_type?: string
+          storage_object_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_source_documents_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "budget_datasets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_usage_events: {
         Row: {
           cost_usd: number
@@ -1931,6 +2627,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_budget_dataset: {
+        Args: { p_dataset_id: string }
+        Returns: Json
+      }
       apply_admin_role_if_eligible: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -1972,6 +2672,10 @@ export type Database = {
           interview_config_id: string
           session_count: number
         }[]
+      }
+      import_budget_dataset: {
+        Args: { p_payload: Json }
+        Returns: Json
       }
       claim_council_search_index_jobs: {
         Args: { p_limit?: number }
@@ -2201,6 +2905,10 @@ export type Database = {
       unpublish_reports_by_config_id: {
         Args: { p_config_id: string }
         Returns: undefined
+      }
+      validate_budget_dataset: {
+        Args: { p_dataset_id: string }
+        Returns: Json
       }
     }
     Enums: {

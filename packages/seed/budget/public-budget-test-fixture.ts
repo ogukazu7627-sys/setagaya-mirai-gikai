@@ -177,7 +177,21 @@ export function writePublicBudgetTestFixture(
               },
             },
           ],
-          sections: [],
+          sections: [
+            {
+              sectionId: "section_test",
+              setsuCode: "01",
+              setsuName: "テスト節",
+              amountThousandYen: 100,
+              scope: "budget_item",
+              sourceReference: {
+                sourceType: "official_pdf",
+                sourceFile: "r8tousyoyosanallpage.pdf",
+                pdfPage: 1,
+                budgetBookPage: 1,
+              },
+            },
+          ],
           dataAvailability: {
             funding: "pending_revenue_phase",
             actualSpending: "not_available",
@@ -192,6 +206,12 @@ export function writePublicBudgetTestFixture(
               sourceType: "official_csv",
               sourceFile: "ippansaisyutu.csv",
               sourceRowNumber: 1,
+            },
+            {
+              sourceType: "official_pdf",
+              sourceFile: "r8tousyoyosanallpage.pdf",
+              pdfPage: 1,
+              budgetBookPage: 1,
             },
           ],
         },

@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-const integerSchema = z
+export const budgetSafeIntegerSchema = z
   .number()
   .int()
   .min(Number.MIN_SAFE_INTEGER)
   .max(Number.MAX_SAFE_INTEGER);
+const integerSchema = budgetSafeIntegerSchema;
 const nonNegativeIntegerSchema = integerSchema.nonnegative();
 const positiveIntegerSchema = integerSchema.positive();
 const nonEmptyStringSchema = z.string().min(1);

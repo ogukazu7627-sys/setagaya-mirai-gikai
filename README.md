@@ -40,6 +40,30 @@ pnpm --filter @mirai-gikai/seed generate:setagaya-csv
 pnpm seed:csv
 ```
 
+## 触れる予算データセット
+
+令和8年度当初予算の公開用7ファイルは、Next.jsの `public` 配下やGit管理下へ置かず、ローカルの入力ディレクトリから検証・投入します。入力ディレクトリは `packages/seed/budget/data/` を使うこともできますが、このパスは `.gitignore` 対象です。
+
+まずmanifestを正本として、ファイル名・件数・金額・参照整合性・SHA-256を検証します。
+
+```bash
+pnpm budget:web:validate -- --input-dir /path/to/budget-data
+```
+
+投入CLIは引数を省略するとdry-runになり、Supabaseへ書き込みません。
+
+```bash
+# dry-run（デフォルト）
+pnpm budget:web:import -- --input-dir /path/to/budget-data
+
+# ローカルSupabaseへ投入し、検証後にactiveへ切り替える
+pnpm budget:web:import -- --input-dir /path/to/budget-data --apply
+```
+
+`--apply` は `SUPABASE_URL` がlocalhostの場合だけ許可されます。リモートの検証環境を使う場合は `BUDGET_IMPORT_ENVIRONMENT=validation` を明示してください。`production` はCLIで拒否されます。書き込みには `.env` の `SUPABASE_SECRET_KEY` を使用し、ブラウザや生成物へ含めません。
+
+公開用7ファイルは非公開Storage bucket `budget-datasets` の `2026/initial/{manifest_sha256}/` に版管理用として保存されます。DBにはまず `staging` として一括投入し、件数・金額・外部キー検証がすべて通った場合だけ、同年度・同予算種別の旧版を `archived` にして新しい版を `active` に切り替えます。一般ユーザーがSELECTできるのは `active` の公開情報だけです。
+
 ## マイグレーション
 
 ```bash
