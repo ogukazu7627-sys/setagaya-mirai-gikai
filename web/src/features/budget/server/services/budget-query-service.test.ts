@@ -104,6 +104,12 @@ describe("budget-query-service", () => {
         related_revenue_count: 0,
         has_public_identity_resolution: false,
         is_zero_amount: false,
+        published_topics: [
+          {
+            slug: "child-rearing-support",
+            name: "子育て支援",
+          },
+        ],
         score: 120,
         matched_field: "display_program_name",
         total_count: 1,
@@ -134,6 +140,12 @@ describe("budget-query-service", () => {
           budgetProgramIdentityId: "bpi_test",
           displayProgramName: "子育て事業",
           amountThousandYen: 100,
+          publishedTopics: [
+            {
+              slug: "child-rearing-support",
+              name: "子育て支援",
+            },
+          ],
         },
       ],
     });

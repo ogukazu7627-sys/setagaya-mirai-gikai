@@ -8,6 +8,7 @@ import { BUDGET_SEARCH_EVENT_NAMES } from "../../shared/constants/budget";
 
 type BudgetSearchFormProps = {
   inputRef: RefObject<HTMLInputElement | null>;
+  isSearching?: boolean;
   query: string;
   onQueryChange: (query: string) => void;
   onSubmitQuery?: (query: string) => void;
@@ -15,6 +16,7 @@ type BudgetSearchFormProps = {
 
 export function BudgetSearchForm({
   inputRef,
+  isSearching = false,
   query,
   onQueryChange,
   onSubmitQuery,
@@ -45,6 +47,7 @@ export function BudgetSearchForm({
   return (
     <form
       role="search"
+      aria-busy={isSearching}
       className="mx-auto flex w-full max-w-3xl items-center gap-2"
       onSubmit={handleSubmit}
     >
@@ -60,6 +63,7 @@ export function BudgetSearchForm({
         onFocus={handleFocus}
         placeholder="例：学校の改築、子育て支援"
         autoComplete="off"
+        aria-controls="budget-search-results"
         enterKeyHint="search"
         maxLength={100}
         className="h-12 rounded-md border-mirai-border bg-white px-4 text-base shadow-none focus-visible:border-primary-strong focus-visible:ring-primary/30"
@@ -67,6 +71,7 @@ export function BudgetSearchForm({
       <Button
         type="submit"
         aria-label="検索"
+        disabled={isSearching}
         className="h-12 rounded-md border-primary-strong px-4 text-mirai-text sm:px-5"
       >
         <Search aria-hidden="true" className="size-5" />
