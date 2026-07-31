@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { LoaderCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type {
@@ -35,6 +36,7 @@ export function BudgetMapIframe({
   onSelectTopic,
 }: BudgetMapIframeProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const stableView = getBudgetMapStableView(view);
   const syncView = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -123,8 +125,17 @@ export function BudgetMapIframe({
     syncView,
   ]);
 
+  const handleLoad = () => {
+    setIsLoaded(true);
+    syncView();
+  };
+
   return (
-    <div className="budget-map-frame-shell overflow-hidden">
+    <div
+      className="budget-map-frame-shell overflow-hidden"
+      aria-busy={!isLoaded}
+      data-map-loaded={isLoaded}
+    >
       <iframe
         ref={iframeRef}
         src={routes.budgetMap()}
@@ -132,12 +143,27 @@ export function BudgetMapIframe({
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"
         data-explorer-state={view.kind}
-        onLoad={syncView}
+        onLoad={handleLoad}
         className={cn(
           "budget-map-frame block w-full border-0",
-          `budget-map-frame-${stableView.kind}`
+          `budget-map-frame-${stableView.kind}`,
+          !isLoaded && "budget-map-frame-loading"
         )}
       />
+      {!isLoaded && (
+        <div className="budget-map-loading-scrim absolute inset-0 z-20 flex items-center justify-center text-budget-space-copy">
+          <div
+            role="status"
+            className="flex items-center gap-2 text-sm font-medium"
+          >
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-4 motion-safe:animate-spin"
+            />
+            予算宇宙を準備しています
+          </div>
+        </div>
+      )}
     </div>
   );
 }

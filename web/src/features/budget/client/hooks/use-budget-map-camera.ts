@@ -8,15 +8,15 @@ import type {
 } from "../../shared/utils/budget-map-layout";
 import { getBudgetMapCameraTransform } from "../../shared/utils/budget-map-layout";
 
-const CAMERA_DURATION_MS = 220;
-
 export function useBudgetMapCamera(input: {
   dimensions: BudgetMapWorldDimensions;
+  durationMs: number;
   focus: BudgetMapCameraFocus;
   isTransitioning: boolean;
 }) {
   const {
     dimensions: { height, width },
+    durationMs,
     focus: { x: focusX, y: focusY, zoom: focusZoom },
     isTransitioning,
   } = input;
@@ -80,10 +80,7 @@ export function useBudgetMapCamera(input: {
 
       const tick = (timestamp: number) => {
         startedAt ??= timestamp;
-        const progress = Math.min(
-          1,
-          (timestamp - startedAt) / CAMERA_DURATION_MS
-        );
+        const progress = Math.min(1, (timestamp - startedAt) / durationMs);
         const eased = 1 - (1 - progress) ** 3;
         applyTransform({
           x: interpolate(start.x, target.x, eased),
@@ -127,7 +124,7 @@ export function useBudgetMapCamera(input: {
       window.removeEventListener("resize", handleResize);
       cancelCameraAnimation();
     };
-  }, [focusX, focusY, focusZoom, height, isTransitioning, width]);
+  }, [durationMs, focusX, focusY, focusZoom, height, isTransitioning, width]);
 
   return { viewportRef, worldRef };
 }

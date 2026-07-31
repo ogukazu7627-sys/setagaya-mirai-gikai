@@ -96,6 +96,18 @@ describe("BudgetMapIframe", () => {
       "allow-top-navigation"
     );
     expect(iframe).toHaveClass("budget-map-frame-topic", "w-full", "border-0");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "予算宇宙を準備しています"
+    );
+
+    fireEvent.load(iframe);
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(iframe).not.toHaveClass("budget-map-frame-loading");
+    expect(iframe.closest("[data-map-loaded]")).toHaveAttribute(
+      "data-map-loaded",
+      "true"
+    );
   });
 
   it("親の表示状態を固定iframeへ同一originの型付きmessageで同期する", () => {

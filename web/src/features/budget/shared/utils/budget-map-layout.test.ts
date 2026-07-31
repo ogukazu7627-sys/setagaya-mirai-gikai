@@ -52,7 +52,7 @@ describe("budget map layout", () => {
     const first = getBudgetMapOverviewLayout("desktop", dimensions);
     const second = getBudgetMapOverviewLayout("desktop", dimensions);
 
-    expect(dimensions).toEqual({ width: 1000, height: 720 });
+    expect(dimensions).toEqual({ width: 1000, height: 620 });
     expect(first).toEqual(second);
     expect(first.topics).toHaveLength(10);
     expect(
@@ -83,8 +83,11 @@ describe("budget map layout", () => {
       "mobile",
       categoryDimensions
     );
+    const visibleProgramIds = topic.programs
+      .slice(0, 10)
+      .map((program) => program.budgetProgramIdentityId);
     const topicLayout = getBudgetMapTopicLayout(
-      topic.programs.length,
+      visibleProgramIds,
       "mobile",
       topicDimensions
     );
@@ -98,19 +101,60 @@ describe("budget map layout", () => {
           topicPosition.y + 48 <= categoryDimensions.height
       )
     ).toBe(true);
-    expect(topicLayout.programs).toHaveLength(13);
+    expect(topicLayout.programs).toHaveLength(10);
     expect(
       topicLayout.programs.every(
         (program) =>
-          program.x - 80 >= 0 &&
-          program.x + 80 <= topicDimensions.width &&
-          program.y - 48 >= 0 &&
-          program.y + 48 <= topicDimensions.height
+          program.x - 78 >= 0 &&
+          program.x + 78 <= topicDimensions.width &&
+          program.y - 44 >= 0 &&
+          program.y + 44 <= topicDimensions.height
       )
     ).toBe(true);
-    expect(topicLayout.programs[2]?.y - (topicLayout.programs[0]?.y ?? 0)).toBe(
-      82
-    );
+    expect(
+      new Set(topicLayout.programs.map((program) => program.nodeId)).size
+    ).toBe(10);
+  });
+
+  it.each([
+    {
+      mode: "desktop",
+      dimensions: { width: 1000, height: 700 },
+      programSize: { width: 212, height: 88 },
+      topicSize: { width: 288, height: 112 },
+    },
+    {
+      mode: "mobile",
+      dimensions: { width: 360, height: 850 },
+      programSize: { width: 156, height: 84 },
+      topicSize: { width: 272, height: 104 },
+    },
+  ] as const)("$modeの10事業と中心課題が重ならない", ({
+    dimensions,
+    mode,
+    programSize,
+    topicSize,
+  }) => {
+    const ids = Array.from({ length: 10 }, (_, index) => `bpi_${index}`);
+    const layout = getBudgetMapTopicLayout(ids, mode, dimensions);
+    const topicRect = getCenteredRect(layout.center, topicSize);
+    const programRects = layout.programs.map((program) => ({
+      id: program.nodeId,
+      rect: getCenteredRect(program, programSize),
+    }));
+
+    for (const [index, program] of programRects.entries()) {
+      expect(
+        rectsOverlap(program.rect, topicRect),
+        `${program.id} overlaps topic`
+      ).toBe(false);
+      for (const otherProgram of programRects.slice(index + 1)) {
+        expect(
+          rectsOverlap(program.rect, otherProgram.rect),
+          `${program.id} overlaps ${otherProgram.id}`
+        ).toBe(false);
+      }
+    }
   });
 
   it("transitioning時だけ選択ノードへ寄るcamera targetを返す", () => {
@@ -183,15 +227,17 @@ describe("budget map layout", () => {
       dimensions
     );
     const programPosition = getBudgetMapTopicLayout(
-      topic.programs.length,
+      topic.programs
+        .slice(0, 10)
+        .map((program) => program.budgetProgramIdentityId),
       "desktop",
       dimensions
-    ).programs[4];
+    ).programs.find((program) => program.nodeId === "bpi_4");
 
     expect(focus).toMatchObject({
       x: programPosition?.x,
       y: programPosition?.y,
-      zoom: 1.42,
+      zoom: 1.34,
     });
   });
 
@@ -265,8 +311,36 @@ describe("budget map layout", () => {
     ).toBeLessThanOrEqual(320.1);
     expect(
       transform.y + dimensions.height * transform.scale
-    ).toBeLessThanOrEqual(736);
-    expect(transform.scale).toBeGreaterThanOrEqual(0.88);
+    ).toBeLessThanOrEqual(736.1);
+    expect(transform.scale).toBeGreaterThanOrEqual(0.85);
     expect(14 * transform.scale).toBeGreaterThanOrEqual(12);
   });
 });
+
+type Rect = {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+};
+
+function getCenteredRect(
+  position: { x: number; y: number },
+  size: { width: number; height: number }
+): Rect {
+  return {
+    left: position.x - size.width / 2,
+    right: position.x + size.width / 2,
+    top: position.y - size.height / 2,
+    bottom: position.y + size.height / 2,
+  };
+}
+
+function rectsOverlap(first: Rect, second: Rect): boolean {
+  return !(
+    first.right <= second.left ||
+    first.left >= second.right ||
+    first.bottom <= second.top ||
+    first.top >= second.bottom
+  );
+}

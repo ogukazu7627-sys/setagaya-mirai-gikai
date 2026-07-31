@@ -142,6 +142,17 @@ describe("BudgetNetwork", () => {
       "環境問題",
       "暮らし",
     ]);
+    expect(
+      screen.getByRole("img", {
+        name: "令和8年度当初予算、世田谷区の予算",
+      })
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "線は探索のための装飾です。公式分類やお金の流れ、優先順位を示しません。"
+      )
+    ).toBeVisible();
+    expect(screen.queryByText(/621,033,664/)).not.toBeInTheDocument();
   });
 
   it("categoryでは公開済みtopicと公式分類導線を表示する", async () => {
@@ -201,6 +212,47 @@ describe("BudgetNetwork", () => {
       })
     );
     expect(callbacks.onSelectProgram).toHaveBeenCalledWith("bpi_school");
+  });
+
+  it("topicの初期星系を10事業に抑え、残りを次の星系で表示する", async () => {
+    const user = userEvent.setup();
+    const baseTopic = education.topics[0];
+    const baseProgram = baseTopic?.programs[0];
+    if (!baseTopic || !baseProgram) {
+      throw new Error("fixture program is missing");
+    }
+    const topic = {
+      ...baseTopic,
+      programs: Array.from({ length: 13 }, (_, index) => ({
+        ...baseProgram,
+        budgetProgramIdentityId: `bpi_school_${index + 1}`,
+        displayProgramName: `学校施設改修事業${index + 1}`,
+        amountThousandYen: (index + 1) * 1000,
+      })),
+    };
+
+    render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(10);
+    expect(screen.getByText("1〜10 / 13件")).toBeVisible();
+    expect(screen.queryByText("学校施設改修事業11")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "次の星系" }));
+
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(3);
+    expect(screen.getByText("11〜13 / 13件")).toBeVisible();
+    expect(screen.getByText("学校施設改修事業11")).toBeVisible();
+    expect(screen.queryByText("学校施設改修事業1")).not.toBeInTheDocument();
   });
 
   it("topicがないcategoryでは整理中・検索・公式分類を示す", async () => {
@@ -381,7 +433,7 @@ describe("BudgetNetwork", () => {
         throw new Error("final camera frame is missing");
       }
       callbacksByFrame.clear();
-      finalFrame(250);
+      finalFrame(400);
     });
 
     expect(callbacksByFrame).toHaveLength(0);
@@ -463,13 +515,14 @@ describe("BudgetNetwork", () => {
   });
 
   it("mobile worldをviewport内でclipし横スクロールを作らない", () => {
+    const matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
-      value: vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
+      value: matchMedia,
     });
 
     render(
@@ -491,5 +544,6 @@ describe("BudgetNetwork", () => {
     expect(screen.getByTestId("budget-map-world")).toHaveStyle({
       width: "360px",
     });
+    expect(matchMedia).toHaveBeenCalledWith("(min-width: 1000px)");
   });
 });
