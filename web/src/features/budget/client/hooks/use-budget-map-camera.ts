@@ -112,16 +112,25 @@ export function useBudgetMapCamera(input: {
       cancelCameraAnimation();
       applyTransform(measureTarget(nextViewportSize));
     };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "hidden") {
+        return;
+      }
+      cancelCameraAnimation();
+      applyTransform(measureTarget(lastViewportSize));
+    };
     const resizeObserver =
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver(handleResize);
     resizeObserver?.observe(viewport);
     window.addEventListener("resize", handleResize);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       resizeObserver?.disconnect();
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelCameraAnimation();
     };
   }, [durationMs, focusX, focusY, focusZoom, height, isTransitioning, width]);

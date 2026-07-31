@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
 import {
   createBudgetMapHostMessage,
   createBudgetMapMessage,
 } from "../../shared/utils/budget-map-message";
-import { BudgetMapIframe } from "./budget-map-iframe";
+import {
+  BUDGET_MAP_LOAD_TIMEOUT_MS,
+  BudgetMapIframe,
+} from "./budget-map-iframe";
 
 const exploration: BudgetExplorationData = {
   activeDatasetId: "11111111-1111-4111-8111-111111111111",
@@ -67,6 +70,11 @@ describe("BudgetMapIframe", () => {
     }
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
   it("独立map routeを安全なsandboxと固定URLのiframeで埋め込む", () => {
     const category = exploration.categories[0];
     const topic = category?.topics[0];
@@ -95,18 +103,70 @@ describe("BudgetMapIframe", () => {
     expect(iframe.getAttribute("sandbox")).not.toContain(
       "allow-top-navigation"
     );
+    expect(iframe).not.toHaveAttribute("allow");
     expect(iframe).toHaveClass("budget-map-frame-topic", "w-full", "border-0");
     expect(screen.getByRole("status")).toHaveTextContent(
       "予算宇宙を準備しています"
     );
 
     fireEvent.load(iframe);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "予算宇宙を準備しています"
+    );
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: (iframe as HTMLIFrameElement).contentWindow,
+          data: createBudgetMapMessage({ action: "ready" }),
+        })
+      );
+    });
 
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(iframe).not.toHaveClass("budget-map-frame-loading");
     expect(iframe.closest("[data-map-loaded]")).toHaveAttribute(
       "data-map-loaded",
       "true"
+    );
+  });
+
+  it("load timeout時も検索・公式分類へ到達でき、同じ固定URLを再読込する", () => {
+    vi.useFakeTimers();
+    render(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    fireEvent.load(screen.getByTitle("触れる予算の探索マップ"));
+
+    act(() => {
+      vi.advanceTimersByTime(BUDGET_MAP_LOAD_TIMEOUT_MS);
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "予算マップを読み込めませんでした"
+    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(
+      screen.getByTitle("触れる予算の探索マップ").closest("[data-map-status]")
+    ).toHaveAttribute("data-map-status", "error");
+
+    fireEvent.click(screen.getByRole("button", { name: "予算検索" }));
+    fireEvent.click(screen.getByRole("button", { name: "公式分類から探す" }));
+    expect(callbacks.onFocusSearch).toHaveBeenCalledOnce();
+    expect(callbacks.onOpenOfficialHierarchy).toHaveBeenCalledOnce();
+
+    const firstIframe = screen.getByTitle("触れる予算の探索マップ");
+    fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
+    const retriedIframe = screen.getByTitle("触れる予算の探索マップ");
+    expect(retriedIframe).not.toBe(firstIframe);
+    expect(retriedIframe).toHaveAttribute("src", "/budget/map?embed=1");
+    expect(retriedIframe.closest("[data-map-status]")).toHaveAttribute(
+      "data-map-status",
+      "loading"
     );
   });
 
@@ -206,13 +266,15 @@ describe("BudgetMapIframe", () => {
     const postMessage = vi
       .spyOn(iframe.contentWindow as Window, "postMessage")
       .mockImplementation(() => undefined);
-    window.dispatchEvent(
-      new MessageEvent("message", {
-        origin: window.location.origin,
-        source: iframe.contentWindow,
-        data: createBudgetMapMessage({ action: "ready" }),
-      })
-    );
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage({ action: "ready" }),
+        })
+      );
+    });
     expect(postMessage).toHaveBeenLastCalledWith(
       createBudgetMapHostMessage({ kind: "overview" }),
       window.location.origin
@@ -255,5 +317,33 @@ describe("BudgetMapIframe", () => {
       "school-facility-aging"
     );
     expect(callbacks.onSelectProgram).toHaveBeenCalledWith("bpi_school");
+  });
+
+  it("unmount後はiframeからのmessageを処理しない", () => {
+    const { unmount } = render(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    const iframe = screen.getByTitle(
+      "触れる予算の探索マップ"
+    ) as HTMLIFrameElement;
+    const iframeWindow = iframe.contentWindow;
+    unmount();
+
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        source: iframeWindow,
+        data: createBudgetMapMessage({
+          action: "select-category",
+          categorySlug: "education",
+        }),
+      })
+    );
+
+    expect(callbacks.onSelectCategory).not.toHaveBeenCalled();
   });
 });

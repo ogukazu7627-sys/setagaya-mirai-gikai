@@ -11,27 +11,16 @@ type WorldDimensions = {
 };
 
 const DESKTOP_PROGRAM_SLOTS: readonly BudgetNetworkPosition[] = [
-  { x: 78, y: 24 },
-  { x: 86, y: 40 },
+  { x: 55, y: 22 },
+  { x: 78, y: 27 },
+  { x: 88, y: 43 },
   { x: 88, y: 65 },
-  { x: 78, y: 80 },
-  { x: 56, y: 84 },
-  { x: 32, y: 82 },
-  { x: 14, y: 68 },
-  { x: 14, y: 45 },
+  { x: 76, y: 81 },
+  { x: 53, y: 84 },
+  { x: 31, y: 82 },
+  { x: 13, y: 68 },
+  { x: 14, y: 44 },
   { x: 30, y: 28 },
-  { x: 56, y: 34 },
-];
-
-const DESKTOP_CATEGORY_TOPIC_SLOTS: readonly BudgetNetworkPosition[] = [
-  { x: 76, y: 56 },
-  { x: 70, y: 29 },
-  { x: 82, y: 75 },
-  { x: 48, y: 83 },
-  { x: 23, y: 70 },
-  { x: 24, y: 40 },
-  { x: 48, y: 25 },
-  { x: 72, y: 76 },
 ];
 
 export function getBudgetTopicProgramPositions(
@@ -47,7 +36,7 @@ export function getBudgetTopicProgramPositions(
     mode === "mobile"
       ? createMobileProgramSlots(nodeIds.length, dimensions)
       : DESKTOP_PROGRAM_SLOTS.slice(0, nodeIds.length);
-  return assignDeterministicSlots(nodeIds, slots);
+  return assignOrderedSlots(nodeIds, slots);
 }
 
 export function getBudgetCategoryTopicPositions(
@@ -72,8 +61,8 @@ export function getBudgetCategoryTopicPositions(
   const slots =
     mode === "mobile"
       ? createMobileCategoryTopicSlots(nodeIds.length, dimensions)
-      : createDesktopOrbitSlots(nodeIds.length, DESKTOP_CATEGORY_TOPIC_SLOTS);
-  return assignDeterministicSlots(nodeIds, slots);
+      : createDesktopOrbitSlots(nodeIds.length);
+  return assignOrderedSlots(nodeIds, slots);
 }
 
 function createMobileProgramSlots(
@@ -96,24 +85,17 @@ function createMobileCategoryTopicSlots(
   }));
 }
 
-function createDesktopOrbitSlots(
-  count: number,
-  preferredSlots: readonly BudgetNetworkPosition[]
-): BudgetNetworkPosition[] {
-  if (count <= preferredSlots.length) {
-    return preferredSlots.slice(0, count);
-  }
-
+function createDesktopOrbitSlots(count: number): BudgetNetworkPosition[] {
   return Array.from({ length: count }, (_, index) => {
-    const angle = ((-72 + (360 * index) / count) * Math.PI) / 180;
+    const angle = ((-90 + (360 * index) / count) * Math.PI) / 180;
     return {
-      x: round(50 + Math.cos(angle) * 34),
+      x: round(50 + Math.cos(angle) * 32),
       y: round(56 + Math.sin(angle) * 29),
     };
   });
 }
 
-function assignDeterministicSlots(
+function assignOrderedSlots(
   nodeIds: readonly string[],
   slots: readonly BudgetNetworkPosition[]
 ): BudgetPositionedNode[] {
@@ -121,53 +103,17 @@ function assignDeterministicSlots(
     throw new Error("Budget map does not have enough deterministic slots");
   }
 
-  const assignments = new Map<number, BudgetPositionedNode>();
-  const occupiedSlots = new Set<number>();
-  const nodes = nodeIds
-    .map((nodeId, index) => ({
-      hash: hashBudgetMapNodeId(nodeId),
-      index,
-      nodeId,
-    }))
-    .toSorted(
-      (left, right) =>
-        left.hash - right.hash || left.nodeId.localeCompare(right.nodeId)
-    );
-
-  for (const node of nodes) {
-    const startSlot = node.hash % slots.length;
-    let slotIndex = startSlot;
-    while (occupiedSlots.has(slotIndex)) {
-      slotIndex = (slotIndex + 1) % slots.length;
-    }
-    occupiedSlots.add(slotIndex);
-    const slot = slots[slotIndex];
+  return nodeIds.map((nodeId, index) => {
+    const slot = slots[index];
     if (!slot) {
       throw new Error("Budget map slot could not be resolved");
     }
-    assignments.set(node.index, {
-      index: node.index,
-      nodeId: node.nodeId,
+    return {
+      index,
+      nodeId,
       ...slot,
-    });
-  }
-
-  return nodeIds.map((_, index) => {
-    const assignment = assignments.get(index);
-    if (!assignment) {
-      throw new Error("Budget map node could not be placed");
-    }
-    return assignment;
+    };
   });
-}
-
-function hashBudgetMapNodeId(value: string): number {
-  let hash = 2_166_136_261;
-  for (const character of value) {
-    hash ^= character.codePointAt(0) ?? 0;
-    hash = Math.imul(hash, 16_777_619);
-  }
-  return hash >>> 0;
 }
 
 function round(value: number): number {

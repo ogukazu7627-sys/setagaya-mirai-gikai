@@ -214,6 +214,42 @@ describe("BudgetNetwork", () => {
     expect(callbacks.onSelectProgram).toHaveBeenCalledWith("bpi_school");
   });
 
+  it("長い日本語名称と0円事業を削らず文字情報で示す", () => {
+    const baseTopic = education.topics[0];
+    const baseProgram = baseTopic?.programs[0];
+    if (!baseTopic || !baseProgram) {
+      throw new Error("fixture program is missing");
+    }
+    const longName =
+      "学校施設の長寿命化および避難所機能向上に向けた総合的な改修事業";
+    const topic = {
+      ...baseTopic,
+      programs: [
+        {
+          ...baseProgram,
+          budgetProgramIdentityId: "bpi_zero",
+          displayProgramName: longName,
+          amountThousandYen: 0,
+          isZeroAmount: true,
+        },
+      ],
+    };
+
+    render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(screen.getByText(longName)).toBeVisible();
+    expect(screen.getByText("0円")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: new RegExp(longName) })
+    ).toHaveAttribute("data-zero-amount", "true");
+  });
+
   it("topicの初期星系を10事業に抑え、残りを次の星系で表示する", async () => {
     const user = userEvent.setup();
     const baseTopic = education.topics[0];
@@ -253,6 +289,56 @@ describe("BudgetNetwork", () => {
     expect(screen.getByText("11〜13 / 13件")).toBeVisible();
     expect(screen.getByText("学校施設改修事業11")).toBeVisible();
     expect(screen.queryByText("学校施設改修事業1")).not.toBeInTheDocument();
+  });
+
+  it("mobileのtopicは1星系6事業に抑える", async () => {
+    const user = userEvent.setup();
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    });
+    const baseTopic = education.topics[0];
+    const baseProgram = baseTopic?.programs[0];
+    if (!baseTopic || !baseProgram) {
+      throw new Error("fixture program is missing");
+    }
+    const topic = {
+      ...baseTopic,
+      programs: Array.from({ length: 13 }, (_, index) => ({
+        ...baseProgram,
+        budgetProgramIdentityId: `bpi_mobile_${index + 1}`,
+        displayProgramName: `モバイル学校施設改修事業${index + 1}`,
+      })),
+    };
+
+    render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(6);
+    expect(screen.getByText("1〜6 / 13件")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(6);
+    expect(screen.getByText("7〜12 / 13件")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(1);
+    expect(screen.getByText("13〜13 / 13件")).toBeVisible();
   });
 
   it("topicがないcategoryでは整理中・検索・公式分類を示す", async () => {
@@ -384,7 +470,7 @@ describe("BudgetNetwork", () => {
     });
   });
 
-  it("camera遷移完了後はrequestAnimationFrameとwill-changeを解除する", () => {
+  it("camera遷移完了後は24frame以内でrequestAnimationFrameとwill-changeを解除する", () => {
     const callbacksByFrame = new Map<number, FrameRequestCallback>();
     let nextFrameId = 1;
     vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
@@ -420,30 +506,131 @@ describe("BudgetNetwork", () => {
     expect(world).toHaveAttribute("data-camera-moving", "true");
     expect(world).toHaveStyle({ willChange: "transform" });
 
+    let frameCount = 0;
+    let timestamp = 0;
     act(() => {
-      const firstFrame = callbacksByFrame.values().next().value;
-      if (!firstFrame) {
-        throw new Error("first camera frame is missing");
+      while (callbacksByFrame.size > 0) {
+        const frame = callbacksByFrame.values().next().value;
+        if (!frame) {
+          throw new Error("camera frame is missing");
+        }
+        callbacksByFrame.clear();
+        frame(timestamp);
+        frameCount += 1;
+        timestamp += 16;
+        if (frameCount > 24) {
+          throw new Error("camera animation did not stop");
+        }
       }
-      callbacksByFrame.clear();
-      firstFrame(0);
-
-      const finalFrame = callbacksByFrame.values().next().value;
-      if (!finalFrame) {
-        throw new Error("final camera frame is missing");
-      }
-      callbacksByFrame.clear();
-      finalFrame(400);
     });
 
     expect(callbacksByFrame).toHaveLength(0);
+    expect(frameCount).toBe(24);
     expect(world).toHaveAttribute("data-camera-moving", "false");
     expect(world).toHaveStyle({ willChange: "" });
+  });
+
+  it("新しいcamera遷移は古いrequestAnimationFrameをcancelして多重化しない", () => {
+    let nextFrameId = 1;
+    const callbacksByFrame = new Map<number, FrameRequestCallback>();
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      const frameId = nextFrameId;
+      nextFrameId += 1;
+      callbacksByFrame.set(frameId, callback);
+      return frameId;
+    });
+    const cancelAnimationFrame = vi
+      .spyOn(window, "cancelAnimationFrame")
+      .mockImplementation((frameId) => {
+        callbacksByFrame.delete(frameId);
+      });
+    const { rerender } = render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{
+          kind: "transitioning",
+          current: { kind: "overview" },
+          target: { kind: "category", category: education },
+        }}
+      />
+    );
+    const firstFrameId = nextFrameId - 1;
+    const welfare = exploration.categories[2];
+    if (!welfare) {
+      throw new Error("fixture category is missing");
+    }
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{
+          kind: "transitioning",
+          current: { kind: "overview" },
+          target: { kind: "category", category: welfare },
+        }}
+      />
+    );
+
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(firstFrameId);
+    expect(callbacksByFrame).toHaveLength(1);
+  });
+
+  it("documentがhiddenになるとcameraを確定位置へ進めて停止する", () => {
+    vi.spyOn(window, "requestAnimationFrame").mockReturnValue(91);
+    const cancelAnimationFrame = vi.spyOn(window, "cancelAnimationFrame");
+    const { rerender } = render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{
+          kind: "transitioning",
+          current: { kind: "overview" },
+          target: { kind: "category", category: education },
+        }}
+      />
+    );
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(91);
+    expect(screen.getByTestId("budget-map-world")).toHaveAttribute(
+      "data-camera-moving",
+      "false"
+    );
+    expect(screen.getByTestId("budget-map-world")).toHaveStyle({
+      willChange: "",
+    });
   });
 
   it("camera遷移中にunmountしてもrequestAnimationFrameを解除する", () => {
     vi.spyOn(window, "requestAnimationFrame").mockReturnValue(77);
     const cancelAnimationFrame = vi.spyOn(window, "cancelAnimationFrame");
+    const removeWindowListener = vi.spyOn(window, "removeEventListener");
+    const removeDocumentListener = vi.spyOn(document, "removeEventListener");
     const { rerender, unmount } = render(
       <BudgetNetwork
         {...callbacks}
@@ -466,6 +653,14 @@ describe("BudgetNetwork", () => {
     unmount();
 
     expect(cancelAnimationFrame).toHaveBeenCalledWith(77);
+    expect(removeWindowListener).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
+    expect(removeDocumentListener).toHaveBeenCalledWith(
+      "visibilitychange",
+      expect.any(Function)
+    );
   });
 
   it("ResizeObserverの初回通知だけではcamera遷移を中断しない", () => {
@@ -540,10 +735,130 @@ describe("BudgetNetwork", () => {
       .closest("[data-map-mode]");
     expect(viewport).toHaveAttribute("data-map-mode", "mobile");
     expect(viewport).toHaveClass("overflow-hidden");
-    expect(document.querySelectorAll(".budget-map-star")).toHaveLength(72);
+    expect(document.querySelectorAll(".budget-map-star")).toHaveLength(70);
     expect(screen.getByTestId("budget-map-world")).toHaveStyle({
       width: "360px",
     });
     expect(matchMedia).toHaveBeenCalledWith("(min-width: 1000px)");
+  });
+
+  it("状態を往復してもDOM・SVG・listenerが増殖しない", () => {
+    const baseTopic = education.topics[0];
+    const baseProgram = baseTopic?.programs[0];
+    if (!baseTopic || !baseProgram) {
+      throw new Error("fixture program is missing");
+    }
+    const topic = {
+      ...baseTopic,
+      programs: Array.from({ length: 10 }, (_, index) => ({
+        ...baseProgram,
+        budgetProgramIdentityId: `bpi_desktop_dom_${index + 1}`,
+      })),
+    };
+    const { container, rerender, unmount } = render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    const overviewElementCount = container.querySelectorAll("*").length;
+
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "category", category: education }}
+      />
+    );
+    const categoryElementCount = container.querySelectorAll("*").length;
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "topic", category: education, topic }}
+      />
+    );
+    const topicElementCount = container.querySelectorAll("*").length;
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "category", category: education }}
+      />
+    );
+    expect(container.querySelectorAll("*")).toHaveLength(categoryElementCount);
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+
+    expect(container.querySelectorAll("*")).toHaveLength(overviewElementCount);
+    expect(
+      container.querySelectorAll("[data-testid='budget-map-edges']")
+    ).toHaveLength(1);
+    expect(overviewElementCount).toBeLessThanOrEqual(360);
+    expect(categoryElementCount).toBeLessThanOrEqual(320);
+    expect(topicElementCount).toBeLessThanOrEqual(370);
+    unmount();
+    expect(container.querySelectorAll("*")).toHaveLength(0);
+  });
+
+  it("mobileでは星と事業を抑えてDOM上限を保つ", () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    });
+    const baseTopic = education.topics[0];
+    const baseProgram = baseTopic?.programs[0];
+    if (!baseTopic || !baseProgram) {
+      throw new Error("fixture program is missing");
+    }
+    const topic = {
+      ...baseTopic,
+      programs: Array.from({ length: 10 }, (_, index) => ({
+        ...baseProgram,
+        budgetProgramIdentityId: `bpi_mobile_dom_${index + 1}`,
+      })),
+    };
+    const { container, rerender } = render(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    const overviewElementCount = container.querySelectorAll("*").length;
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "category", category: education }}
+      />
+    );
+    const categoryElementCount = container.querySelectorAll("*").length;
+    rerender(
+      <BudgetNetwork
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "topic", category: education, topic }}
+      />
+    );
+    const topicElementCount = container.querySelectorAll("*").length;
+
+    expect(document.querySelectorAll(".budget-map-star")).toHaveLength(70);
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+    ).toHaveLength(6);
+    expect(overviewElementCount).toBeLessThanOrEqual(225);
+    expect(categoryElementCount).toBeLessThanOrEqual(180);
+    expect(topicElementCount).toBeLessThanOrEqual(190);
   });
 });

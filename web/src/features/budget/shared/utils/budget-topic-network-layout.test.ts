@@ -7,7 +7,7 @@ import {
 const programIds = Array.from({ length: 10 }, (_, index) => `bpi_${index}`);
 
 describe("budget topic network layout", () => {
-  it("10事業をIDから決定的なdesktop星系へ配置する", () => {
+  it("10事業を入力順どおりの決定的なdesktop星系へ配置する", () => {
     const dimensions = { width: 1000, height: 700 };
     const first = getBudgetTopicProgramPositions(
       programIds,
@@ -22,6 +22,7 @@ describe("budget topic network layout", () => {
 
     expect(first).toEqual(second);
     expect(first).toHaveLength(10);
+    expect(first.map((position) => position.nodeId)).toEqual(programIds);
     expect(new Set(first.map(({ x, y }) => `${x}:${y}`)).size).toBe(10);
     expect(
       first.every(
@@ -54,10 +55,10 @@ describe("budget topic network layout", () => {
     }
   });
 
-  it("mobileでは10事業を2列5段に収める", () => {
-    const dimensions = { width: 360, height: 850 };
+  it("mobileでは初期6事業を2列3段に収める", () => {
+    const dimensions = { width: 360, height: 700 };
     const positions = getBudgetTopicProgramPositions(
-      programIds,
+      programIds.slice(0, 6),
       "mobile",
       dimensions
     );
@@ -65,7 +66,7 @@ describe("budget topic network layout", () => {
     expect(new Set(positions.map((position) => position.x))).toEqual(
       new Set([25, 75])
     );
-    expect(positions).toHaveLength(10);
+    expect(positions).toHaveLength(6);
     expect(
       positions.every(
         (position) =>

@@ -4,7 +4,7 @@ import type {
   BudgetExplorerView,
 } from "../types/budget-exploration";
 import type { BudgetNetworkPosition } from "../types/budget-page";
-import { BUDGET_MAP_PROGRAM_PAGE_SIZE } from "./budget-map-programs";
+import { getBudgetMapProgramPageSize } from "./budget-map-programs";
 import { getBudgetNetworkLayout } from "./budget-network-layout";
 import {
   getBudgetCategoryTopicPositions,
@@ -44,7 +44,7 @@ const DESKTOP_TOPIC_WORLD: BudgetMapWorldDimensions = {
 const MOBILE_WORLD_WIDTH = 360;
 const MOBILE_OVERVIEW_WORLD_HEIGHT = 560;
 const MOBILE_CATEGORY_MIN_WORLD_HEIGHT = 660;
-const MOBILE_TOPIC_MIN_WORLD_HEIGHT = 850;
+const MOBILE_TOPIC_MIN_WORLD_HEIGHT = 700;
 
 export function getBudgetMapStableView(
   view: BudgetExplorerView
@@ -70,10 +70,8 @@ export function getBudgetMapWorldDimensions(
     };
   }
   if (view.kind === "topic") {
-    const visibleProgramCount = Math.min(
-      BUDGET_MAP_PROGRAM_PAGE_SIZE,
-      view.topic.programs.length
-    );
+    const pageSize = getBudgetMapProgramPageSize(mode);
+    const visibleProgramCount = Math.min(pageSize, view.topic.programs.length);
     const rowCount = Math.max(1, Math.ceil(visibleProgramCount / 2));
     return {
       width: MOBILE_WORLD_WIDTH,
@@ -151,7 +149,10 @@ export function getBudgetMapTopicLayout(
   mode: BudgetMapMode,
   dimensions: BudgetMapWorldDimensions
 ) {
-  const visibleProgramIds = programIds.slice(0, BUDGET_MAP_PROGRAM_PAGE_SIZE);
+  const visibleProgramIds = programIds.slice(
+    0,
+    getBudgetMapProgramPageSize(mode)
+  );
   const center =
     mode === "mobile"
       ? { x: dimensions.width / 2, y: 215 }
@@ -171,12 +172,12 @@ export function getBudgetMapTopicLayout(
 
 function getProgramPageIds(
   programIds: readonly string[],
-  programIndex: number
+  programIndex: number,
+  mode: BudgetMapMode
 ): string[] {
-  const pageStart =
-    Math.floor(programIndex / BUDGET_MAP_PROGRAM_PAGE_SIZE) *
-    BUDGET_MAP_PROGRAM_PAGE_SIZE;
-  return programIds.slice(pageStart, pageStart + BUDGET_MAP_PROGRAM_PAGE_SIZE);
+  const pageSize = getBudgetMapProgramPageSize(mode);
+  const pageStart = Math.floor(programIndex / pageSize) * pageSize;
+  return programIds.slice(pageStart, pageStart + pageSize);
 }
 
 export function getBudgetMapCameraFocus(
@@ -241,7 +242,7 @@ export function getBudgetMapCameraFocus(
       const programIds = current.topic.programs.map(
         (program) => program.budgetProgramIdentityId
       );
-      const pageIds = getProgramPageIds(programIds, programIndex);
+      const pageIds = getProgramPageIds(programIds, programIndex, mode);
       const position = getBudgetMapTopicLayout(
         pageIds,
         mode,
@@ -293,8 +294,9 @@ function getStableCameraFocus(
     };
   }
   if (view.kind === "topic") {
+    const pageSize = getBudgetMapProgramPageSize(mode);
     const firstProgramPageIds = view.topic.programs
-      .slice(0, BUDGET_MAP_PROGRAM_PAGE_SIZE)
+      .slice(0, pageSize)
       .map((program) => program.budgetProgramIdentityId);
     return {
       ...getBudgetMapTopicLayout(firstProgramPageIds, mode, dimensions).center,

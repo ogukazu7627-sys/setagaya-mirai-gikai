@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
@@ -84,6 +84,9 @@ describe("BudgetMapEmbed", () => {
     ).toBeVisible();
     expect(screen.queryByRole("banner")).not.toBeInTheDocument();
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "10の分野から予算を探せます"
+    );
   });
 
   it("親の固定URLから届くcategory/topic状態を検証して表示へ反映する", () => {
@@ -205,6 +208,56 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).not.toHaveBeenCalledWith(expect.anything(), "*");
   });
 
+  it("Spaceでcategoryを選択できる", async () => {
+    const postMessage = vi
+      .spyOn(window, "postMessage")
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "overview" }}
+      />
+    );
+    const educationButton = screen.getByRole("button", {
+      name: "教育から予算を探す",
+    });
+    educationButton.focus();
+
+    await user.keyboard(" ");
+
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "select-category",
+        categorySlug: "education",
+      }),
+      window.location.origin
+    );
+  });
+
+  it("Escapeでcategory/topicから既存の戻るmessageを送る", () => {
+    const postMessage = vi
+      .spyOn(window, "postMessage")
+      .mockImplementation(() => undefined);
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "category", category: education }}
+      />
+    );
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        source: "mirai-gikai-budget-map",
+        version: 1,
+        action: "back",
+      },
+      window.location.origin
+    );
+  });
+
   it("categoryからtopic選択を型付きmessageで親へ送る", async () => {
     const postMessage = vi
       .spyOn(window, "postMessage")
@@ -265,6 +318,27 @@ describe("BudgetMapEmbed", () => {
         budgetProgramIdentityId: "bpi_school",
       },
       window.location.origin
+    );
+  });
+
+  it("unmount時にmessageとkeydown listenerを解除する", () => {
+    const removeEventListener = vi.spyOn(window, "removeEventListener");
+    const { unmount } = render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "category", category: education }}
+      />
+    );
+
+    unmount();
+
+    expect(removeEventListener).toHaveBeenCalledWith(
+      "message",
+      expect.any(Function)
+    );
+    expect(removeEventListener).toHaveBeenCalledWith(
+      "keydown",
+      expect.any(Function)
     );
   });
 });

@@ -66,7 +66,7 @@ describe("budget map layout", () => {
     ).toBe(true);
   });
 
-  it("mobileのcategoryと13事業をworld内に重複しない行間で配置する", () => {
+  it("mobileのcategoryと初期6事業をworld内に重複しない行間で配置する", () => {
     const topic = education.topics[0];
     if (!topic) {
       throw new Error("fixture topic is missing");
@@ -84,7 +84,7 @@ describe("budget map layout", () => {
       categoryDimensions
     );
     const visibleProgramIds = topic.programs
-      .slice(0, 10)
+      .slice(0, 6)
       .map((program) => program.budgetProgramIdentityId);
     const topicLayout = getBudgetMapTopicLayout(
       visibleProgramIds,
@@ -101,7 +101,7 @@ describe("budget map layout", () => {
           topicPosition.y + 48 <= categoryDimensions.height
       )
     ).toBe(true);
-    expect(topicLayout.programs).toHaveLength(10);
+    expect(topicLayout.programs).toHaveLength(6);
     expect(
       topicLayout.programs.every(
         (program) =>
@@ -113,29 +113,35 @@ describe("budget map layout", () => {
     ).toBe(true);
     expect(
       new Set(topicLayout.programs.map((program) => program.nodeId)).size
-    ).toBe(10);
+    ).toBe(6);
   });
 
   it.each([
     {
       mode: "desktop",
       dimensions: { width: 1000, height: 700 },
+      programCount: 10,
       programSize: { width: 212, height: 88 },
       topicSize: { width: 288, height: 112 },
     },
     {
       mode: "mobile",
-      dimensions: { width: 360, height: 850 },
+      dimensions: { width: 360, height: 700 },
+      programCount: 6,
       programSize: { width: 156, height: 84 },
       topicSize: { width: 272, height: 104 },
     },
-  ] as const)("$modeの10事業と中心課題が重ならない", ({
+  ] as const)("$modeの初期事業と中心課題が重ならない", ({
     dimensions,
     mode,
+    programCount,
     programSize,
     topicSize,
   }) => {
-    const ids = Array.from({ length: 10 }, (_, index) => `bpi_${index}`);
+    const ids = Array.from(
+      { length: programCount },
+      (_, index) => `bpi_${index}`
+    );
     const layout = getBudgetMapTopicLayout(ids, mode, dimensions);
     const topicRect = getCenteredRect(layout.center, topicSize);
     const programRects = layout.programs.map((program) => ({

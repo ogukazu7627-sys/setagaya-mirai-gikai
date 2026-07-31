@@ -28,8 +28,8 @@ describe("budget map stars", () => {
     }
   });
 
-  it("mobileで表示する星数を60〜80個に保つ", () => {
+  it("mobileで表示する星数を70個以下に保つ", () => {
     expect(BUDGET_MAP_MOBILE_STAR_COUNT).toBeGreaterThanOrEqual(60);
-    expect(BUDGET_MAP_MOBILE_STAR_COUNT).toBeLessThanOrEqual(80);
+    expect(BUDGET_MAP_MOBILE_STAR_COUNT).toBeLessThanOrEqual(70);
   });
 });

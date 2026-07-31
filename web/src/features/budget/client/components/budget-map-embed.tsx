@@ -6,6 +6,7 @@ import type {
   BudgetExplorerStableView,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
+import { getBudgetExplorerAnnouncement } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapStableView } from "../../shared/utils/budget-map-layout";
 import {
   type BudgetMapAction,
@@ -109,8 +110,31 @@ export function BudgetMapEmbed({
     postAction({ action: "back" });
   }, [postAction, stableView.kind, view.kind]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) {
+        return;
+      }
+      if (view.kind === "transitioning" || stableView.kind === "overview") {
+        return;
+      }
+      event.preventDefault();
+      goBack();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [goBack, stableView.kind, view.kind]);
+
   return (
-    <div className="budget-map-embed-root h-dvh w-full overflow-hidden">
+    <div className="budget-map-embed-root h-svh min-h-full w-full overflow-hidden">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {getBudgetExplorerAnnouncement(stableView)}
+      </div>
       <BudgetNetwork
         exploration={exploration}
         view={view}

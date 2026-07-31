@@ -1,4 +1,5 @@
-export const BUDGET_MAP_PROGRAM_PAGE_SIZE = 10;
+export const BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE = 10;
+export const BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE = 6;
 
 export type BudgetMapAmountTier = "low" | "medium" | "high";
 
@@ -13,18 +14,17 @@ export type BudgetMapProgramPage<T> = {
 
 export function getBudgetMapProgramPage<T>(
   programs: readonly T[],
-  requestedPageIndex: number
+  requestedPageIndex: number,
+  pageSize = BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE
 ): BudgetMapProgramPage<T> {
+  const normalizedPageSize = Math.max(1, Math.floor(pageSize));
   const pageCount = Math.max(
     1,
-    Math.ceil(programs.length / BUDGET_MAP_PROGRAM_PAGE_SIZE)
+    Math.ceil(programs.length / normalizedPageSize)
   );
   const pageIndex = clamp(Math.floor(requestedPageIndex), 0, pageCount - 1);
-  const startIndex = pageIndex * BUDGET_MAP_PROGRAM_PAGE_SIZE;
-  const items = programs.slice(
-    startIndex,
-    startIndex + BUDGET_MAP_PROGRAM_PAGE_SIZE
-  );
+  const startIndex = pageIndex * normalizedPageSize;
+  const items = programs.slice(startIndex, startIndex + normalizedPageSize);
 
   return {
     items,
@@ -34,6 +34,14 @@ export function getBudgetMapProgramPage<T>(
     endNumber: startIndex + items.length,
     totalCount: programs.length,
   };
+}
+
+export function getBudgetMapProgramPageSize(
+  mode: "mobile" | "desktop"
+): number {
+  return mode === "mobile"
+    ? BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE
+    : BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE;
 }
 
 export function getBudgetMapAmountTier(
