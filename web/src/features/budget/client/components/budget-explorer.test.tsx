@@ -20,39 +20,38 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => ({ get: mocks.getSearchParam }),
 }));
 
-vi.mock("next/dynamic", () => ({
-  default: () =>
-    function MockBudgetNetwork({
-      onBack,
-      onSelectCategory,
-      onSelectProgram,
-      onSelectTopic,
-    }: {
-      onBack: () => void;
-      onSelectCategory: (slug: string) => void;
-      onSelectProgram: (identityId: string) => void;
-      onSelectTopic: (categorySlug: string, topicSlug: string) => void;
-    }) {
-      return (
-        <div>
-          <button type="button" onClick={() => onSelectCategory("education")}>
-            教育から探す
-          </button>
-          <button
-            type="button"
-            onClick={() => onSelectTopic("education", "school-facility-aging")}
-          >
-            課題から探す
-          </button>
-          <button type="button" onClick={() => onSelectProgram("bpi_school")}>
-            事業を見る
-          </button>
-          <button type="button" onClick={onBack}>
-            戻る
-          </button>
-        </div>
-      );
-    },
+vi.mock("./budget-map-iframe", () => ({
+  BudgetMapIframe: function MockBudgetMapIframe({
+    onBack,
+    onSelectCategory,
+    onSelectProgram,
+    onSelectTopic,
+  }: {
+    onBack: () => void;
+    onSelectCategory: (slug: string) => void;
+    onSelectProgram: (identityId: string) => void;
+    onSelectTopic: (categorySlug: string, topicSlug: string) => void;
+  }) {
+    return (
+      <div>
+        <button type="button" onClick={() => onSelectCategory("education")}>
+          教育から探す
+        </button>
+        <button
+          type="button"
+          onClick={() => onSelectTopic("education", "school-facility-aging")}
+        >
+          課題から探す
+        </button>
+        <button type="button" onClick={() => onSelectProgram("bpi_school")}>
+          事業を見る
+        </button>
+        <button type="button" onClick={onBack}>
+          戻る
+        </button>
+      </div>
+    );
+  },
 }));
 
 vi.mock("../utils/budget-search-api", () => ({

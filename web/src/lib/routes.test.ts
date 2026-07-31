@@ -119,4 +119,8 @@ describe("routes", () => {
       "/budget/programs/bpi_school?fromCategory=education&fromTopic=school-facility-aging"
     );
   });
+
+  it("予算mapは親の履歴と競合しない固定embed URLを返す", () => {
+    expect(routes.budgetMap()).toBe("/budget/map?embed=1");
+  });
 });
