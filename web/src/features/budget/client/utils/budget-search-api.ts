@@ -5,6 +5,7 @@ export async function requestBudgetProgramSearch(
   input: {
     installationId: string;
     query: string;
+    page?: number;
   },
   signal?: AbortSignal
 ): Promise<BudgetProgramSearchResult> {

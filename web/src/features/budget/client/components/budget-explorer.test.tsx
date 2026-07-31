@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { BudgetProgramSearchResult } from "../../shared/types/budget";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
 import { BudgetExplorer } from "./budget-explorer";
 
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
   getSearchParam: vi.fn(),
+  requestBudgetProgramSearch: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -53,6 +55,15 @@ vi.mock("next/dynamic", () => ({
     },
 }));
 
+vi.mock("../utils/budget-search-api", () => ({
+  requestBudgetProgramSearch: mocks.requestBudgetProgramSearch,
+}));
+
+vi.mock("../utils/budget-search-storage", () => ({
+  getBrowserBudgetSearchInstallationId: () =>
+    "11111111-1111-4111-8111-111111111111",
+}));
+
 const exploration: BudgetExplorationData = {
   activeDatasetId: "11111111-1111-4111-8111-111111111111",
   availability: "available",
@@ -79,11 +90,51 @@ const exploration: BudgetExplorationData = {
   ],
 };
 
+const schoolSearchItem: BudgetProgramSearchResult["items"][number] = {
+  datasetId: "11111111-1111-4111-8111-111111111111",
+  budgetProgramIdentityId: "bpi_school",
+  fiscalYear: 2026,
+  accountCode: "general",
+  accountName: "一般会計",
+  budgetItemKey: "2026_general_expenditure_08_02_06",
+  kan: { code: "08", name: "教育費" },
+  kou: { code: "02", name: "小学校費" },
+  moku: { code: "06", name: "学校施設充実費" },
+  displayProgramName: "小学校施設改修工事",
+  departmentDisplayName: "教育委員会事務局 教育環境課",
+  amountThousandYen: 4_140_518,
+  memberGroupCount: 1,
+  memberProgramCount: 1,
+  relatedRevenueCount: 1,
+  hasPublicIdentityResolution: false,
+  isZeroAmount: false,
+  publishedTopics: [
+    {
+      slug: "school-facility-aging",
+      name: "学校施設の老朽化への対応",
+    },
+  ],
+  score: 116,
+  matchedField: "topic_name",
+};
+
+function createSearchResult(
+  items: BudgetProgramSearchResult["items"] = [schoolSearchItem]
+): BudgetProgramSearchResult {
+  return {
+    items,
+    total: items.length,
+    page: 1,
+    pageSize: 20,
+  };
+}
+
 describe("BudgetExplorer", () => {
   beforeEach(() => {
     mocks.push.mockReset();
     mocks.replace.mockReset();
     mocks.getSearchParam.mockReset();
+    mocks.requestBudgetProgramSearch.mockReset();
     mocks.getSearchParam.mockReturnValue(null);
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -159,5 +210,81 @@ describe("BudgetExplorer", () => {
       })
     );
     expect(mocks.push).not.toHaveBeenCalled();
+  });
+
+  it("検索結果が1件でも一覧を示し、選択するまで詳細へ移動しない", async () => {
+    mocks.requestBudgetProgramSearch.mockResolvedValue(createSearchResult());
+    const user = userEvent.setup();
+    render(<BudgetExplorer exploration={exploration} />);
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "知りたい予算を検索" }),
+      "学校施設の老朽化"
+    );
+    await user.click(screen.getByRole("button", { name: "検索" }));
+
+    expect(
+      await screen.findByRole("option", { name: /小学校施設改修工事/ })
+    ).toBeVisible();
+    expect(screen.getByText("教育から探す").closest("[inert]")).toHaveAttribute(
+      "aria-hidden",
+      "true"
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
+
+    await user.keyboard("{ArrowDown}{Enter}");
+    await waitFor(() =>
+      expect(mocks.push).toHaveBeenCalledWith("/budget/programs/bpi_school", {
+        scroll: true,
+      })
+    );
+  });
+
+  it("新しい検索を始めたら古い応答を中断し、結果を上書きさせない", async () => {
+    let resolveFirst: ((result: BudgetProgramSearchResult) => void) | undefined;
+    let firstSignal: AbortSignal | undefined;
+    const firstRequest = new Promise<BudgetProgramSearchResult>((resolve) => {
+      resolveFirst = resolve;
+    });
+    mocks.requestBudgetProgramSearch
+      .mockImplementationOnce(
+        (_input: unknown, signal: AbortSignal | undefined) => {
+          firstSignal = signal;
+          return firstRequest;
+        }
+      )
+      .mockResolvedValueOnce(createSearchResult([]));
+    const user = userEvent.setup();
+    render(<BudgetExplorer exploration={exploration} />);
+    const searchbox = screen.getByRole("searchbox", {
+      name: "知りたい予算を検索",
+    });
+
+    await user.type(searchbox, "最初の検索");
+    await user.click(screen.getByRole("button", { name: "検索" }));
+    await waitFor(() =>
+      expect(mocks.requestBudgetProgramSearch).toHaveBeenCalledTimes(1)
+    );
+
+    await user.clear(searchbox);
+    await user.type(searchbox, "新しい検索");
+    expect(firstSignal?.aborted).toBe(true);
+    await user.click(screen.getByRole("button", { name: "検索" }));
+    expect(
+      await screen.findByRole("button", { name: "検索条件を変える" })
+    ).toBeVisible();
+
+    await act(async () => {
+      resolveFirst?.(
+        createSearchResult([
+          { ...schoolSearchItem, displayProgramName: "古い検索結果" },
+        ])
+      );
+      await firstRequest;
+    });
+
+    expect(
+      screen.queryByRole("option", { name: /古い検索結果/ })
+    ).not.toBeInTheDocument();
   });
 });

@@ -7,12 +7,21 @@ import {
   cleanupBudgetTestDataset,
   createBudgetTestDataset,
 } from "../budget-test-dataset";
-import { adminClient, getAnonClient } from "../utils";
+import {
+  adminClient,
+  cleanupTestUser,
+  createTestUser,
+  getAnonClient,
+  getAuthenticatedClient,
+  type TestUser,
+} from "../utils";
 
 const client = adminClient as SupabaseClient;
 let testDataset: BudgetTestDataset;
 let datasetId: string;
 let stagingDatasetId: string;
+let reviewer: TestUser | undefined;
+let searchTopicIds: string[] = [];
 
 beforeAll(async () => {
   testDataset = createBudgetTestDataset();
@@ -39,9 +48,15 @@ beforeAll(async () => {
 
   await insertZeroAmountProgram();
   stagingDatasetId = await insertStagingOnlyProgram();
+  const searchTopics = await insertSearchTopics();
+  reviewer = searchTopics.reviewer;
+  searchTopicIds = searchTopics.topicIds;
 });
 
 afterAll(async () => {
+  if (searchTopicIds.length > 0) {
+    await client.from("budget_topics").delete().in("id", searchTopicIds);
+  }
   if (datasetId) {
     await client
       .from("budget_datasets")
@@ -50,6 +65,9 @@ afterAll(async () => {
   }
   if (testDataset) {
     cleanupBudgetTestDataset(testDataset);
+  }
+  if (reviewer) {
+    await cleanupTestUser(reviewer.id);
   }
 });
 
@@ -111,6 +129,38 @@ describe("budget read model RPC", () => {
     expect(
       department.data?.map((row) => row.budget_program_identity_id)
     ).toContain("bpi_test");
+
+    const percent = await search("%");
+    const underscore = await search("_");
+    expect(percent.error).toBeNull();
+    expect(percent.data).toEqual([]);
+    expect(underscore.error).toBeNull();
+    expect(underscore.data).toEqual([]);
+  });
+
+  it("人が公開した課題名だけを検索対象とし、公開課題タグを返す", async () => {
+    const published = await search("学校施設の老朽化への対応");
+
+    expect(published.error).toBeNull();
+    expect(published.data).toEqual([
+      expect.objectContaining({
+        budget_program_identity_id: "bpi_test",
+        matched_field: "topic_name",
+        published_topics: [
+          {
+            slug: expect.stringMatching(/^budget-search-published-/),
+            name: "学校施設の老朽化への対応",
+          },
+        ],
+      }),
+    ]);
+
+    const unpublishedTopic = await search("非公開の課題");
+    const unpublishedRelation = await search("公開前の関係");
+    expect(unpublishedTopic.error).toBeNull();
+    expect(unpublishedTopic.data).toEqual([]);
+    expect(unpublishedRelation.error).toBeNull();
+    expect(unpublishedRelation.data).toEqual([]);
   });
 
   it("0円事業を既定で除外し、指定時だけ含める", async () => {
@@ -285,6 +335,27 @@ describe("budget read model RPC", () => {
 
     expect(calls.every((call) => call.data === null)).toBe(true);
     expect(calls.every((call) => call.error !== null)).toBe(true);
+  });
+
+  it("検索RPCをauthenticatedから直接実行できない", async () => {
+    if (!reviewer) {
+      throw new Error("Budget search reviewer fixture is unavailable");
+    }
+    const authenticated = await getAuthenticatedClient(
+      reviewer.email,
+      reviewer.password
+    );
+    const result = await authenticated.rpc("search_budget_programs", {
+      p_query: "テスト",
+      p_fiscal_year: 2026,
+      p_account_code: null,
+      p_include_zero_amount: false,
+      p_page: 1,
+      p_page_size: 20,
+    });
+
+    expect(result.data).toBeNull();
+    expect(result.error).not.toBeNull();
   });
 });
 
@@ -461,4 +532,121 @@ async function insertStagingOnlyProgram(): Promise<string> {
   }
 
   return insertedDatasetId;
+}
+
+async function insertSearchTopics(): Promise<{
+  reviewer: TestUser;
+  topicIds: string[];
+}> {
+  const reviewer = await createTestUser();
+  const topicSuffix = crypto.randomUUID();
+  const topics = await client
+    .from("budget_topics")
+    .insert([
+      {
+        slug: `budget-search-published-${topicSuffix}`,
+        name: "学校施設の老朽化への対応",
+        short_description: "公開課題名の検索確認",
+        topic_kind: "problem",
+        status: "published",
+        editorial_note: "",
+      },
+      {
+        slug: `budget-search-review-${topicSuffix}`,
+        name: "非公開の課題",
+        short_description: "レビュー中課題の検索除外確認",
+        topic_kind: "problem",
+        status: "review",
+        editorial_note: "",
+      },
+      {
+        slug: `budget-search-pending-relation-${topicSuffix}`,
+        name: "公開前の関係",
+        short_description: "候補関係の検索除外確認",
+        topic_kind: "problem",
+        status: "published",
+        editorial_note: "",
+      },
+    ])
+    .select("id, slug, status");
+  if (topics.error || !topics.data) {
+    await cleanupTestUser(reviewer.id);
+    throw topics.error ?? new Error("Failed to insert budget search topics");
+  }
+
+  const publishedTopic = topics.data.find((topic) =>
+    topic.slug.startsWith("budget-search-published-")
+  );
+  const reviewTopic = topics.data.find((topic) =>
+    topic.slug.startsWith("budget-search-review-")
+  );
+  const pendingRelationTopic = topics.data.find((topic) =>
+    topic.slug.startsWith("budget-search-pending-relation-")
+  );
+  if (!publishedTopic || !reviewTopic || !pendingRelationTopic) {
+    await client
+      .from("budget_topics")
+      .delete()
+      .in(
+        "id",
+        topics.data.map((topic) => topic.id)
+      );
+    await cleanupTestUser(reviewer.id);
+    throw new Error("Budget search topic fixture is incomplete");
+  }
+
+  const relations = await client.from("budget_topic_programs").insert([
+    {
+      topic_id: publishedTopic.id,
+      dataset_id: datasetId,
+      budget_program_identity_id: "bpi_test",
+      relation_type: "responds_to",
+      explanation: "公開課題名の検索確認",
+      evidence_level: "B_strong_structural",
+      evidence_fields: {},
+      review_status: "published",
+      reviewed_by: reviewer.id,
+      reviewed_at: new Date().toISOString(),
+    },
+    {
+      topic_id: reviewTopic.id,
+      dataset_id: datasetId,
+      budget_program_identity_id: "bpi_test",
+      relation_type: "responds_to",
+      explanation: "レビュー中課題の検索除外確認",
+      evidence_level: "C_editorial",
+      evidence_fields: {},
+      review_status: "published",
+      reviewed_by: reviewer.id,
+      reviewed_at: new Date().toISOString(),
+    },
+    {
+      topic_id: pendingRelationTopic.id,
+      dataset_id: datasetId,
+      budget_program_identity_id: "bpi_test",
+      relation_type: "responds_to",
+      explanation: "候補関係の検索除外確認",
+      evidence_level: "C_editorial",
+      evidence_fields: {},
+      review_status: "candidate",
+      reviewed_by: null,
+      reviewed_at: null,
+    },
+  ]);
+  if (relations.error) {
+    await client
+      .from("budget_topics")
+      .delete()
+      .in(
+        "id",
+        topics.data.map((topic) => topic.id)
+      );
+    await cleanupTestUser(reviewer.id);
+    throw relations.error;
+  }
+
+  return {
+    reviewer,
+    topicIds: topics.data.map((topic) => topic.id),
+  };
 }

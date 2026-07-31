@@ -3101,6 +3101,7 @@ export type Database = {
           member_program_count: number
           moku_code: string
           moku_name: string
+          published_topics: Json
           related_revenue_count: number
           score: number
           total_count: number

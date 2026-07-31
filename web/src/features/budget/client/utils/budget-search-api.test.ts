@@ -21,6 +21,12 @@ const validResponse = {
       relatedRevenueCount: 1,
       hasPublicIdentityResolution: false,
       isZeroAmount: false,
+      publishedTopics: [
+        {
+          slug: "school-facility-aging",
+          name: "学校施設の老朽化への対応",
+        },
+      ],
       score: 1,
       matchedField: "display_program_name",
     },
@@ -49,6 +55,7 @@ describe("requestBudgetProgramSearch", () => {
         {
           installationId: "22222222-2222-4222-8222-222222222222",
           query: "学校 改修",
+          page: 2,
         },
         controller.signal
       )
@@ -60,6 +67,7 @@ describe("requestBudgetProgramSearch", () => {
         body: JSON.stringify({
           installationId: "22222222-2222-4222-8222-222222222222",
           query: "学校 改修",
+          page: 2,
         }),
         signal: controller.signal,
       })

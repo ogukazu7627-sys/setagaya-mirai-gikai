@@ -22,7 +22,10 @@ import {
 import { requestBudgetProgramSearch } from "../utils/budget-search-api";
 import { getBrowserBudgetSearchInstallationId } from "../utils/budget-search-storage";
 import { BudgetSearchForm } from "./budget-search-form";
-import { BudgetSearchResults } from "./budget-search-results";
+import {
+  BudgetSearchResults,
+  type BudgetSearchStatus,
+} from "./budget-search-results";
 
 const BudgetNetwork = dynamic(
   () =>
@@ -44,19 +47,21 @@ type BudgetExplorerProps = {
   exploration: BudgetExplorationData;
 };
 
-type SearchStatus = "idle" | "loading" | "success" | "error";
+const BUDGET_SEARCH_WARP_DURATION_MS = 420;
 
 export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [searchStatus, setSearchStatus] = useState<SearchStatus>("idle");
+  const [searchStatus, setSearchStatus] = useState<BudgetSearchStatus>("input");
   const [searchResult, setSearchResult] =
     useState<BudgetProgramSearchResult | null>(null);
   const [submittedQuery, setSubmittedQuery] = useState("");
+  const [submittedPage, setSubmittedPage] = useState(1);
   const [transitionTarget, setTransitionTarget] =
     useState<BudgetExplorerTransitionTarget | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const networkSectionRef = useRef<HTMLElement>(null);
   const requestControllerRef = useRef<AbortController | null>(null);
   const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const categorySlug = searchParams.get("category");
@@ -213,35 +218,92 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     window.requestAnimationFrame(() => inputRef.current?.focus());
   }, []);
 
-  const executeSearch = useCallback(async (normalizedQuery: string) => {
-    requestControllerRef.current?.abort();
-    const controller = new AbortController();
-    requestControllerRef.current = controller;
-    setSubmittedQuery(normalizedQuery);
-    setSearchStatus("loading");
-    setSearchResult(null);
+  const executeSearch = useCallback(
+    async (normalizedQuery: string, page = 1) => {
+      requestControllerRef.current?.abort();
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      setSubmittedQuery(normalizedQuery);
+      setSubmittedPage(page);
+      setSearchStatus("searching");
+      setSearchResult(null);
+      networkSectionRef.current?.scrollIntoView?.({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
+      const warpDelay = reduceMotion
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            setTimeout(resolve, BUDGET_SEARCH_WARP_DURATION_MS);
+          });
 
-    try {
-      const result = await requestBudgetProgramSearch(
-        {
-          installationId: getBrowserBudgetSearchInstallationId(),
-          query: normalizedQuery,
-        },
-        controller.signal
-      );
-      if (!controller.signal.aborted) {
-        setSearchResult(result);
-        setSearchStatus("success");
+      try {
+        const result = await requestBudgetProgramSearch(
+          {
+            installationId: getBrowserBudgetSearchInstallationId(),
+            query: normalizedQuery,
+            page,
+          },
+          controller.signal
+        );
+        await warpDelay;
+        if (!controller.signal.aborted) {
+          setSearchResult(result);
+          setSearchStatus(result.items.length > 0 ? "results" : "empty");
+        }
+      } catch (error) {
+        await warpDelay;
+        if (
+          !controller.signal.aborted &&
+          !(error instanceof DOMException && error.name === "AbortError")
+        ) {
+          setSearchStatus("error");
+        }
       }
-    } catch (error) {
-      if (
-        !controller.signal.aborted &&
-        !(error instanceof DOMException && error.name === "AbortError")
-      ) {
-        setSearchStatus("error");
-      }
-    }
+    },
+    []
+  );
+
+  const resetSearchResults = useCallback(() => {
+    requestControllerRef.current?.abort();
+    setSearchStatus("input");
+    setSearchResult(null);
+    setSubmittedQuery("");
+    setSubmittedPage(1);
   }, []);
+
+  const handleQueryChange = useCallback(
+    (nextQuery: string) => {
+      setQuery(nextQuery);
+      if (searchStatus !== "input") {
+        resetSearchResults();
+      }
+    },
+    [resetSearchResults, searchStatus]
+  );
+
+  const closeSearchResults = useCallback(() => {
+    resetSearchResults();
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+  }, [resetSearchResults]);
+
+  const retrySearch = useCallback(() => {
+    if (submittedQuery) {
+      void executeSearch(submittedQuery, submittedPage);
+    }
+  }, [executeSearch, submittedPage, submittedQuery]);
+
+  const changeSearchPage = useCallback(
+    (page: number) => {
+      if (submittedQuery) {
+        void executeSearch(submittedQuery, page);
+      }
+    },
+    [executeSearch, submittedQuery]
+  );
 
   const handleSelectSearchResult = useCallback(
     (item: BudgetProgramSearchItem) => {
@@ -253,31 +315,48 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   return (
     <>
       <section
+        ref={networkSectionRef}
         aria-labelledby="budget-page-title"
         className="budget-network-space relative isolate overflow-hidden border-b border-budget-space-line"
       >
-        <BudgetNetwork
-          exploration={exploration}
-          view={view}
-          onBack={handleBack}
-          onFocusSearch={focusSearch}
-          onSelectCategory={handleSelectCategory}
-          onSelectProgram={handleSelectProgram}
-          onSelectTopic={handleSelectTopic}
-        />
         <div
-          className="sr-only"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
+          className="contents"
+          aria-hidden={searchStatus === "input" ? undefined : true}
+          inert={searchStatus === "input" ? undefined : true}
         >
-          {getBudgetExplorerAnnouncement(stableView)}
+          <BudgetNetwork
+            exploration={exploration}
+            view={view}
+            onBack={handleBack}
+            onFocusSearch={focusSearch}
+            onSelectCategory={handleSelectCategory}
+            onSelectProgram={handleSelectProgram}
+            onSelectTopic={handleSelectTopic}
+          />
+          <div
+            className="sr-only"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {getBudgetExplorerAnnouncement(stableView)}
+          </div>
+          <BudgetExplorerHeading view={stableView} />
         </div>
-        <BudgetExplorerHeading view={stableView} />
+        <BudgetSearchResults
+          query={submittedQuery}
+          result={searchResult}
+          status={searchStatus}
+          onClose={closeSearchResults}
+          onPageChange={changeSearchPage}
+          onRetry={retrySearch}
+          onSelectResult={handleSelectSearchResult}
+        />
       </section>
 
       <section
         aria-labelledby="budget-search-title"
+        data-search-state={searchStatus}
         className="border-b border-mirai-border bg-white px-4 py-6 sm:px-8 sm:py-8"
       >
         <h2
@@ -288,15 +367,10 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
         </h2>
         <BudgetSearchForm
           inputRef={inputRef}
+          isSearching={searchStatus === "searching"}
           query={query}
-          onQueryChange={setQuery}
+          onQueryChange={handleQueryChange}
           onSubmitQuery={executeSearch}
-        />
-        <BudgetSearchResults
-          query={submittedQuery}
-          result={searchResult}
-          status={searchStatus}
-          onSelectResult={handleSelectSearchResult}
         />
       </section>
     </>

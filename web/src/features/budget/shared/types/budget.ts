@@ -43,6 +43,11 @@ export interface BudgetProgramSearchInput extends BudgetProgramSearchOptions {
   query: string;
 }
 
+export interface BudgetProgramPublishedTopic {
+  slug: string;
+  name: string;
+}
+
 export interface BudgetProgramSearchItem {
   datasetId: string;
   budgetProgramIdentityId: string;
@@ -61,6 +66,7 @@ export interface BudgetProgramSearchItem {
   relatedRevenueCount: number;
   hasPublicIdentityResolution: boolean;
   isZeroAmount: boolean;
+  publishedTopics: BudgetProgramPublishedTopic[];
   score: number;
   matchedField: string;
 }

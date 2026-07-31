@@ -86,6 +86,12 @@ export const budgetProgramSearchRowSchema = z
     related_revenue_count: safeIntegerSchema.nonnegative(),
     has_public_identity_resolution: z.boolean(),
     is_zero_amount: z.boolean(),
+    published_topics: z.array(
+      z.strictObject({
+        slug: z.string().min(1),
+        name: z.string().min(1),
+      })
+    ),
     score: z.number().finite(),
     matched_field: z.string(),
     total_count: safeIntegerSchema.nonnegative(),
@@ -109,6 +115,7 @@ export const budgetProgramSearchRowSchema = z
       relatedRevenueCount: value.related_revenue_count,
       hasPublicIdentityResolution: value.has_public_identity_resolution,
       isZeroAmount: value.is_zero_amount,
+      publishedTopics: value.published_topics,
       score: value.score,
       matchedField: value.matched_field,
     },

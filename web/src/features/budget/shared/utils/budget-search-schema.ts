@@ -51,6 +51,12 @@ export const budgetProgramSearchResponseSchema = z.strictObject({
       relatedRevenueCount: z.number().int().nonnegative(),
       hasPublicIdentityResolution: z.boolean(),
       isZeroAmount: z.boolean(),
+      publishedTopics: z.array(
+        z.strictObject({
+          slug: z.string().min(1),
+          name: z.string().min(1),
+        })
+      ),
       score: z.number().finite(),
       matchedField: z.string(),
     })
