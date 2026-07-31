@@ -1,5 +1,5 @@
 export const BUDGET_MAP_DESKTOP_STAR_COUNT = 200;
-export const BUDGET_MAP_MOBILE_STAR_COUNT = 72;
+export const BUDGET_MAP_MOBILE_STAR_COUNT = 70;
 
 export type BudgetMapStar = {
   id: string;

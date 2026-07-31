@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  BUDGET_MAP_PROGRAM_PAGE_SIZE,
+  BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE,
+  BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE,
   getBudgetMapAmountTier,
   getBudgetMapProgramPage,
+  getBudgetMapProgramPageSize,
 } from "./budget-map-programs";
 
 describe("budget map programs", () => {
@@ -11,7 +13,7 @@ describe("budget map programs", () => {
     const firstPage = getBudgetMapProgramPage(programs, 0);
     const secondPage = getBudgetMapProgramPage(programs, 1);
 
-    expect(BUDGET_MAP_PROGRAM_PAGE_SIZE).toBe(10);
+    expect(BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE).toBe(10);
     expect(firstPage).toMatchObject({
       items: programs.slice(0, 10),
       pageIndex: 0,
@@ -27,6 +29,24 @@ describe("budget map programs", () => {
       startNumber: 11,
       endNumber: 13,
       totalCount: 13,
+    });
+  });
+
+  it("mobileは1星系を6件に抑える", () => {
+    const programs = Array.from({ length: 13 }, (_, index) => index + 1);
+    const firstPage = getBudgetMapProgramPage(
+      programs,
+      0,
+      BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE
+    );
+
+    expect(getBudgetMapProgramPageSize("desktop")).toBe(10);
+    expect(getBudgetMapProgramPageSize("mobile")).toBe(6);
+    expect(firstPage).toMatchObject({
+      items: programs.slice(0, 6),
+      pageCount: 3,
+      startNumber: 1,
+      endNumber: 6,
     });
   });
 

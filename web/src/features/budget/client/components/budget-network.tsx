@@ -48,6 +48,7 @@ import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-mo
 import {
   getBudgetMapAmountTier,
   getBudgetMapProgramPage,
+  getBudgetMapProgramPageSize,
 } from "../../shared/utils/budget-map-programs";
 import {
   BUDGET_MAP_MOBILE_STAR_COUNT,
@@ -199,7 +200,7 @@ export function BudgetNetwork({
           disabled={view.kind === "transitioning"}
           aria-label="戻る"
           title="戻る"
-          className="budget-map-back absolute left-4 top-36 z-40 size-10 rounded-md border border-budget-space-line bg-budget-space-deep/90 text-white hover:bg-budget-space-mid hover:text-white sm:left-9"
+          className="budget-map-back absolute left-4 top-36 z-40 size-11 rounded-md border border-budget-space-line bg-budget-space-deep/90 text-white hover:bg-budget-space-mid hover:text-white sm:left-9"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
         </Button>
@@ -520,7 +521,8 @@ function TopicNetwork({
     | null;
 }) {
   const [pageIndex, setPageIndex] = useState(0);
-  const page = getBudgetMapProgramPage(programs, pageIndex);
+  const pageSize = getBudgetMapProgramPageSize(mode);
+  const page = getBudgetMapProgramPage(programs, pageIndex, pageSize);
   const layout = getBudgetMapTopicLayout(
     page.items.map((program) => program.budgetProgramIdentityId),
     mode,
@@ -679,7 +681,7 @@ function TopicNetwork({
               size="sm"
               disabled={page.pageIndex === 0}
               onClick={() => setPageIndex((current) => current - 1)}
-              className="h-8 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
+              className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
               前の星系
@@ -696,7 +698,7 @@ function TopicNetwork({
               size="sm"
               disabled={page.pageIndex >= page.pageCount - 1}
               onClick={() => setPageIndex((current) => current + 1)}
-              className="h-8 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
+              className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
             >
               次の星系
               <ChevronRight aria-hidden="true" className="size-4" />

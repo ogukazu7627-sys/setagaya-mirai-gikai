@@ -1,7 +1,8 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
+import { BookOpen, LoaderCircle, RefreshCw, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import type {
@@ -25,6 +26,10 @@ type BudgetMapIframeProps = {
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
 };
 
+export const BUDGET_MAP_LOAD_TIMEOUT_MS = 10_000;
+
+type BudgetMapFrameStatus = "loading" | "loaded" | "error";
+
 export function BudgetMapIframe({
   exploration,
   view,
@@ -36,7 +41,10 @@ export function BudgetMapIframe({
   onSelectTopic,
 }: BudgetMapIframeProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [frameAttempt, setFrameAttempt] = useState(0);
+  const [frameStatus, setFrameStatus] =
+    useState<BudgetMapFrameStatus>("loading");
+  const isLoaded = frameStatus === "loaded";
   const stableView = getBudgetMapStableView(view);
   const syncView = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -48,6 +56,16 @@ export function BudgetMapIframe({
   useEffect(() => {
     syncView();
   }, [syncView]);
+
+  useEffect(() => {
+    if (frameStatus !== "loading") {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => {
+      setFrameStatus("error");
+    }, BUDGET_MAP_LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [frameStatus]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -64,6 +82,7 @@ export function BudgetMapIframe({
 
       switch (message.action) {
         case "ready":
+          setFrameStatus("loaded");
           syncView();
           return;
         case "back":
@@ -126,17 +145,23 @@ export function BudgetMapIframe({
   ]);
 
   const handleLoad = () => {
-    setIsLoaded(true);
     syncView();
+  };
+
+  const retryLoad = () => {
+    setFrameStatus("loading");
+    setFrameAttempt((current) => current + 1);
   };
 
   return (
     <div
       className="budget-map-frame-shell overflow-hidden"
-      aria-busy={!isLoaded}
+      aria-busy={frameStatus === "loading"}
       data-map-loaded={isLoaded}
+      data-map-status={frameStatus}
     >
       <iframe
+        key={frameAttempt}
         ref={iframeRef}
         src={routes.budgetMap()}
         title="触れる予算の探索マップ"
@@ -144,13 +169,15 @@ export function BudgetMapIframe({
         referrerPolicy="same-origin"
         data-explorer-state={view.kind}
         onLoad={handleLoad}
+        onError={() => setFrameStatus("error")}
+        tabIndex={isLoaded ? 0 : -1}
         className={cn(
           "budget-map-frame block w-full border-0",
           `budget-map-frame-${stableView.kind}`,
           !isLoaded && "budget-map-frame-loading"
         )}
       />
-      {!isLoaded && (
+      {frameStatus === "loading" && (
         <div className="budget-map-loading-scrim absolute inset-0 z-20 flex items-center justify-center text-budget-space-copy">
           <div
             role="status"
@@ -164,6 +191,69 @@ export function BudgetMapIframe({
           </div>
         </div>
       )}
+      {frameStatus === "error" && (
+        <div className="budget-map-loading-scrim absolute inset-0 z-20 flex items-center justify-center px-5 text-budget-space-copy">
+          <div role="alert" className="max-w-lg text-center">
+            <p className="font-bold text-white">
+              予算マップを読み込めませんでした
+            </p>
+            <p className="mt-2 text-sm leading-6">
+              再読み込みするか、予算検索・公式予算分類から同じ情報へ進めます。
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={retryLoad}
+                className="min-h-11 rounded-md"
+              >
+                <RefreshCw aria-hidden="true" className="size-4" />
+                再読み込み
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onFocusSearch}
+                className="min-h-11 rounded-md"
+              >
+                <Search aria-hidden="true" className="size-4" />
+                予算検索
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onOpenOfficialHierarchy}
+                className="min-h-11 rounded-md"
+              >
+                <BookOpen aria-hidden="true" className="size-4" />
+                公式分類から探す
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <noscript>
+        <div className="budget-map-loading-scrim absolute inset-0 z-30 flex items-center justify-center px-5 text-center text-budget-space-copy">
+          <div>
+            <p className="font-bold text-white">
+              予算マップの表示にはJavaScriptが必要です
+            </p>
+            <p className="mt-2 text-sm">
+              <a className="underline" href="#budget-search-title">
+                予算検索
+              </a>
+              または
+              <a className="underline" href={routes.budgetOfficialHierarchy()}>
+                公式予算分類
+              </a>
+              を利用できます。
+            </p>
+          </div>
+        </div>
+      </noscript>
     </div>
   );
 }

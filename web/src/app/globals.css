@@ -385,11 +385,13 @@
   .budget-map-frame-shell {
     position: relative;
     width: 100%;
+    max-width: 100%;
     background: var(--budget-space-deep);
   }
 
   .budget-map-frame {
-    height: clamp(30rem, 62dvh, 36rem);
+    max-width: 100%;
+    height: clamp(30rem, 62svh, 36rem);
     background: var(--budget-space-deep);
     transition: opacity 180ms ease;
   }
@@ -408,11 +410,11 @@
   }
 
   .budget-map-frame-category {
-    height: clamp(36rem, 72dvh, 42rem);
+    height: clamp(36rem, 72svh, 42rem);
   }
 
   .budget-map-frame-topic {
-    height: clamp(46rem, 86dvh, 50rem);
+    height: clamp(44rem, 86svh, 50rem);
   }
 
   .budget-network-space {
@@ -531,6 +533,12 @@
     left: var(--budget-map-node-x);
     top: var(--budget-map-node-y);
     transform: translate(-50%, -50%);
+    touch-action: manipulation;
+  }
+
+  .budget-map-node:focus-visible {
+    outline: 3px solid var(--budget-node-cyan);
+    outline-offset: 3px;
   }
 
   [data-tone="cyan"] {
@@ -773,6 +781,10 @@
   }
 
   @media (max-width: 999px) {
+    .budget-map-star-twinkle {
+      animation: none;
+    }
+
     .budget-map-category-node {
       width: 5.75rem;
       min-height: 3.75rem;

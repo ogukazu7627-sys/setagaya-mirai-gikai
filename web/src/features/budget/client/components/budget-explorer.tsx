@@ -1,6 +1,8 @@
 "use client";
 
+import { BookOpen, Info } from "lucide-react";
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { routes } from "@/lib/routes";
@@ -370,6 +372,21 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
           onQueryChange={handleQueryChange}
           onSubmitQuery={executeSearch}
         />
+        <div className="mx-auto mt-4 flex max-w-3xl flex-col items-start gap-2 text-xs leading-5 text-mirai-text/70 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex gap-2">
+            <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            <span>
+              当初予算であり実支出ではありません。線・光・大きさはお金の流れや良し悪しを示さず、個別事業の財源配分額・節別内訳は公開資料から確認できません。
+            </span>
+          </p>
+          <Link
+            href={routes.budgetOfficialHierarchy()}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md px-2 font-bold text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <BookOpen aria-hidden="true" className="size-4" />
+            公式分類から探す
+          </Link>
+        </div>
       </section>
     </>
   );

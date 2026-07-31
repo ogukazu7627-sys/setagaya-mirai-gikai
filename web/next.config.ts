@@ -4,6 +4,23 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  async headers() {
+    return [
+      {
+        source: "/budget/map",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors 'self'",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+        ],
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "8mb",
