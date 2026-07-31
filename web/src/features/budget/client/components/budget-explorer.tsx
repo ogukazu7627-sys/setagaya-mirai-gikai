@@ -18,6 +18,7 @@ import {
   getBudgetExplorerAnnouncement,
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
+import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
 import { requestBudgetProgramSearch } from "../utils/budget-search-api";
 import { getBrowserBudgetSearchInstallationId } from "../utils/budget-search-storage";
 import { BudgetMapIframe } from "./budget-map-iframe";
@@ -121,7 +122,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
           }
           router.push(href as Route, navigationOptions);
         },
-        reduceMotion ? 0 : 220
+        reduceMotion ? 0 : getBudgetMapTransitionDuration(target)
       );
     },
     [router, transitionTarget]

@@ -11,71 +11,71 @@ export const BUDGET_NETWORK_TOPICS = [
     id: "education",
     label: "教育",
     tone: "cyan",
-    mobile: { x: 18, y: 40 },
-    desktop: { x: 18, y: 38 },
+    mobile: { x: 19.4, y: 39 },
+    desktop: { x: 15, y: 37 },
   },
   {
     id: "child-rearing",
     label: "子育て",
     tone: "mint",
-    mobile: { x: 50, y: 43 },
-    desktop: { x: 38, y: 32 },
+    mobile: { x: 50.5, y: 37.5 },
+    desktop: { x: 35, y: 31 },
   },
   {
     id: "welfare",
     label: "福祉",
     tone: "gold",
-    mobile: { x: 82, y: 40 },
-    desktop: { x: 60, y: 40 },
+    mobile: { x: 81.1, y: 40 },
+    desktop: { x: 60, y: 30 },
   },
   {
     id: "urban-development",
     label: "まちづくり",
     tone: "cyan",
-    mobile: { x: 18, y: 58 },
-    desktop: { x: 79, y: 55 },
+    mobile: { x: 17, y: 54 },
+    desktop: { x: 82, y: 38 },
   },
   {
     id: "disaster-prevention",
     label: "防災",
     tone: "gold",
-    mobile: { x: 50, y: 61 },
-    desktop: { x: 86, y: 31 },
+    mobile: { x: 83, y: 55 },
+    desktop: { x: 90, y: 60 },
   },
   {
     id: "administration-finance",
     label: "行財政",
     tone: "mint",
-    mobile: { x: 82, y: 58 },
-    desktop: { x: 52, y: 64 },
+    mobile: { x: 17, y: 73.2 },
+    desktop: { x: 80, y: 81 },
   },
   {
     id: "culture-sports",
     label: "文化・スポーツ",
     tone: "gold",
-    mobile: { x: 18, y: 76 },
-    desktop: { x: 17, y: 70 },
+    mobile: { x: 83, y: 72.3 },
+    desktop: { x: 58, y: 89 },
   },
   {
     id: "industry",
     label: "産業",
     tone: "cyan",
-    mobile: { x: 50, y: 79 },
-    desktop: { x: 69, y: 79 },
+    mobile: { x: 20, y: 87.9 },
+    desktop: { x: 34, y: 87 },
   },
   {
     id: "environment",
     label: "環境問題",
     tone: "mint",
-    mobile: { x: 82, y: 76 },
-    desktop: { x: 36, y: 84 },
+    mobile: { x: 50, y: 85.4 },
+    desktop: { x: 13, y: 76 },
   },
   {
     id: "daily-life",
     label: "暮らし",
     tone: "cyan",
-    mobile: { x: 18, y: 91 },
-    desktop: { x: 89, y: 79 },
+    mobile: { x: 83, y: 88 },
+    desktop: { x: 9, y: 53 },
   },
 ] as const satisfies readonly BudgetNetworkTopic[];
 
@@ -226,6 +226,10 @@ const BUDGET_NETWORK_EDGES = [
 ] as const satisfies readonly BudgetNetworkEdge[];
 
 export function getBudgetNetworkLayout(mode: "mobile" | "desktop") {
+  const center = {
+    id: "budget-core",
+    ...(mode === "mobile" ? { x: 50, y: 60.7 } : { x: 50, y: 57.3 }),
+  };
   const topics = BUDGET_NETWORK_TOPICS.map((topic) => ({
     ...topic,
     ...topic[mode],
@@ -235,13 +239,19 @@ export function getBudgetNetworkLayout(mode: "mobile" | "desktop") {
     ...decoration[mode],
   }));
   const points = new Map<string, BudgetNetworkPosition>(
-    [...topics, ...decorations].map((point) => [
+    [center, ...topics, ...decorations].map((point) => [
       point.id,
       { x: point.x, y: point.y },
     ])
   );
-  const edges: BudgetNetworkRenderedEdge[] = BUDGET_NETWORK_EDGES.map(
-    (edge) => {
+  const radialEdges: BudgetNetworkRenderedEdge[] = topics.map((topic) => ({
+    id: `budget-core-${topic.id}`,
+    source: { id: center.id, x: center.x, y: center.y },
+    target: { id: topic.id, x: topic.x, y: topic.y },
+    strength: "secondary",
+  }));
+  const constellationEdges: BudgetNetworkRenderedEdge[] =
+    BUDGET_NETWORK_EDGES.map((edge) => {
       const source = points.get(edge.source);
       const target = points.get(edge.target);
       if (!source || !target) {
@@ -253,8 +263,12 @@ export function getBudgetNetworkLayout(mode: "mobile" | "desktop") {
         target: { id: edge.target, ...target },
         strength: edge.strength,
       };
-    }
-  );
+    });
 
-  return { topics, decorations, edges };
+  return {
+    center,
+    topics,
+    decorations,
+    edges: [...radialEdges, ...constellationEdges],
+  };
 }

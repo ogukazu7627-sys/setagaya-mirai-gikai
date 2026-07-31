@@ -4,9 +4,9 @@ import type {
   BudgetExplorerView,
 } from "../types/budget-exploration";
 import type { BudgetNetworkPosition } from "../types/budget-page";
+import { BUDGET_MAP_PROGRAM_PAGE_SIZE } from "./budget-map-programs";
 import { getBudgetNetworkLayout } from "./budget-network-layout";
 import {
-  getBudgetCategoryCenterY,
   getBudgetCategoryTopicPositions,
   getBudgetTopicProgramPositions,
 } from "./budget-topic-network-layout";
@@ -35,12 +35,16 @@ export type BudgetMapCameraTransform = {
 
 const DESKTOP_WORLD: BudgetMapWorldDimensions = {
   width: 1000,
-  height: 720,
+  height: 620,
+};
+const DESKTOP_TOPIC_WORLD: BudgetMapWorldDimensions = {
+  width: 1000,
+  height: 700,
 };
 const MOBILE_WORLD_WIDTH = 360;
-const MOBILE_OVERVIEW_WORLD_HEIGHT = 540;
-const MOBILE_CATEGORY_MIN_WORLD_HEIGHT = 620;
-const MOBILE_TOPIC_MIN_WORLD_HEIGHT = 740;
+const MOBILE_OVERVIEW_WORLD_HEIGHT = 560;
+const MOBILE_CATEGORY_MIN_WORLD_HEIGHT = 660;
+const MOBILE_TOPIC_MIN_WORLD_HEIGHT = 850;
 
 export function getBudgetMapStableView(
   view: BudgetExplorerView
@@ -53,22 +57,30 @@ export function getBudgetMapWorldDimensions(
   mode: BudgetMapMode
 ): BudgetMapWorldDimensions {
   if (mode === "desktop") {
-    return DESKTOP_WORLD;
+    return view.kind === "topic" ? DESKTOP_TOPIC_WORLD : DESKTOP_WORLD;
   }
   if (view.kind === "category") {
+    const rowCount = Math.max(1, Math.ceil(view.category.topics.length / 2));
     return {
       width: MOBILE_WORLD_WIDTH,
       height: Math.max(
         MOBILE_CATEGORY_MIN_WORLD_HEIGHT,
-        430 + view.category.topics.length * 110
+        450 + (rowCount - 1) * 110
       ),
     };
   }
   if (view.kind === "topic") {
-    const rowCount = Math.max(1, Math.ceil(view.topic.programs.length / 2));
+    const visibleProgramCount = Math.min(
+      BUDGET_MAP_PROGRAM_PAGE_SIZE,
+      view.topic.programs.length
+    );
+    const rowCount = Math.max(1, Math.ceil(visibleProgramCount / 2));
     return {
       width: MOBILE_WORLD_WIDTH,
-      height: Math.max(MOBILE_TOPIC_MIN_WORLD_HEIGHT, 166 + rowCount * 82),
+      height: Math.max(
+        MOBILE_TOPIC_MIN_WORLD_HEIGHT,
+        400 + (rowCount - 1) * 96
+      ),
     };
   }
   return {
@@ -83,6 +95,7 @@ export function getBudgetMapOverviewLayout(
 ) {
   const layout = getBudgetNetworkLayout(mode);
   return {
+    center: toWorldPosition(layout.center, dimensions),
     topics: layout.topics.map((topic) => ({
       ...topic,
       ...toWorldPosition(topic, dimensions),
@@ -106,59 +119,64 @@ export function getBudgetMapCategoryLayout(
 ) {
   if (mode === "mobile") {
     return {
-      center: { x: dimensions.width / 2, y: 150 },
-      topics: category.topics.map((topic, index) => ({
-        topic,
-        index,
-        x: dimensions.width / 2,
-        y: 310 + index * 110,
+      center: { x: dimensions.width / 2, y: 230 },
+      topics: getBudgetCategoryTopicPositions(
+        category.topics.map((topic) => topic.id),
+        mode,
+        dimensions
+      ).map((position) => ({
+        ...position,
+        topic: category.topics[position.index],
+        ...toWorldPosition(position, dimensions),
       })),
     };
   }
 
   return {
-    center: toWorldPosition(
-      {
-        x: 50,
-        y: getBudgetCategoryCenterY(category.topics.length, mode),
-      },
+    center: toWorldPosition({ x: 50, y: 57.3 }, dimensions),
+    topics: getBudgetCategoryTopicPositions(
+      category.topics.map((topic) => topic.id),
+      mode,
       dimensions
-    ),
-    topics: getBudgetCategoryTopicPositions(category.topics.length, mode).map(
-      (position, index) => ({
-        topic: category.topics[index],
-        index,
-        ...toWorldPosition(position, dimensions),
-      })
-    ),
+    ).map((position) => ({
+      ...position,
+      topic: category.topics[position.index],
+      ...toWorldPosition(position, dimensions),
+    })),
   };
 }
 
 export function getBudgetMapTopicLayout(
-  programCount: number,
+  programIds: readonly string[],
   mode: BudgetMapMode,
   dimensions: BudgetMapWorldDimensions
 ) {
-  if (mode === "mobile") {
-    return {
-      center: { x: dimensions.width / 2, y: 72 },
-      programs: Array.from({ length: programCount }, (_, index) => ({
-        index,
-        x: index % 2 === 0 ? 90 : dimensions.width - 90,
-        y: 184 + Math.floor(index / 2) * 82,
-      })),
-    };
-  }
-
+  const visibleProgramIds = programIds.slice(0, BUDGET_MAP_PROGRAM_PAGE_SIZE);
+  const center =
+    mode === "mobile"
+      ? { x: dimensions.width / 2, y: 215 }
+      : toWorldPosition({ x: 50, y: 54 }, dimensions);
   return {
-    center: toWorldPosition({ x: 50, y: 58 }, dimensions),
-    programs: getBudgetTopicProgramPositions(programCount, mode).map(
-      (position) => ({
-        ...position,
-        ...toWorldPosition(position, dimensions),
-      })
-    ),
+    center,
+    programs: getBudgetTopicProgramPositions(
+      visibleProgramIds,
+      mode,
+      dimensions
+    ).map((position) => ({
+      ...position,
+      ...toWorldPosition(position, dimensions),
+    })),
   };
+}
+
+function getProgramPageIds(
+  programIds: readonly string[],
+  programIndex: number
+): string[] {
+  const pageStart =
+    Math.floor(programIndex / BUDGET_MAP_PROGRAM_PAGE_SIZE) *
+    BUDGET_MAP_PROGRAM_PAGE_SIZE;
+  return programIds.slice(pageStart, pageStart + BUDGET_MAP_PROGRAM_PAGE_SIZE);
 }
 
 export function getBudgetMapCameraFocus(
@@ -217,13 +235,22 @@ export function getBudgetMapCameraFocus(
         (program) =>
           program.budgetProgramIdentityId === target.budgetProgramIdentityId
       );
+      if (programIndex < 0) {
+        return getStableCameraFocus(current, mode, dimensions);
+      }
+      const programIds = current.topic.programs.map(
+        (program) => program.budgetProgramIdentityId
+      );
+      const pageIds = getProgramPageIds(programIds, programIndex);
       const position = getBudgetMapTopicLayout(
-        current.topic.programs.length,
+        pageIds,
         mode,
         dimensions
-      ).programs.find((program) => program.index === programIndex);
+      ).programs.find(
+        (program) => program.nodeId === target.budgetProgramIdentityId
+      );
       return position
-        ? { x: position.x, y: position.y, zoom: 1.42 }
+        ? { x: position.x, y: position.y, zoom: 1.34 }
         : getStableCameraFocus(current, mode, dimensions);
     }
   }
@@ -262,14 +289,16 @@ function getStableCameraFocus(
   if (view.kind === "category") {
     return {
       ...getBudgetMapCategoryLayout(view.category, mode, dimensions).center,
-      zoom: 1,
+      zoom: 1.08,
     };
   }
   if (view.kind === "topic") {
+    const firstProgramPageIds = view.topic.programs
+      .slice(0, BUDGET_MAP_PROGRAM_PAGE_SIZE)
+      .map((program) => program.budgetProgramIdentityId);
     return {
-      ...getBudgetMapTopicLayout(view.topic.programs.length, mode, dimensions)
-        .center,
-      zoom: 0.98,
+      ...getBudgetMapTopicLayout(firstProgramPageIds, mode, dimensions).center,
+      zoom: 1,
     };
   }
   return {

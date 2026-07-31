@@ -6,6 +6,8 @@ import {
   BookOpen,
   BriefcaseBusiness,
   Building2,
+  ChevronLeft,
+  ChevronRight,
   CircleDot,
   Factory,
   GraduationCap,
@@ -13,11 +15,12 @@ import {
   House,
   Landmark,
   Leaf,
+  type LucideIcon,
   Search,
   Shield,
+  Sparkles,
   Target,
   Trophy,
-  type LucideIcon,
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
@@ -30,7 +33,6 @@ import type {
   BudgetExplorationProgram,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
-import type { BudgetNetworkTopicTone } from "../../shared/types/budget-page";
 import {
   type BudgetMapMode,
   type BudgetMapPosition,
@@ -42,6 +44,11 @@ import {
   getBudgetMapTopicLayout,
   getBudgetMapWorldDimensions,
 } from "../../shared/utils/budget-map-layout";
+import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
+import {
+  getBudgetMapAmountTier,
+  getBudgetMapProgramPage,
+} from "../../shared/utils/budget-map-programs";
 import {
   BUDGET_MAP_MOBILE_STAR_COUNT,
   createBudgetMapStars,
@@ -67,6 +74,7 @@ type NetworkEdge = {
   id: string;
   source: BudgetMapPosition;
   target: BudgetMapPosition;
+  strength?: "primary" | "secondary";
 };
 
 type BudgetMapStyle = CSSProperties & {
@@ -78,12 +86,6 @@ type BudgetMapStyle = CSSProperties & {
   "--budget-star-opacity"?: string;
   "--budget-star-delay"?: string;
   "--budget-star-duration"?: string;
-};
-
-const topicToneClasses: Record<BudgetNetworkTopicTone, string> = {
-  cyan: "border-budget-node-cyan bg-budget-node-cyan",
-  mint: "border-budget-node-mint bg-budget-node-mint",
-  gold: "border-budget-node-gold bg-budget-node-gold",
 };
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -119,8 +121,12 @@ export function BudgetNetwork({
   const stableView = getBudgetMapStableView(view);
   const dimensions = getBudgetMapWorldDimensions(stableView, mode);
   const cameraFocus = getBudgetMapCameraFocus(view, mode, dimensions);
+  const transitionTarget = view.kind === "transitioning" ? view.target : null;
   const { viewportRef, worldRef } = useBudgetMapCamera({
     dimensions,
+    durationMs: transitionTarget
+      ? getBudgetMapTransitionDuration(transitionTarget)
+      : 360,
     focus: cameraFocus,
     isTransitioning: view.kind === "transitioning",
   });
@@ -134,6 +140,7 @@ export function BudgetNetwork({
       )}
       data-explorer-state={view.kind}
       data-map-mode={mode}
+      data-transition-target={transitionTarget?.kind}
     >
       <BudgetMapBackground mode={mode} />
 
@@ -150,9 +157,7 @@ export function BudgetNetwork({
             dimensions={dimensions}
             mode={mode}
             onSelectCategory={onSelectCategory}
-            transitionTarget={
-              view.kind === "transitioning" ? view.target : null
-            }
+            transitionTarget={transitionTarget}
           />
         )}
         {stableView.kind === "category" && (
@@ -167,13 +172,12 @@ export function BudgetNetwork({
             onOpenOfficialHierarchy={onOpenOfficialHierarchy}
             onSelectCategory={onSelectCategory}
             onSelectTopic={onSelectTopic}
-            transitionTarget={
-              view.kind === "transitioning" ? view.target : null
-            }
+            transitionTarget={transitionTarget}
           />
         )}
         {stableView.kind === "topic" && (
           <TopicNetwork
+            key={stableView.topic.id}
             category={stableView.category}
             dimensions={dimensions}
             exploration={exploration}
@@ -181,9 +185,7 @@ export function BudgetNetwork({
             onSelectProgram={onSelectProgram}
             programs={stableView.topic.programs}
             topicName={stableView.topic.name}
-            transitionTarget={
-              view.kind === "transitioning" ? view.target : null
-            }
+            transitionTarget={transitionTarget}
           />
         )}
       </div>
@@ -192,13 +194,14 @@ export function BudgetNetwork({
         <Button
           type="button"
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={onBack}
           disabled={view.kind === "transitioning"}
-          className="absolute left-4 top-48 z-30 rounded-md border border-budget-space-line bg-budget-space-deep/70 text-white backdrop-blur-sm hover:bg-budget-space-mid hover:text-white sm:left-9 sm:top-36"
+          aria-label="戻る"
+          title="戻る"
+          className="budget-map-back absolute left-4 top-36 z-40 size-10 rounded-md border border-budget-space-line bg-budget-space-deep/90 text-white hover:bg-budget-space-mid hover:text-white sm:left-9"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
-          戻る
         </Button>
       )}
     </div>
@@ -268,6 +271,21 @@ function OverviewNetwork({
         edges={layout.edges}
       />
       <div className="budget-map-nodes absolute inset-0">
+        <div
+          role="img"
+          aria-label="令和8年度当初予算、世田谷区の予算"
+          style={getNodePositionStyle(layout.center)}
+          className="budget-map-node budget-map-overview-core absolute z-10 flex flex-col items-center justify-center text-center text-white"
+        >
+          <span aria-hidden="true" className="budget-map-core-orbit" />
+          <Sparkles aria-hidden="true" className="size-5" />
+          <span className="mt-2 text-xs font-bold text-budget-space-eyebrow">
+            令和8年度
+          </span>
+          <strong className="mt-1 text-base leading-5">世田谷区の予算</strong>
+          <span className="mt-1 text-xs text-budget-space-copy">当初予算</span>
+        </div>
+
         {layout.topics.map((topic) => {
           const Icon = categoryIcons[topic.id] ?? CircleDot;
           return (
@@ -275,22 +293,20 @@ function OverviewNetwork({
               key={topic.id}
               type="button"
               variant="ghost"
+              data-tone={topic.tone}
               onClick={() => onSelectCategory(topic.id)}
               style={getNodePositionStyle(topic)}
               className={cn(
-                "budget-map-node budget-network-topic budget-map-category-node absolute flex-col gap-1.5 p-0 text-white hover:bg-transparent hover:text-white focus-visible:ring-budget-node-cyan focus-visible:ring-offset-budget-space-deep",
+                "budget-map-node budget-network-topic budget-map-category-node absolute z-20 flex-col gap-1.5 p-0 text-white hover:bg-transparent hover:text-white focus-visible:ring-budget-node-cyan focus-visible:ring-offset-budget-space-deep",
                 selectedSlug === topic.id && "budget-network-node-selected"
               )}
               aria-label={`${topic.label}から予算を探す`}
             >
               <span
                 aria-hidden="true"
-                className={cn(
-                  "budget-map-node-icon budget-network-topic-core flex size-10 items-center justify-center rounded-full border-4 shadow-lg",
-                  topicToneClasses[topic.tone]
-                )}
+                className="budget-map-node-icon budget-network-topic-core flex items-center justify-center rounded-full"
               >
-                <Icon className="size-5 text-budget-space-deep" />
+                <Icon className="size-4 text-budget-space-deep" />
               </span>
               <span className="budget-map-node-label budget-network-topic-label text-sm font-bold">
                 {topic.label}
@@ -298,6 +314,16 @@ function OverviewNetwork({
             </Button>
           );
         })}
+
+        <p
+          style={getNodePositionStyle({
+            x: dimensions.width / 2,
+            y: dimensions.height - (mode === "mobile" ? 13 : 18),
+          })}
+          className="budget-map-node budget-map-edge-note absolute z-20 w-80 max-w-[88%] text-center text-xs leading-5 text-budget-space-copy/75"
+        >
+          線は探索のための装飾です。公式分類やお金の流れ、優先順位を示しません。
+        </p>
       </div>
     </div>
   );
@@ -345,9 +371,10 @@ function CategoryNetwork({
         }))}
         dimensions={dimensions}
         edges={layout.topics.map((topic) => ({
-          id: `category-topic-${topic.index}`,
+          id: `category-topic-${topic.nodeId}`,
           source: layout.center,
           target: topic,
+          strength: "primary",
         }))}
       />
 
@@ -361,23 +388,31 @@ function CategoryNetwork({
                 key={topic.id}
                 type="button"
                 variant="ghost"
+                data-tone={topic.tone}
                 onClick={() => onSelectCategory(topic.id)}
                 style={getNodePositionStyle(topic)}
-                className="budget-map-node budget-map-background-category absolute h-12 w-28 gap-1 p-0 text-xs font-bold text-budget-space-copy/45 hover:bg-transparent hover:text-white"
+                className="budget-map-node budget-map-background-category absolute h-11 w-28 gap-1 p-0 text-xs font-bold text-budget-space-copy/40 hover:bg-transparent hover:text-white"
                 aria-label={`${topic.label}へ切り替える`}
               >
-                <Icon aria-hidden="true" className="size-3.5" />
+                <Icon aria-hidden="true" className="size-3" />
                 {topic.label}
               </Button>
             );
           })}
 
         <div
+          role="img"
+          aria-label={`選択中の分野、${category.name}`}
+          data-tone={category.tone}
           style={getNodePositionStyle(layout.center)}
-          className="budget-map-node budget-network-focus-node absolute z-10 flex size-32 flex-col items-center justify-center gap-2 rounded-full border-2 border-budget-node-cyan bg-budget-space-deep/85 px-3 text-center text-lg font-bold text-white shadow-xl"
+          className="budget-map-node budget-network-focus-node budget-map-category-core absolute z-10 flex flex-col items-center justify-center gap-1.5 rounded-full text-center font-bold text-white"
         >
+          <span aria-hidden="true" className="budget-map-core-orbit" />
           <FocusIcon aria-hidden="true" className="size-6" />
-          {category.name}
+          <span className="text-lg">{category.name}</span>
+          <span className="text-xs font-medium text-budget-space-copy">
+            公開中の課題 {category.topics.length}件
+          </span>
         </div>
 
         {layout.topics.map(({ topic, ...position }) => {
@@ -389,20 +424,25 @@ function CategoryNetwork({
               key={topic.id}
               type="button"
               variant="ghost"
+              data-tone={category.tone}
               onClick={() => onSelectTopic(category.slug, topic.slug)}
               style={getNodePositionStyle(position)}
               className={cn(
-                "budget-map-node budget-network-topic-card absolute z-20 h-24 w-56 whitespace-normal rounded-md border border-budget-space-line bg-white/95 px-4 py-3 text-center text-sm font-bold leading-5 text-mirai-text shadow-lg hover:bg-white hover:text-primary-strong",
+                "budget-map-node budget-network-topic-card budget-map-topic-node absolute z-20 whitespace-normal text-left text-white hover:text-white",
                 selectedTopicSlug === topic.slug &&
                   "budget-network-node-selected"
               )}
               aria-label={`${topic.name}に関連する予算事業を見る`}
             >
-              <Target
+              <span
                 aria-hidden="true"
-                className="size-4 text-primary-strong"
-              />
-              <span>{topic.name}</span>
+                className="budget-map-topic-beacon flex shrink-0 items-center justify-center rounded-full"
+              >
+                <Target className="size-3.5" />
+              </span>
+              <span className="line-clamp-2 text-sm font-bold leading-5">
+                {topic.name}
+              </span>
             </Button>
           );
         })}
@@ -411,9 +451,9 @@ function CategoryNetwork({
           <div
             style={getNodePositionStyle({
               x: dimensions.width / 2,
-              y: dimensions.height * 0.68,
+              y: mode === "mobile" ? 410 : dimensions.height * 0.76,
             })}
-            className="budget-map-node budget-map-empty-panel absolute z-20 w-[28rem] max-w-[84%] rounded-md border border-budget-space-line bg-budget-space-deep/85 px-5 py-4 text-center text-budget-space-copy backdrop-blur-sm"
+            className="budget-map-node budget-map-empty-panel absolute z-20 w-[28rem] max-w-[84%] rounded-md border border-budget-space-line bg-budget-space-deep/90 px-5 py-4 text-center text-budget-space-copy"
           >
             <p className="font-bold text-white">
               {dataUnavailable
@@ -445,8 +485,8 @@ function CategoryNetwork({
           onClick={onOpenOfficialHierarchy}
           style={getNodePositionStyle({
             x:
-              mode === "mobile" ? dimensions.width / 2 : dimensions.width - 190,
-            y: dimensions.height - 56,
+              mode === "mobile" ? dimensions.width / 2 : dimensions.width - 180,
+            y: dimensions.height - 42,
           })}
           className="budget-map-node absolute z-30 rounded-md border-budget-space-line bg-white/95 text-mirai-text"
         >
@@ -479,7 +519,13 @@ function TopicNetwork({
     | Extract<BudgetExplorerView, { kind: "transitioning" }>["target"]
     | null;
 }) {
-  const layout = getBudgetMapTopicLayout(programs.length, mode, dimensions);
+  const [pageIndex, setPageIndex] = useState(0);
+  const page = getBudgetMapProgramPage(programs, pageIndex);
+  const layout = getBudgetMapTopicLayout(
+    page.items.map((program) => program.budgetProgramIdentityId),
+    mode,
+    dimensions
+  );
   const categoryNameBySlug = new Map(
     exploration.categories.map((candidate) => [candidate.slug, candidate.name])
   );
@@ -487,6 +533,7 @@ function TopicNetwork({
     transitionTarget?.kind === "program"
       ? transitionTarget.budgetProgramIdentityId
       : null;
+  const visibleAmounts = page.items.map((program) => program.amountThousandYen);
 
   return (
     <div
@@ -497,22 +544,32 @@ function TopicNetwork({
       <NetworkEdges
         dimensions={dimensions}
         edges={layout.programs.map((position) => ({
-          id: `topic-program-${position.index}`,
+          id: `topic-program-${position.nodeId}`,
           source: layout.center,
           target: position,
+          strength: "primary",
         }))}
       />
 
       <div className="budget-map-nodes absolute inset-0">
         <div
+          role="img"
+          aria-label={`選択中の課題、${topicName}`}
+          data-tone={category.tone}
           style={getNodePositionStyle(layout.center)}
-          className="budget-map-node budget-network-focus-node absolute z-10 flex min-h-28 w-72 flex-col items-center justify-center gap-2 rounded-md border-2 border-budget-node-mint bg-budget-space-deep/90 px-5 py-4 text-center text-lg font-bold leading-6 text-white shadow-xl"
+          className="budget-map-node budget-network-focus-node budget-map-topic-core absolute z-10 flex flex-col items-center justify-center gap-2 text-center text-white"
         >
+          <span aria-hidden="true" className="budget-map-core-orbit" />
           <Target aria-hidden="true" className="size-5" />
-          {topicName}
+          <span className="line-clamp-2 max-w-60 text-base font-bold leading-6">
+            {topicName}
+          </span>
+          <span className="text-xs text-budget-space-copy">
+            関連する予算事業 {programs.length}件
+          </span>
         </div>
 
-        {programs.map((program, index) => {
+        {page.items.map((program, index) => {
           const position = layout.programs[index];
           if (!position) {
             return null;
@@ -521,65 +578,70 @@ function TopicNetwork({
             .filter((slug) => slug !== category.slug)
             .map((slug) => categoryNameBySlug.get(slug))
             .filter((name): name is string => name !== undefined);
+          const amountTier = getBudgetMapAmountTier(
+            program.amountThousandYen,
+            visibleAmounts
+          );
 
           return (
             <Button
               key={program.budgetProgramIdentityId}
               type="button"
               variant="ghost"
+              data-amount-tier={amountTier}
+              data-zero-amount={program.isZeroAmount}
               onClick={() => onSelectProgram(program.budgetProgramIdentityId)}
               style={getNodePositionStyle(position)}
               className={cn(
-                "budget-map-node budget-program-node absolute z-20 flex-col items-stretch gap-1 whitespace-normal rounded-md border border-budget-space-line bg-white/95 py-2 text-left text-mirai-text shadow-lg hover:bg-white hover:text-mirai-text",
-                mode === "mobile" ? "h-24 w-40 px-2" : "h-28 w-48 px-3",
+                "budget-map-node budget-program-node absolute z-20 whitespace-normal text-left text-white hover:text-white",
                 selectedProgramId === program.budgetProgramIdentityId &&
                   "budget-network-node-selected"
               )}
-              aria-label={`${program.displayProgramName}、当初予算額${formatBudgetAmount(program.amountThousandYen)}、詳細を見る`}
+              aria-label={`${program.displayProgramName}、当初予算額${formatBudgetAmount(program.amountThousandYen)}、担当${shortenBudgetDepartmentName(program.departmentDisplayName)}、詳細を見る`}
             >
-              <span className="flex min-w-0 items-start gap-1.5">
-                <BriefcaseBusiness
-                  aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-primary-strong"
-                />
-                <span
-                  className={cn(
-                    "line-clamp-2 font-bold",
-                    mode === "mobile"
-                      ? "min-h-10 text-sm leading-5"
-                      : "min-h-9 text-xs leading-4"
-                  )}
-                >
+              <span
+                aria-hidden="true"
+                className="budget-program-node-core flex shrink-0 items-center justify-center rounded-full"
+              >
+                <BriefcaseBusiness className="size-3.5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="line-clamp-2 block text-sm font-bold leading-5">
                   {program.displayProgramName}
                 </span>
-              </span>
-              <span className="block truncate text-xs font-medium text-mirai-text-muted">
-                {shortenBudgetDepartmentName(program.departmentDisplayName)}
-              </span>
-              <span className="block tabular-nums text-xs font-bold text-primary-strong">
-                {formatBudgetAmount(program.amountThousandYen)}
-              </span>
-              {otherCategoryNames.length > 0 && (
-                <span className="flex min-w-0 gap-1 overflow-hidden">
-                  {otherCategoryNames.slice(0, 1).map((name) => (
-                    <Badge
-                      key={name}
-                      variant="secondary"
-                      className="max-w-20 truncate px-1.5 py-0 text-[10px]"
-                    >
-                      {name}
-                    </Badge>
-                  ))}
-                  {otherCategoryNames.length > 1 && (
-                    <Badge
-                      variant="secondary"
-                      className="px-1.5 py-0 text-[10px]"
-                    >
-                      +{otherCategoryNames.length - 1}
-                    </Badge>
+                <span
+                  className={cn(
+                    "mt-1 block tabular-nums text-xs font-bold text-budget-node-mint",
+                    program.isZeroAmount && "text-budget-node-gold"
                   )}
+                >
+                  {formatBudgetAmount(program.amountThousandYen)}
                 </span>
-              )}
+                <span className="budget-program-department mt-1 truncate text-xs text-budget-space-copy/75">
+                  {shortenBudgetDepartmentName(program.departmentDisplayName)}
+                </span>
+                {otherCategoryNames.length > 0 && (
+                  <span className="budget-program-category-row mt-1 flex min-w-0 gap-1 overflow-hidden">
+                    {otherCategoryNames.slice(0, 1).map((name) => (
+                      <Badge
+                        key={name}
+                        variant="outline"
+                        className="budget-program-category-badge max-w-24 truncate px-1.5 py-0 text-[10px]"
+                      >
+                        {name}
+                      </Badge>
+                    ))}
+                    {otherCategoryNames.length > 1 && (
+                      <Badge
+                        variant="outline"
+                        className="budget-program-category-badge px-1.5 py-0 text-[10px]"
+                      >
+                        +{otherCategoryNames.length - 1}
+                      </Badge>
+                    )}
+                  </span>
+                )}
+              </span>
             </Button>
           );
         })}
@@ -588,9 +650,9 @@ function TopicNetwork({
           <div
             style={getNodePositionStyle({
               x: dimensions.width / 2,
-              y: dimensions.height * 0.58,
+              y: mode === "mobile" ? 390 : dimensions.height * 0.74,
             })}
-            className="budget-map-node budget-map-empty-panel absolute z-20 w-[28rem] max-w-[84%] rounded-md border border-budget-space-line bg-budget-space-deep/85 px-5 py-4 text-center text-budget-space-copy"
+            className="budget-map-node budget-map-empty-panel absolute z-20 w-[28rem] max-w-[84%] rounded-md border border-budget-space-line bg-budget-space-deep/90 px-5 py-4 text-center text-budget-space-copy"
           >
             <p className="font-bold text-white">
               公開済みの関連事業はまだありません
@@ -598,6 +660,47 @@ function TopicNetwork({
             <p className="mt-1 text-sm">
               人が確認し、公開した関係だけを表示しています。
             </p>
+          </div>
+        )}
+
+        {page.pageCount > 1 && (
+          <div
+            role="group"
+            aria-label="関連事業の星系を切り替える"
+            style={getNodePositionStyle({
+              x: dimensions.width / 2,
+              y: dimensions.height - 25,
+            })}
+            className="budget-map-node budget-map-pagination absolute z-30 flex items-center gap-2 rounded-md border border-budget-space-line bg-budget-space-deep/95 px-2 py-1.5 text-white"
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={page.pageIndex === 0}
+              onClick={() => setPageIndex((current) => current - 1)}
+              className="h-8 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
+            >
+              <ChevronLeft aria-hidden="true" className="size-4" />
+              前の星系
+            </Button>
+            <span
+              aria-live="polite"
+              className="min-w-20 text-center text-xs tabular-nums text-budget-space-copy"
+            >
+              {page.startNumber}〜{page.endNumber} / {page.totalCount}件
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={page.pageIndex >= page.pageCount - 1}
+              onClick={() => setPageIndex((current) => current + 1)}
+              className="h-8 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
+            >
+              次の星系
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </Button>
           </div>
         )}
       </div>
@@ -623,29 +726,43 @@ function NetworkEdges({
       width={dimensions.width}
       height={dimensions.height}
     >
-      <g fill="none" stroke="var(--budget-space-line)" strokeOpacity="0.42">
+      <g fill="none">
         {edges.map((edge) => (
           <path
             key={edge.id}
-            d={`M ${edge.source.x} ${edge.source.y} L ${edge.target.x} ${edge.target.y}`}
-            strokeWidth="1.25"
+            className={cn(
+              "budget-map-edge",
+              edge.strength === "primary"
+                ? "budget-map-edge-primary"
+                : "budget-map-edge-secondary"
+            )}
+            d={createEdgePath(edge)}
             vectorEffect="non-scaling-stroke"
           />
         ))}
       </g>
-      <g fill="var(--budget-node-cyan)" fillOpacity="0.42">
+      <g className="budget-map-decorations">
         {decorations.map((decoration) => (
           <circle
             key={decoration.id}
             cx={decoration.x}
             cy={decoration.y}
-            r={Math.max(2, decoration.size / 5)}
+            r={Math.max(1.5, decoration.size / 6)}
             vectorEffect="non-scaling-stroke"
           />
         ))}
       </g>
     </svg>
   );
+}
+
+function createEdgePath(edge: NetworkEdge): string {
+  const midpointX = (edge.source.x + edge.target.x) / 2;
+  const midpointY = (edge.source.y + edge.target.y) / 2;
+  const direction = edge.id.length % 2 === 0 ? 1 : -1;
+  const offsetX = (edge.target.y - edge.source.y) * 0.04 * direction;
+  const offsetY = (edge.source.x - edge.target.x) * 0.04 * direction;
+  return `M ${edge.source.x} ${edge.source.y} Q ${midpointX + offsetX} ${midpointY + offsetY} ${edge.target.x} ${edge.target.y}`;
 }
 
 function getNodePositionStyle(position: BudgetMapPosition): BudgetMapStyle {
@@ -659,7 +776,7 @@ function useBudgetNetworkMode(): BudgetMapMode {
   const [mode, setMode] = useState<BudgetMapMode>("mobile");
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const mediaQuery = window.matchMedia("(min-width: 1000px)");
     const updateMode = () => {
       setMode(mediaQuery.matches ? "desktop" : "mobile");
     };
