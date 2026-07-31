@@ -42,6 +42,11 @@ export interface BudgetExplorationData {
   categories: BudgetExplorationCategory[];
 }
 
+export interface BudgetProgramReturnContext {
+  categorySlug: string;
+  topicSlug?: string;
+}
+
 export type BudgetExplorerStableView =
   | { kind: "overview" }
   | {

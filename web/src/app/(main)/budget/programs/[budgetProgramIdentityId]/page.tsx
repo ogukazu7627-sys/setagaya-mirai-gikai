@@ -3,12 +3,18 @@ import { notFound } from "next/navigation";
 import { BudgetProgramDetailPage } from "@/features/budget/server/components/budget-program-detail-page";
 import { loadBudgetProgramDetail } from "@/features/budget/server/loaders/load-budget-program-detail";
 import { BudgetDataNotFoundError } from "@/features/budget/server/services/budget-query-service";
+import { formatJapaneseFiscalYear } from "@/features/budget/shared/utils/budget-page-view";
+import { parseBudgetProgramReturnContext } from "@/features/budget/shared/utils/budget-program-return-context";
 import { routes } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
 type BudgetProgramRouteProps = {
   params: Promise<{ budgetProgramIdentityId: string }>;
+  searchParams: Promise<{
+    fromCategory?: string | string[];
+    fromTopic?: string | string[];
+  }>;
 };
 
 export async function generateMetadata({
@@ -17,9 +23,12 @@ export async function generateMetadata({
   const { budgetProgramIdentityId } = await params;
   try {
     const detail = await loadBudgetProgramDetail(budgetProgramIdentityId);
+    const fiscalYearLabel = formatJapaneseFiscalYear(
+      detail.activeDataset.fiscalYear
+    );
     return {
       title: `${detail.identity.displayProgramName} | 触れる予算`,
-      description: `${detail.identity.displayProgramName}の令和8年度当初予算額、公式予算分類、目全体の費目内訳を確認できます。`,
+      description: `${detail.identity.displayProgramName}の${fiscalYearLabel}当初予算額、公式予算分類、目全体の費目内訳を確認できます。`,
       alternates: {
         canonical: routes.budgetProgramDetail(budgetProgramIdentityId),
       },
@@ -34,11 +43,17 @@ export async function generateMetadata({
 
 export default async function BudgetProgramRoutePage({
   params,
+  searchParams,
 }: BudgetProgramRouteProps) {
-  const { budgetProgramIdentityId } = await params;
+  const [{ budgetProgramIdentityId }, resolvedSearchParams] = await Promise.all(
+    [params, searchParams]
+  );
+  const returnContext = parseBudgetProgramReturnContext(resolvedSearchParams);
   try {
     const detail = await loadBudgetProgramDetail(budgetProgramIdentityId);
-    return <BudgetProgramDetailPage detail={detail} />;
+    return (
+      <BudgetProgramDetailPage detail={detail} returnContext={returnContext} />
+    );
   } catch (error) {
     if (error instanceof BudgetDataNotFoundError) {
       notFound();

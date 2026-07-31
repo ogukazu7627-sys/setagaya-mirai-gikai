@@ -108,4 +108,15 @@ describe("routes", () => {
       );
     }
   });
+
+  it("予算事業詳細の戻り文脈を安全にURLエンコードする", () => {
+    expect(
+      routes.budgetProgramDetail("bpi_school", {
+        categorySlug: "education",
+        topicSlug: "school-facility-aging",
+      })
+    ).toBe(
+      "/budget/programs/bpi_school?fromCategory=education&fromTopic=school-facility-aging"
+    );
+  });
 });

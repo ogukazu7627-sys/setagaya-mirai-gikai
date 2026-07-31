@@ -181,13 +181,22 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
 
   const handleSelectProgram = useCallback(
     (budgetProgramIdentityId: string) => {
+      const returnContext =
+        stableView.kind === "topic"
+          ? {
+              categorySlug: stableView.category.slug,
+              topicSlug: stableView.topic.slug,
+            }
+          : stableView.kind === "category"
+            ? { categorySlug: stableView.category.slug }
+            : undefined;
       navigateWithTransition(
         { kind: "program", budgetProgramIdentityId },
-        routes.budgetProgramDetail(budgetProgramIdentityId),
+        routes.budgetProgramDetail(budgetProgramIdentityId, returnContext),
         { scroll: true }
       );
     },
-    [navigateWithTransition]
+    [navigateWithTransition, stableView]
   );
 
   const handleBack = useCallback(() => {
