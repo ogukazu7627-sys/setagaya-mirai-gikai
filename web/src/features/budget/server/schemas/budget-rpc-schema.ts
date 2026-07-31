@@ -310,6 +310,48 @@ const relatedRevenueDetailRpcSchema = z
     allocationSourceReference: value.allocation_source_reference,
   }));
 
+const budgetProgramTopicRelationRpcSchema = z
+  .object({
+    id: z.uuid(),
+    slug: z.string().min(1),
+    name: z.string().min(1),
+    short_description: z.string(),
+    topic_kind: z.enum(["problem", "goal", "administrative_function"]),
+    relation_type: z.enum(["responds_to", "supports", "maintains", "enables"]),
+    explanation: z.string().min(1),
+    evidence_level: z.enum([
+      "A_official_direct",
+      "B_strong_structural",
+      "C_editorial",
+    ]),
+    evidence_fields: sourceReferenceSchema,
+    evidence_source_url: z.url().nullable(),
+    categories: z.array(
+      z.object({
+        slug: z.string().min(1),
+        name: z.string().min(1),
+        is_primary: z.boolean(),
+      })
+    ),
+  })
+  .transform((value) => ({
+    id: value.id,
+    slug: value.slug,
+    name: value.name,
+    shortDescription: value.short_description,
+    topicKind: value.topic_kind,
+    relationType: value.relation_type,
+    explanation: value.explanation,
+    evidenceLevel: value.evidence_level,
+    evidenceFields: value.evidence_fields,
+    evidenceSourceUrl: value.evidence_source_url,
+    categories: value.categories.map((category) => ({
+      slug: category.slug,
+      name: category.name,
+      isPrimary: category.is_primary,
+    })),
+  }));
+
 export const budgetProgramDetailRpcSchema = z
   .object({
     active_dataset: activeDatasetRpcSchema,
@@ -319,6 +361,7 @@ export const budgetProgramDetailRpcSchema = z
     other_programs: z.array(budgetOtherProgramRpcSchema),
     sections: z.array(budgetItemSectionRpcSchema),
     related_revenue_details: z.array(relatedRevenueDetailRpcSchema),
+    published_topics: z.array(budgetProgramTopicRelationRpcSchema),
     source_references: z.array(sourceReferenceSchema),
   })
   .transform((value) => ({
@@ -329,6 +372,7 @@ export const budgetProgramDetailRpcSchema = z
     otherPrograms: value.other_programs,
     sections: value.sections,
     relatedRevenueDetails: value.related_revenue_details,
+    publishedTopics: value.published_topics,
     sourceReferences: value.source_references,
   }));
 

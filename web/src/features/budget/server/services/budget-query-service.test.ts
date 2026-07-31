@@ -168,6 +168,13 @@ describe("budget-query-service", () => {
       revenueDetailId: "revenue_detail_test",
       amountAttributionStatus: "not_available",
     });
+    expect(result.publishedTopics).toEqual([
+      expect.objectContaining({
+        slug: "school-facility-aging",
+        relationType: "responds_to",
+        evidenceLevel: "B_strong_structural",
+      }),
+    ]);
   });
 
   it("公的階層を1回のrepository呼び出しで返す", async () => {
@@ -367,6 +374,32 @@ function createProgramDetailRpcResult() {
         allocation_source_reference: {
           source_type: "official_pdf",
         },
+      },
+    ],
+    published_topics: [
+      {
+        id: "22222222-2222-4222-8222-222222222222",
+        slug: "school-facility-aging",
+        name: "学校施設の老朽化への対応",
+        short_description: "学校施設を維持・改修する取組",
+        topic_kind: "problem",
+        relation_type: "responds_to",
+        explanation: "公式予算項目から学校施設改修との関連を確認した。",
+        evidence_level: "B_strong_structural",
+        evidence_fields: {
+          identity_fields: {
+            display_program_name: "テスト事業",
+            hierarchy: ["款", "項", "目"],
+          },
+        },
+        evidence_source_url: null,
+        categories: [
+          {
+            slug: "education",
+            name: "教育",
+            is_primary: true,
+          },
+        ],
       },
     ],
     source_references: [sourceReference],

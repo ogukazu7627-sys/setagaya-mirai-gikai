@@ -243,7 +243,76 @@ describe("budget read model RPC", () => {
           amount_attribution_status: "not_available",
         },
       ],
+      published_topics: [
+        {
+          slug: expect.stringMatching(/^budget-search-published-/),
+          name: "学校施設の老朽化への対応",
+          relation_type: "responds_to",
+          explanation: "公開課題名の検索確認",
+          evidence_level: "B_strong_structural",
+          evidence_fields: {
+            identity_fields: {
+              display_program_name: "テスト（事業）",
+              hierarchy: ["総務費", "総務管理費", "一般管理費"],
+            },
+          },
+          categories: [
+            {
+              slug: "education",
+              name: "教育",
+              is_primary: true,
+            },
+          ],
+        },
+      ],
     });
+    expect(JSON.stringify(result.data)).not.toContain("非公開の課題");
+    expect(JSON.stringify(result.data)).not.toContain("公開前の関係");
+  });
+
+  it("同年度の別予算種別がactiveでも当初予算の事業詳細だけを返す", async () => {
+    const supplemental = await client
+      .from("budget_datasets")
+      .insert({
+        fiscal_year: 2026,
+        budget_type: "supplemental_budget",
+        schema_version: "public-budget-v1",
+        currency_unit: "thousand_yen",
+        status: "active",
+        manifest_json: {},
+        manifest_sha256: alternateManifestHash(),
+        import_summary_json: {},
+        validation_status: "PASS",
+        activated_at: "2099-01-01T00:00:00.000Z",
+      })
+      .select("id")
+      .single();
+    if (supplemental.error) {
+      throw supplemental.error;
+    }
+
+    try {
+      const result = await client.rpc("get_budget_program_detail", {
+        p_budget_program_identity_id: "bpi_test",
+        p_fiscal_year: 2026,
+      });
+
+      expect(result.error).toBeNull();
+      expect(result.data).toMatchObject({
+        active_dataset: {
+          id: datasetId,
+          budget_type: "initial_budget",
+        },
+        identity: {
+          budget_program_identity_id: "bpi_test",
+        },
+      });
+    } finally {
+      await client
+        .from("budget_datasets")
+        .delete()
+        .eq("id", supplemental.data.id);
+    }
   });
 
   it("会計・款・項・目・事業の公的階層を返す", async () => {
@@ -337,7 +406,7 @@ describe("budget read model RPC", () => {
     expect(calls.every((call) => call.error !== null)).toBe(true);
   });
 
-  it("検索RPCをauthenticatedから直接実行できない", async () => {
+  it("検索・事業詳細RPCをauthenticatedから直接実行できない", async () => {
     if (!reviewer) {
       throw new Error("Budget search reviewer fixture is unavailable");
     }
@@ -345,17 +414,23 @@ describe("budget read model RPC", () => {
       reviewer.email,
       reviewer.password
     );
-    const result = await authenticated.rpc("search_budget_programs", {
-      p_query: "テスト",
-      p_fiscal_year: 2026,
-      p_account_code: null,
-      p_include_zero_amount: false,
-      p_page: 1,
-      p_page_size: 20,
-    });
+    const results = await Promise.all([
+      authenticated.rpc("search_budget_programs", {
+        p_query: "テスト",
+        p_fiscal_year: 2026,
+        p_account_code: null,
+        p_include_zero_amount: false,
+        p_page: 1,
+        p_page_size: 20,
+      }),
+      authenticated.rpc("get_budget_program_detail", {
+        p_budget_program_identity_id: "bpi_test",
+        p_fiscal_year: 2026,
+      }),
+    ]);
 
-    expect(result.data).toBeNull();
-    expect(result.error).not.toBeNull();
+    expect(results.every((result) => result.data === null)).toBe(true);
+    expect(results.every((result) => result.error !== null)).toBe(true);
   });
 });
 
@@ -595,6 +670,24 @@ async function insertSearchTopics(): Promise<{
     throw new Error("Budget search topic fixture is incomplete");
   }
 
+  const topicCategory = await client.from("budget_topic_categories").insert({
+    topic_id: publishedTopic.id,
+    category_id: "b0000000-0000-4000-8000-000000000001",
+    relevance_weight: 1,
+    is_primary: true,
+  });
+  if (topicCategory.error) {
+    await client
+      .from("budget_topics")
+      .delete()
+      .in(
+        "id",
+        topics.data.map((topic) => topic.id)
+      );
+    await cleanupTestUser(reviewer.id);
+    throw topicCategory.error;
+  }
+
   const relations = await client.from("budget_topic_programs").insert([
     {
       topic_id: publishedTopic.id,
@@ -603,7 +696,12 @@ async function insertSearchTopics(): Promise<{
       relation_type: "responds_to",
       explanation: "公開課題名の検索確認",
       evidence_level: "B_strong_structural",
-      evidence_fields: {},
+      evidence_fields: {
+        identity_fields: {
+          display_program_name: "テスト（事業）",
+          hierarchy: ["総務費", "総務管理費", "一般管理費"],
+        },
+      },
       review_status: "published",
       reviewed_by: reviewer.id,
       reviewed_at: new Date().toISOString(),

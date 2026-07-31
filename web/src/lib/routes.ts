@@ -23,8 +23,25 @@ export const routes = {
     accountCode
       ? (`/budget/official?account=${encodeURIComponent(accountCode)}` as const)
       : ("/budget/official" as const),
-  budgetProgramDetail: (budgetProgramIdentityId: string) =>
-    `/budget/programs/${budgetProgramIdentityId}` as const,
+  budgetProgramDetail: (
+    budgetProgramIdentityId: string,
+    returnContext?: {
+      categorySlug: string;
+      topicSlug?: string;
+    }
+  ) => {
+    const pathname = `/budget/programs/${budgetProgramIdentityId}` as const;
+    if (!returnContext) {
+      return pathname;
+    }
+    const searchParams = new URLSearchParams({
+      fromCategory: returnContext.categorySlug,
+    });
+    if (returnContext.topicSlug) {
+      searchParams.set("fromTopic", returnContext.topicSlug);
+    }
+    return `${pathname}?${searchParams.toString()}` as const;
+  },
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,

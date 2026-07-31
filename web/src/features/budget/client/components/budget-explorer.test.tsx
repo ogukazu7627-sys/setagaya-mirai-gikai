@@ -189,6 +189,29 @@ describe("BudgetExplorer", () => {
     );
   });
 
+  it("課題グラフから事業詳細へカテゴリーと課題の戻り文脈を渡す", async () => {
+    mocks.getSearchParam.mockImplementation((key: string) => {
+      if (key === "category") {
+        return "education";
+      }
+      if (key === "topic") {
+        return "school-facility-aging";
+      }
+      return null;
+    });
+    const user = userEvent.setup();
+    render(<BudgetExplorer exploration={exploration} />);
+
+    await user.click(screen.getByRole("button", { name: "事業を見る" }));
+
+    await waitFor(() =>
+      expect(mocks.push).toHaveBeenCalledWith(
+        "/budget/programs/bpi_school?fromCategory=education&fromTopic=school-facility-aging",
+        { scroll: true }
+      )
+    );
+  });
+
   it("画面内の戻るは履歴へ逆向きの状態を積まずreplaceする", async () => {
     mocks.getSearchParam.mockImplementation((key: string) => {
       if (key === "category") {

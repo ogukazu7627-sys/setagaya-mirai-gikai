@@ -170,6 +170,26 @@ export interface BudgetRelatedRevenueDetail {
   allocationSourceReference: Json;
 }
 
+export interface BudgetProgramTopicCategory {
+  slug: string;
+  name: string;
+  isPrimary: boolean;
+}
+
+export interface BudgetProgramTopicRelation {
+  id: string;
+  slug: string;
+  name: string;
+  shortDescription: string;
+  topicKind: "problem" | "goal" | "administrative_function";
+  relationType: "responds_to" | "supports" | "maintains" | "enables";
+  explanation: string;
+  evidenceLevel: "A_official_direct" | "B_strong_structural" | "C_editorial";
+  evidenceFields: Json;
+  evidenceSourceUrl: string | null;
+  categories: BudgetProgramTopicCategory[];
+}
+
 export interface BudgetProgramDetail {
   activeDataset: ActiveBudgetDataset;
   identity: BudgetProgramIdentity;
@@ -178,6 +198,7 @@ export interface BudgetProgramDetail {
   otherPrograms: BudgetOtherProgram[];
   sections: BudgetItemSection[];
   relatedRevenueDetails: BudgetRelatedRevenueDetail[];
+  publishedTopics: BudgetProgramTopicRelation[];
   sourceReferences: Json[];
 }
 
