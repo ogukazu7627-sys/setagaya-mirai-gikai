@@ -1,7 +1,6 @@
 "use client";
 
 import type { Route } from "next";
-import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { routes } from "@/lib/routes";
@@ -21,27 +20,12 @@ import {
 } from "../../shared/utils/budget-explorer-view";
 import { requestBudgetProgramSearch } from "../utils/budget-search-api";
 import { getBrowserBudgetSearchInstallationId } from "../utils/budget-search-storage";
+import { BudgetMapIframe } from "./budget-map-iframe";
 import { BudgetSearchForm } from "./budget-search-form";
 import {
   BudgetSearchResults,
   type BudgetSearchStatus,
 } from "./budget-search-results";
-
-const BudgetNetwork = dynamic(
-  () =>
-    import("./budget-network").then((module) => ({
-      default: module.BudgetNetwork,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        aria-hidden="true"
-        className="budget-network-loading absolute inset-0"
-      />
-    ),
-  }
-);
 
 type BudgetExplorerProps = {
   exploration: BudgetExplorationData;
@@ -76,14 +60,13 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       }),
     [categorySlug, exploration, topicSlug]
   );
-  const view: BudgetExplorerView = transitionTarget
+  const mapView: BudgetExplorerView = transitionTarget
     ? {
         kind: "transitioning",
         current: stableView,
         target: transitionTarget,
       }
     : stableView;
-
   useEffect(() => {
     if (navigationKey !== lastNavigationKeyRef.current) {
       lastNavigationKeyRef.current = navigationKey;
@@ -216,6 +199,10 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     }
   }, [navigateWithTransition, stableView]);
 
+  const openOfficialHierarchy = useCallback(() => {
+    router.push(routes.budgetOfficialHierarchy(), { scroll: true });
+  }, [router]);
+
   const focusSearch = useCallback(() => {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -333,11 +320,12 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
           aria-hidden={searchStatus === "input" ? undefined : true}
           inert={searchStatus === "input" ? undefined : true}
         >
-          <BudgetNetwork
+          <BudgetMapIframe
             exploration={exploration}
-            view={view}
+            view={mapView}
             onBack={handleBack}
             onFocusSearch={focusSearch}
+            onOpenOfficialHierarchy={openOfficialHierarchy}
             onSelectCategory={handleSelectCategory}
             onSelectProgram={handleSelectProgram}
             onSelectTopic={handleSelectTopic}

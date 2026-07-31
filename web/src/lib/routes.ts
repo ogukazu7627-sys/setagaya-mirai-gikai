@@ -19,6 +19,7 @@ export const routes = {
     `/budget?category=${encodeURIComponent(categorySlug)}` as const,
   budgetTopic: (categorySlug: string, topicSlug: string) =>
     `/budget?category=${encodeURIComponent(categorySlug)}&topic=${encodeURIComponent(topicSlug)}` as const,
+  budgetMap: () => "/budget/map?embed=1" as const,
   budgetOfficialHierarchy: (accountCode?: string) =>
     accountCode
       ? (`/budget/official?account=${encodeURIComponent(accountCode)}` as const)
