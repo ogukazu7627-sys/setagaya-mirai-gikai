@@ -245,6 +245,8 @@ function CouncilorAvatar({
   group: CouncilorOpinionChatGroup;
   size: "sm" | "md";
 }) {
+  const avatarSize = size === "sm" ? 32 : 44;
+
   return (
     <span
       aria-hidden="true"
@@ -257,9 +259,9 @@ function CouncilorAvatar({
       <Image
         src={group.iconUrl}
         alt=""
-        fill
-        sizes={size === "sm" ? "32px" : "44px"}
-        className="object-cover object-top"
+        width={avatarSize}
+        height={avatarSize}
+        className="size-full object-cover object-top"
       />
     </span>
   );

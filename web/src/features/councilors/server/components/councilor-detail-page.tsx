@@ -36,10 +36,10 @@ export async function CouncilorDetailPage({
             <Image
               src={detail.councilor.iconUrl}
               alt=""
-              fill
+              width={96}
+              height={96}
               priority
-              sizes="(min-width: 500px) 96px, 80px"
-              className="object-cover object-top"
+              className="size-full object-cover object-top"
             />
           </div>
           <div className="min-w-0">

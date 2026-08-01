@@ -308,7 +308,7 @@ export function AdminBillForm({
           </Field>
           <Field
             label="サムネイル"
-            hint="画像を選ぶと保存時にアップロードします。未選択の場合は現在の画像を維持します。"
+            hint="画像を選ぶと保存時にWebPへ軽量化してアップロードします。未選択の場合は現在の画像を維持します。"
           >
             <input
               type="hidden"

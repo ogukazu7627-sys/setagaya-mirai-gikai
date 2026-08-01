@@ -50,7 +50,7 @@ export function BillCard({ bill, className }: BillCardProps) {
               alt={bill.name}
               fill
               className="object-cover"
-              sizes="100vw"
+              sizes="(max-width: 768px) calc(100vw - 32px), 634px"
             />
           </div>
         )}
