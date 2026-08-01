@@ -34,9 +34,9 @@ export async function CouncilorDirectoryPage() {
                     <Image
                       src={councilor.iconUrl}
                       alt=""
-                      fill
-                      sizes="64px"
-                      className="object-cover object-top"
+                      width={64}
+                      height={64}
+                      className="size-full object-cover object-top"
                     />
                   </span>
                   <span className="min-w-0 flex-1">

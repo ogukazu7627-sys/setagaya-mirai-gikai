@@ -96,6 +96,7 @@ export function BillShareModal({
               alt="案件のサムネイル"
               fill
               className="object-cover"
+              sizes="(max-width: 430px) calc(100vw - 56px), 314px"
             />
           </div>
         )}

@@ -31,9 +31,9 @@ export function RecommendedCouncilorCard({
             <Image
               src={councilor.iconUrl}
               alt=""
-              fill
-              sizes="(min-width: 1000px) 72px, 64px"
-              className="object-cover object-top"
+              width={72}
+              height={72}
+              className="size-full object-cover object-top"
             />
           </span>
           <div className="min-w-0">

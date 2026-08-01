@@ -6,6 +6,7 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Route } from "next";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import sharp from "sharp";
 import { z } from "zod";
 import {
   appendAdminBillsReturnPath,
@@ -48,11 +49,10 @@ import {
 const THUMBNAIL_BUCKET = "bill-thumbnails";
 const MAX_THUMBNAIL_FILE_SIZE = 5 * 1024 * 1024;
 const THUMBNAIL_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const THUMBNAIL_EXTENSION_BY_MIME_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
+const OPTIMIZED_THUMBNAIL_EXTENSION = "webp";
+const OPTIMIZED_THUMBNAIL_MIME_TYPE = "image/webp";
+const OPTIMIZED_THUMBNAIL_MAX_WIDTH = 1600;
+const OPTIMIZED_THUMBNAIL_QUALITY = 82;
 const bulkPublishStatusSchema = z.enum(["draft", "published"]);
 const bulkBillIdsSchema = z
   .array(z.string().uuid())
@@ -108,6 +108,34 @@ async function ensureThumbnailBucket(supabase: AdminSupabaseClient) {
   }
 }
 
+async function optimizeThumbnailFile(file: File) {
+  const input = Buffer.from(await file.arrayBuffer());
+
+  try {
+    const body = await sharp(input, { failOn: "error" })
+      .rotate()
+      .resize({
+        width: OPTIMIZED_THUMBNAIL_MAX_WIDTH,
+        withoutEnlargement: true,
+      })
+      .webp({
+        quality: OPTIMIZED_THUMBNAIL_QUALITY,
+        effort: 4,
+      })
+      .toBuffer();
+
+    return {
+      body,
+      contentType: OPTIMIZED_THUMBNAIL_MIME_TYPE,
+      extension: OPTIMIZED_THUMBNAIL_EXTENSION,
+    };
+  } catch {
+    throw new Error(
+      "サムネイル画像の軽量化に失敗しました。JPEG、PNG、WebPの通常画像を選択してください。"
+    );
+  }
+}
+
 async function uploadBillThumbnail(
   supabase: AdminSupabaseClient,
   billId: string,
@@ -115,15 +143,14 @@ async function uploadBillThumbnail(
 ): Promise<string> {
   await ensureThumbnailBucket(supabase);
 
-  const extension = THUMBNAIL_EXTENSION_BY_MIME_TYPE[file.type] ?? "jpg";
-  const objectPath = `${billId}/${randomUUID()}.${extension}`;
-  const body = Buffer.from(await file.arrayBuffer());
+  const optimizedThumbnail = await optimizeThumbnailFile(file);
+  const objectPath = `${billId}/${randomUUID()}.${optimizedThumbnail.extension}`;
 
   const { error } = await supabase.storage
     .from(THUMBNAIL_BUCKET)
-    .upload(objectPath, body, {
+    .upload(objectPath, optimizedThumbnail.body, {
       cacheControl: "31536000",
-      contentType: file.type,
+      contentType: optimizedThumbnail.contentType,
       upsert: false,
     });
 
