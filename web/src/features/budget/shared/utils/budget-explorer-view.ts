@@ -47,3 +47,17 @@ export function getBudgetExplorerAnnouncement(
       return `${view.topic.name}に関連する${view.topic.programs.length}件の予算事業を表示しています`;
   }
 }
+
+/** 探索マップの現在の場面を表すグループ名。描画層のv1とv2で共通。 */
+export function getBudgetExplorerSceneLabel(
+  view: BudgetExplorerStableView
+): string {
+  switch (view.kind) {
+    case "overview":
+      return "予算を10の分野から探すネットワーク";
+    case "category":
+      return `${view.category.name}に公開された課題`;
+    case "topic":
+      return `${view.topic.name}に関連する予算事業`;
+  }
+}

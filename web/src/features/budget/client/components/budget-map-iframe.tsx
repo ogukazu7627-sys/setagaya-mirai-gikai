@@ -14,9 +14,15 @@ import {
   createBudgetMapHostMessage,
   parseBudgetMapMessage,
 } from "../../shared/utils/budget-map-message";
+import {
+  BUDGET_MAP_DEFAULT_VARIANT,
+  type BudgetMapVariant,
+} from "../../shared/utils/budget-map-variant";
 
 type BudgetMapIframeProps = {
   exploration: BudgetExplorationData;
+  /** 描画層の切り替え。既定は v2、比較用に v1 を残している。 */
+  variant?: BudgetMapVariant;
   view: BudgetExplorerView;
   onBack: () => void;
   onFocusSearch: () => void;
@@ -32,6 +38,7 @@ type BudgetMapFrameStatus = "loading" | "loaded" | "error";
 
 export function BudgetMapIframe({
   exploration,
+  variant = BUDGET_MAP_DEFAULT_VARIANT,
   view,
   onBack,
   onFocusSearch,
@@ -163,7 +170,7 @@ export function BudgetMapIframe({
       <iframe
         key={frameAttempt}
         ref={iframeRef}
-        src={routes.budgetMap()}
+        src={routes.budgetMap(variant)}
         title="触れる予算の探索マップ"
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"

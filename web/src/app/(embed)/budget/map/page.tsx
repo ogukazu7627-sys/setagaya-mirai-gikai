@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { BudgetMapEmbed } from "@/features/budget/client/components/budget-map-embed";
 import { loadBudgetExploration } from "@/features/budget/server/loaders/load-budget-exploration";
+import {
+  BUDGET_MAP_VARIANT_PARAM,
+  parseBudgetMapVariant,
+} from "@/features/budget/shared/utils/budget-map-variant";
 
 export const dynamic = "force-dynamic";
 
@@ -12,12 +16,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function BudgetMapRoutePage() {
-  const exploration = await loadBudgetExploration();
+export default async function BudgetMapRoutePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [exploration, resolvedSearchParams] = await Promise.all([
+    loadBudgetExploration(),
+    searchParams,
+  ]);
   return (
     <BudgetMapEmbed
       exploration={exploration}
       initialView={{ kind: "overview" }}
+      variant={parseBudgetMapVariant(
+        resolvedSearchParams[BUDGET_MAP_VARIANT_PARAM]
+      )}
     />
   );
 }
