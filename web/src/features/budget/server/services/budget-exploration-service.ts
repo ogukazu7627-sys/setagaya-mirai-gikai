@@ -7,6 +7,7 @@ import {
 import type {
   BudgetExplorationCategory,
   BudgetExplorationData,
+  BudgetExplorationDataset,
   BudgetExplorationProgram,
   BudgetExplorationTopic,
 } from "../../shared/types/budget-exploration";
@@ -44,6 +45,18 @@ export function buildBudgetExplorationData(
       (left, right) =>
         left.sort_order - right.sort_order || left.id.localeCompare(right.id)
     );
+
+  if (rows.activeDataset === null) {
+    return {
+      activeDataset: null,
+      availability: "no_active_dataset",
+      categories: categories.map((category, index) =>
+        buildCategory(category, index, [])
+      ),
+    };
+  }
+  const activeDataset = rows.activeDataset;
+
   const categoryById = new Map(
     categories.map((category) => [category.id, category])
   );
@@ -73,8 +86,7 @@ export function buildBudgetExplorationData(
   );
   const publishedRelations = rows.topicPrograms.filter(
     (relation) =>
-      rows.activeDatasetId !== null &&
-      relation.dataset_id === rows.activeDatasetId &&
+      relation.dataset_id === activeDataset.id &&
       relation.review_status === "published" &&
       relationTypes.has(relation.relation_type) &&
       topicById.has(relation.topic_id) &&
@@ -136,20 +148,13 @@ export function buildBudgetExplorationData(
   }
 
   return {
-    activeDatasetId: rows.activeDatasetId,
+    activeDataset: buildActiveDataset(activeDataset),
     availability: "available",
-    categories: categories.map(
-      (category, index): BudgetExplorationCategory => ({
-        id: category.id,
-        slug: category.slug,
-        name: category.name,
-        shortDescription: category.short_description,
-        sortOrder: category.sort_order,
-        tone:
-          categoryToneBySlug.get(category.slug) ??
-          fallbackTones[index % fallbackTones.length] ??
-          "cyan",
-        topics: rows.topicCategories
+    categories: categories.map((category, index) =>
+      buildCategory(
+        category,
+        index,
+        rows.topicCategories
           .filter((relation) => relation.category_id === category.id)
           .sort(
             (left, right) =>
@@ -160,9 +165,41 @@ export function buildBudgetExplorationData(
           .map((relation) => topicModels.get(relation.topic_id))
           .filter(
             (topic): topic is BudgetExplorationTopic => topic !== undefined
-          ),
-      })
+          )
+      )
     ),
+  };
+}
+
+function buildActiveDataset(
+  dataset: NonNullable<BudgetExplorationRows["activeDataset"]>
+): BudgetExplorationDataset {
+  return {
+    id: dataset.id,
+    fiscalYear: dataset.fiscal_year,
+    budgetType: dataset.budget_type,
+    schemaVersion: dataset.schema_version,
+    currencyUnit: dataset.currency_unit,
+    validationStatus: dataset.validation_status,
+  };
+}
+
+function buildCategory(
+  category: BudgetExplorationRows["categories"][number],
+  index: number,
+  topics: BudgetExplorationTopic[]
+): BudgetExplorationCategory {
+  return {
+    id: category.id,
+    slug: category.slug,
+    name: category.name,
+    shortDescription: category.short_description,
+    sortOrder: category.sort_order,
+    tone:
+      categoryToneBySlug.get(category.slug) ??
+      fallbackTones[index % fallbackTones.length] ??
+      "cyan",
+    topics,
   };
 }
 

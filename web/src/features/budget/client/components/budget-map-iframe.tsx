@@ -1,7 +1,13 @@
 "use client";
 
 import { BookOpen, LoaderCircle, RefreshCw, Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -27,6 +33,7 @@ type BudgetMapIframeProps = {
   onBack: () => void;
   onFocusSearch: () => void;
   onOpenOfficialHierarchy: () => void;
+  onRefreshDataset: () => void;
   onSelectCategory: (slug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
@@ -34,7 +41,7 @@ type BudgetMapIframeProps = {
 
 export const BUDGET_MAP_LOAD_TIMEOUT_MS = 10_000;
 
-type BudgetMapFrameStatus = "loading" | "loaded" | "error";
+type BudgetMapFrameStatus = "loading" | "loaded" | "error" | "dataset-mismatch";
 
 export function BudgetMapIframe({
   exploration,
@@ -43,6 +50,7 @@ export function BudgetMapIframe({
   onBack,
   onFocusSearch,
   onOpenOfficialHierarchy,
+  onRefreshDataset,
   onSelectCategory,
   onSelectProgram,
   onSelectTopic,
@@ -51,14 +59,26 @@ export function BudgetMapIframe({
   const [frameAttempt, setFrameAttempt] = useState(0);
   const [frameStatus, setFrameStatus] =
     useState<BudgetMapFrameStatus>("loading");
+  const activeDatasetId = exploration.activeDataset?.id ?? null;
+  const previousDatasetIdRef = useRef(activeDatasetId);
   const isLoaded = frameStatus === "loaded";
   const stableView = getBudgetMapStableView(view);
+
+  useLayoutEffect(() => {
+    if (previousDatasetIdRef.current === activeDatasetId) {
+      return;
+    }
+    previousDatasetIdRef.current = activeDatasetId;
+    setFrameAttempt(0);
+    setFrameStatus("loading");
+  }, [activeDatasetId]);
+
   const syncView = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
-      createBudgetMapHostMessage(view),
+      createBudgetMapHostMessage(view, activeDatasetId),
       window.location.origin
     );
-  }, [view]);
+  }, [activeDatasetId, view]);
 
   useEffect(() => {
     syncView();
@@ -86,22 +106,41 @@ export function BudgetMapIframe({
       if (!message) {
         return;
       }
+      if (message.activeDatasetId !== activeDatasetId) {
+        setFrameStatus("dataset-mismatch");
+        return;
+      }
 
       switch (message.action) {
         case "ready":
           setFrameStatus("loaded");
           syncView();
           return;
+        case "dataset-mismatch":
+          setFrameStatus("dataset-mismatch");
+          return;
         case "back":
+          if (!isLoaded) {
+            return;
+          }
           onBack();
           return;
         case "focus-search":
+          if (!isLoaded) {
+            return;
+          }
           onFocusSearch();
           return;
         case "open-official-hierarchy":
+          if (!isLoaded) {
+            return;
+          }
           onOpenOfficialHierarchy();
           return;
         case "select-category":
+          if (!isLoaded) {
+            return;
+          }
           if (
             exploration.categories.some(
               (category) => category.slug === message.categorySlug
@@ -111,6 +150,9 @@ export function BudgetMapIframe({
           }
           return;
         case "select-topic": {
+          if (!isLoaded) {
+            return;
+          }
           const category = exploration.categories.find(
             (candidate) => candidate.slug === message.categorySlug
           );
@@ -122,6 +164,9 @@ export function BudgetMapIframe({
           return;
         }
         case "select-program":
+          if (!isLoaded) {
+            return;
+          }
           if (
             exploration.categories.some((category) =>
               category.topics.some((topic) =>
@@ -142,6 +187,8 @@ export function BudgetMapIframe({
     return () => window.removeEventListener("message", handleMessage);
   }, [
     exploration,
+    activeDatasetId,
+    isLoaded,
     onBack,
     onFocusSearch,
     onOpenOfficialHierarchy,
@@ -160,6 +207,10 @@ export function BudgetMapIframe({
     setFrameAttempt((current) => current + 1);
   };
 
+  const hasFrameFailure =
+    frameStatus === "error" || frameStatus === "dataset-mismatch";
+  const datasetMismatch = frameStatus === "dataset-mismatch";
+
   return (
     <div
       className="budget-map-frame-shell overflow-hidden"
@@ -168,9 +219,9 @@ export function BudgetMapIframe({
       data-map-status={frameStatus}
     >
       <iframe
-        key={frameAttempt}
+        key={`${activeDatasetId ?? "none"}:${frameAttempt}`}
         ref={iframeRef}
-        src={routes.budgetMap(variant)}
+        src={routes.budgetMap(variant, activeDatasetId)}
         title="触れる予算の探索マップ"
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"
@@ -198,25 +249,29 @@ export function BudgetMapIframe({
           </div>
         </div>
       )}
-      {frameStatus === "error" && (
+      {hasFrameFailure && (
         <div className="budget-map-loading-scrim absolute inset-0 z-20 flex items-center justify-center px-5 text-budget-space-copy">
           <div role="alert" className="max-w-lg text-center">
             <p className="font-bold text-white">
-              予算マップを読み込めませんでした
+              {datasetMismatch
+                ? "予算データが更新されました"
+                : "予算マップを読み込めませんでした"}
             </p>
             <p className="mt-2 text-sm leading-6">
-              再読み込みするか、予算検索・公式予算分類から同じ情報へ進めます。
+              {datasetMismatch
+                ? "親ページと予算マップのデータ版が異なるため、操作を停止しました。ページを更新してください。"
+                : "再読み込みするか、予算検索・公式予算分類から同じ情報へ進めます。"}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={retryLoad}
+                onClick={datasetMismatch ? onRefreshDataset : retryLoad}
                 className="min-h-11 rounded-md"
               >
                 <RefreshCw aria-hidden="true" className="size-4" />
-                再読み込み
+                {datasetMismatch ? "ページを更新" : "再読み込み"}
               </Button>
               <Button
                 type="button"

@@ -47,8 +47,18 @@ export type BudgetExplorationIdentityRow = Pick<
   | "is_zero_amount"
 >;
 
+export type BudgetExplorationDatasetRow = Pick<
+  TableRow<"budget_datasets">,
+  | "id"
+  | "fiscal_year"
+  | "budget_type"
+  | "schema_version"
+  | "currency_unit"
+  | "validation_status"
+>;
+
 export interface BudgetExplorationRows {
-  activeDatasetId: string | null;
+  activeDataset: BudgetExplorationDatasetRow | null;
   categories: BudgetExplorationCategoryRow[];
   topics: BudgetExplorationTopicRow[];
   topicCategories: BudgetExplorationTopicCategoryRow[];
@@ -63,7 +73,9 @@ export async function findPublishedBudgetExplorationRows(): Promise<BudgetExplor
   const [datasetResult, categoriesResult, topicsResult] = await Promise.all([
     supabase
       .from("budget_datasets")
-      .select("id")
+      .select(
+        "id,fiscal_year,budget_type,schema_version,currency_unit,validation_status"
+      )
       .eq("fiscal_year", BUDGET_PUBLIC_FISCAL_YEAR)
       .eq("budget_type", BUDGET_PUBLIC_BUDGET_TYPE)
       .eq("status", "active")
@@ -87,15 +99,20 @@ export async function findPublishedBudgetExplorationRows(): Promise<BudgetExplor
     throw new Error("Failed to fetch budget exploration metadata");
   }
 
-  const activeDatasetId = datasetResult.data?.id ?? null;
+  const activeDataset = datasetResult.data ?? null;
+  const activeDatasetId = activeDataset?.id ?? null;
   const categories = categoriesResult.data ?? [];
   const topics = topicsResult.data ?? [];
   const publishedCategoryIds = categories.map((category) => category.id);
   const publishedTopicIds = topics.map((topic) => topic.id);
 
-  if (publishedCategoryIds.length === 0 || publishedTopicIds.length === 0) {
+  if (
+    activeDataset === null ||
+    publishedCategoryIds.length === 0 ||
+    publishedTopicIds.length === 0
+  ) {
     return {
-      activeDatasetId,
+      activeDataset,
       categories,
       topics,
       topicCategories: [],
@@ -143,7 +160,7 @@ export async function findPublishedBudgetExplorationRows(): Promise<BudgetExplor
     : [];
 
   return {
-    activeDatasetId,
+    activeDataset,
     categories,
     topics,
     topicCategories: topicCategoriesResult.data ?? [],

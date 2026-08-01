@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
+  BudgetExplorationAvailability,
   BudgetExplorationCategory,
   BudgetExplorationData,
   BudgetExplorationProgram,
@@ -164,9 +165,7 @@ export function BudgetNetwork({
         {stableView.kind === "category" && (
           <CategoryNetwork
             category={stableView.category}
-            dataUnavailable={
-              exploration.availability === "temporarily_unavailable"
-            }
+            availability={exploration.availability}
             dimensions={dimensions}
             mode={mode}
             onFocusSearch={onFocusSearch}
@@ -332,7 +331,7 @@ function OverviewNetwork({
 
 function CategoryNetwork({
   category,
-  dataUnavailable,
+  availability,
   dimensions,
   mode,
   onFocusSearch,
@@ -342,7 +341,7 @@ function CategoryNetwork({
   transitionTarget,
 }: {
   category: BudgetExplorationCategory;
-  dataUnavailable: boolean;
+  availability: BudgetExplorationAvailability;
   dimensions: BudgetMapWorldDimensions;
   mode: BudgetMapMode;
   onFocusSearch: () => void;
@@ -457,14 +456,18 @@ function CategoryNetwork({
             className="budget-map-node budget-map-empty-panel absolute z-20 w-[28rem] max-w-[84%] rounded-md border border-budget-space-line bg-budget-space-deep/90 px-5 py-4 text-center text-budget-space-copy"
           >
             <p className="font-bold text-white">
-              {dataUnavailable
-                ? "課題データを現在取得できません"
-                : "この分野は、まだ課題整理中です"}
+              {availability === "no_active_dataset"
+                ? "公開中の予算データはまだありません"
+                : availability === "temporarily_unavailable"
+                  ? "課題データを現在取得できません"
+                  : "この分野は、まだ課題整理中です"}
             </p>
             <p className="mt-1 text-sm leading-6">
-              {dataUnavailable
-                ? "検索または公式予算分類から、公開中の予算データを確認できます。"
-                : "架空の課題で埋めず、確認できたものから公開します。"}
+              {availability === "no_active_dataset"
+                ? "予算データの公開準備が整うまで空の状態で表示します。"
+                : availability === "temporarily_unavailable"
+                  ? "時間をおいて再度確認するか、検索または公式予算分類をお試しください。"
+                  : "架空の課題で埋めず、確認できたものから公開します。"}
             </p>
             <Button
               type="button"

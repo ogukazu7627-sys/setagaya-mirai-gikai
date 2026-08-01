@@ -35,13 +35,17 @@ export function BudgetMapEmbed({
 }: BudgetMapEmbedProps) {
   const [view, setView] = useState<BudgetExplorerView>(initialView);
   const stableView = getBudgetMapStableView(view);
+  const activeDatasetId = exploration.activeDataset?.id ?? null;
 
-  const postAction = useCallback((action: BudgetMapAction) => {
-    window.parent.postMessage(
-      createBudgetMapMessage(action),
-      window.location.origin
-    );
-  }, []);
+  const postAction = useCallback(
+    (action: BudgetMapAction) => {
+      window.parent.postMessage(
+        createBudgetMapMessage(action, activeDatasetId),
+        window.location.origin
+      );
+    },
+    [activeDatasetId]
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -51,11 +55,15 @@ export function BudgetMapEmbed({
       ) {
         return;
       }
-      const reference = parseBudgetMapHostMessage(event.data);
-      if (!reference) {
+      const message = parseBudgetMapHostMessage(event.data);
+      if (!message) {
         return;
       }
-      const nextView = resolveBudgetMapViewReference(exploration, reference);
+      if (message.activeDatasetId !== activeDatasetId) {
+        postAction({ action: "dataset-mismatch" });
+        return;
+      }
+      const nextView = resolveBudgetMapViewReference(exploration, message.view);
       if (nextView) {
         setView(nextView);
       }
@@ -63,7 +71,7 @@ export function BudgetMapEmbed({
     window.addEventListener("message", handleMessage);
     postAction({ action: "ready" });
     return () => window.removeEventListener("message", handleMessage);
-  }, [exploration, postAction]);
+  }, [activeDatasetId, exploration, postAction]);
 
   const selectCategory = useCallback(
     (slug: string) => {

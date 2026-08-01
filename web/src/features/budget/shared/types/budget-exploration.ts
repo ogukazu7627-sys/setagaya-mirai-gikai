@@ -36,9 +36,23 @@ export interface BudgetExplorationCategory {
   topics: BudgetExplorationTopic[];
 }
 
+export interface BudgetExplorationDataset {
+  id: string;
+  fiscalYear: number;
+  budgetType: string;
+  schemaVersion: string;
+  currencyUnit: string;
+  validationStatus: string;
+}
+
+export type BudgetExplorationAvailability =
+  | "available"
+  | "no_active_dataset"
+  | "temporarily_unavailable";
+
 export interface BudgetExplorationData {
-  activeDatasetId: string | null;
-  availability: "available" | "temporarily_unavailable";
+  activeDataset: BudgetExplorationDataset | null;
+  availability: BudgetExplorationAvailability;
   categories: BudgetExplorationCategory[];
 }
 

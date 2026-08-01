@@ -88,6 +88,23 @@ pnpm budget:web:topics:publish -- \
 `budget_topic_programs` だけです。公式予算テーブルは更新しません。同じCSVを
 再実行しても関係は重複せず、却下済みの候補は公開関係として残りません。
 
+### 予算データセット改訂時の課題関係リリース
+
+`budget_topic_programs` は `dataset_id` ごとの編集データです。新しいmanifestを
+取り込んでactive datasetを切り替えても、旧datasetでレビュー済みの関係は新しい
+`dataset_id` へ自動継承されません。データセット改訂のたびに、次の順で再登録して
+ください。
+
+1. `pnpm budget:web:import -- --input-dir /path/to/budget-data` で新データをdry-run検証する。
+2. `--apply` 後、active datasetのID、件数、金額、validation結果を確認する。
+3. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
+4. `pnpm budget:web:topics:publish` をまずdry-runし、承認13件・却下3件であることを確認する。
+5. 元のレビュー担当者・レビュー日時を明示して `--apply` し、`教育 → 学校施設の老朽化への対応 → 承認済み13事業` を取得APIで確認する。
+
+identity IDや根拠項目が変わった場合は、旧関係を推測でコピーせず候補CSVを再生成し、
+人間の再レビューへ戻してください。手順3〜5が終わるまで、新datasetでは課題に紐づく
+事業が一時的に空になることがあります。
+
 ## マイグレーション
 
 ```bash

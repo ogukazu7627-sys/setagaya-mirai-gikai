@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../test-data/education-school-aging-exploration";
 import type { BudgetExplorationData } from "../types/budget-exploration";
 import {
   getBudgetExplorerAnnouncement,
@@ -6,7 +7,7 @@ import {
 } from "./budget-explorer-view";
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: "dataset",
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [
     {

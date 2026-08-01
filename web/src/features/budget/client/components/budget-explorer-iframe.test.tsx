@@ -3,18 +3,26 @@
 import "@testing-library/jest-dom/vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
+import {
+  EDUCATION_SCHOOL_AGING_EXPLORATION,
+  TEST_ACTIVE_BUDGET_DATASET,
+} from "../../shared/test-data/education-school-aging-exploration";
 import { createBudgetMapMessage } from "../../shared/utils/budget-map-message";
 import { BudgetExplorer } from "./budget-explorer";
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
+  refresh: vi.fn(),
   replace: vi.fn(),
   getSearchParam: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mocks.push, replace: mocks.replace }),
+  useRouter: () => ({
+    push: mocks.push,
+    refresh: mocks.refresh,
+    replace: mocks.replace,
+  }),
   useSearchParams: () => ({ get: mocks.getSearchParam }),
 }));
 
@@ -27,50 +35,13 @@ vi.mock("../utils/budget-search-storage", () => ({
     "11111111-1111-4111-8111-111111111111",
 }));
 
-const exploration: BudgetExplorationData = {
-  activeDatasetId: "11111111-1111-4111-8111-111111111111",
-  availability: "available",
-  categories: [
-    {
-      id: "category-education",
-      slug: "education",
-      name: "教育",
-      shortDescription: "教育分野",
-      sortOrder: 1,
-      tone: "cyan",
-      topics: [
-        {
-          id: "topic-school-aging",
-          slug: "school-facility-aging",
-          name: "学校施設の老朽化への対応",
-          shortDescription: "学校施設を維持・改修する取組",
-          topicKind: "problem",
-          categorySlugs: ["education"],
-          programs: [
-            {
-              budgetProgramIdentityId: "bpi_school",
-              displayProgramName: "小学校施設改修工事",
-              accountCode: "general",
-              accountName: "一般会計",
-              kanName: "教育費",
-              kouName: "小学校費",
-              mokuName: "学校施設費",
-              departmentDisplayName: "教育環境課",
-              amountThousandYen: 100,
-              isZeroAmount: false,
-              relationType: "responds_to",
-              categorySlugs: ["education"],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+const exploration = EDUCATION_SCHOOL_AGING_EXPLORATION;
+const selectedProgram = exploration.categories[0]?.topics[0]?.programs[0];
 
 describe("BudgetExplorer iframe integration", () => {
   beforeEach(() => {
     mocks.push.mockReset();
+    mocks.refresh.mockReset();
     mocks.replace.mockReset();
     mocks.getSearchParam.mockImplementation((key: string) => {
       if (key === "category") {
@@ -92,6 +63,10 @@ describe("BudgetExplorer iframe integration", () => {
   });
 
   it("実iframeのprogram messageを戻り文脈付き詳細URLへ接続する", async () => {
+    if (!selectedProgram) {
+      throw new Error("approved program fixture is missing");
+    }
+    expect(exploration.categories[0]?.topics[0]?.programs).toHaveLength(13);
     render(<BudgetExplorer exploration={exploration} />);
     const iframe = screen.getByTitle(
       "触れる予算の探索マップ"
@@ -102,17 +77,37 @@ describe("BudgetExplorer iframe integration", () => {
         new MessageEvent("message", {
           origin: window.location.origin,
           source: iframe.contentWindow,
-          data: createBudgetMapMessage({
-            action: "select-program",
-            budgetProgramIdentityId: "bpi_school",
-          }),
+          data: createBudgetMapMessage(
+            { action: "ready" },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+    expect(iframe.closest("[data-map-loaded]"))?.toHaveAttribute(
+      "data-map-loaded",
+      "true"
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage(
+            {
+              action: "select-program",
+              budgetProgramIdentityId: selectedProgram.budgetProgramIdentityId,
+            },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
     });
 
     await waitFor(() =>
       expect(mocks.push).toHaveBeenCalledWith(
-        "/budget/programs/bpi_school?fromCategory=education&fromTopic=school-facility-aging",
+        `/budget/programs/${selectedProgram.budgetProgramIdentityId}?fromCategory=education&fromTopic=school-facility-aging`,
         { scroll: true }
       )
     );

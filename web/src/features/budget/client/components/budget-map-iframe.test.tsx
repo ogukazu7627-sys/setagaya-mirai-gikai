@@ -4,6 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import {
   createBudgetMapHostMessage,
   createBudgetMapMessage,
@@ -14,7 +15,7 @@ import {
 } from "./budget-map-iframe";
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: "11111111-1111-4111-8111-111111111111",
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [
     {
@@ -58,10 +59,12 @@ const callbacks = {
   onBack: vi.fn(),
   onFocusSearch: vi.fn(),
   onOpenOfficialHierarchy: vi.fn(),
+  onRefreshDataset: vi.fn(),
   onSelectCategory: vi.fn(),
   onSelectProgram: vi.fn(),
   onSelectTopic: vi.fn(),
 };
+const OTHER_DATASET_ID = "22222222-2222-4222-8222-222222222222";
 
 describe("BudgetMapIframe", () => {
   beforeEach(() => {
@@ -95,7 +98,10 @@ describe("BudgetMapIframe", () => {
     );
 
     const iframe = screen.getByTitle("触れる予算の探索マップ");
-    expect(iframe).toHaveAttribute("src", "/budget/map?embed=1");
+    expect(iframe).toHaveAttribute(
+      "src",
+      `/budget/map?embed=1&dataset=${TEST_ACTIVE_BUDGET_DATASET.id}`
+    );
     expect(iframe).toHaveAttribute(
       "sandbox",
       "allow-scripts allow-same-origin"
@@ -118,7 +124,10 @@ describe("BudgetMapIframe", () => {
         new MessageEvent("message", {
           origin: window.location.origin,
           source: (iframe as HTMLIFrameElement).contentWindow,
-          data: createBudgetMapMessage({ action: "ready" }),
+          data: createBudgetMapMessage(
+            { action: "ready" },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
     });
@@ -163,8 +172,92 @@ describe("BudgetMapIframe", () => {
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
     const retriedIframe = screen.getByTitle("触れる予算の探索マップ");
     expect(retriedIframe).not.toBe(firstIframe);
-    expect(retriedIframe).toHaveAttribute("src", "/budget/map?embed=1");
+    expect(retriedIframe).toHaveAttribute(
+      "src",
+      `/budget/map?embed=1&dataset=${TEST_ACTIVE_BUDGET_DATASET.id}`
+    );
     expect(retriedIframe.closest("[data-map-status]")).toHaveAttribute(
+      "data-map-status",
+      "loading"
+    );
+  });
+
+  it("親とiframeのactive datasetが異なる場合は操作を停止する", () => {
+    render(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    const iframe = screen.getByTitle(
+      "触れる予算の探索マップ"
+    ) as HTMLIFrameElement;
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage({ action: "ready" }, OTHER_DATASET_ID),
+        })
+      );
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "予算データが更新されました"
+    );
+    expect(iframe.closest("[data-map-status]")).toHaveAttribute(
+      "data-map-status",
+      "dataset-mismatch"
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        source: iframe.contentWindow,
+        data: createBudgetMapMessage(
+          { action: "select-category", categorySlug: "education" },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
+      })
+    );
+    expect(callbacks.onSelectCategory).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "ページを更新" }));
+    expect(callbacks.onRefreshDataset).toHaveBeenCalledOnce();
+  });
+
+  it("active dataset切替時はdataset別URLでiframeを作り直す", () => {
+    const { rerender } = render(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={exploration}
+        view={{ kind: "overview" }}
+      />
+    );
+    const firstIframe = screen.getByTitle("触れる予算の探索マップ");
+
+    rerender(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={{
+          ...exploration,
+          activeDataset: {
+            ...TEST_ACTIVE_BUDGET_DATASET,
+            id: OTHER_DATASET_ID,
+          },
+        }}
+        view={{ kind: "overview" }}
+      />
+    );
+
+    const nextIframe = screen.getByTitle("触れる予算の探索マップ");
+    expect(nextIframe).not.toBe(firstIframe);
+    expect(nextIframe).toHaveAttribute(
+      "src",
+      `/budget/map?embed=1&dataset=${OTHER_DATASET_ID}`
+    );
+    expect(nextIframe.closest("[data-map-status]")).toHaveAttribute(
       "data-map-status",
       "loading"
     );
@@ -192,7 +285,10 @@ describe("BudgetMapIframe", () => {
 
     fireEvent.load(iframe);
     expect(postMessage).toHaveBeenLastCalledWith(
-      createBudgetMapHostMessage({ kind: "overview" }),
+      createBudgetMapHostMessage(
+        { kind: "overview" },
+        TEST_ACTIVE_BUDGET_DATASET.id
+      ),
       window.location.origin
     );
 
@@ -207,13 +303,19 @@ describe("BudgetMapIframe", () => {
         }}
       />
     );
-    expect(iframe).toHaveAttribute("src", "/budget/map?embed=1");
+    expect(iframe).toHaveAttribute(
+      "src",
+      `/budget/map?embed=1&dataset=${TEST_ACTIVE_BUDGET_DATASET.id}`
+    );
     expect(postMessage).toHaveBeenLastCalledWith(
-      createBudgetMapHostMessage({
-        kind: "transitioning",
-        current: { kind: "overview" },
-        target: { kind: "topic", category, topic },
-      }),
+      createBudgetMapHostMessage(
+        {
+          kind: "transitioning",
+          current: { kind: "overview" },
+          target: { kind: "topic", category, topic },
+        },
+        TEST_ACTIVE_BUDGET_DATASET.id
+      ),
       window.location.origin
     );
   });
@@ -234,30 +336,39 @@ describe("BudgetMapIframe", () => {
       new MessageEvent("message", {
         origin: "https://attacker.example",
         source: iframe.contentWindow,
-        data: createBudgetMapMessage({
-          action: "select-category",
-          categorySlug: "education",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-category",
+            categorySlug: "education",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
         source: null,
-        data: createBudgetMapMessage({
-          action: "select-category",
-          categorySlug: "education",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-category",
+            categorySlug: "education",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
         source: iframe.contentWindow,
-        data: createBudgetMapMessage({
-          action: "select-program",
-          budgetProgramIdentityId: "bpi_unknown",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-program",
+            budgetProgramIdentityId: "bpi_unknown",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     expect(callbacks.onSelectCategory).not.toHaveBeenCalled();
@@ -271,12 +382,18 @@ describe("BudgetMapIframe", () => {
         new MessageEvent("message", {
           origin: window.location.origin,
           source: iframe.contentWindow,
-          data: createBudgetMapMessage({ action: "ready" }),
+          data: createBudgetMapMessage(
+            { action: "ready" },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
     });
     expect(postMessage).toHaveBeenLastCalledWith(
-      createBudgetMapHostMessage({ kind: "overview" }),
+      createBudgetMapHostMessage(
+        { kind: "overview" },
+        TEST_ACTIVE_BUDGET_DATASET.id
+      ),
       window.location.origin
     );
 
@@ -284,31 +401,40 @@ describe("BudgetMapIframe", () => {
       new MessageEvent("message", {
         origin: window.location.origin,
         source: iframe.contentWindow,
-        data: createBudgetMapMessage({
-          action: "select-category",
-          categorySlug: "education",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-category",
+            categorySlug: "education",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
         source: iframe.contentWindow,
-        data: createBudgetMapMessage({
-          action: "select-topic",
-          categorySlug: "education",
-          topicSlug: "school-facility-aging",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-topic",
+            categorySlug: "education",
+            topicSlug: "school-facility-aging",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     window.dispatchEvent(
       new MessageEvent("message", {
         origin: window.location.origin,
         source: iframe.contentWindow,
-        data: createBudgetMapMessage({
-          action: "select-program",
-          budgetProgramIdentityId: "bpi_school",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-program",
+            budgetProgramIdentityId: "bpi_school",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
     expect(callbacks.onSelectCategory).toHaveBeenCalledWith("education");
@@ -337,10 +463,13 @@ describe("BudgetMapIframe", () => {
       new MessageEvent("message", {
         origin: window.location.origin,
         source: iframeWindow,
-        data: createBudgetMapMessage({
-          action: "select-category",
-          categorySlug: "education",
-        }),
+        data: createBudgetMapMessage(
+          {
+            action: "select-category",
+            categorySlug: "education",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
       })
     );
 

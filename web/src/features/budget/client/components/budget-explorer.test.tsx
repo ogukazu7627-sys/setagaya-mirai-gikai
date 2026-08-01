@@ -6,17 +6,23 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BudgetProgramSearchResult } from "../../shared/types/budget";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import { BudgetExplorer } from "./budget-explorer";
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
+  refresh: vi.fn(),
   replace: vi.fn(),
   getSearchParam: vi.fn(),
   requestBudgetProgramSearch: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mocks.push, replace: mocks.replace }),
+  useRouter: () => ({
+    push: mocks.push,
+    refresh: mocks.refresh,
+    replace: mocks.replace,
+  }),
   useSearchParams: () => ({ get: mocks.getSearchParam }),
 }));
 
@@ -64,7 +70,7 @@ vi.mock("../utils/budget-search-storage", () => ({
 }));
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: "11111111-1111-4111-8111-111111111111",
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [
     {
@@ -131,6 +137,7 @@ function createSearchResult(
 describe("BudgetExplorer", () => {
   beforeEach(() => {
     mocks.push.mockReset();
+    mocks.refresh.mockReset();
     mocks.replace.mockReset();
     mocks.getSearchParam.mockReset();
     mocks.requestBudgetProgramSearch.mockReset();
