@@ -402,12 +402,14 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
 }
 
 function BudgetExplorerHeading({ view }: { view: BudgetExplorerStableView }) {
+  // overview は説明文を持たない2行構成にする。分野が円周状に並ぶため、
+  // 3行目まで置くと上側の分野ラベルとぶつかる。
   const heading =
     view.kind === "overview"
       ? {
           eyebrow: "世田谷区の令和8年度当初予算",
           title: "触れる予算",
-          copy: "暮らしに近い入口から、まちのお金をたどってみる。",
+          copy: null,
         }
       : view.kind === "category"
         ? {
@@ -432,9 +434,11 @@ function BudgetExplorerHeading({ view }: { view: BudgetExplorerStableView }) {
       >
         {heading.title}
       </h1>
-      <p className="mt-2 max-w-xl text-sm leading-6 text-budget-space-copy sm:text-base">
-        {heading.copy}
-      </p>
+      {heading.copy && (
+        <p className="mt-2 max-w-xl text-sm leading-6 text-budget-space-copy sm:text-base">
+          {heading.copy}
+        </p>
+      )}
     </div>
   );
 }
