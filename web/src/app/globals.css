@@ -184,6 +184,18 @@
   --budget-overview-border: #bbf7d0;
   --budget-overview-accent: #0f766e;
   --budget-validation: #047857;
+  /* 触れる予算・宇宙マップ v2 */
+  --budget-v2-void: #041520;
+  --budget-v2-deep: #093350;
+  --budget-v2-rise: #0f4665;
+  --budget-v2-rise-topic: #10496b;
+  --budget-v2-disc: #051621;
+  --budget-v2-disc-hot: #0e4363;
+  --budget-v2-core-near: #0b3a54;
+  --budget-v2-core-far: #04141f;
+  --budget-v2-white: #f6fbff;
+  --budget-v2-warp-white: #f0f9ff;
+  --budget-v2-warp-lilac: #c4b5fd;
   --mirai-gradient-start: #7dd3fc;
   --mirai-gradient-end: #e0f2fe;
   --primary-foreground: oklch(0.985 0 0);
@@ -853,6 +865,914 @@
   .budget-search-result-card {
     animation: budget-search-result-enter 220ms ease-out both;
   }
+
+  /* ===== 触れる予算・宇宙マップ v2 =====
+     線・光・ノードサイズは探索のための装飾であり、
+     お金の流れ、実支出、優先順位、良し悪しを一切表さない。 */
+
+  .budget-map-v2-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background-image: radial-gradient(
+      128% 100% at 50% 46%,
+      var(--budget-v2-rise) 0%,
+      var(--budget-v2-deep) 40%,
+      var(--budget-v2-void) 100%
+    );
+  }
+
+  .budget-map-v2-viewport[data-scene="topic"] {
+    background-image: radial-gradient(
+      126% 100% at 50% 18%,
+      var(--budget-v2-rise-topic) 0%,
+      var(--budget-v2-deep) 42%,
+      var(--budget-v2-void) 100%
+    );
+  }
+
+  /* 遷移中は入力を全て無視する（早期returnとの二重掛け）。 */
+  .budget-map-v2-viewport[data-phase="dive"] .budget-map-v2-world,
+  .budget-map-v2-viewport[data-phase="warp"] .budget-map-v2-world,
+  .budget-map-v2-viewport[data-phase="arrive"] .budget-map-v2-world {
+    pointer-events: none;
+  }
+
+  .budget-map-v2-stars,
+  .budget-map-v2-vignette,
+  .budget-map-v2-flow-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .budget-map-v2-vignette {
+    box-shadow: inset 0 0 120px 44px
+      color-mix(in srgb, var(--budget-v2-void) 70%, transparent);
+  }
+
+  .budget-map-v2-star {
+    position: absolute;
+    left: var(--budget-v2-star-x);
+    top: var(--budget-v2-star-y);
+    width: var(--budget-v2-star-size);
+    height: var(--budget-v2-star-size);
+    border-radius: 50%;
+    background: var(--budget-node-cyan);
+    opacity: var(--budget-v2-star-opacity);
+  }
+
+  .budget-map-v2-star[data-tone="mint"] {
+    background: var(--budget-node-mint);
+  }
+
+  .budget-map-v2-star[data-tone="gold"] {
+    background: var(--budget-node-gold);
+  }
+
+  .budget-map-v2-star[data-twinkle="true"] {
+    animation: budget-map-v2-twinkle var(--budget-v2-star-duration) ease-in-out
+      var(--budget-v2-star-delay) infinite;
+  }
+
+  .budget-map-v2-world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    will-change: auto;
+  }
+
+  .budget-map-v2-edges {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .budget-map-v2-edge {
+    fill: none;
+    stroke: color-mix(
+      in srgb,
+      var(--budget-space-line) calc(var(--budget-v2-edge-opacity, 0.15) * 100%),
+      transparent
+    );
+  }
+
+  .budget-map-v2-edge[data-hued="true"] {
+    stroke: oklch(
+      0.86 0.1 var(--budget-v2-hue) /
+      var(--budget-v2-edge-opacity, 0.4)
+    );
+  }
+
+  .budget-map-v2-branch-line {
+    fill: none;
+    stroke: color-mix(in srgb, var(--budget-node-cyan) 26%, transparent);
+  }
+
+  .budget-map-v2-branch-line[data-depth="2"] {
+    stroke: color-mix(in srgb, var(--budget-node-cyan) 18%, transparent);
+  }
+
+  .budget-map-v2-branch-dot {
+    fill: color-mix(in srgb, var(--budget-v2-white) 90%, transparent);
+  }
+
+  .budget-map-v2-branch-dot[data-kind="halo"] {
+    fill: color-mix(in srgb, var(--budget-node-cyan) 7%, transparent);
+  }
+
+  .budget-map-v2-branch-dot[data-hued="true"] {
+    fill: oklch(0.86 0.1 var(--budget-v2-hue) / 0.8);
+  }
+
+  .budget-map-v2-branch-dot[data-kind="halo"][data-hued="true"] {
+    fill: oklch(0.86 0.1 var(--budget-v2-hue) / 0.09);
+  }
+
+  .budget-map-v2-core-dot {
+    fill: color-mix(
+      in srgb,
+      var(--budget-node-cyan) calc(var(--budget-v2-dot-alpha) * 100%),
+      transparent
+    );
+  }
+
+  .budget-map-v2-core-dot[data-hued="true"] {
+    fill: oklch(0.86 0.1 var(--budget-v2-hue) / var(--budget-v2-dot-alpha));
+  }
+
+  .budget-map-v2-core-dot[data-drift="1"] {
+    animation: budget-map-v2-drift-1 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-core-dot[data-drift="2"] {
+    animation: budget-map-v2-drift-2 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-core-dot[data-drift="3"] {
+    animation: budget-map-v2-drift-3 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-core-dot[data-drift="4"] {
+    animation: budget-map-v2-drift-4 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-core-dot[data-drift="5"] {
+    animation: budget-map-v2-drift-5 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-core-dot[data-drift="6"] {
+    animation: budget-map-v2-drift-6 var(--budget-v2-dot-duration) ease-in-out
+      var(--budget-v2-dot-delay) infinite;
+  }
+
+  .budget-map-v2-flow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--budget-v2-flow-size);
+    height: var(--budget-v2-flow-size);
+    border-radius: 50%;
+    background: oklch(0.86 0.1 var(--budget-v2-hue) / 0.9);
+    box-shadow: 0 0 7px oklch(0.86 0.1 var(--budget-v2-hue) / 0.55);
+    offset-path: var(--budget-v2-flow-path);
+    offset-rotate: 0deg;
+    offset-distance: 0%;
+    z-index: 5;
+    animation: budget-map-v2-flow var(--budget-v2-flow-duration) linear
+      var(--budget-v2-flow-delay) infinite;
+  }
+
+  .budget-map-v2-node {
+    position: absolute;
+    left: var(--budget-map-node-x);
+    top: var(--budget-map-node-y);
+    background: transparent;
+    border: 0;
+    font-family: inherit;
+    touch-action: manipulation;
+  }
+
+  .budget-map-v2-node:focus-visible {
+    outline: 2px solid var(--budget-node-mint);
+    outline-offset: 3px;
+  }
+
+  /* 中心の粒子球体を柔らかく包む光。 */
+  .budget-map-v2-core-glow {
+    position: absolute;
+    left: var(--budget-map-node-x);
+    top: var(--budget-map-node-y);
+    width: var(--budget-v2-glow-size);
+    height: var(--budget-v2-glow-size);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      oklch(0.86 0.1 var(--budget-v2-hue) / 0.2) 0%,
+      oklch(0.86 0.1 var(--budget-v2-hue) / 0.06) 44%,
+      transparent 72%
+    );
+    pointer-events: none;
+  }
+
+  .budget-map-v2-solid-core {
+    position: absolute;
+    left: var(--budget-map-node-x);
+    top: var(--budget-map-node-y);
+    width: var(--budget-v2-core-size);
+    height: var(--budget-v2-core-size);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid oklch(0.86 0.1 var(--budget-v2-hue) / 0.6);
+    background: radial-gradient(
+      circle at 50% 42%,
+      color-mix(in srgb, var(--budget-v2-core-near) 94%, transparent),
+      color-mix(in srgb, var(--budget-v2-core-far) 90%, transparent) 72%
+    );
+    box-shadow: 0 0 50px
+      color-mix(in srgb, var(--budget-space-line) 16%, transparent);
+    color: oklch(0.86 0.1 var(--budget-v2-hue));
+    z-index: 15;
+    pointer-events: none;
+  }
+
+  .budget-map-v2-core-caption {
+    position: absolute;
+    left: var(--budget-map-node-x);
+    top: var(--budget-map-node-y);
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+    text-shadow:
+      0 0 14px var(--budget-v2-void),
+      0 0 5px var(--budget-v2-void);
+    pointer-events: none;
+    z-index: 16;
+  }
+
+  /* --- 分野ノード（overview） --- */
+  .budget-map-v2-category-node {
+    display: block;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 20;
+  }
+
+  .budget-map-v2-category-halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      oklch(0.86 0.1 var(--budget-v2-hue)) 0%,
+      transparent 68%
+    );
+    opacity: 0.16;
+  }
+
+  .budget-map-v2-category-disc {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 38px;
+    height: 38px;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid oklch(0.86 0.1 var(--budget-v2-hue));
+    background: color-mix(in srgb, var(--budget-v2-disc) 72%, transparent);
+    box-shadow: 0 0 16px
+      color-mix(in srgb, var(--budget-space-line) 14%, transparent);
+    color: oklch(0.86 0.1 var(--budget-v2-hue));
+    transition:
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .budget-map-v2-category-node:hover .budget-map-v2-category-disc {
+    box-shadow: 0 0 26px oklch(0.86 0.1 var(--budget-v2-hue) / 0.4);
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+
+  .budget-map-v2-category-label-box {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 152px;
+    transform: translate(
+      calc(-50% + var(--budget-v2-label-x)),
+      calc(-50% + var(--budget-v2-label-y))
+    );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+  }
+
+  .budget-map-v2-category-label {
+    font-family: var(--font-mirai-serif), serif;
+    font-size: 13.5px;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--budget-space-copy) 97%, transparent);
+    text-shadow:
+      0 0 12px var(--budget-v2-void),
+      0 0 4px var(--budget-v2-void);
+  }
+
+  .budget-map-v2-category-rule {
+    width: 26px;
+    height: 1px;
+    background: oklch(0.86 0.1 var(--budget-v2-hue));
+    opacity: 0.4;
+  }
+
+  .budget-map-v2-category-sub {
+    font-size: 10.5px;
+    line-height: 1.6;
+    letter-spacing: 0.12em;
+    color: color-mix(in srgb, var(--budget-space-copy) 60%, transparent);
+  }
+
+  /* --- 課題ノード（category） --- */
+  .budget-map-v2-topic-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px;
+    transform: translate(-50%, -29px);
+    cursor: pointer;
+    z-index: 20;
+  }
+
+  .budget-map-v2-topic-halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      oklch(0.86 0.1 var(--budget-v2-hue)) 0%,
+      transparent 68%
+    );
+    opacity: 0.2;
+  }
+
+  .budget-map-v2-topic-disc {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid oklch(0.86 0.1 var(--budget-v2-hue));
+    background: color-mix(in srgb, var(--budget-v2-disc) 78%, transparent);
+    box-shadow: 0 0 20px
+      color-mix(in srgb, var(--budget-space-line) 16%, transparent);
+    color: oklch(0.86 0.1 var(--budget-v2-hue));
+    transition: box-shadow 160ms ease;
+  }
+
+  .budget-map-v2-topic-node:hover .budget-map-v2-topic-disc {
+    box-shadow: 0 0 26px oklch(0.86 0.1 var(--budget-v2-hue) / 0.4);
+  }
+
+  .budget-map-v2-topic-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: 11px;
+    width: 260px;
+    text-align: center;
+  }
+
+  .budget-map-v2-topic-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--color-white);
+    text-shadow:
+      0 0 12px var(--budget-v2-void),
+      0 0 4px var(--budget-v2-void);
+  }
+
+  .budget-map-v2-topic-meta {
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--budget-space-copy) 62%, transparent);
+  }
+
+  /* --- 事業ノード（topic） --- */
+  .budget-map-v2-program-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px;
+    transform: translate(-50%, calc(var(--budget-v2-program-size) / -2 - 6px));
+    cursor: pointer;
+    z-index: 20;
+  }
+
+  .budget-map-v2-program-halo {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--budget-v2-program-size) / 2 + 6px);
+    width: calc(var(--budget-v2-program-size) * 1.9);
+    height: calc(var(--budget-v2-program-size) * 1.9);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      oklch(0.86 0.1 var(--budget-v2-hue)) 0%,
+      transparent 66%
+    );
+    opacity: 0.13;
+  }
+
+  .budget-map-v2-program-node[data-tier="high"] .budget-map-v2-program-halo {
+    opacity: 0.2;
+  }
+
+  .budget-map-v2-program-disc {
+    display: flex;
+    width: var(--budget-v2-program-size);
+    height: var(--budget-v2-program-size);
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid oklch(0.86 0.1 var(--budget-v2-hue) / 0.85);
+    background: color-mix(in srgb, var(--budget-v2-disc) 80%, transparent);
+    box-shadow: 0 0 16px
+      color-mix(in srgb, var(--budget-space-line) 18%, transparent);
+    color: oklch(0.86 0.1 var(--budget-v2-hue));
+    transition:
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .budget-map-v2-program-node[data-tier="high"] .budget-map-v2-program-disc {
+    box-shadow: 0 0 26px
+      color-mix(in srgb, var(--budget-space-line) 18%, transparent);
+  }
+
+  /* 0円の事業も必ず表示する。枠線だけで区別し、金額は「0円」と出す。 */
+  .budget-map-v2-program-node[data-zero-amount="true"]
+  .budget-map-v2-program-disc {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--budget-node-gold) 90%, transparent);
+    color: var(--budget-node-gold);
+  }
+
+  .budget-map-v2-program-node:hover .budget-map-v2-program-disc {
+    box-shadow: 0 0 30px oklch(0.86 0.1 var(--budget-v2-hue) / 0.45);
+    transform: scale(1.04);
+  }
+
+  .budget-map-v2-program-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-top: 9px;
+    width: 168px;
+    text-align: center;
+  }
+
+  .budget-map-v2-program-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--color-white) 94%, transparent);
+    text-shadow: 0 0 10px var(--budget-v2-void);
+  }
+
+  .budget-map-v2-program-amount {
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: var(--budget-node-mint);
+    text-shadow: 0 0 10px var(--budget-v2-void);
+  }
+
+  .budget-map-v2-program-node[data-zero-amount="true"]
+    .budget-map-v2-program-amount {
+    color: var(--budget-node-gold);
+  }
+
+  .budget-map-v2-program-meta {
+    font-size: 10.5px;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--budget-space-copy) 66%, transparent);
+  }
+
+  /* --- 遠景の他分野（category） --- */
+  .budget-map-v2-distant-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    opacity: 0.55;
+    z-index: 10;
+  }
+
+  .budget-map-v2-distant-node:hover {
+    opacity: 0.85;
+  }
+
+  .budget-map-v2-distant-disc {
+    display: flex;
+    width: 26px;
+    height: 26px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid oklch(0.86 0.1 var(--budget-v2-hue) / 0.55);
+    background: color-mix(in srgb, var(--budget-v2-disc) 50%, transparent);
+    color: oklch(0.86 0.1 var(--budget-v2-hue) / 0.85);
+  }
+
+  .budget-map-v2-distant-label {
+    font-family: var(--font-mirai-serif), serif;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--budget-space-copy) 82%, transparent);
+    text-shadow: 0 0 10px var(--budget-v2-void);
+  }
+
+  /* --- 遷移中の強調 --- */
+  .budget-map-v2-selectable {
+    transition:
+      opacity 300ms ease,
+      transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .budget-map-v2-viewport[data-phase="dive"] .budget-map-v2-selectable,
+  .budget-map-v2-viewport[data-phase="warp"] .budget-map-v2-selectable {
+    opacity: 0.2;
+  }
+
+  .budget-map-v2-viewport[data-phase="dive"]
+    .budget-map-v2-selectable[data-selected="true"],
+  .budget-map-v2-viewport[data-phase="warp"]
+    .budget-map-v2-selectable[data-selected="true"] {
+    opacity: 1;
+    z-index: 24;
+  }
+
+  .budget-map-v2-viewport[data-phase="dive"]
+    .budget-map-v2-category-node[data-selected="true"],
+  .budget-map-v2-viewport[data-phase="warp"]
+    .budget-map-v2-category-node[data-selected="true"] {
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+
+  /* 現画面はワープ中に消す。 */
+  .budget-map-v2-scene {
+    position: absolute;
+    inset: 0;
+    transition: opacity 260ms ease;
+  }
+
+  .budget-map-v2-viewport[data-phase="warp"] .budget-map-v2-scene {
+    opacity: 0;
+    transition-duration: 160ms;
+  }
+
+  /* --- ワープトンネル（warp フェーズ中だけ DOM に存在） --- */
+  .budget-map-v2-warp-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 32;
+    pointer-events: none;
+  }
+
+  .budget-map-v2-warp-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-white) 95%, transparent) 0%,
+      color-mix(in srgb, var(--budget-space-copy) 75%, transparent) 16%,
+      color-mix(in srgb, var(--budget-space-line) 32%, transparent) 38%,
+      transparent 70%
+    );
+    mix-blend-mode: screen;
+    animation: budget-map-v2-warp-core 560ms cubic-bezier(0.35, 0, 0.7, 1)
+      forwards;
+  }
+
+  .budget-map-v2-warp-shell {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--budget-v2-warp-size);
+    height: var(--budget-v2-warp-size);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: repeating-conic-gradient(
+      from var(--budget-v2-warp-from),
+      transparent 0deg var(--budget-v2-warp-gap),
+      var(--budget-v2-warp-tint) var(--budget-v2-warp-gap)
+        var(--budget-v2-warp-gap-end),
+      transparent var(--budget-v2-warp-gap-end) var(--budget-v2-warp-period)
+    );
+    mask-image: radial-gradient(
+      circle,
+      transparent 24%,
+      #000 50%,
+      #000 84%,
+      transparent 100%
+    );
+    mix-blend-mode: screen;
+    animation: budget-map-v2-warp-a var(--budget-v2-warp-duration)
+      cubic-bezier(0.3, 0, 0.72, 1) var(--budget-v2-warp-delay) forwards;
+  }
+
+  .budget-map-v2-warp-shell[data-spin="b"] {
+    animation-name: budget-map-v2-warp-b;
+  }
+
+  .budget-map-v2-warp-shell[data-tint="0"] {
+    --budget-v2-warp-tint: color-mix(
+      in srgb,
+      var(--budget-v2-warp-white) 62%,
+      transparent
+    );
+  }
+
+  .budget-map-v2-warp-shell[data-tint="1"] {
+    --budget-v2-warp-tint: color-mix(
+      in srgb,
+      var(--budget-space-line) 60%,
+      transparent
+    );
+  }
+
+  .budget-map-v2-warp-shell[data-tint="2"] {
+    --budget-v2-warp-tint: color-mix(
+      in srgb,
+      var(--budget-v2-warp-lilac) 50%,
+      transparent
+    );
+  }
+
+  .budget-map-v2-warp-shell[data-tint="3"] {
+    --budget-v2-warp-tint: color-mix(
+      in srgb,
+      var(--budget-node-mint) 42%,
+      transparent
+    );
+  }
+
+  /* --- chrome（戻る・ページ送り・空状態） --- */
+  .budget-map-v2-chrome-button {
+    position: absolute;
+    z-index: 36;
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+    background: transparent;
+    border: 0;
+    color: color-mix(in srgb, var(--budget-space-copy) 80%, transparent);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+  }
+
+  .budget-map-v2-chrome-button:hover {
+    color: var(--color-white);
+  }
+
+  .budget-map-v2-chrome-button:focus-visible {
+    outline: 2px solid var(--budget-node-mint);
+    outline-offset: 3px;
+  }
+
+  .budget-map-v2-back {
+    left: 32px;
+    top: 150px;
+  }
+
+  .budget-map-v2-viewport[data-scene="topic"] .budget-map-v2-back {
+    top: 168px;
+  }
+
+  .budget-map-v2-official {
+    position: absolute;
+    right: 26px;
+    bottom: 24px;
+    z-index: 36;
+    min-height: 44px;
+  }
+
+  /* 下段の事業ラベルと重ならないよう、デスクトップでは右下へ寄せる。 */
+  .budget-map-v2-pagination {
+    position: absolute;
+    right: 26px;
+    bottom: 22px;
+    z-index: 36;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 50%, transparent);
+    background: var(--budget-v2-void);
+    padding: 6px;
+    color: var(--budget-space-copy);
+    white-space: nowrap;
+    box-shadow: 0 12px 30px
+      color-mix(in srgb, var(--budget-v2-void) 70%, transparent);
+  }
+
+  .budget-map-v2-pagination-count {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .budget-map-v2-empty-panel {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    width: 26rem;
+    max-width: 84%;
+    border-radius: 10px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 40%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-void) 92%, transparent);
+    padding: 1.15rem 1.25rem;
+    text-align: center;
+    color: var(--budget-space-copy);
+  }
+
+  @media (min-width: 1000px) {
+    .budget-map-v2-vignette {
+      box-shadow: inset 0 0 180px 70px
+        color-mix(in srgb, var(--budget-v2-void) 74%, transparent);
+    }
+  }
+
+  @media (max-width: 999px) {
+    .budget-map-v2-category-node {
+      z-index: 20;
+    }
+
+    .budget-map-v2-category-disc {
+      width: 32px;
+      height: 32px;
+    }
+
+    .budget-map-v2-category-halo {
+      width: 52px;
+      height: 52px;
+    }
+
+    .budget-map-v2-category-label-box {
+      width: 104px;
+      transform: translate(-50%, 20px);
+    }
+
+    .budget-map-v2-category-label {
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+    }
+
+    .budget-map-v2-category-rule,
+    .budget-map-v2-category-sub {
+      display: none;
+    }
+
+    .budget-map-v2-topic-node {
+      transform: translate(-50%, -26px);
+    }
+
+    .budget-map-v2-topic-disc {
+      width: 40px;
+      height: 40px;
+    }
+
+    .budget-map-v2-topic-text {
+      width: 220px;
+      margin-top: 10px;
+    }
+
+    .budget-map-v2-topic-title {
+      font-size: 13.5px;
+    }
+
+    .budget-map-v2-topic-meta {
+      font-size: 10.5px;
+    }
+
+    .budget-map-v2-program-text {
+      width: 150px;
+      margin-top: 8px;
+    }
+
+    .budget-map-v2-program-name {
+      font-size: 11.5px;
+    }
+
+    .budget-map-v2-program-amount {
+      font-size: 11px;
+    }
+
+    .budget-map-v2-program-meta {
+      display: none;
+    }
+
+    /* 親ページのヒーロー文の下に置く。 */
+    .budget-map-v2-back {
+      left: 18px;
+      top: 106px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+    }
+
+    .budget-map-v2-viewport[data-scene="topic"] .budget-map-v2-back {
+      top: 112px;
+    }
+
+    .budget-map-v2-official {
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+    }
+
+    .budget-map-v2-pagination {
+      left: 14px;
+      right: 14px;
+      bottom: 18px;
+      justify-content: space-between;
+    }
+
+    .budget-map-v2-pagination-count {
+      font-size: 11px;
+    }
+
+    /* モバイルでは星の明滅を止め、描画コストを抑える。 */
+    .budget-map-v2-star[data-twinkle="true"] {
+      animation: none;
+    }
+
+    .budget-map-v2-warp-layer {
+      transform: scale(0.52);
+      transform-origin: 50% 50%;
+    }
+  }
 }
 
 @keyframes budget-map-node-flare {
@@ -933,6 +1853,154 @@
   }
 }
 
+/* ===== 触れる予算・宇宙マップ v2 のアニメーション =====
+   いずれも CSS animation のみ。JS タイマーや rAF では動かさない。 */
+
+@keyframes budget-map-v2-twinkle {
+  0%,
+  100% {
+    opacity: var(--budget-v2-star-opacity);
+  }
+
+  50% {
+    opacity: calc(var(--budget-v2-star-opacity) * 0.25);
+  }
+}
+
+@keyframes budget-map-v2-drift-1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(1.6px, -1.2px);
+  }
+}
+
+@keyframes budget-map-v2-drift-2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-1.4px, 1.5px);
+  }
+}
+
+@keyframes budget-map-v2-drift-3 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(1.2px, 1.7px);
+  }
+}
+
+@keyframes budget-map-v2-drift-4 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-1.7px, -1.1px);
+  }
+}
+
+@keyframes budget-map-v2-drift-5 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(0.8px, -1.9px);
+  }
+}
+
+@keyframes budget-map-v2-drift-6 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-2px, 0.7px);
+  }
+}
+
+@keyframes budget-map-v2-flow {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.95;
+  }
+
+  82% {
+    opacity: 0.8;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes budget-map-v2-warp-core {
+  0% {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+
+  34% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+}
+
+@keyframes budget-map-v2-warp-a {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.28);
+  }
+
+  16% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(34deg) scale(3);
+  }
+}
+
+@keyframes budget-map-v2-warp-b {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.32);
+  }
+
+  16% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-46deg) scale(3.4);
+  }
+}
+
 .budget-detail-enter {
   animation: budget-detail-enter 220ms ease-out both;
 }
@@ -965,6 +2033,21 @@
   .budget-search-warp-core,
   .budget-search-result-card {
     animation: none;
+  }
+
+  /* 宇宙マップ v2 は演出だけを止める。画面遷移そのものは動く。
+     流れる粒とワープトンネルは要素ごと生成しない。 */
+  .budget-map-v2-star[data-twinkle="true"],
+  .budget-map-v2-core-dot {
+    animation: none;
+  }
+
+  .budget-map-v2-scene,
+  .budget-map-v2-selectable,
+  .budget-map-v2-category-disc,
+  .budget-map-v2-topic-disc,
+  .budget-map-v2-program-disc {
+    transition-duration: 0.01ms;
   }
 }
 

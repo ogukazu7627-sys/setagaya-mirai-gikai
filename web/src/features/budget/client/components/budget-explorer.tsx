@@ -21,6 +21,10 @@ import {
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
+import {
+  BUDGET_MAP_HOST_VARIANT_PARAM,
+  parseBudgetMapVariant,
+} from "../../shared/utils/budget-map-variant";
 import { requestBudgetProgramSearch } from "../utils/budget-search-api";
 import { getBrowserBudgetSearchInstallationId } from "../utils/budget-search-storage";
 import { BudgetMapIframe } from "./budget-map-iframe";
@@ -53,6 +57,10 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const categorySlug = searchParams.get("category");
   const topicSlug = searchParams.get("topic");
+  // 描画層は既定で v2。比較したいときだけ ?mapVariant=v1 を付ける。
+  const mapVariant = parseBudgetMapVariant(
+    searchParams.get(BUDGET_MAP_HOST_VARIANT_PARAM)
+  );
   const navigationKey = `${categorySlug ?? ""}:${topicSlug ?? ""}`;
   const lastNavigationKeyRef = useRef(navigationKey);
   const stableView = useMemo(
@@ -325,6 +333,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
         >
           <BudgetMapIframe
             exploration={exploration}
+            variant={mapVariant}
             view={mapView}
             onBack={handleBack}
             onFocusSearch={focusSearch}

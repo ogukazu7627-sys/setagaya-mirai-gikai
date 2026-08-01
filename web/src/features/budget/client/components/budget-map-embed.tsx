@@ -14,16 +14,24 @@ import {
   parseBudgetMapHostMessage,
   resolveBudgetMapViewReference,
 } from "../../shared/utils/budget-map-message";
+import {
+  BUDGET_MAP_DEFAULT_VARIANT,
+  type BudgetMapVariant,
+} from "../../shared/utils/budget-map-variant";
+import { BudgetMapV2Network } from "./budget-map-v2/budget-map-v2-network";
 import { BudgetNetwork } from "./budget-network";
 
 type BudgetMapEmbedProps = {
   exploration: BudgetExplorationData;
   initialView: BudgetExplorerStableView;
+  /** 既定は v2。v1 は比較用に残している。 */
+  variant?: BudgetMapVariant;
 };
 
 export function BudgetMapEmbed({
   exploration,
   initialView,
+  variant = BUDGET_MAP_DEFAULT_VARIANT,
 }: BudgetMapEmbedProps) {
   const [view, setView] = useState<BudgetExplorerView>(initialView);
   const stableView = getBudgetMapStableView(view);
@@ -125,8 +133,23 @@ export function BudgetMapEmbed({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goBack, stableView.kind, view.kind]);
 
+  const networkProps = {
+    exploration,
+    view,
+    onBack: goBack,
+    onFocusSearch: () => postAction({ action: "focus-search" }),
+    onOpenOfficialHierarchy: () =>
+      postAction({ action: "open-official-hierarchy" }),
+    onSelectCategory: selectCategory,
+    onSelectProgram: selectProgram,
+    onSelectTopic: selectTopic,
+  };
+
   return (
-    <div className="budget-map-embed-root h-svh min-h-full w-full overflow-hidden">
+    <div
+      className="budget-map-embed-root h-svh min-h-full w-full overflow-hidden"
+      data-map-variant={variant}
+    >
       <div
         role="status"
         aria-live="polite"
@@ -135,18 +158,11 @@ export function BudgetMapEmbed({
       >
         {getBudgetExplorerAnnouncement(stableView)}
       </div>
-      <BudgetNetwork
-        exploration={exploration}
-        view={view}
-        onBack={goBack}
-        onFocusSearch={() => postAction({ action: "focus-search" })}
-        onOpenOfficialHierarchy={() =>
-          postAction({ action: "open-official-hierarchy" })
-        }
-        onSelectCategory={selectCategory}
-        onSelectProgram={selectProgram}
-        onSelectTopic={selectTopic}
-      />
+      {variant === "v2" ? (
+        <BudgetMapV2Network {...networkProps} />
+      ) : (
+        <BudgetNetwork {...networkProps} />
+      )}
     </div>
   );
 }
