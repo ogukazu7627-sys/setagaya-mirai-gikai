@@ -8,6 +8,7 @@ import type {
   BudgetExplorationCategory,
   BudgetExplorationData,
 } from "../../shared/types/budget-exploration";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import { BudgetNetwork } from "./budget-network";
 
 const education: BudgetExplorationCategory = {
@@ -46,7 +47,7 @@ const education: BudgetExplorationCategory = {
 };
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: "11111111-1111-4111-8111-111111111111",
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [
     education,

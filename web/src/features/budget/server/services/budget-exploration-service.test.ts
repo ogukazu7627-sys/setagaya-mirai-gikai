@@ -13,7 +13,14 @@ import {
 } from "./budget-exploration-service";
 
 const rows: BudgetExplorationRows = {
-  activeDatasetId: "11111111-1111-4111-8111-111111111111",
+  activeDataset: {
+    id: "11111111-1111-4111-8111-111111111111",
+    fiscal_year: 2026,
+    budget_type: "initial_budget",
+    schema_version: "public-budget-v1",
+    currency_unit: "thousand_yen",
+    validation_status: "PASS",
+  },
   categories: [
     {
       id: "category-education",
@@ -129,6 +136,14 @@ describe("budget-exploration-service", () => {
       "welfare",
     ]);
     expect(result.availability).toBe("available");
+    expect(result.activeDataset).toEqual({
+      id: "11111111-1111-4111-8111-111111111111",
+      fiscalYear: 2026,
+      budgetType: "initial_budget",
+      schemaVersion: "public-budget-v1",
+      currencyUnit: "thousand_yen",
+      validationStatus: "PASS",
+    });
     expect(result.categories[0]?.topics).toHaveLength(1);
     expect(result.categories[0]?.topics[0]?.programs).toEqual([
       expect.objectContaining({
@@ -141,11 +156,25 @@ describe("budget-exploration-service", () => {
     expect(JSON.stringify(result)).not.toContain("レビュー中");
   });
 
+  it("active datasetがない場合はtopicを公開せず正しい空状態にする", () => {
+    const result = buildBudgetExplorationData({
+      ...rows,
+      activeDataset: null,
+    });
+
+    expect(result.activeDataset).toBeNull();
+    expect(result.availability).toBe("no_active_dataset");
+    expect(result.categories).toHaveLength(2);
+    expect(
+      result.categories.every((category) => category.topics.length === 0)
+    ).toBe(true);
+  });
+
   it("repository結果をそのまま公開モデル変換へ渡す", async () => {
     mocks.findPublishedBudgetExplorationRows.mockResolvedValue(rows);
 
     await expect(getBudgetExplorationData()).resolves.toMatchObject({
-      activeDatasetId: rows.activeDatasetId,
+      activeDataset: { id: rows.activeDataset?.id },
       categories: [{ slug: "education" }, { slug: "welfare" }],
     });
     expect(mocks.findPublishedBudgetExplorationRows).toHaveBeenCalledOnce();

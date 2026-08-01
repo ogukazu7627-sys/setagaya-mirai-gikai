@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../test-data/education-school-aging-exploration";
 import type { BudgetExplorationData } from "../types/budget-exploration";
 import {
   createBudgetMapHostMessage,
@@ -9,7 +10,7 @@ import {
 } from "./budget-map-message";
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: null,
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [
     {
@@ -51,16 +52,20 @@ const exploration: BudgetExplorationData = {
 
 describe("budget map message", () => {
   it("許可した操作だけを復元する", () => {
-    const message = createBudgetMapMessage({
-      action: "select-topic",
-      categorySlug: "education",
-      topicSlug: "school-facility-aging",
-    });
+    const message = createBudgetMapMessage(
+      {
+        action: "select-topic",
+        categorySlug: "education",
+        topicSlug: "school-facility-aging",
+      },
+      TEST_ACTIVE_BUDGET_DATASET.id
+    );
 
     expect(parseBudgetMapMessage(message)).toEqual({
       action: "select-topic",
       categorySlug: "education",
       topicSlug: "school-facility-aging",
+      activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
     });
   });
 
@@ -106,24 +111,30 @@ describe("budget map message", () => {
     if (!category || !topic) {
       throw new Error("topic fixture is missing");
     }
-    const message = createBudgetMapHostMessage({
-      kind: "transitioning",
-      current: { kind: "category", category },
-      target: { kind: "topic", category, topic },
-    });
-    const reference = parseBudgetMapHostMessage(message);
+    const message = createBudgetMapHostMessage(
+      {
+        kind: "transitioning",
+        current: { kind: "category", category },
+        target: { kind: "topic", category, topic },
+      },
+      TEST_ACTIVE_BUDGET_DATASET.id
+    );
+    const parsed = parseBudgetMapHostMessage(message);
 
-    expect(reference).toEqual({
-      kind: "transitioning",
-      current: { kind: "category", categorySlug: "education" },
-      target: {
-        kind: "topic",
-        categorySlug: "education",
-        topicSlug: "school-facility-aging",
+    expect(parsed).toEqual({
+      activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+      view: {
+        kind: "transitioning",
+        current: { kind: "category", categorySlug: "education" },
+        target: {
+          kind: "topic",
+          categorySlug: "education",
+          topicSlug: "school-facility-aging",
+        },
       },
     });
     expect(
-      reference ? resolveBudgetMapViewReference(exploration, reference) : null
+      parsed ? resolveBudgetMapViewReference(exploration, parsed.view) : null
     ).toEqual({
       kind: "transitioning",
       current: { kind: "category", category },
@@ -135,16 +146,18 @@ describe("budget map message", () => {
     expect(
       parseBudgetMapHostMessage({
         source: "another-host",
-        version: 1,
+        version: 2,
         action: "sync-view",
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         view: { kind: "overview" },
       })
     ).toBeNull();
     expect(
       parseBudgetMapHostMessage({
         source: "mirai-gikai-budget-host",
-        version: 1,
+        version: 2,
         action: "sync-view",
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         view: {
           kind: "category",
           categorySlug: "https://example.com",
@@ -154,8 +167,9 @@ describe("budget map message", () => {
 
     const unknownReference = parseBudgetMapHostMessage({
       source: "mirai-gikai-budget-host",
-      version: 1,
+      version: 2,
       action: "sync-view",
+      activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
       view: {
         kind: "topic",
         categorySlug: "education",
@@ -165,7 +179,7 @@ describe("budget map message", () => {
     expect(unknownReference).not.toBeNull();
     expect(
       unknownReference
-        ? resolveBudgetMapViewReference(exploration, unknownReference)
+        ? resolveBudgetMapViewReference(exploration, unknownReference.view)
         : null
     ).toBeNull();
   });

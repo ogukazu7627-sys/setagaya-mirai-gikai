@@ -11,7 +11,9 @@ import {
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type {
+  BudgetExplorationAvailability,
   BudgetExplorationData,
+  BudgetExplorationDataset,
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../../../shared/types/budget-exploration";
@@ -60,7 +62,6 @@ import {
  * Canvas / WebGL は使わず、DOM + SVG + CSS transform だけで描く。
  */
 
-const BUDGET_FISCAL_YEAR = 2026;
 const WARP_SHELLS = createBudgetMapV2WarpShells();
 
 type BudgetMapV2NetworkProps = {
@@ -233,7 +234,11 @@ export function BudgetMapV2Network({
           <BudgetMapV2FlowLayer particles={scene.flow} />
 
           <div className="absolute inset-0">
-            <BudgetMapV2Core scene={scene} view={stableView} />
+            <BudgetMapV2Core
+              activeDataset={exploration.activeDataset}
+              scene={scene}
+              view={stableView}
+            />
 
             {scene.distantCategories.map((node) => (
               <BudgetMapV2DistantNodeButton
@@ -280,7 +285,7 @@ export function BudgetMapV2Network({
       {showWarp && <BudgetMapV2WarpLayer shells={WARP_SHELLS} />}
 
       <BudgetMapV2Chrome
-        dataUnavailable={exploration.availability === "temporarily_unavailable"}
+        availability={exploration.availability}
         isBusy={isBusy}
         onBack={onBack}
         onFocusSearch={onFocusSearch}
@@ -301,9 +306,11 @@ type StableView = ReturnType<typeof getBudgetMapStableView>;
  * 「令和8年度・当初予算」であることを常に画面上へ出す。
  */
 function BudgetMapV2Core({
+  activeDataset,
   scene,
   view,
 }: {
+  activeDataset: BudgetExplorationDataset | null;
   scene: SceneModel;
   view: StableView;
 }) {
@@ -344,7 +351,7 @@ function BudgetMapV2Core({
       )}
       <div
         role="img"
-        aria-label={getCoreLabel(view)}
+        aria-label={getCoreLabel(view, activeDataset?.fiscalYear ?? null)}
         className="budget-map-v2-core-caption"
         style={
           {
@@ -354,20 +361,28 @@ function BudgetMapV2Core({
           } as BudgetMapV2Style
         }
       >
-        <BudgetMapV2CoreCaption scene={scene} view={view} />
+        <BudgetMapV2CoreCaption
+          activeDataset={activeDataset}
+          scene={scene}
+          view={view}
+        />
       </div>
     </>
   );
 }
 
 function BudgetMapV2CoreCaption({
+  activeDataset,
   scene,
   view,
 }: {
+  activeDataset: BudgetExplorationDataset | null;
   scene: SceneModel;
   view: StableView;
 }) {
-  const fiscalYearLabel = `${formatJapaneseFiscalYear(BUDGET_FISCAL_YEAR)}・当初予算`;
+  const fiscalYearLabel = activeDataset
+    ? `${formatJapaneseFiscalYear(activeDataset.fiscalYear)}・当初予算`
+    : "当初予算";
 
   if (view.kind === "overview") {
     return (
@@ -418,7 +433,7 @@ function BudgetMapV2CoreCaption({
 }
 
 function BudgetMapV2Chrome({
-  dataUnavailable,
+  availability,
   isBusy,
   onBack,
   onFocusSearch,
@@ -427,7 +442,7 @@ function BudgetMapV2Chrome({
   scene,
   view,
 }: {
-  dataUnavailable: boolean;
+  availability: BudgetExplorationAvailability;
   isBusy: boolean;
   onBack: () => void;
   onFocusSearch: () => void;
@@ -439,7 +454,10 @@ function BudgetMapV2Chrome({
   const page = scene.programPage;
   const showEmptyCategory =
     view.kind === "category" && scene.topics.length === 0;
+  const showUnavailableOverview =
+    view.kind === "overview" && availability !== "available";
   const showEmptyTopic = view.kind === "topic" && (page?.totalCount ?? 0) === 0;
+  const emptyCopy = getExplorationEmptyCopy(availability);
 
   return (
     <>
@@ -470,18 +488,10 @@ function BudgetMapV2Chrome({
         </Button>
       )}
 
-      {showEmptyCategory && (
+      {(showUnavailableOverview || showEmptyCategory) && (
         <div className="budget-map-v2-empty-panel">
-          <p className="font-bold text-white">
-            {dataUnavailable
-              ? "課題データを現在取得できません"
-              : "この分野の課題は整理中です"}
-          </p>
-          <p className="mt-1 text-sm leading-6">
-            {dataUnavailable
-              ? "検索または公式予算分類から、公開中の予算データを確認できます。"
-              : "人が確認したものだけを公開しています。架空の課題では埋めません。"}
-          </p>
+          <p className="font-bold text-white">{emptyCopy.title}</p>
+          <p className="mt-1 text-sm leading-6">{emptyCopy.description}</p>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Button
               type="button"
@@ -555,14 +565,42 @@ function BudgetMapV2Chrome({
   );
 }
 
-function getCoreLabel(view: StableView): string {
+function getCoreLabel(view: StableView, fiscalYear: number | null): string {
   switch (view.kind) {
     case "overview":
-      return "令和8年度当初予算、世田谷区の予算";
+      return fiscalYear === null
+        ? "当初予算、世田谷区の予算"
+        : `${formatJapaneseFiscalYear(fiscalYear)}当初予算、世田谷区の予算`;
     case "category":
       return `選択中の分野、${view.category.name}`;
     case "topic":
       return `選択中の課題、${view.topic.name}`;
+  }
+}
+
+function getExplorationEmptyCopy(availability: BudgetExplorationAvailability): {
+  title: string;
+  description: string;
+} {
+  switch (availability) {
+    case "no_active_dataset":
+      return {
+        title: "公開中の予算データはまだありません",
+        description:
+          "予算データの公開準備が整うまで、検索・公式予算分類も空の状態になります。",
+      };
+    case "temporarily_unavailable":
+      return {
+        title: "課題データを現在取得できません",
+        description:
+          "時間をおいて再度確認するか、検索または公式予算分類をお試しください。",
+      };
+    case "available":
+      return {
+        title: "この分野の課題は整理中です",
+        description:
+          "人が確認したものだけを公開しています。架空の課題では埋めません。",
+      };
   }
 }
 

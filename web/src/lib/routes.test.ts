@@ -122,5 +122,11 @@ describe("routes", () => {
 
   it("予算mapは親の履歴と競合しない固定embed URLを返す", () => {
     expect(routes.budgetMap()).toBe("/budget/map?embed=1");
+    expect(routes.budgetMap("v2", "11111111-1111-4111-8111-111111111111")).toBe(
+      "/budget/map?embed=1&dataset=11111111-1111-4111-8111-111111111111"
+    );
+    expect(routes.budgetMap("v1", null)).toBe(
+      "/budget/map?embed=1&variant=v1&dataset=none"
+    );
   });
 });

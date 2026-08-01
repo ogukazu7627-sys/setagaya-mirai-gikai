@@ -214,6 +214,10 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     router.push(routes.budgetOfficialHierarchy(), { scroll: true });
   }, [router]);
 
+  const refreshDataset = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
   const focusSearch = useCallback(() => {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -338,6 +342,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
             onBack={handleBack}
             onFocusSearch={focusSearch}
             onOpenOfficialHierarchy={openOfficialHierarchy}
+            onRefreshDataset={refreshDataset}
             onSelectCategory={handleSelectCategory}
             onSelectProgram={handleSelectProgram}
             onSelectTopic={handleSelectTopic}

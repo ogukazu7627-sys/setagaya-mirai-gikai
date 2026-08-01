@@ -20,10 +20,16 @@ export const routes = {
   budgetTopic: (categorySlug: string, topicSlug: string) =>
     `/budget?category=${encodeURIComponent(categorySlug)}&topic=${encodeURIComponent(topicSlug)}` as const,
   // 描画層は既定で v2。比較したいときだけ "v1" を渡す。
-  budgetMap: (variant?: "v1" | "v2") =>
-    variant === "v1"
-      ? ("/budget/map?embed=1&variant=v1" as const)
-      : ("/budget/map?embed=1" as const),
+  budgetMap: (variant?: "v1" | "v2", activeDatasetId?: string | null) => {
+    const searchParams = new URLSearchParams({ embed: "1" });
+    if (variant === "v1") {
+      searchParams.set("variant", "v1");
+    }
+    if (activeDatasetId !== undefined) {
+      searchParams.set("dataset", activeDatasetId ?? "none");
+    }
+    return `/budget/map?${searchParams.toString()}` as const;
+  },
   budgetOfficialHierarchy: (accountCode?: string) =>
     accountCode
       ? (`/budget/official?account=${encodeURIComponent(accountCode)}` as const)

@@ -10,7 +10,7 @@ export async function loadBudgetExploration(): Promise<BudgetExplorationData> {
   } catch (error) {
     console.error("[budget] Failed to load the public exploration", error);
     return {
-      activeDatasetId: null,
+      activeDataset: null,
       availability: "temporarily_unavailable",
       categories: BUDGET_EXPLORATION_CATEGORIES.map((category, index) => ({
         id: `fallback-${category.slug}`,

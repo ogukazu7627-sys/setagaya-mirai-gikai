@@ -8,6 +8,10 @@ import type {
   BudgetExplorationCategory,
   BudgetExplorationData,
 } from "../../shared/types/budget-exploration";
+import {
+  EDUCATION_SCHOOL_AGING_EXPLORATION,
+  TEST_ACTIVE_BUDGET_DATASET,
+} from "../../shared/test-data/education-school-aging-exploration";
 import { createBudgetMapHostMessage } from "../../shared/utils/budget-map-message";
 import { BudgetMapEmbed } from "./budget-map-embed";
 
@@ -47,10 +51,11 @@ const education: BudgetExplorationCategory = {
 };
 
 const exploration: BudgetExplorationData = {
-  activeDatasetId: null,
+  activeDataset: TEST_ACTIVE_BUDGET_DATASET,
   availability: "available",
   categories: [education],
 };
+const OTHER_DATASET_ID = "22222222-2222-4222-8222-222222222222";
 
 describe("BudgetMapEmbed", () => {
   beforeEach(() => {
@@ -102,10 +107,13 @@ describe("BudgetMapEmbed", () => {
         new MessageEvent("message", {
           origin: window.location.origin,
           source: window.parent,
-          data: createBudgetMapHostMessage({
-            kind: "category",
-            category: education,
-          }),
+          data: createBudgetMapHostMessage(
+            {
+              kind: "category",
+              category: education,
+            },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
     });
@@ -122,11 +130,14 @@ describe("BudgetMapEmbed", () => {
         new MessageEvent("message", {
           origin: window.location.origin,
           source: window.parent,
-          data: createBudgetMapHostMessage({
-            kind: "topic",
-            category: education,
-            topic,
-          }),
+          data: createBudgetMapHostMessage(
+            {
+              kind: "topic",
+              category: education,
+              topic,
+            },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
     });
@@ -150,10 +161,13 @@ describe("BudgetMapEmbed", () => {
         new MessageEvent("message", {
           origin: "https://attacker.example",
           source: window.parent,
-          data: createBudgetMapHostMessage({
-            kind: "category",
-            category: education,
-          }),
+          data: createBudgetMapHostMessage(
+            {
+              kind: "category",
+              category: education,
+            },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
         })
       );
       window.dispatchEvent(
@@ -162,8 +176,9 @@ describe("BudgetMapEmbed", () => {
           source: window.parent,
           data: {
             source: "mirai-gikai-budget-host",
-            version: 1,
+            version: 2,
             action: "sync-view",
+            activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
             view: {
               kind: "category",
               categorySlug: "unknown-category",
@@ -177,6 +192,91 @@ describe("BudgetMapEmbed", () => {
       screen.getByRole("group", {
         name: "予算を10の分野から探すネットワーク",
       })
+    ).toBeVisible();
+  });
+
+  it("親とactive datasetが異なる同期messageを拒否して通知する", () => {
+    const postMessage = vi
+      .spyOn(window, "postMessage")
+      .mockImplementation(() => undefined);
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "overview" }}
+      />
+    );
+    postMessage.mockClear();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: window.parent,
+          data: createBudgetMapHostMessage(
+            { kind: "category", category: education },
+            OTHER_DATASET_ID
+          ),
+        })
+      );
+    });
+
+    expect(
+      screen.getByRole("group", {
+        name: "予算を10の分野から探すネットワーク",
+      })
+    ).toBeVisible();
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        source: "mirai-gikai-budget-map",
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        action: "dataset-mismatch",
+      },
+      window.location.origin
+    );
+  });
+
+  it("中心ラベルの年度をactive datasetメタデータから表示する", () => {
+    render(
+      <BudgetMapEmbed
+        exploration={{
+          ...exploration,
+          activeDataset: {
+            ...TEST_ACTIVE_BUDGET_DATASET,
+            fiscalYear: 2027,
+          },
+        }}
+        initialView={{ kind: "overview" }}
+      />
+    );
+
+    expect(
+      screen.getByRole("img", {
+        name: "令和9年度当初予算、世田谷区の予算",
+      })
+    ).toBeVisible();
+  });
+
+  it("active datasetがない場合は公開準備中の空状態を表示する", () => {
+    render(
+      <BudgetMapEmbed
+        exploration={{
+          activeDataset: null,
+          availability: "no_active_dataset",
+          categories: exploration.categories.map((category) => ({
+            ...category,
+            topics: [],
+          })),
+        }}
+        initialView={{ kind: "overview" }}
+      />
+    );
+
+    expect(
+      screen.getByText("公開中の予算データはまだありません")
+    ).toBeVisible();
+    expect(
+      screen.getByRole("img", { name: "当初予算、世田谷区の予算" })
     ).toBeVisible();
   });
 
@@ -199,7 +299,8 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 1,
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-category",
         categorySlug: "education",
       },
@@ -251,7 +352,8 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 1,
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "back",
       },
       window.location.origin
@@ -279,7 +381,8 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 1,
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-topic",
         categorySlug: "education",
         topicSlug: "school-facility-aging",
@@ -313,12 +416,45 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 1,
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-program",
         budgetProgramIdentityId: "bpi_school",
       },
       window.location.origin
     );
+  });
+
+  it("iframe内で承認済み13事業を10件と3件の星系として表示する", async () => {
+    const approvedCategory = EDUCATION_SCHOOL_AGING_EXPLORATION.categories[0];
+    const approvedTopic = approvedCategory?.topics[0];
+    if (!approvedCategory || !approvedTopic) {
+      throw new Error("approved exploration fixture is missing");
+    }
+    const user = userEvent.setup();
+
+    render(
+      <BudgetMapEmbed
+        exploration={EDUCATION_SCHOOL_AGING_EXPLORATION}
+        initialView={{
+          kind: "topic",
+          category: approvedCategory,
+          topic: approvedTopic,
+        }}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("button", { name: /、詳細を見る$/ })
+    ).toHaveLength(10);
+    expect(screen.getByText("1〜10 / 13件")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次の星系" }));
+
+    expect(
+      screen.getAllByRole("button", { name: /、詳細を見る$/ })
+    ).toHaveLength(3);
+    expect(screen.getByText("11〜13 / 13件")).toBeVisible();
   });
 
   it("unmount時にmessageとkeydown listenerを解除する", () => {

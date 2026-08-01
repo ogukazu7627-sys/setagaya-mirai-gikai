@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  APPROVED_EDUCATION_SCHOOL_AGING_PROGRAMS,
+  EDUCATION_SCHOOL_AGING_EXPLORATION,
+} from "../test-data/education-school-aging-exploration";
 import type {
   BudgetExplorationCategory,
   BudgetExplorationProgram,
@@ -326,6 +330,53 @@ describe("buildBudgetMapV2Scene topic", () => {
       startNumber: 11,
       endNumber: 14,
     });
+  });
+
+  it("承認済み13事業を実データ順の10件と3件へ変換する", () => {
+    const approvedCategory = EDUCATION_SCHOOL_AGING_EXPLORATION.categories[0];
+    const approvedTopic = approvedCategory?.topics[0];
+    if (!approvedCategory || !approvedTopic) {
+      throw new Error("approved exploration fixture is missing");
+    }
+
+    const firstPage = buildBudgetMapV2Scene({
+      ...baseInput,
+      view: {
+        kind: "topic",
+        category: approvedCategory,
+        topic: approvedTopic,
+      },
+      categories: EDUCATION_SCHOOL_AGING_EXPLORATION.categories,
+    });
+    const secondPage = buildBudgetMapV2Scene({
+      ...baseInput,
+      programPageIndex: 1,
+      view: {
+        kind: "topic",
+        category: approvedCategory,
+        topic: approvedTopic,
+      },
+      categories: EDUCATION_SCHOOL_AGING_EXPLORATION.categories,
+    });
+
+    expect(APPROVED_EDUCATION_SCHOOL_AGING_PROGRAMS).toHaveLength(13);
+    expect(firstPage.programs).toHaveLength(10);
+    expect(secondPage.programs).toHaveLength(3);
+    expect(
+      [...firstPage.programs, ...secondPage.programs].map(
+        (program) => program.budgetProgramIdentityId
+      )
+    ).toEqual(
+      APPROVED_EDUCATION_SCHOOL_AGING_PROGRAMS.map(
+        (program) => program.budgetProgramIdentityId
+      )
+    );
+    expect(
+      APPROVED_EDUCATION_SCHOOL_AGING_PROGRAMS.reduce(
+        (sum, program) => sum + program.amountThousandYen,
+        0
+      )
+    ).toBe(17_872_606);
   });
 
   it("mobile topic の見出しは事業ノードの手前で収まる", () => {

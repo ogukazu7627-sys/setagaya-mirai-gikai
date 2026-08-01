@@ -7,12 +7,15 @@ import type {
 
 const BUDGET_MAP_MESSAGE_SOURCE = "mirai-gikai-budget-map";
 const BUDGET_MAP_HOST_MESSAGE_SOURCE = "mirai-gikai-budget-host";
-const BUDGET_MAP_MESSAGE_VERSION = 1;
+const BUDGET_MAP_MESSAGE_VERSION = 2;
 const slugPattern = /^[a-z0-9-]{1,80}$/;
 const identityIdPattern = /^[A-Za-z0-9_-]{1,200}$/;
+const datasetIdPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type BudgetMapAction =
   | { action: "ready" }
+  | { action: "dataset-mismatch" }
   | { action: "back" }
   | { action: "focus-search" }
   | { action: "open-official-hierarchy" }
@@ -30,6 +33,11 @@ export type BudgetMapAction =
 export type BudgetMapMessage = BudgetMapAction & {
   source: typeof BUDGET_MAP_MESSAGE_SOURCE;
   version: typeof BUDGET_MAP_MESSAGE_VERSION;
+  activeDatasetId: string | null;
+};
+
+export type ParsedBudgetMapMessage = BudgetMapAction & {
+  activeDatasetId: string | null;
 };
 
 export type BudgetMapStableViewReference =
@@ -53,26 +61,36 @@ export type BudgetMapHostMessage = {
   source: typeof BUDGET_MAP_HOST_MESSAGE_SOURCE;
   version: typeof BUDGET_MAP_MESSAGE_VERSION;
   action: "sync-view";
+  activeDatasetId: string | null;
   view: BudgetMapViewReference;
 };
 
+export type ParsedBudgetMapHostMessage = Pick<
+  BudgetMapHostMessage,
+  "activeDatasetId" | "view"
+>;
+
 export function createBudgetMapMessage(
-  action: BudgetMapAction
+  action: BudgetMapAction,
+  activeDatasetId: string | null
 ): BudgetMapMessage {
   return {
     source: BUDGET_MAP_MESSAGE_SOURCE,
     version: BUDGET_MAP_MESSAGE_VERSION,
+    activeDatasetId,
     ...action,
   };
 }
 
 export function createBudgetMapHostMessage(
-  view: BudgetExplorerView
+  view: BudgetExplorerView,
+  activeDatasetId: string | null
 ): BudgetMapHostMessage {
   return {
     source: BUDGET_MAP_HOST_MESSAGE_SOURCE,
     version: BUDGET_MAP_MESSAGE_VERSION,
     action: "sync-view",
+    activeDatasetId,
     view:
       view.kind === "transitioning"
         ? {
@@ -84,25 +102,33 @@ export function createBudgetMapHostMessage(
   };
 }
 
-export function parseBudgetMapMessage(value: unknown): BudgetMapAction | null {
+export function parseBudgetMapMessage(
+  value: unknown
+): ParsedBudgetMapMessage | null {
   if (
     !isRecord(value) ||
     value.source !== BUDGET_MAP_MESSAGE_SOURCE ||
     value.version !== BUDGET_MAP_MESSAGE_VERSION ||
-    typeof value.action !== "string"
+    typeof value.action !== "string" ||
+    !isDatasetId(value.activeDatasetId)
   ) {
     return null;
   }
 
   switch (value.action) {
     case "ready":
+    case "dataset-mismatch":
     case "back":
     case "focus-search":
     case "open-official-hierarchy":
-      return { action: value.action };
+      return { action: value.action, activeDatasetId: value.activeDatasetId };
     case "select-category":
       return isSlug(value.categorySlug)
-        ? { action: value.action, categorySlug: value.categorySlug }
+        ? {
+            action: value.action,
+            categorySlug: value.categorySlug,
+            activeDatasetId: value.activeDatasetId,
+          }
         : null;
     case "select-topic":
       return isSlug(value.categorySlug) && isSlug(value.topicSlug)
@@ -110,6 +136,7 @@ export function parseBudgetMapMessage(value: unknown): BudgetMapAction | null {
             action: value.action,
             categorySlug: value.categorySlug,
             topicSlug: value.topicSlug,
+            activeDatasetId: value.activeDatasetId,
           }
         : null;
     case "select-program":
@@ -118,6 +145,7 @@ export function parseBudgetMapMessage(value: unknown): BudgetMapAction | null {
         ? {
             action: value.action,
             budgetProgramIdentityId: value.budgetProgramIdentityId,
+            activeDatasetId: value.activeDatasetId,
           }
         : null;
     default:
@@ -127,16 +155,23 @@ export function parseBudgetMapMessage(value: unknown): BudgetMapAction | null {
 
 export function parseBudgetMapHostMessage(
   value: unknown
-): BudgetMapViewReference | null {
+): ParsedBudgetMapHostMessage | null {
   if (
     !isRecord(value) ||
     value.source !== BUDGET_MAP_HOST_MESSAGE_SOURCE ||
     value.version !== BUDGET_MAP_MESSAGE_VERSION ||
-    value.action !== "sync-view"
+    value.action !== "sync-view" ||
+    !isDatasetId(value.activeDatasetId)
   ) {
     return null;
   }
-  return parseViewReference(value.view);
+  const view = parseViewReference(value.view);
+  return view
+    ? {
+        activeDatasetId: value.activeDatasetId,
+        view,
+      }
+    : null;
 }
 
 export function resolveBudgetMapViewReference(
@@ -303,4 +338,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isSlug(value: unknown): value is string {
   return typeof value === "string" && slugPattern.test(value);
+}
+
+function isDatasetId(value: unknown): value is string | null {
+  return (
+    value === null ||
+    (typeof value === "string" && datasetIdPattern.test(value))
+  );
 }

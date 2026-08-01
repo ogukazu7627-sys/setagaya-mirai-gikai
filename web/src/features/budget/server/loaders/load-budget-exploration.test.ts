@@ -16,7 +16,14 @@ describe("loadBudgetExploration", () => {
 
   it("取得成功時は公開探索データをそのまま返す", async () => {
     const exploration = {
-      activeDatasetId: "11111111-1111-4111-8111-111111111111",
+      activeDataset: {
+        id: "11111111-1111-4111-8111-111111111111",
+        fiscalYear: 2026,
+        budgetType: "initial_budget",
+        schemaVersion: "public-budget-v1",
+        currencyUnit: "thousand_yen",
+        validationStatus: "PASS",
+      },
       availability: "available" as const,
       categories: [],
     };
@@ -33,7 +40,7 @@ describe("loadBudgetExploration", () => {
 
     const result = await loadBudgetExploration();
 
-    expect(result.activeDatasetId).toBeNull();
+    expect(result.activeDataset).toBeNull();
     expect(result.availability).toBe("temporarily_unavailable");
     expect(result.categories).toHaveLength(10);
     expect(
