@@ -59,6 +59,17 @@ describe("runBudgetImportCli", () => {
         totals: {},
         accountTotals: [],
       },
+      metrics: {
+        payloadBytes: 1,
+        storageArtifactCount: 7,
+        storageUploadedCount: 7,
+        storageReusedCount: 0,
+        storageDurationMs: 1,
+        importRpcDurationMs: 2,
+        validationRpcDurationMs: 3,
+        activationRpcDurationMs: 4,
+        totalDurationMs: 10,
+      },
     });
 
     const exitCode = await runBudgetImportCli(
