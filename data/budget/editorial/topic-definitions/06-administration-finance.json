@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "administration-finance", "name": "行財政" },
+  "topics": [
+    {
+      "slug": "digital-public-services",
+      "name": "行政サービスと情報基盤のデジタル化",
+      "shortDescription": "行政DX、業務システム、通信環境など、行政サービスを支えるデジタル基盤の予算を探すための入口。",
+      "topicKind": "administrative_function",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "administration-finance-digital-services-candidates.csv",
+      "rules": [
+        {
+          "id": "explicit-digital-systems",
+          "relationType": "enables",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "電子計算費に属し、公式事業名にDX、システム、無線LANまたは電算が明記されているため、行政サービスと情報基盤のデジタル化を可能にする候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["電子計算費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["DX", "システム", "無線LAN", "電算"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["DX", "システム", "無線LAN", "電算"] }
+          ]
+        },
+        {
+          "id": "other-computing-budget-item",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "電子計算費には属するが、公式事業名だけではデジタル化との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["電子計算費"] }
+          ],
+          "any": []
+        }
+      ]
+    }
+  ]
+}

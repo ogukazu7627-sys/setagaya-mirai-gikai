@@ -66,9 +66,22 @@ pnpm budget:web:import -- --input-dir /path/to/budget-data --apply
 
 ### 人間レビュー済み課題関係の登録
 
-教育「学校施設の老朽化への対応」の候補CSVは、`review_decision` が
-`approve` または `revise` の行だけを公開関係として登録します。`reject`
-または空欄の行は登録しません。
+10大分類のtopic定義は `data/budget/editorial/topic-definitions/` に置きます。
+公開用7ファイルの公式項目だけから、人間レビュー用の候補CSVを生成できます。
+
+```bash
+pnpm budget:web:topics:candidates -- --input-dir /path/to/budget-data
+```
+
+候補生成は `review_decision` が入った既存CSVを上書きしません。新規候補の
+`review_decision` と `review_note` は空欄です。候補生成では
+`A_official_direct` を使わず、公式階層・事業名・部署から強く読める
+`B_strong_structural` と、編集判断を要する `C_editorial` を区別します。
+C候補を含め、候補は自動公開されません。
+
+人間が全行を `approve`、`revise`、`reject` のいずれかで確認したCSVだけを
+公開できます。`approve` または `revise` の行だけを公開関係として登録し、
+`reject` は除外します。空欄が1件でも残るファイルは `--apply` を拒否します。
 
 ```bash
 # dry-run（デフォルト）
@@ -87,6 +100,18 @@ pnpm budget:web:topics:publish -- \
 登録先は編集データの `budget_topics`、`budget_topic_categories`、
 `budget_topic_programs` だけです。公式予算テーブルは更新しません。同じCSVを
 再実行しても関係は重複せず、却下済みの候補は公開関係として残りません。
+空欄は未判断であり、既存公開関係を削除する根拠にも使いません。
+
+active dataset、review CSV、実際の公開関係を突合した管理レポートは次で
+再生成します。大分類別・topic別の候補、B/C、review待ち、公開済み、未分類
+identityを確認できます。
+
+```bash
+pnpm budget:web:topics:report -- --input-dir /path/to/budget-data
+```
+
+出力は `docs/budget/topic-workflow-report.md` です。未分類はエラーではなく、
+検索・公式分類・全予算一覧から引き続き閲覧できます。
 
 ### 予算データセット改訂時の課題関係リリース
 
@@ -97,12 +122,14 @@ pnpm budget:web:topics:publish -- \
 
 1. `pnpm budget:web:import -- --input-dir /path/to/budget-data` で新データをdry-run検証する。
 2. `--apply` 後、active datasetのID、件数、金額、validation結果を確認する。
-3. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
-4. `pnpm budget:web:topics:publish` をまずdry-runし、承認13件・却下3件であることを確認する。
-5. 元のレビュー担当者・レビュー日時を明示して `--apply` し、`教育 → 学校施設の老朽化への対応 → 承認済み13事業` を取得APIで確認する。
+3. `pnpm budget:web:topics:candidates` を実行する。レビュー済みCSVが保護されたこと、新規候補が空欄で出力されたことを確認する。
+4. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
+5. 公開済みtopicの各review CSVについて `pnpm budget:web:topics:publish` をまずdry-runし、approve / revise / reject / pending件数を確認する。pendingがあるtopicは公開しない。
+6. 元のレビュー担当者・レビュー日時を明示して、全行レビュー済みのtopicだけを `--apply` する。
+7. `pnpm budget:web:topics:report` を実行し、active datasetのmanifest、公開済み件数、未分類件数を確認する。公開APIとグラフにはpublished関係だけが出ることを確認する。
 
 identity IDや根拠項目が変わった場合は、旧関係を推測でコピーせず候補CSVを再生成し、
-人間の再レビューへ戻してください。手順3〜5が終わるまで、新datasetでは課題に紐づく
+人間の再レビューへ戻してください。手順3〜7が終わるまで、新datasetでは課題に紐づく
 事業が一時的に空になることがあります。
 
 ## マイグレーション

@@ -8,6 +8,15 @@ const reviewedCandidatesPath = fileURLToPath(
     import.meta.url
   )
 );
+const definitionsPath = fileURLToPath(
+  new URL("../../../data/budget/editorial/topic-definitions", import.meta.url)
+);
+const pendingCandidatesPath = fileURLToPath(
+  new URL(
+    "../../../data/budget/editorial/review/environment-decarbonization-candidates.csv",
+    import.meta.url
+  )
+);
 
 describe("runBudgetTopicPublishCli", () => {
   it("既定ではdry-runとなりSupabaseへ書き込まない", async () => {
@@ -15,7 +24,12 @@ describe("runBudgetTopicPublishCli", () => {
     const stdout: string[] = [];
 
     const exitCode = await runBudgetTopicPublishCli(
-      ["--input-file", reviewedCandidatesPath],
+      [
+        "--input-file",
+        reviewedCandidatesPath,
+        "--definitions-dir",
+        definitionsPath,
+      ],
       {
         applyPayload,
         stdout: (message) => stdout.push(message),
@@ -46,6 +60,8 @@ describe("runBudgetTopicPublishCli", () => {
       [
         "--input-file",
         reviewedCandidatesPath,
+        "--definitions-dir",
+        definitionsPath,
         "--reviewed-by",
         "11111111-1111-4111-8111-111111111111",
         "--reviewed-at",
@@ -73,11 +89,39 @@ describe("runBudgetTopicPublishCli", () => {
     const applyPayload = vi.fn();
 
     const exitCode = await runBudgetTopicPublishCli(
-      ["--input-file", reviewedCandidatesPath, "--apply"],
+      [
+        "--input-file",
+        reviewedCandidatesPath,
+        "--definitions-dir",
+        definitionsPath,
+        "--apply",
+      ],
       {
         applyPayload,
         stderr: () => undefined,
       }
+    );
+
+    expect(exitCode).toBe(1);
+    expect(applyPayload).not.toHaveBeenCalled();
+  });
+
+  it("未判断の候補が残るtopicは--applyしない", async () => {
+    const applyPayload = vi.fn();
+
+    const exitCode = await runBudgetTopicPublishCli(
+      [
+        "--input-file",
+        pendingCandidatesPath,
+        "--definitions-dir",
+        definitionsPath,
+        "--reviewed-by",
+        "11111111-1111-4111-8111-111111111111",
+        "--reviewed-at",
+        "2026-07-30T16:33:02+09:00",
+        "--apply",
+      ],
+      { applyPayload, stderr: () => undefined, stdout: () => undefined }
     );
 
     expect(exitCode).toBe(1);

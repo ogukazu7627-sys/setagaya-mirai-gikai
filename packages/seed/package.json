@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "budget:web:import": "tsx budget/import-public-budget-cli.ts",
+    "budget:web:topics:candidates": "tsx budget/generate-budget-topic-candidates-cli.ts",
     "budget:web:topics:publish": "tsx budget/publish-reviewed-budget-topic-cli.ts",
+    "budget:web:topics:report": "tsx budget/budget-topic-workflow-report-cli.ts",
     "budget:web:validate": "tsx budget/validate-public-budget-cli.ts",
     "seed": "tsx main/run.ts",
     "generate:setagaya-csv": "node csv/generate-setagaya-csv.mjs",

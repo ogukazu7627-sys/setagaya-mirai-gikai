@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "urban-development", "name": "まちづくり" },
+  "topics": [
+    {
+      "slug": "road-bridge-maintenance",
+      "name": "道路・橋梁の維持と安全確保",
+      "shortDescription": "道路側溝や橋梁の維持修繕・点検など、身近な道路基盤を保つ予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "urban-development-road-bridge-maintenance-candidates.csv",
+      "rules": [
+        {
+          "id": "road-bridge-maintenance-items",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "一般会計の土木費に属し、道路維持費または橋梁新設改良費として公式に整理されているため、道路・橋梁を保つ関係候補とした。街路樹など境界的な事業は人間レビューで判断する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["土木費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["道路維持費", "橋梁新設改良費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["道路", "橋梁"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["道路", "橋梁"] }
+          ]
+        },
+        {
+          "id": "other-road-maintenance-budget-item",
+          "relationType": "maintains",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "道路維持費には属するが、事業名だけでは道路・橋梁の維持と安全確保との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["土木費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["道路維持費", "橋梁新設改良費"] }
+          ],
+          "any": []
+        }
+      ]
+    }
+  ]
+}

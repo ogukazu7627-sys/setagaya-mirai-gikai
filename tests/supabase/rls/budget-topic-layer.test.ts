@@ -22,6 +22,7 @@ describe("budget topic editorial layer", () => {
   let stagingDataset: BudgetTestDataset;
   let activeDatasetId: string;
   let stagingDatasetId: string;
+  let previousActiveDatasetId: string | null = null;
   let userId: string;
   let email: string;
   let educationCategoryId: string;
@@ -40,6 +41,19 @@ describe("budget topic editorial layer", () => {
   }>;
 
   beforeAll(async () => {
+    const previousActiveDataset = await adminClient
+      .from("budget_datasets")
+      .select("id")
+      .eq("fiscal_year", 2026)
+      .eq("budget_type", "initial_budget")
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+    if (previousActiveDataset.error) {
+      throw previousActiveDataset.error;
+    }
+    previousActiveDatasetId = previousActiveDataset.data?.id ?? null;
+
     activeDataset = createBudgetTestDataset();
     stagingDataset = createBudgetTestDataset();
     activeDatasetId = await importDataset(activeDataset);
@@ -253,6 +267,17 @@ describe("budget topic editorial layer", () => {
         .delete()
         .in("id", [activeDatasetId, stagingDatasetId].filter(Boolean));
     }
+    if (previousActiveDatasetId) {
+      const staged = await adminClient
+        .from("budget_datasets")
+        .update({ status: "staging" })
+        .eq("id", previousActiveDatasetId)
+        .eq("status", "archived");
+      if (staged.error) {
+        throw staged.error;
+      }
+      await validateAndActivate(previousActiveDatasetId);
+    }
     if (userId) {
       await cleanupTestUser(userId);
     }
@@ -280,10 +305,21 @@ describe("budget topic editorial layer", () => {
   });
 
   it("migrationは課題や事業関係を自動生成しない", async () => {
-    const topics = await adminClient.from("budget_topics").select("id");
+    const testTopicIds = [
+      publishedTopicId,
+      candidateTopicId,
+      approvedTopicId,
+      draftTopicId,
+      reviewTopicId,
+    ];
+    const topics = await adminClient
+      .from("budget_topics")
+      .select("id")
+      .in("id", testTopicIds);
     const relations = await adminClient
       .from("budget_topic_programs")
-      .select("topic_id");
+      .select("topic_id")
+      .in("topic_id", testTopicIds);
 
     expect(topics.error).toBeNull();
     expect(topics.data).toHaveLength(5);
@@ -301,7 +337,14 @@ describe("budget topic editorial layer", () => {
     for (const [role, client] of clients) {
       const result = await client
         .from("budget_topics")
-        .select("id, slug, name, short_description, topic_kind, status");
+        .select("id, slug, name, short_description, topic_kind, status")
+        .in("id", [
+          publishedTopicId,
+          candidateTopicId,
+          approvedTopicId,
+          draftTopicId,
+          reviewTopicId,
+        ]);
 
       expect(result.error, role).toBeNull();
       expect(result.data, role).toHaveLength(3);
@@ -325,7 +368,8 @@ describe("budget topic editorial layer", () => {
   it("非公開topicまたは非公開categoryの分類関係を返さない", async () => {
     const result = await anon
       .from("budget_topic_categories")
-      .select("topic_id, category_id, relevance_weight, is_primary");
+      .select("topic_id, category_id, relevance_weight, is_primary")
+      .in("topic_id", [publishedTopicId, draftTopicId]);
 
     expect(result.error).toBeNull();
     expect(result.data).toEqual([

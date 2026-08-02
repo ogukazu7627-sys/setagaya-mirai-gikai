@@ -1,8 +1,13 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  findBudgetTopicDefinitionForReviewFile,
+  loadBudgetTopicDefinitions,
+} from "./budget-topic-definitions";
+import { parseBudgetTopicReviewCsv } from "./budget-topic-review";
+import {
   buildReviewedBudgetTopicPayload,
-  educationSchoolAgingTopic,
   readBudgetTopicReviewFile,
 } from "./publish-reviewed-budget-topic";
 
@@ -12,6 +17,18 @@ const reviewedCandidatesPath = fileURLToPath(
     import.meta.url
   )
 );
+const definitionsPath = fileURLToPath(
+  new URL("../../../data/budget/editorial/topic-definitions", import.meta.url)
+);
+
+function getEducationDefinition() {
+  const reviewFile = readBudgetTopicReviewFile(reviewedCandidatesPath);
+  return findBudgetTopicDefinitionForReviewFile(
+    loadBudgetTopicDefinitions(definitionsPath),
+    reviewedCandidatesPath,
+    reviewFile.candidateTopicName
+  );
+}
 
 describe("reviewed budget topic candidates", () => {
   it("人間レビュー結果を13件の公開対象と3件の除外対象に分ける", () => {
@@ -19,7 +36,8 @@ describe("reviewed budget topic candidates", () => {
 
     expect(reviewFile.rows).toHaveLength(16);
     expect(reviewFile.selectedRows).toHaveLength(13);
-    expect(reviewFile.excludedRows).toHaveLength(3);
+    expect(reviewFile.rejectedRows).toHaveLength(3);
+    expect(reviewFile.pendingRows).toHaveLength(0);
     expect(reviewFile.decisionCounts).toEqual({
       approve: 13,
       revise: 0,
@@ -33,7 +51,7 @@ describe("reviewed budget topic candidates", () => {
       )
     ).toBe(17_872_606);
     expect(
-      reviewFile.excludedRows.reduce(
+      reviewFile.rejectedRows.reduce(
         (total, row) => total + Number(row.amount_thousand_yen),
         0
       )
@@ -42,12 +60,19 @@ describe("reviewed budget topic candidates", () => {
 
   it("承認・修正行だけをpublished payloadへ入れる", () => {
     const reviewFile = readBudgetTopicReviewFile(reviewedCandidatesPath);
-    const payload = buildReviewedBudgetTopicPayload(reviewFile, {
+    const definition = getEducationDefinition();
+    const payload = buildReviewedBudgetTopicPayload(reviewFile, definition, {
       id: "11111111-1111-4111-8111-111111111111",
       reviewedAt: "2026-07-30T16:33:02+09:00",
     });
 
-    expect(payload.topic).toEqual(educationSchoolAgingTopic.topic);
+    expect(payload.topic).toEqual({
+      slug: definition.topic.slug,
+      name: definition.topic.name,
+      shortDescription: definition.topic.shortDescription,
+      topicKind: definition.topic.topicKind,
+      editorialNote: definition.topic.editorialNote,
+    });
     expect(payload.categorySlug).toBe("education");
     expect(payload.relations).toHaveLength(13);
     expect(
@@ -58,7 +83,7 @@ describe("reviewed budget topic candidates", () => {
       )
     ).toBe(true);
     expect(payload.excludedBudgetProgramIdentityIds).toEqual(
-      reviewFile.excludedRows.map((row) => row.budget_program_identity_id)
+      reviewFile.rejectedRows.map((row) => row.budget_program_identity_id)
     );
     expect(payload.relations[0]?.explanation).toBe(
       reviewFile.selectedRows[0]?.proposed_explanation
@@ -78,5 +103,20 @@ describe("reviewed budget topic candidates", () => {
           row.evidence_level === "C_editorial"
       )
     ).toBe(true);
+  });
+
+  it("review_decisionが空欄の候補を公開payloadへ入れない", () => {
+    const source = readFileSync(reviewedCandidatesPath, "utf8").replace(
+      '"high","approve","2026-07-30 チャットレビューで、課題との関係候補を承認"',
+      '"high","",""'
+    );
+    const reviewFile = parseBudgetTopicReviewCsv(source);
+
+    expect(() =>
+      buildReviewedBudgetTopicPayload(reviewFile, getEducationDefinition(), {
+        id: "11111111-1111-4111-8111-111111111111",
+        reviewedAt: "2026-07-30T16:33:02+09:00",
+      })
+    ).toThrow("review_decisionが空欄");
   });
 });
