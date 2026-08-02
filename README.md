@@ -62,6 +62,33 @@ pnpm budget:web:import -- --input-dir /path/to/budget-data --apply
 
 `--apply` は `SUPABASE_URL` がlocalhostの場合だけ許可されます。リモートの検証環境を使う場合は `BUDGET_IMPORT_ENVIRONMENT=validation` を明示してください。`production` はCLIで拒否されます。書き込みには `.env` の `SUPABASE_SECRET_KEY` を使用し、ブラウザや生成物へ含めません。
 
+本番への投入は通常のローカルCLIから実行できません。`main` の手動workflow
+`Import Production Budget Dataset` だけが、GitHubの `production` environmentと
+完全一致する確認文を使って実行できます。令和8年度当初予算の入力は生成基盤の
+commit `09c98759c657bd2b1f37b4a991724a76665c26f7`、manifest SHA-256
+`dfe9e96084c67cad4bdbb80a0c44754f57cbffd7c686ae4bd2616aa172e9b1e7`
+へ固定されています。
+
+```bash
+# 書き込みなしの本番投入前dry-run
+gh workflow run import_budget_dataset_production.yml \
+  --ref main \
+  -f operation=dry-run \
+  -f confirmation=VALIDATE_2026_INITIAL_BUDGET
+
+# dry-run確認後だけ実行する全量投入
+gh workflow run import_budget_dataset_production.yml \
+  --ref main \
+  -f operation=apply \
+  -f confirmation=IMPORT_2026_INITIAL_BUDGET
+```
+
+applyはローカル検証を再実行してから、Storage保存、staging投入、DB検証、active化、
+全件数・金額・外部キー・Storage hashを検証します。その後、同じmanifestをもう一度
+実行してdatasetとStorageが増えないことを確認します。RPCには10分の外部timeoutを
+設け、失敗または通信結果不明時は再実行せずread-onlyの状態確認だけを行います。
+詳細は `docs/budget/production-budget-import-runbook.md` を参照してください。
+
 公開用7ファイルは非公開Storage bucket `budget-datasets` の `2026/initial/{manifest_sha256}/` に版管理用として保存されます。DBにはまず `staging` として一括投入し、件数・金額・外部キー検証がすべて通った場合だけ、同年度・同予算種別の旧版を `archived` にして新しい版を `active` に切り替えます。一般ユーザーがSELECTできるのは `active` の公開情報だけです。
 
 ### 人間レビュー済み課題関係の登録

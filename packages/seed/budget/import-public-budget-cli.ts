@@ -5,6 +5,7 @@ import {
   applyPublicBudgetDataset,
   type BudgetDatasetApplyResult,
 } from "./import-public-budget";
+import { buildBudgetImportPayload } from "./build-budget-import-payload";
 import {
   type PublicBudgetDataset,
   PublicBudgetDatasetReadError,
@@ -82,6 +83,7 @@ export async function runBudgetImportCli(
   argv: string[],
   dependencies: BudgetImportCliDependencies = {}
 ): Promise<number> {
+  const cliStartedAt = performance.now();
   const stdout = dependencies.stdout ?? console.log;
   const stderr = dependencies.stderr ?? console.error;
   const expectations =
@@ -103,6 +105,7 @@ export async function runBudgetImportCli(
   }
 
   let dataset: PublicBudgetDataset;
+  const readStartedAt = performance.now();
   try {
     dataset = readPublicBudgetDataset({
       inputDirectory: options.inputDirectory,
@@ -117,8 +120,11 @@ export async function runBudgetImportCli(
     stderr(`[${code}] ${message}`);
     return 1;
   }
+  const readDurationMs = performance.now() - readStartedAt;
 
+  const validationStartedAt = performance.now();
   const validation = validatePublicBudgetDataset(dataset, expectations);
+  const validationDurationMs = performance.now() - validationStartedAt;
   if (validation.status !== "PASS") {
     stderr("[budget:web:import] manifest検証がFAILです");
     for (const issue of validation.issues) {
@@ -127,11 +133,29 @@ export async function runBudgetImportCli(
     return 1;
   }
 
+  const payloadStartedAt = performance.now();
+  const { payload, artifacts } = buildBudgetImportPayload(dataset);
+  const payloadBytes = Buffer.byteLength(JSON.stringify(payload), "utf8");
+  const artifactBytes = artifacts.reduce(
+    (total, artifact) => total + artifact.content.length,
+    0
+  );
+  const payloadDurationMs = performance.now() - payloadStartedAt;
+
   stdout(
     `[budget:web:import] validation PASS (${options.mode}, manifest=${dataset.manifestSha256})`
   );
+  stdout(
+    `[budget:web:import] input read=${readDurationMs.toFixed(1)}ms, validation=${validationDurationMs.toFixed(1)}ms, payload_build=${payloadDurationMs.toFixed(1)}ms`
+  );
+  stdout(
+    `[budget:web:import] payload_bytes=${payloadBytes}, storage_artifacts=${artifacts.length}, storage_bytes=${artifactBytes}`
+  );
   if (options.mode === "dry-run") {
     stdout("[budget:web:import] dry-run completed; Supabaseへの書き込みなし");
+    stdout(
+      `[budget:web:import] CLI total=${(performance.now() - cliStartedAt).toFixed(1)}ms`
+    );
     return 0;
   }
 
@@ -141,6 +165,15 @@ export async function runBudgetImportCli(
       `[budget:web:import] active dataset=${result.datasetId}, alreadyImported=${result.alreadyImported}`
     );
     stdout(`[budget:web:import] DB validation=${result.validation.status}`);
+    stdout(
+      `[budget:web:import] storage uploaded=${result.metrics.storageUploadedCount}, reused=${result.metrics.storageReusedCount}, duration=${result.metrics.storageDurationMs.toFixed(1)}ms`
+    );
+    stdout(
+      `[budget:web:import] RPC import=${result.metrics.importRpcDurationMs.toFixed(1)}ms, validate=${result.metrics.validationRpcDurationMs.toFixed(1)}ms, activate=${result.metrics.activationRpcDurationMs.toFixed(1)}ms`
+    );
+    stdout(
+      `[budget:web:import] apply total=${result.metrics.totalDurationMs.toFixed(1)}ms, CLI total=${(performance.now() - cliStartedAt).toFixed(1)}ms`
+    );
     return result.validation.status === "PASS" ? 0 : 1;
   } catch (error) {
     stderr(

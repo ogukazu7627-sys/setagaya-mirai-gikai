@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it } from "vitest";
 import { applyPublicBudgetDataset } from "../../packages/seed/budget/import-public-budget";
+import { verifyPersistedPublicBudgetDataset } from "../../packages/seed/budget/verify-public-budget-import";
 import {
   type BudgetTestDataset,
   cleanupBudgetTestDataset,
@@ -102,6 +103,48 @@ describe("applyPublicBudgetDataset", () => {
       expect(error).toBeNull();
       expect(data?.size).toBeGreaterThan(0);
     }
+  });
+
+  it("投入後の全テーブル・金額・参照・Storage hashを検証する", async () => {
+    const testDataset = createBudgetTestDataset();
+    testDatasets.push(testDataset);
+    storagePaths.push(
+      ...testDataset.builtImport.artifacts.map(
+        (artifact) => artifact.storageObjectPath
+      )
+    );
+
+    const imported = await applyPublicBudgetDataset(
+      testDataset.dataset,
+      client
+    );
+    importedDatasetIds.push(imported.datasetId);
+    const verification = await verifyPersistedPublicBudgetDataset(
+      testDataset.dataset,
+      client
+    );
+
+    expect(verification).toMatchObject({
+      status: "PASS",
+      datasetId: imported.datasetId,
+      activeDatasetCount: 1,
+      references: {
+        programIdentityMissing: 0,
+        programBudgetItemMissing: 0,
+        sectionBudgetItemMissing: 0,
+        revenueSectionItemMissing: 0,
+        revenueDetailSectionMissing: 0,
+        allocationRevenueDetailMissing: 0,
+        allocationIdentityMissing: 0,
+        allocationBudgetItemMissing: 0,
+        allocationAmountNonNull: 0,
+      },
+      storage: {
+        bucketPublic: false,
+        objectCount: 7,
+        verifiedHashCount: 7,
+      },
+    });
   });
 
   it("DB投入失敗時は新規Storageファイルも削除する", async () => {

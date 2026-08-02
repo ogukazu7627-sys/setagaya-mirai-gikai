@@ -1,0 +1,222 @@
+name: Import Production Budget Dataset
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: dry-run または apply
+        required: true
+        type: choice
+        options:
+          - dry-run
+          - apply
+      confirmation:
+        description: dry-runはVALIDATE_2026_INITIAL_BUDGET、applyはIMPORT_2026_INITIAL_BUDGET
+        required: true
+        type: string
+
+concurrency:
+  group: import-production-budget-dataset-2026-initial
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BUDGET_DATA_COMMIT: 09c98759c657bd2b1f37b4a991724a76665c26f7
+  BUDGET_MANIFEST_SHA256: dfe9e96084c67cad4bdbb80a0c44754f57cbffd7c686ae4bd2616aa172e9b1e7
+  BUDGET_INPUT_DIR: budget-dataset-source/processed/public
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate manual confirmation and ref
+        env:
+          OPERATION: ${{ inputs.operation }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error::This workflow may only run from main."
+            exit 1
+          fi
+          expected="VALIDATE_2026_INITIAL_BUDGET"
+          if [ "$OPERATION" = "apply" ]; then
+            expected="IMPORT_2026_INITIAL_BUDGET"
+          fi
+          if [ "$CONFIRMATION" != "$expected" ]; then
+            echo "::error::The confirmation phrase does not match the requested operation."
+            exit 1
+          fi
+
+      - name: Checkout application main
+        uses: actions/checkout@v5
+
+      - name: Checkout pinned public budget dataset
+        uses: actions/checkout@v5
+        with:
+          repository: ogukazu7627-sys/setagaya-mirai-gikai
+          ref: 09c98759c657bd2b1f37b4a991724a76665c26f7
+          path: budget-dataset-source
+          sparse-checkout: processed/public
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Verify pinned dataset revision and manifest
+        run: |
+          actual_commit="$(git -C budget-dataset-source rev-parse HEAD)"
+          actual_manifest_hash="$(sha256sum "$BUDGET_INPUT_DIR/public_dataset_manifest.json" | cut -d' ' -f1)"
+          test "$actual_commit" = "$BUDGET_DATA_COMMIT"
+          test "$actual_manifest_hash" = "$BUDGET_MANIFEST_SHA256"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate all seven files and measure payload
+        run: |
+          /usr/bin/time -v pnpm --filter @mirai-gikai/seed budget:web:import -- \
+            --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR"
+
+  apply:
+    if: inputs.operation == 'apply'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    env:
+      BUDGET_IMPORT_ENVIRONMENT: production
+      BUDGET_PRODUCTION_IMPORT_CONFIRMATION: ${{ inputs.confirmation }}
+      BUDGET_EXPECT_DATASET_COUNT: "1"
+    steps:
+      - name: Checkout application main
+        uses: actions/checkout@v5
+
+      - name: Checkout pinned public budget dataset
+        uses: actions/checkout@v5
+        with:
+          repository: ogukazu7627-sys/setagaya-mirai-gikai
+          ref: 09c98759c657bd2b1f37b4a991724a76665c26f7
+          path: budget-dataset-source
+          sparse-checkout: processed/public
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: latest
+
+      - name: Resolve production API credentials
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          api_keys_json="$(
+            supabase projects api-keys \
+              --project-ref "$SUPABASE_PROJECT_REF" \
+              --reveal \
+              --output json
+          )"
+          service_key="$(
+            printf '%s' "$api_keys_json" | jq -er '
+              ([.[] | select(.type == "secret") | .api_key][0]
+                // [.[] | select(.name == "service_role") | .api_key][0]
+                // error("service role key was not found"))
+            '
+          )"
+          anon_key="$(
+            printf '%s' "$api_keys_json" | jq -er '
+              ([.[] | select(.type == "publishable") | .api_key][0]
+                // [.[] | select(.name == "anon") | .api_key][0]
+                // error("anon or publishable key was not found"))
+            '
+          )"
+          echo "::add-mask::$service_key"
+          echo "::add-mask::$anon_key"
+          printf 'SUPABASE_URL=https://%s.supabase.co\n' "$SUPABASE_PROJECT_REF" >> "$GITHUB_ENV"
+          printf 'SUPABASE_PROJECT_REF=%s\n' "$SUPABASE_PROJECT_REF" >> "$GITHUB_ENV"
+          printf 'SUPABASE_SECRET_KEY=%s\n' "$service_key" >> "$GITHUB_ENV"
+          printf 'SUPABASE_ANON_KEY=%s\n' "$anon_key" >> "$GITHUB_ENV"
+
+      - name: Require an empty initial production dataset slot
+        run: |
+          datasets_json="$(
+            curl --fail-with-body --silent --show-error \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --get \
+              --header "apikey: $SUPABASE_SECRET_KEY" \
+              --header "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+              --data-urlencode "select=manifest_sha256,status" \
+              --data-urlencode "fiscal_year=eq.2026" \
+              --data-urlencode "budget_type=eq.initial_budget" \
+              "$SUPABASE_URL/rest/v1/budget_datasets"
+          )"
+          dataset_count="$(printf '%s' "$datasets_json" | jq 'length')"
+          if [ "$dataset_count" -ne 0 ]; then
+            echo "::error::A 2026 initial budget dataset already exists. Inspect it before any retry."
+            exit 1
+          fi
+          echo "preflight_dataset_count=0"
+
+      - name: First full import, validation, and activation
+        id: first_import
+        run: |
+          set -o pipefail
+          /usr/bin/time -v timeout --signal=TERM --kill-after=30s 10m \
+            pnpm --filter @mirai-gikai/seed budget:web:import -- \
+              --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR" \
+              --apply 2>&1 | tee "$RUNNER_TEMP/budget-import-first.log"
+          grep -F "alreadyImported=false" "$RUNNER_TEMP/budget-import-first.log"
+          grep -F "DB validation=PASS" "$RUNNER_TEMP/budget-import-first.log"
+
+      - name: Verify database, references, totals, and private Storage
+        run: |
+          pnpm --filter @mirai-gikai/seed budget:web:import:verify -- \
+            --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR"
+
+      - name: Second import must be idempotent
+        run: |
+          set -o pipefail
+          /usr/bin/time -v timeout --signal=TERM --kill-after=30s 10m \
+            pnpm --filter @mirai-gikai/seed budget:web:import -- \
+              --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR" \
+              --apply 2>&1 | tee "$RUNNER_TEMP/budget-import-second.log"
+          grep -F "alreadyImported=true" "$RUNNER_TEMP/budget-import-second.log"
+          grep -F "storage uploaded=0, reused=7" "$RUNNER_TEMP/budget-import-second.log"
+          grep -F "DB validation=PASS" "$RUNNER_TEMP/budget-import-second.log"
+
+      - name: Verify idempotent final state
+        run: |
+          pnpm --filter @mirai-gikai/seed budget:web:import:verify -- \
+            --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR"
+
+      - name: Inspect state after a failed or unknown import result
+        if: failure() && steps.first_import.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          echo "The import failed or timed out. No retry will be attempted."
+          pnpm --filter @mirai-gikai/seed budget:web:import:inspect -- \
+            --input-dir "$GITHUB_WORKSPACE/$BUDGET_INPUT_DIR"

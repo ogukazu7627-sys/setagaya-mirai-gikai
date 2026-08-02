@@ -7,6 +7,7 @@ import {
   budgetDatasetStorageBucket,
   buildBudgetImportPayload,
 } from "./build-budget-import-payload";
+import { assertSafeBudgetImportTarget } from "./budget-import-target";
 import type { PublicBudgetDataset } from "./read-public-budget-files";
 
 const datasetStatusSchema = z.enum(["staging", "active", "archived"]);
@@ -55,41 +56,22 @@ export interface BudgetDatasetApplyResult {
   datasetId: string;
   alreadyImported: boolean;
   validation: BudgetDatasetValidationResult;
-}
-
-export interface BudgetImportEnvironment {
-  supabaseUrl: string;
-  environmentName?: string;
+  metrics: {
+    payloadBytes: number;
+    storageArtifactCount: number;
+    storageUploadedCount: number;
+    storageReusedCount: number;
+    storageDurationMs: number;
+    importRpcDurationMs: number;
+    validationRpcDurationMs: number;
+    activationRpcDurationMs: number;
+    totalDurationMs: number;
+  };
 }
 
 type AdminClient = SupabaseClient;
 
-export function assertSafeBudgetImportTarget({
-  supabaseUrl,
-  environmentName,
-}: BudgetImportEnvironment): void {
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(supabaseUrl);
-  } catch {
-    throw new Error("SUPABASE_URL が有効なURLではありません");
-  }
-
-  const isLocal =
-    parsedUrl.hostname === "127.0.0.1" ||
-    parsedUrl.hostname === "localhost" ||
-    parsedUrl.hostname === "::1" ||
-    parsedUrl.hostname === "[::1]";
-
-  if (environmentName === "production") {
-    throw new Error("本番Supabaseへの予算データ投入は禁止されています");
-  }
-  if (!isLocal && environmentName !== "validation") {
-    throw new Error(
-      "リモート環境へ投入する場合は BUDGET_IMPORT_ENVIRONMENT=validation が必要です"
-    );
-  }
-}
+export { assertSafeBudgetImportTarget } from "./budget-import-target";
 
 function requireEnvironment(name: string): string {
   const value = process.env[name];
@@ -219,15 +201,23 @@ export async function applyPublicBudgetDataset(
   dataset: PublicBudgetDataset,
   client?: AdminClient
 ): Promise<BudgetDatasetApplyResult> {
+  const totalStartedAt = performance.now();
   const supabaseUrl = requireEnvironment("SUPABASE_URL");
   requireEnvironment("SUPABASE_SECRET_KEY");
   assertSafeBudgetImportTarget({
     supabaseUrl,
     environmentName: process.env.BUDGET_IMPORT_ENVIRONMENT,
+    productionConfirmation: process.env.BUDGET_PRODUCTION_IMPORT_CONFIRMATION,
+    productionProjectRef: process.env.SUPABASE_PROJECT_REF,
+    githubActions: process.env.GITHUB_ACTIONS,
+    githubRefName: process.env.GITHUB_REF_NAME,
+    githubEventName: process.env.GITHUB_EVENT_NAME,
+    githubRepository: process.env.GITHUB_REPOSITORY,
   });
   const adminClient = client ?? (createAdminClient() as AdminClient);
 
   const { payload, artifacts } = buildBudgetImportPayload(dataset);
+  const payloadBytes = Buffer.byteLength(JSON.stringify(payload), "utf8");
   const existingDataset = await findDatasetByManifestHash(
     adminClient,
     dataset.manifestSha256
@@ -239,22 +229,31 @@ export async function applyPublicBudgetDataset(
   }
 
   const newlyUploadedPaths: string[] = [];
+  let storageReusedCount = 0;
   let importResult: z.infer<typeof importResultSchema> | undefined;
   let importRpcStarted = false;
 
   try {
+    const storageStartedAt = performance.now();
     for (const artifact of artifacts) {
       if (await uploadArtifact(adminClient, artifact)) {
         newlyUploadedPaths.push(artifact.storageObjectPath);
+      } else {
+        storageReusedCount += 1;
       }
     }
+    const storageDurationMs = performance.now() - storageStartedAt;
 
     importRpcStarted = true;
+    const importRpcStartedAt = performance.now();
     importResult = await callImportRpc(adminClient, payload as unknown as Json);
+    const importRpcDurationMs = performance.now() - importRpcStartedAt;
+    const validationRpcStartedAt = performance.now();
     const validation = await callValidationRpc(
       adminClient,
       importResult.datasetId
     );
+    const validationRpcDurationMs = performance.now() - validationRpcStartedAt;
     if (validation.status !== "PASS") {
       throw new Error(
         `stagingデータの検証がFAILです: ${JSON.stringify(validation.errors)}`
@@ -266,12 +265,25 @@ export async function applyPublicBudgetDataset(
         "同じmanifestはarchivedとして既に存在するため再有効化しません"
       );
     }
+    const activationRpcStartedAt = performance.now();
     await callActivationRpc(adminClient, importResult.datasetId);
+    const activationRpcDurationMs = performance.now() - activationRpcStartedAt;
 
     return {
       datasetId: importResult.datasetId,
       alreadyImported: importResult.alreadyImported,
       validation,
+      metrics: {
+        payloadBytes,
+        storageArtifactCount: artifacts.length,
+        storageUploadedCount: newlyUploadedPaths.length,
+        storageReusedCount,
+        storageDurationMs,
+        importRpcDurationMs,
+        validationRpcDurationMs,
+        activationRpcDurationMs,
+        totalDurationMs: performance.now() - totalStartedAt,
+      },
     };
   } catch (error) {
     const rollbackErrors: string[] = [];
