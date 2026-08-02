@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { routes } from "@/lib/routes";
 import type { BudgetProgramTopicRelation as BudgetProgramTopicRelationType } from "../../shared/types/budget";
+import { getBudgetTopicKindLabel } from "../../shared/utils/budget-explorer-view";
 import { describeBudgetProgramEvidenceFields } from "../../shared/utils/budget-program-evidence";
 
 const relationTypeLabels: Record<
@@ -39,6 +40,9 @@ export function BudgetProgramTopicRelation({
     <article className="rounded-md border border-budget-overview-border bg-white px-4 py-5 sm:px-5">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="light">みらい議会の整理</Badge>
+        <Badge variant="outline">
+          {getBudgetTopicKindLabel(topic.topicKind)}
+        </Badge>
         {topic.categories.map((category) => (
           <Badge key={category.slug} asChild variant="outline">
             <Link href={routes.budgetTopic(category.slug, topic.slug)}>

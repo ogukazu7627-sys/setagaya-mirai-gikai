@@ -61,7 +61,7 @@ export async function runVerifyReviewedBudgetTopicsCli(
       expectations
     );
     stdout(
-      `[budget:web:topics:verify] PASS topics=${result.topicCount}, published=${result.publishedRelationCount}, rejected=${result.rejectedRelationCount}`
+      `[budget:web:topics:verify] PASS topics=${result.topicCount}, identities=${result.publishedIdentityCount}, published=${result.publishedRelationCount}, rejected=${result.rejectedRelationCount}`
     );
     return 0;
   } catch (error) {

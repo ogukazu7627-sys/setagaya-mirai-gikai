@@ -52,6 +52,7 @@ function buildMatchingSnapshot(): PublishedBudgetTopicVerificationSnapshot {
   );
   return {
     activeDatasetId: "22222222-2222-4222-8222-222222222222",
+    activeIdentityCount: 1_156,
     categories,
     topics,
     topicCategories,
@@ -60,7 +61,7 @@ function buildMatchingSnapshot(): PublishedBudgetTopicVerificationSnapshot {
 }
 
 describe("reviewed budget topic production verification", () => {
-  it("提出済み10topicを167公開・8除外として検証する", () => {
+  it("提出済み20topicを1,323公開・8除外として検証する", () => {
     const expectations = loadBudgetTopicPublishExpectations(
       loadBudgetTopicDefinitions(definitionsPath),
       reviewPath
@@ -71,7 +72,7 @@ describe("reviewed budget topic production verification", () => {
         (sum, expectation) => sum + expectation.review.selectedRows.length,
         0
       )
-    ).toBe(167);
+    ).toBe(1_323);
     expect(
       expectations.reduce(
         (sum, expectation) => sum + expectation.review.rejectedRows.length,
@@ -85,8 +86,9 @@ describe("reviewed budget topic production verification", () => {
       )
     ).toEqual({
       datasetId: "22222222-2222-4222-8222-222222222222",
-      topicCount: 10,
-      publishedRelationCount: 167,
+      topicCount: 20,
+      publishedIdentityCount: 1_156,
+      publishedRelationCount: 1_323,
       rejectedRelationCount: 8,
     });
   });

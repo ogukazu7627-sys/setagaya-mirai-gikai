@@ -162,8 +162,12 @@ jobs:
               -name '*-candidates.csv' \
               -print | sort
           )
-          if [ "${#review_files[@]}" -ne 10 ]; then
-            echo "::error::Expected 10 review files, found ${#review_files[@]}."
+          expected_topic_count="$(
+            jq -s '[.[].topics[]] | length' \
+              data/budget/editorial/topic-definitions/*.json
+          )"
+          if [ "${#review_files[@]}" -ne "$expected_topic_count" ]; then
+            echo "::error::Expected $expected_topic_count review files, found ${#review_files[@]}."
             exit 1
           fi
           for review_file in "${review_files[@]}"; do

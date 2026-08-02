@@ -17,7 +17,6 @@ import type {
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../../../shared/types/budget-exploration";
-import { getBudgetOfficialClassificationContext } from "../../../shared/utils/budget-official-classification";
 import { getBudgetExplorerSceneLabel } from "../../../shared/utils/budget-explorer-view";
 import { getBudgetMapStableView } from "../../../shared/utils/budget-map-layout";
 import { getBudgetMapProgramPageSize } from "../../../shared/utils/budget-map-programs";
@@ -34,6 +33,7 @@ import {
   getBudgetMapV2CameraStep,
   getBudgetMapV2DiveFocus,
 } from "../../../shared/utils/budget-map-v2-transition";
+import { getBudgetOfficialClassificationContext } from "../../../shared/utils/budget-official-classification";
 import { formatJapaneseFiscalYear } from "../../../shared/utils/budget-page-view";
 import { useBudgetMapV2Camera } from "../../hooks/use-budget-map-v2-camera";
 import {
@@ -405,7 +405,7 @@ function BudgetMapV2CoreCaption({
           {view.category.name}
         </span>
         <span className="text-[11px] tracking-[0.08em] text-budget-space-copy/75">
-          公開中の課題 {view.category.topics.length}件
+          公開中のテーマ {view.category.topics.length}件
         </span>
         <span className="text-[10px] font-bold tracking-[0.14em] text-budget-space-eyebrow">
           {fiscalYearLabel}
@@ -475,7 +475,7 @@ function BudgetMapV2Chrome({
           className="budget-map-v2-chrome-button budget-map-v2-back hover:bg-transparent"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
-          {view.kind === "topic" ? "課題一覧" : "すべての分野"}
+          {view.kind === "topic" ? "テーマ一覧" : "すべての分野"}
         </Button>
       )}
 
@@ -578,7 +578,7 @@ function getCoreLabel(view: StableView, fiscalYear: number | null): string {
     case "category":
       return `選択中の分野、${view.category.name}`;
     case "topic":
-      return `選択中の課題、${view.topic.name}`;
+      return `選択中のテーマ、${view.topic.name}`;
   }
 }
 
@@ -595,15 +595,15 @@ function getExplorationEmptyCopy(availability: BudgetExplorationAvailability): {
       };
     case "temporarily_unavailable":
       return {
-        title: "課題データを現在取得できません",
+        title: "テーマデータを現在取得できません",
         description:
           "時間をおいて再度確認するか、検索または公式予算分類をお試しください。",
       };
     case "available":
       return {
-        title: "この分野の課題は整理中です",
+        title: "この分野のテーマは整理中です",
         description:
-          "人が確認したものだけを公開しています。架空の課題では埋めません。",
+          "人が確認したものだけを公開しています。架空のテーマでは埋めません。",
       };
   }
 }

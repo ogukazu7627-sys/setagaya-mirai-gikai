@@ -53,6 +53,46 @@
           "any": []
         }
       ]
+    },
+    {
+      "slug": "culture-sports-and-lifelong-learning-administration",
+      "name": "文化・スポーツ・生涯学習を支える行政",
+      "shortDescription": "文化、国際交流、スポーツ、社会教育、図書館などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "culture-sports-learning-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "culture-sports-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で健康村、文化・国際、文化施設、スポーツ振興または生涯現役推進に関する目に属するため、文化・スポーツ・生涯学習に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": ["健康村費", "文化・国際費", "文化施設費", "スポーツ振興費", "生涯現役推進費"]
+            }
+          ],
+          "any": []
+        },
+        {
+          "id": "lifelong-learning-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で教育費の社会教育費に属するため、文化・生涯学習に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["社会教育費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

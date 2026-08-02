@@ -8,6 +8,7 @@ import {
 import { startBudgetTopicReviewServer } from "./budget-topic-review-site-server";
 
 interface ReviewSiteCliOptions extends BudgetTopicReviewSiteOptions {
+  autoApproveOnly: boolean;
   help: boolean;
   port: number;
 }
@@ -29,6 +30,7 @@ Usage:
 Options:
   --review-dir <path>       review CSVディレクトリ
   --definitions-dir <path> topic定義ディレクトリ
+  --auto-approve-only       B・Highの承認だけを行い、画面を起動しない
   --port <number>           localhostのポート（default: 4311）
   --help                    このヘルプを表示
 
@@ -39,19 +41,25 @@ export function parseBudgetTopicReviewSiteCliArgs(
   invocationDirectory = process.env.INIT_CWD ?? process.cwd()
 ): ReviewSiteCliOptions {
   const defaults = getDefaultBudgetTopicReviewSiteOptions(invocationDirectory);
+  const normalizedArgv = argv[0] === "--" ? argv.slice(1) : argv;
   const options: ReviewSiteCliOptions = {
     ...defaults,
+    autoApproveOnly: false,
     help: false,
     port: 4311,
   };
 
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index];
+  for (let index = 0; index < normalizedArgv.length; index += 1) {
+    const argument = normalizedArgv[index];
     if (argument === "--help") {
       options.help = true;
       continue;
     }
-    const value = argv[index + 1];
+    if (argument === "--auto-approve-only") {
+      options.autoApproveOnly = true;
+      continue;
+    }
+    const value = normalizedArgv[index + 1];
     if (!value) {
       throw new Error(`${argument} の値がありません`);
     }
@@ -98,6 +106,9 @@ export async function runBudgetTopicReviewSiteCli(
     stdout(
       `B・High自動承認: 対象${approval.matched}件 / 今回更新${approval.updated}件 / 承認済み${approval.alreadyApproved}件`
     );
+    if (options.autoApproveOnly) {
+      return 0;
+    }
 
     const startServer =
       dependencies.startServer ?? startBudgetTopicReviewServer;

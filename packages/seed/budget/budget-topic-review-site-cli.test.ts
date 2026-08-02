@@ -9,6 +9,7 @@ describe("budget topic review site CLI", () => {
   it("既定値と明示したローカルポートを解釈する", () => {
     const options = parseBudgetTopicReviewSiteCliArgs(
       [
+        "--",
         "--review-dir",
         "review",
         "--definitions-dir",
@@ -22,6 +23,7 @@ describe("budget topic review site CLI", () => {
     expect(options).toMatchObject({
       reviewDirectory: path.resolve("/workspace/review"),
       definitionsDirectory: path.resolve("/workspace/definitions"),
+      autoApproveOnly: false,
       port: 4411,
       help: false,
     });
@@ -41,6 +43,31 @@ describe("budget topic review site CLI", () => {
     expect(() => parseBudgetTopicReviewSiteCliArgs(["--port", "0"])).toThrow(
       "--port"
     );
+  });
+
+  it("auto-approve-onlyではサーバーを起動しない", async () => {
+    const events: string[] = [];
+    const exitCode = await runBudgetTopicReviewSiteCli(
+      ["--auto-approve-only"],
+      {
+        autoApprove: () => {
+          events.push("auto-approve");
+          return {
+            matched: 1_302,
+            updated: 1_156,
+            alreadyApproved: 146,
+            updatedFiles: 10,
+          };
+        },
+        startServer: (async () => {
+          events.push("start-server");
+          throw new Error("サーバーを起動してはいけません");
+        }) as never,
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(events).toEqual(["auto-approve"]);
   });
 
   it("B・Highの一括承認後にレビューサーバーを起動する", async () => {

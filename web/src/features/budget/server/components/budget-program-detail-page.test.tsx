@@ -258,7 +258,7 @@ describe("BudgetProgramDetailPage", () => {
     );
 
     expect(
-      screen.getByText("この事業に公開済みの課題整理はまだありません。")
+      screen.getByText("この事業に公開済みの課題・テーマ整理はまだありません。")
     ).toBeVisible();
     expect(
       screen.getByRole("link", { name: "触れる予算へ戻る" })

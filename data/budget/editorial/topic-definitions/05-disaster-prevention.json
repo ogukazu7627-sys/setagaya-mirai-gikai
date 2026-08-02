@@ -40,6 +40,29 @@
           "any": []
         }
       ]
+    },
+    {
+      "slug": "disaster-and-safety-administration",
+      "name": "防災・危機管理を支える行政",
+      "shortDescription": "災害対策、地域防災、危機管理などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "disaster-safety-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "disaster-response-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で防災対策費に属するため、防災・危機管理に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["防災対策費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

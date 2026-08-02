@@ -3,6 +3,19 @@ import type {
   BudgetExplorerStableView,
 } from "../types/budget-exploration";
 
+export function getBudgetTopicKindLabel(
+  topicKind: "problem" | "goal" | "administrative_function"
+): string {
+  switch (topicKind) {
+    case "problem":
+      return "課題";
+    case "goal":
+      return "目標";
+    case "administrative_function":
+      return "行政機能";
+  }
+}
+
 export function resolveBudgetExplorerView(
   exploration: BudgetExplorationData,
   input: {
@@ -42,7 +55,7 @@ export function getBudgetExplorerAnnouncement(
     case "overview":
       return "10の分野から予算を探せます";
     case "category":
-      return `${view.category.name}の課題を表示しています`;
+      return `${view.category.name}のテーマを表示しています`;
     case "topic":
       return `${view.topic.name}に関連する${view.topic.programs.length}件の予算事業を表示しています`;
   }
@@ -56,7 +69,7 @@ export function getBudgetExplorerSceneLabel(
     case "overview":
       return "予算を10の分野から探すネットワーク";
     case "category":
-      return `${view.category.name}に公開された課題`;
+      return `${view.category.name}に公開されたテーマ`;
     case "topic":
       return `${view.topic.name}に関連する予算事業`;
   }

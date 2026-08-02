@@ -31,6 +31,29 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "child-and-family-administration",
+      "name": "子ども・若者・子育てを支える行政",
+      "shortDescription": "子ども、若者、家庭、保育、児童相談などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "child-rearing-support-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "child-welfare-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で民生費の児童福祉費に属するため、子ども・若者・子育てに関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["民生費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["児童福祉費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }
