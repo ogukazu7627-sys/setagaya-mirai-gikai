@@ -311,3 +311,70 @@ export interface BudgetRevenueItemDetail {
   relatedExpenditurePrograms: BudgetRelatedExpenditureProgram[];
   sourceReferences: Json[];
 }
+
+export type BudgetDirectorySort = "amount_desc" | "name_asc";
+
+export interface BudgetDirectoryInput {
+  fiscalYear?: number;
+  accountCode?: BudgetAccountCode | null;
+  kanCode?: string | null;
+  kouCode?: string | null;
+  mokuCode?: string | null;
+  includeZeroAmount?: boolean;
+  sort?: BudgetDirectorySort;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface BudgetDirectorySelection {
+  fiscalYear: number;
+  accountCode: BudgetAccountCode | null;
+  kanCode: string | null;
+  kouCode: string | null;
+  mokuCode: string | null;
+  includeZeroAmount: boolean;
+  sort: BudgetDirectorySort;
+  page: number;
+  pageSize: number;
+}
+
+export type BudgetDirectoryLoadStatus = "ready" | "empty" | "error";
+
+export interface BudgetDirectoryHierarchyEntry {
+  accountCode: BudgetAccountCode;
+  accountName: string;
+  kan: BudgetHierarchyLabel;
+  kou: BudgetHierarchyLabel;
+  moku: BudgetHierarchyLabel;
+  itemKey: string;
+}
+
+export interface BudgetProgramDirectoryItem {
+  identity: BudgetProgramIdentity;
+  memberPrograms: BudgetProgramMember[];
+}
+
+export interface BudgetProgramDirectory {
+  status: BudgetDirectoryLoadStatus;
+  activeDataset: ActiveBudgetDataset | null;
+  hierarchy: BudgetDirectoryHierarchyEntry[];
+  items: BudgetProgramDirectoryItem[];
+  total: number;
+  selection: BudgetDirectorySelection;
+}
+
+export interface BudgetRevenueDirectoryItem {
+  item: BudgetRevenueItem;
+  sections: BudgetRevenueSection[];
+  details: BudgetRevenueDetail[];
+  relatedExpenditurePrograms: BudgetRelatedExpenditureProgram[];
+}
+
+export interface BudgetRevenueDirectory {
+  status: BudgetDirectoryLoadStatus;
+  activeDataset: ActiveBudgetDataset | null;
+  hierarchy: BudgetDirectoryHierarchyEntry[];
+  items: BudgetRevenueDirectoryItem[];
+  total: number;
+  selection: BudgetDirectorySelection;
+}

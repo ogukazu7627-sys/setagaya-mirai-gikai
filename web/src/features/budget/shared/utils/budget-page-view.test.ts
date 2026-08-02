@@ -4,6 +4,7 @@ import {
   buildBudgetPageOverview,
   buildUnavailableBudgetPageOverview,
   formatBudgetAmount,
+  formatBudgetDifference,
   formatJapaneseFiscalYear,
   formatRawThousandYen,
   shortenBudgetDepartmentName,
@@ -112,6 +113,9 @@ describe("budget page view", () => {
     expect(formatBudgetAmount(431_353_010)).toBe("4,313億5,301万円");
     expect(formatBudgetAmount(0)).toBe("0円");
     expect(formatRawThousandYen(621_033_664)).toBe("621,033,664 千円");
+    expect(formatBudgetDifference(100)).toBe("+100 千円");
+    expect(formatBudgetDifference(-100)).toBe("−100 千円");
+    expect(formatBudgetDifference(0)).toBe("0 千円");
   });
 
   it("rejects amounts outside JavaScript's safe integer range", () => {

@@ -178,12 +178,12 @@ describe("BudgetNetwork", () => {
     );
     expect(
       screen.getByRole("button", {
-        name: "公式予算分類からすべて見る",
+        name: "公式予算分類「教育費」を見る",
       })
     ).toBeVisible();
     await user.click(
       screen.getByRole("button", {
-        name: "公式予算分類からすべて見る",
+        name: "公式予算分類「教育費」を見る",
       })
     );
     expect(callbacks.onOpenOfficialHierarchy).toHaveBeenCalledOnce();
@@ -361,7 +361,7 @@ describe("BudgetNetwork", () => {
     expect(callbacks.onFocusSearch).toHaveBeenCalledOnce();
     expect(
       screen.getByRole("button", {
-        name: "公式予算分類からすべて見る",
+        name: "公式予算分類から探す",
       })
     ).toBeVisible();
   });

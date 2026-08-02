@@ -21,6 +21,7 @@ import {
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
+import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   BUDGET_MAP_HOST_VARIANT_PARAM,
   parseBudgetMapVariant,
@@ -211,8 +212,13 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   }, [navigateWithTransition, stableView]);
 
   const openOfficialHierarchy = useCallback(() => {
-    router.push(routes.budgetOfficialHierarchy(), { scroll: true });
-  }, [router]);
+    const categorySlugToOpen =
+      stableView.kind === "overview" ? null : stableView.category.slug;
+    const context = getBudgetOfficialClassificationContext(categorySlugToOpen);
+    router.push(routes.budgetAll(context.filters ?? undefined), {
+      scroll: true,
+    });
+  }, [router, stableView]);
 
   const refreshDataset = useCallback(() => {
     router.refresh();
@@ -394,7 +400,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
             </span>
           </p>
           <Link
-            href={routes.budgetOfficialHierarchy()}
+            href={routes.budgetAll()}
             className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-md px-2 font-bold text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <BookOpen aria-hidden="true" className="size-4" />
