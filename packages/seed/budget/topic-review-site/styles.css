@@ -175,6 +175,19 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.automatic-approval-note {
+  margin: 0;
+  padding: 12px 18px;
+  color: #315c52;
+  background: var(--green-soft);
+  border-bottom: 1px solid #bfdbd0;
+  font-size: 0.86rem;
+}
+
+.automatic-approval-note strong {
+  color: #1d694f;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

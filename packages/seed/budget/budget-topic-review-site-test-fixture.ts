@@ -6,7 +6,10 @@ import {
   readBudgetTopicReviewFile,
   serializeBudgetTopicReviewRows,
 } from "./budget-topic-review";
-import type { BudgetTopicReviewSiteOptions } from "./budget-topic-review-site";
+import {
+  autoApproveStrongHighBudgetTopicCandidates,
+  type BudgetTopicReviewSiteOptions,
+} from "./budget-topic-review-site";
 
 const definitionsDirectory = fileURLToPath(
   new URL("../../../data/budget/editorial/topic-definitions", import.meta.url)
@@ -16,7 +19,9 @@ const sourceReviewDirectory = fileURLToPath(
 );
 const reviewedEducationFile = "education-school-aging-candidates.csv";
 
-export function createBudgetTopicReviewSiteTestFixture(): {
+export function createBudgetTopicReviewSiteTestFixture(options?: {
+  autoApprove?: boolean;
+}): {
   options: BudgetTopicReviewSiteOptions;
   remove: () => void;
 } {
@@ -46,8 +51,13 @@ export function createBudgetTopicReviewSiteTestFixture(): {
     );
   }
 
+  const siteOptions = { definitionsDirectory, reviewDirectory };
+  if (options?.autoApprove !== false) {
+    autoApproveStrongHighBudgetTopicCandidates(siteOptions);
+  }
+
   return {
-    options: { definitionsDirectory, reviewDirectory },
+    options: siteOptions,
     remove: () => fs.rmSync(root, { force: true, recursive: true }),
   };
 }

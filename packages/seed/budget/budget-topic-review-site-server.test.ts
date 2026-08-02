@@ -35,7 +35,13 @@ describe("budget topic review local server", () => {
       const response = await fetch(`${started.url}/api/review`);
       expect(response.status).toBe(200);
       const body = (await response.json()) as BudgetTopicReviewSiteSnapshot;
-      expect(body.summary).toMatchObject({ total: 175, pending: 159 });
+      expect(body.summary).toMatchObject({
+        total: 175,
+        pending: 23,
+        automaticallyApproved: 146,
+        manualReviewTotal: 29,
+        manualPending: 23,
+      });
     } finally {
       await started.close();
     }
@@ -86,7 +92,12 @@ describe("budget topic review local server", () => {
       });
       expect(saved.status).toBe(200);
       const body = (await saved.json()) as BudgetTopicReviewSiteSnapshot;
-      expect(body.summary).toMatchObject({ pending: 158, reject: 4 });
+      expect(body.summary).toMatchObject({
+        pending: 22,
+        reject: 4,
+        manualPending: 22,
+        manualReject: 4,
+      });
     } finally {
       await started.close();
     }

@@ -28,6 +28,8 @@
   }
 
   const elements = {
+    allTotal: requireElement("summary-all-total"),
+    automaticallyApproved: requireElement("summary-automatically-approved"),
     total: requireElement("summary-total"),
     pending: requireElement("summary-pending"),
     approve: requireElement("summary-approve"),
@@ -136,6 +138,8 @@
 
   function calculateEffectiveSummary() {
     const summary = {
+      allTotal: 0,
+      automaticallyApproved: 0,
       total: 0,
       pending: 0,
       approve: 0,
@@ -146,6 +150,11 @@
       return summary;
     }
     for (const row of state.snapshot.rows) {
+      summary.allTotal += 1;
+      if (!row.requiresManualReview) {
+        summary.automaticallyApproved += 1;
+        continue;
+      }
       summary.total += 1;
       const decision = getEffectiveRow(row).reviewDecision;
       if (decision === "") {
@@ -159,6 +168,10 @@
 
   function renderSummary() {
     const summary = calculateEffectiveSummary();
+    elements.allTotal.textContent = String(summary.allTotal);
+    elements.automaticallyApproved.textContent = String(
+      summary.automaticallyApproved
+    );
     elements.total.textContent = String(summary.total);
     elements.pending.textContent = String(summary.pending);
     elements.approve.textContent = String(summary.approve);
@@ -219,7 +232,9 @@
     if (!state.snapshot) {
       return [];
     }
-    const rows = state.snapshot.rows.filter(matchesFilters);
+    const rows = state.snapshot.rows
+      .filter((row) => row.requiresManualReview)
+      .filter(matchesFilters);
     if (elements.sortSelect.value === "amount-desc") {
       return rows.sort(compareAmountsDescending);
     }
@@ -467,7 +482,7 @@
       DECISION_LABELS[elements.decisionFilter.value] ?? "すべて";
     elements.candidateHeading.textContent =
       elements.decisionFilter.value === "all"
-        ? "すべての候補"
+        ? "すべての手動確認候補"
         : `${decisionLabel}の候補`;
     elements.resultCount.textContent =
       filtered.length === 0
@@ -495,8 +510,8 @@
     const summary = calculateEffectiveSummary();
     elements.saveGuidance.textContent =
       summary.pending === 0
-        ? "全候補の判断が揃っています。保存後、Codexへ「提出したよ」と伝えてください。"
-        : "全件保存後、未判断が0件になったらCodexへ「提出したよ」と伝えてください。";
+        ? "手動確認対象の判断が揃っています。保存後、Codexへ「提出したよ」と伝えてください。"
+        : "手動確認対象を保存し、未判断が0件になったらCodexへ「提出したよ」と伝えてください。";
   }
 
   function populateCategories() {
@@ -552,7 +567,9 @@
       state.drafts.clear();
       state.page = 1;
       renderAll();
-      setLiveStatus(`${snapshot.summary.total}件の候補を読み込みました`);
+      setLiveStatus(
+        `${snapshot.summary.manualReviewTotal}件の手動確認候補を読み込みました`
+      );
     } catch (error) {
       elements.loadingState.hidden = true;
       elements.errorState.hidden = false;
@@ -638,11 +655,11 @@
       state.drafts.clear();
       state.saving = false;
       renderAll();
-      const message = `${body.summary.total - body.summary.pending}件の判断をCSVへ保存しました`;
+      const message = `${body.summary.manualReviewTotal - body.summary.manualPending}件の手動判断をCSVへ保存しました`;
       renderSaveBar(
-        body.summary.pending === 0
-          ? "全候補を保存しました。Codexへ「提出したよ」と伝えてください。"
-          : `保存しました。未判断は${body.summary.pending}件です。`
+        body.summary.manualPending === 0
+          ? "手動確認対象をすべて保存しました。Codexへ「提出したよ」と伝えてください。"
+          : `保存しました。手動確認対象の未判断は${body.summary.manualPending}件です。`
       );
       setLiveStatus(message);
     } catch (error) {

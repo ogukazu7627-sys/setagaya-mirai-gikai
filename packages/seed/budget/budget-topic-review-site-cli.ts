@@ -1,6 +1,7 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import {
+  autoApproveStrongHighBudgetTopicCandidates,
   type BudgetTopicReviewSiteOptions,
   getDefaultBudgetTopicReviewSiteOptions,
 } from "./budget-topic-review-site";
@@ -12,6 +13,7 @@ interface ReviewSiteCliOptions extends BudgetTopicReviewSiteOptions {
 }
 
 interface ReviewSiteCliDependencies {
+  autoApprove?: typeof autoApproveStrongHighBudgetTopicCandidates;
   startServer?: typeof startBudgetTopicReviewServer;
   stdout?: (message: string) => void;
   stderr?: (message: string) => void;
@@ -19,6 +21,7 @@ interface ReviewSiteCliDependencies {
 }
 
 const HELP = `予算課題候補のローカルレビュー画面を起動します。
+B_strong_structuralかつ確信度highの候補は、起動前にapproveへ一括更新します。
 
 Usage:
   pnpm budget:web:topics:review [options]
@@ -89,13 +92,20 @@ export async function runBudgetTopicReviewSiteCli(
       return 0;
     }
 
+    const autoApprove =
+      dependencies.autoApprove ?? autoApproveStrongHighBudgetTopicCandidates;
+    const approval = autoApprove(options);
+    stdout(
+      `B・High自動承認: 対象${approval.matched}件 / 今回更新${approval.updated}件 / 承認済み${approval.alreadyApproved}件`
+    );
+
     const startServer =
       dependencies.startServer ?? startBudgetTopicReviewServer;
     const started = await startServer(options, options.port);
     stdout("予算課題候補のローカルレビュー画面を起動しました。");
     stdout(`URL: ${started.url}`);
     stdout(
-      `候補: ${started.snapshot.summary.total}件 / 未判断: ${started.snapshot.summary.pending}件`
+      `手動確認対象: ${started.snapshot.summary.manualReviewTotal}件 / 未判断: ${started.snapshot.summary.manualPending}件`
     );
     stdout(`保存先: ${options.reviewDirectory}`);
     stdout("保存してもSupabase・本番環境には送信されません。");

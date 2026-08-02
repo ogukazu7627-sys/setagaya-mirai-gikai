@@ -1,5 +1,12 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
+import {
+  readBudgetTopicReviewFile,
+  serializeBudgetTopicReviewRows,
+} from "./budget-topic-review";
 import { runBudgetTopicPublishCli } from "./publish-reviewed-budget-topic-cli";
 
 const reviewedCandidatesPath = fileURLToPath(
@@ -108,23 +115,44 @@ describe("runBudgetTopicPublishCli", () => {
 
   it("未判断の候補が残るtopicは--applyしない", async () => {
     const applyPayload = vi.fn();
-
-    const exitCode = await runBudgetTopicPublishCli(
-      [
-        "--input-file",
-        pendingCandidatesPath,
-        "--definitions-dir",
-        definitionsPath,
-        "--reviewed-by",
-        "11111111-1111-4111-8111-111111111111",
-        "--reviewed-at",
-        "2026-07-30T16:33:02+09:00",
-        "--apply",
-      ],
-      { applyPayload, stderr: () => undefined, stdout: () => undefined }
+    const temporaryDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), "pending-budget-topic-")
+    );
+    const temporaryInputFile = path.join(
+      temporaryDirectory,
+      path.basename(pendingCandidatesPath)
+    );
+    const review = readBudgetTopicReviewFile(pendingCandidatesPath);
+    fs.writeFileSync(
+      temporaryInputFile,
+      serializeBudgetTopicReviewRows(
+        review.rows.map((row, index) =>
+          index === 0 ? { ...row, review_decision: "", review_note: "" } : row
+        )
+      ),
+      "utf8"
     );
 
-    expect(exitCode).toBe(1);
-    expect(applyPayload).not.toHaveBeenCalled();
+    try {
+      const exitCode = await runBudgetTopicPublishCli(
+        [
+          "--input-file",
+          temporaryInputFile,
+          "--definitions-dir",
+          definitionsPath,
+          "--reviewed-by",
+          "11111111-1111-4111-8111-111111111111",
+          "--reviewed-at",
+          "2026-07-30T16:33:02+09:00",
+          "--apply",
+        ],
+        { applyPayload, stderr: () => undefined, stdout: () => undefined }
+      );
+
+      expect(exitCode).toBe(1);
+      expect(applyPayload).not.toHaveBeenCalled();
+    } finally {
+      fs.rmSync(temporaryDirectory, { force: true, recursive: true });
+    }
   });
 });

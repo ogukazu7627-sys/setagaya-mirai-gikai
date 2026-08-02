@@ -16,7 +16,7 @@
           <p class="eyebrow">みらい議会 予算編集</p>
           <h1>課題と予算事業の候補レビュー</h1>
           <p class="page-intro">
-            公式予算情報から生成した関係候補を、人間の判断で確認します。
+            Bの強い構造的根拠かつ確信度Highは一括承認し、それ以外を人間の判断で確認します。
           </p>
         </div>
         <div class="local-status" aria-label="接続状態">
@@ -32,9 +32,14 @@
     <main class="page-main">
       <section class="summary-band" aria-labelledby="summary-heading">
         <h2 id="summary-heading" class="visually-hidden">レビュー集計</h2>
+        <p class="automatic-approval-note">
+          全<span id="summary-all-total">-</span>件のうち、B 強い構造的根拠・確信度Highの
+          <strong><span id="summary-automatically-approved">-</span>件を自動承認済み</strong>です。
+          自動承認済み候補は一覧に表示しません。
+        </p>
         <dl class="summary-grid">
           <div>
-            <dt>候補</dt>
+            <dt>手動確認対象</dt>
             <dd id="summary-total">-</dd>
           </div>
           <div class="summary-grid__pending">
@@ -148,7 +153,7 @@
       <div>
         <strong id="dirty-count">未保存の変更はありません</strong>
         <p id="save-guidance">
-          全件保存後、未判断が0件になったらCodexへ「提出したよ」と伝えてください。
+          手動確認対象を保存し、未判断が0件になったらCodexへ「提出したよ」と伝えてください。
         </p>
       </div>
       <button id="save-button" type="button" class="button button--primary" disabled>

@@ -4,6 +4,8 @@ import { readBudgetTopicReviewFile } from "./budget-topic-review";
 import {
   BudgetTopicReviewConflictError,
   BudgetTopicReviewInputError,
+  autoApproveStrongHighBudgetTopicCandidates,
+  automaticBudgetTopicApprovalNote,
   type BudgetTopicReviewSiteOptions,
   readBudgetTopicReviewSiteSnapshot,
   saveBudgetTopicReviewSiteChanges,
@@ -25,20 +27,74 @@ afterEach(() => {
 });
 
 describe("budget topic review site data", () => {
-  it("175件を読み込み、初期未判断159件を集計する", () => {
+  it("B・Highを除いた29件を手動確認対象として集計する", () => {
     const snapshot = readBudgetTopicReviewSiteSnapshot(createOptions());
 
     expect(snapshot.summary).toEqual({
       total: 175,
-      pending: 159,
-      approve: 13,
+      pending: 23,
+      approve: 149,
       revise: 0,
       reject: 3,
       categoryCount: 10,
       topicCount: 10,
+      automaticApprovalRuleMatches: 146,
+      automaticallyApproved: 146,
+      manualReviewTotal: 29,
+      manualPending: 23,
+      manualApprove: 3,
+      manualRevise: 0,
+      manualReject: 3,
     });
     expect(snapshot.rows).toHaveLength(175);
     expect(new Set(snapshot.rows.map((row) => row.rowKey)).size).toBe(175);
+    expect(
+      snapshot.rows.filter((row) => row.requiresManualReview)
+    ).toHaveLength(29);
+  });
+
+  it("B・Highの未判断だけを決定的に一括承認する", () => {
+    const fixture = createBudgetTopicReviewSiteTestFixture({
+      autoApprove: false,
+    });
+    fixtureCleanup.push(fixture.remove);
+    const before = readBudgetTopicReviewSiteSnapshot(fixture.options);
+    const targetBefore = before.rows.find(
+      (row) => row.automaticApprovalRuleMatches && row.reviewDecision === ""
+    );
+    expect(targetBefore).toBeDefined();
+
+    expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
+      {
+        matched: 146,
+        updated: 136,
+        alreadyApproved: 10,
+        updatedFiles: 9,
+      }
+    );
+    const after = readBudgetTopicReviewSiteSnapshot(fixture.options);
+    expect(after.summary).toMatchObject({
+      pending: 23,
+      approve: 149,
+      automaticallyApproved: 146,
+      manualReviewTotal: 29,
+    });
+    const targetAfter = after.rows.find(
+      (row) => row.rowKey === targetBefore?.rowKey
+    );
+    expect(targetAfter).toMatchObject({
+      reviewDecision: "approve",
+      reviewNote: automaticBudgetTopicApprovalNote,
+      requiresManualReview: false,
+    });
+    expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
+      {
+        matched: 146,
+        updated: 0,
+        alreadyApproved: 146,
+        updatedFiles: 0,
+      }
+    );
   });
 
   it("判断だけを保存し、公式候補値と他の行を維持する", () => {
@@ -66,8 +122,8 @@ describe("budget topic review site data", () => {
       ],
     });
 
-    expect(after.summary.pending).toBe(158);
-    expect(after.summary.approve).toBe(14);
+    expect(after.summary.pending).toBe(22);
+    expect(after.summary.approve).toBe(150);
     const afterFile = readBudgetTopicReviewFile(inputFile);
     expect(afterFile.rows).toHaveLength(beforeFile.rows.length);
     for (const beforeRow of beforeFile.rows) {
