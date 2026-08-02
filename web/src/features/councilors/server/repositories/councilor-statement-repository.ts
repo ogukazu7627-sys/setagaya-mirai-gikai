@@ -33,6 +33,7 @@ export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
     name: string;
     slug: string | null;
     submitted_date: string | null;
+    publish_status: Database["public"]["Enums"]["bill_publish_status"];
   } | null;
 };
 
@@ -40,6 +41,11 @@ export type SyncCouncilorBillStatementsResult = {
   statementCount: number;
   unknownCouncilorNames: string[];
 };
+
+const COUNCILOR_STATEMENT_PUBLIC_BILL_STATUSES = [
+  "published",
+  "published_non_bill",
+] as const;
 
 async function findCouncilorIdsByNames(
   supabase: AdminSupabaseClient,
@@ -187,7 +193,7 @@ export async function findPublishedCouncilorStatementCounts(): Promise<
     `
     )
     .eq("difficulty_level", "normal")
-    .eq("bills.publish_status", "published");
+    .in("bills.publish_status", COUNCILOR_STATEMENT_PUBLIC_BILL_STATUSES);
 
   if (error) {
     throw new Error(
@@ -242,7 +248,7 @@ export async function findPublishedCouncilorStatementCountsByCouncilorIds(
         )
         .eq("councilor_id", councilorId)
         .eq("difficulty_level", "normal")
-        .eq("bills.publish_status", "published");
+        .in("bills.publish_status", COUNCILOR_STATEMENT_PUBLIC_BILL_STATUSES);
 
       if (error) {
         throw new Error(
@@ -285,7 +291,7 @@ export async function findPublishedCouncilorStatementDetails({
     `
     )
     .eq("difficulty_level", "normal")
-    .eq("bills.publish_status", "published")
+    .in("bills.publish_status", COUNCILOR_STATEMENT_PUBLIC_BILL_STATUSES)
     .order("statement_index", { ascending: true });
 
   query = councilorId

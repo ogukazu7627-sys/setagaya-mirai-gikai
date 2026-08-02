@@ -120,8 +120,7 @@ function BillRow({ bill }: { bill: BillWithDietSession }) {
             billId={bill.id}
             publishStatus={bill.publish_status}
           />
-          {(bill.publish_status === "draft" ||
-            bill.publish_status === "coming_soon") && (
+          {bill.publish_status !== "published" && (
             <PreviewButton billId={bill.id} />
           )}
           {bill.publish_status === "published" && (
