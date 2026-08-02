@@ -9,6 +9,7 @@
     "budget:web:import": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:import",
     "budget:web:topics:candidates": "pnpm --filter @mirai-gikai/seed budget:web:topics:candidates",
     "budget:web:topics:publish": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:publish",
+    "budget:web:topics:review": "pnpm --filter @mirai-gikai/seed budget:web:topics:review",
     "budget:web:topics:report": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:report",
     "budget:web:validate": "pnpm --filter @mirai-gikai/seed budget:web:validate",
     "dev": "dotenv -e .env -- pnpm -r --stream --parallel run dev",

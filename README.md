@@ -79,6 +79,31 @@ pnpm budget:web:topics:candidates -- --input-dir /path/to/budget-data
 `B_strong_structural` と、編集判断を要する `C_editorial` を区別します。
 C候補を含め、候補は自動公開されません。
 
+レビューCSVは、localhost専用の画面から確認・保存できます。
+
+```bash
+pnpm budget:web:topics:review
+```
+
+`http://127.0.0.1:4311` を開くと全175候補を読み込み、既定では未判断159件だけを
+表示します。大分類、判断、根拠レベル、検索語で絞り込み、各候補を `approve`、
+`revise`、`reject` から選択して `CSVへ保存` を押してください。`revise` は公開対象に
+なる最終判断なので、関係種別または説明を修正し、レビュー注記も入力します。
+
+この画面は `127.0.0.1` だけで待受け、Supabaseへ接続しません。保存先は
+`data/budget/editorial/review/` の既存CSVだけです。保存しても本番反映は行われません。
+全候補の未判断が0件になったらCodexへ「提出したよ」と伝え、CSV差分、dry-run、
+接続先を確認した後に、明示された指示に従って既存の公開CLIを実行します。
+
+ポートや入力場所を変える場合は次の引数を使用できます。
+
+```bash
+pnpm budget:web:topics:review -- \
+  --review-dir /path/to/review \
+  --definitions-dir /path/to/topic-definitions \
+  --port 4411
+```
+
 人間が全行を `approve`、`revise`、`reject` のいずれかで確認したCSVだけを
 公開できます。`approve` または `revise` の行だけを公開関係として登録し、
 `reject` は除外します。空欄が1件でも残るファイルは `--apply` を拒否します。

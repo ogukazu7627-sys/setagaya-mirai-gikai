@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>予算課題候補レビュー</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#candidate-list">候補一覧へ移動</a>
+    <header class="page-header">
+      <div class="page-header__inner">
+        <div>
+          <p class="eyebrow">みらい議会 予算編集</p>
+          <h1>課題と予算事業の候補レビュー</h1>
+          <p class="page-intro">
+            公式予算情報から生成した関係候補を、人間の判断で確認します。
+          </p>
+        </div>
+        <div class="local-status" aria-label="接続状態">
+          <span class="local-status__dot" aria-hidden="true"></span>
+          ローカルのみ
+        </div>
+      </div>
+      <div class="safety-strip">
+        保存先はリポジトリ内のreview CSVです。保存だけではSupabaseや本番環境へ送信されません。
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section class="summary-band" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="visually-hidden">レビュー集計</h2>
+        <dl class="summary-grid">
+          <div>
+            <dt>候補</dt>
+            <dd id="summary-total">-</dd>
+          </div>
+          <div class="summary-grid__pending">
+            <dt>未判断</dt>
+            <dd id="summary-pending">-</dd>
+          </div>
+          <div class="summary-grid__approve">
+            <dt>Approve</dt>
+            <dd id="summary-approve">-</dd>
+          </div>
+          <div class="summary-grid__revise">
+            <dt>Revise</dt>
+            <dd id="summary-revise">-</dd>
+          </div>
+          <div class="summary-grid__reject">
+            <dt>Reject</dt>
+            <dd id="summary-reject">-</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="filters" aria-labelledby="filters-heading">
+        <div class="section-heading-row">
+          <div>
+            <p class="section-kicker">絞り込み</p>
+            <h2 id="filters-heading">確認する候補</h2>
+          </div>
+          <button id="reset-filters" type="button" class="button button--quiet">
+            条件を戻す
+          </button>
+        </div>
+        <div class="filter-grid">
+          <label class="field field--search">
+            <span>事業・課題・部署を検索</span>
+            <input
+              id="search-input"
+              type="search"
+              autocomplete="off"
+              placeholder="例：保育、施設、デジタル"
+            />
+          </label>
+          <label class="field">
+            <span>大分類</span>
+            <select id="category-filter">
+              <option value="all">すべて</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>判断</span>
+            <select id="decision-filter">
+              <option value="pending">未判断</option>
+              <option value="all">すべて</option>
+              <option value="approve">Approve</option>
+              <option value="revise">Revise</option>
+              <option value="reject">Reject</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>根拠レベル</span>
+            <select id="evidence-filter">
+              <option value="all">すべて</option>
+              <option value="B_strong_structural">B 強い構造的根拠</option>
+              <option value="C_editorial">C 編集判断</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>並び順</span>
+            <select id="sort-select">
+              <option value="source">元の候補順</option>
+              <option value="amount-desc">金額が大きい順</option>
+              <option value="name">事業名順</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="candidate-section" aria-labelledby="candidate-heading">
+        <div class="section-heading-row candidate-heading-row">
+          <div>
+            <p class="section-kicker">候補一覧</p>
+            <h2 id="candidate-heading">未判断の候補</h2>
+          </div>
+          <p id="result-count" class="result-count" aria-live="polite"></p>
+        </div>
+
+        <div id="loading-state" class="system-state" role="status">
+          候補を読み込んでいます。
+        </div>
+        <div id="error-state" class="system-state system-state--error" hidden>
+          <p id="error-message">候補を読み込めませんでした。</p>
+          <button id="retry-load" type="button" class="button">再読み込み</button>
+        </div>
+        <div id="empty-state" class="system-state" hidden>
+          この条件に一致する候補はありません。
+        </div>
+        <div id="candidate-list" class="candidate-list" tabindex="-1"></div>
+
+        <nav class="pagination" aria-label="候補一覧のページ">
+          <button id="previous-page" type="button" class="button button--quiet">
+            前へ
+          </button>
+          <span id="page-status">-</span>
+          <button id="next-page" type="button" class="button button--quiet">
+            次へ
+          </button>
+        </nav>
+      </section>
+    </main>
+
+    <aside class="save-bar" aria-label="レビューの保存">
+      <div>
+        <strong id="dirty-count">未保存の変更はありません</strong>
+        <p id="save-guidance">
+          全件保存後、未判断が0件になったらCodexへ「提出したよ」と伝えてください。
+        </p>
+      </div>
+      <button id="save-button" type="button" class="button button--primary" disabled>
+        CSVへ保存
+      </button>
+    </aside>
+
+    <div id="live-status" class="visually-hidden" aria-live="polite"></div>
+  </body>
+</html>
