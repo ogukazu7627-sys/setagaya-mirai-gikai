@@ -4,9 +4,9 @@ import "@testing-library/jest-dom/vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import type { BudgetProgramSearchResult } from "../../shared/types/budget";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
-import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import { BudgetExplorer } from "./budget-explorer";
 
 const mocks = vi.hoisted(() => ({
@@ -147,6 +147,7 @@ describe("BudgetExplorer", () => {
     mocks.getSearchParam.mockReset();
     mocks.requestBudgetProgramSearch.mockReset();
     mocks.getSearchParam.mockReturnValue(null);
+    window.history.replaceState(null, "", "/budget");
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: vi.fn().mockReturnValue({
@@ -159,32 +160,32 @@ describe("BudgetExplorer", () => {
 
   it("大分類・課題をURL履歴へ積み、再読込可能な状態にする", async () => {
     const user = userEvent.setup();
-    const { rerender } = render(<BudgetExplorer exploration={exploration} />);
+    render(<BudgetExplorer exploration={exploration} />);
 
     await user.click(screen.getByRole("button", { name: "教育から探す" }));
-    await waitFor(() =>
-      expect(mocks.push).toHaveBeenCalledWith("/budget?category=education", {
-        scroll: false,
-      })
-    );
-
-    mocks.push.mockReset();
-    mocks.getSearchParam.mockImplementation((key: string) =>
-      key === "category" ? "education" : null
-    );
-    rerender(<BudgetExplorer exploration={exploration} />);
     await waitFor(() =>
       expect(
         screen.getByRole("heading", { level: 1, name: "教育" })
       ).toBeVisible()
     );
+    expect(window.location.pathname + window.location.search).toBe(
+      "/budget?category=education"
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
+
     await user.click(screen.getByRole("button", { name: "課題から探す" }));
     await waitFor(() =>
-      expect(mocks.push).toHaveBeenCalledWith(
-        "/budget?category=education&topic=school-facility-aging",
-        { scroll: false }
-      )
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: "学校施設の老朽化への対応",
+        })
+      ).toBeVisible()
     );
+    expect(window.location.pathname + window.location.search).toBe(
+      "/budget?category=education&topic=school-facility-aging"
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
   });
 
   it("事業タップはローカルグラフを増やさず詳細URLへ遷移する", async () => {
@@ -250,17 +251,45 @@ describe("BudgetExplorer", () => {
       }
       return null;
     });
+    window.history.replaceState(
+      null,
+      "",
+      "/budget?category=education&topic=school-facility-aging"
+    );
     const user = userEvent.setup();
     render(<BudgetExplorer exploration={exploration} />);
 
     await user.click(screen.getByRole("button", { name: "戻る" }));
 
     await waitFor(() =>
-      expect(mocks.replace).toHaveBeenCalledWith("/budget?category=education", {
-        scroll: false,
-      })
+      expect(
+        screen.getByRole("heading", { level: 1, name: "教育" })
+      ).toBeVisible()
     );
+    expect(window.location.pathname + window.location.search).toBe(
+      "/budget?category=education"
+    );
+    expect(mocks.replace).not.toHaveBeenCalled();
     expect(mocks.push).not.toHaveBeenCalled();
+  });
+
+  it("ブラウザバックでURLの探索状態を復元する", async () => {
+    const user = userEvent.setup();
+    render(<BudgetExplorer exploration={exploration} />);
+
+    await user.click(screen.getByRole("button", { name: "教育から探す" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "教育" })
+      ).toBeVisible()
+    );
+
+    window.history.replaceState(null, "", "/budget");
+    act(() => window.dispatchEvent(new PopStateEvent("popstate")));
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "触れる予算" })
+    ).toBeVisible();
   });
 
   it("検索結果が1件でも一覧を示し、選択するまで詳細へ移動しない", async () => {
