@@ -4,11 +4,11 @@ import "@testing-library/jest-dom/vitest";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import type {
   BudgetExplorationCategory,
   BudgetExplorationData,
 } from "../../shared/types/budget-exploration";
-import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import { BudgetNetwork } from "./budget-network";
 
 const education: BudgetExplorationCategory = {
@@ -356,7 +356,7 @@ describe("BudgetNetwork", () => {
       />
     );
 
-    expect(screen.getByText("この分野は、まだ課題整理中です")).toBeVisible();
+    expect(screen.getByText("この分野は、まだテーマ整理中です")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "予算を検索" }));
     expect(callbacks.onFocusSearch).toHaveBeenCalledOnce();
     expect(
@@ -366,7 +366,7 @@ describe("BudgetNetwork", () => {
     ).toBeVisible();
   });
 
-  it("取得障害を課題整理中とは表示しない", () => {
+  it("取得障害をテーマ整理中とは表示しない", () => {
     const unavailableExploration: BudgetExplorationData = {
       ...exploration,
       availability: "temporarily_unavailable",
@@ -384,9 +384,9 @@ describe("BudgetNetwork", () => {
       />
     );
 
-    expect(screen.getByText("課題データを現在取得できません")).toBeVisible();
+    expect(screen.getByText("テーマデータを現在取得できません")).toBeVisible();
     expect(
-      screen.queryByText("この分野は、まだ課題整理中です")
+      screen.queryByText("この分野は、まだテーマ整理中です")
     ).not.toBeInTheDocument();
   });
 

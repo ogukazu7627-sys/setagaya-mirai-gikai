@@ -40,6 +40,58 @@
           "any": []
         }
       ]
+    },
+    {
+      "slug": "government-and-finance-administration",
+      "name": "区政・財政・議会を支える行政",
+      "shortDescription": "議会、区政運営、税、財政、選挙、監査などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "administration-finance-operations-candidates.csv",
+      "rules": [
+        {
+          "id": "government-core-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で議会費、公債費、諸支出金または予備費に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["議会費", "公債費", "諸支出金", "予備費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "government-administration-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で総務管理、徴税、統計、選挙または監査に関する項に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            {
+              "field": "kou_name",
+              "operator": "equals",
+              "values": ["総務管理費", "徴税費", "統計調査費", "選挙費", "監査委員費"]
+            }
+          ],
+          "any": []
+        },
+        {
+          "id": "government-staff-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の職員費で議会職員費または総務職員費に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["議会職員費", "総務職員費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

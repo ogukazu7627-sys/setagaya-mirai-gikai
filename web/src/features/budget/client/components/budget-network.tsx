@@ -34,7 +34,6 @@ import type {
   BudgetExplorationProgram,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
-import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   type BudgetMapMode,
   type BudgetMapPosition,
@@ -56,6 +55,7 @@ import {
   BUDGET_MAP_MOBILE_STAR_COUNT,
   createBudgetMapStars,
 } from "../../shared/utils/budget-map-stars";
+import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   formatBudgetAmount,
   shortenBudgetDepartmentName,
@@ -366,7 +366,7 @@ function CategoryNetwork({
     <div
       role="group"
       className="budget-map-scene absolute inset-0"
-      aria-label={`${category.name}に公開された課題`}
+      aria-label={`${category.name}に公開されたテーマ`}
     >
       <NetworkEdges
         decorations={overviewLayout.decorations.map((decoration) => ({
@@ -415,7 +415,7 @@ function CategoryNetwork({
           <FocusIcon aria-hidden="true" className="size-6" />
           <span className="text-lg">{category.name}</span>
           <span className="text-xs font-medium text-budget-space-copy">
-            公開中の課題 {category.topics.length}件
+            公開中のテーマ {category.topics.length}件
           </span>
         </div>
 
@@ -463,15 +463,15 @@ function CategoryNetwork({
               {availability === "no_active_dataset"
                 ? "公開中の予算データはまだありません"
                 : availability === "temporarily_unavailable"
-                  ? "課題データを現在取得できません"
-                  : "この分野は、まだ課題整理中です"}
+                  ? "テーマデータを現在取得できません"
+                  : "この分野は、まだテーマ整理中です"}
             </p>
             <p className="mt-1 text-sm leading-6">
               {availability === "no_active_dataset"
                 ? "予算データの公開準備が整うまで空の状態で表示します。"
                 : availability === "temporarily_unavailable"
                   ? "時間をおいて再度確認するか、検索または公式予算分類をお試しください。"
-                  : "架空の課題で埋めず、確認できたものから公開します。"}
+                  : "架空のテーマで埋めず、確認できたものから公開します。"}
             </p>
             <Button
               type="button"
@@ -563,7 +563,7 @@ function TopicNetwork({
       <div className="budget-map-nodes absolute inset-0">
         <div
           role="img"
-          aria-label={`選択中の課題、${topicName}`}
+          aria-label={`選択中のテーマ、${topicName}`}
           data-tone={category.tone}
           style={getNodePositionStyle(layout.center)}
           className="budget-map-node budget-network-focus-node budget-map-topic-core absolute z-10 flex flex-col items-center justify-center gap-2 text-center text-white"

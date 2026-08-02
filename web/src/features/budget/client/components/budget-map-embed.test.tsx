@@ -4,14 +4,14 @@ import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type {
-  BudgetExplorationCategory,
-  BudgetExplorationData,
-} from "../../shared/types/budget-exploration";
 import {
   EDUCATION_SCHOOL_AGING_EXPLORATION,
   TEST_ACTIVE_BUDGET_DATASET,
 } from "../../shared/test-data/education-school-aging-exploration";
+import type {
+  BudgetExplorationCategory,
+  BudgetExplorationData,
+} from "../../shared/types/budget-exploration";
 import { createBudgetMapHostMessage } from "../../shared/utils/budget-map-message";
 import { BudgetMapEmbed } from "./budget-map-embed";
 
@@ -118,7 +118,7 @@ describe("BudgetMapEmbed", () => {
       );
     });
     expect(
-      screen.getByRole("group", { name: "教育に公開された課題" })
+      screen.getByRole("group", { name: "教育に公開されたテーマ" })
     ).toBeVisible();
 
     const topic = education.topics[0];

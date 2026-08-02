@@ -95,7 +95,7 @@ export function BudgetProgramDetailPage({
           <SectionHeading
             icon={MessagesSquare}
             id="budget-program-topics-title"
-            title="この事業が関係する課題"
+            title="この事業が関係する課題・テーマ"
             description="ここは公式予算分類ではなく、人が確認した情報をもとに、みらい議会が市民向けに整理した探索レイヤーです。"
             kind="editorial"
           />
@@ -107,7 +107,7 @@ export function BudgetProgramDetailPage({
             </div>
           ) : (
             <p className="mt-5 border-y border-budget-overview-border py-4 text-sm text-mirai-text-secondary">
-              この事業に公開済みの課題整理はまだありません。
+              この事業に公開済みの課題・テーマ整理はまだありません。
             </p>
           )}
         </div>

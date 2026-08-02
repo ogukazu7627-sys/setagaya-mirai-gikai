@@ -94,6 +94,9 @@ applyはローカル検証を再実行してから、Storage保存、staging投�
 ### 人間レビュー済み課題関係の登録
 
 10大分類のtopic定義は `data/budget/editorial/topic-definitions/` に置きます。
+各分類には、個別の課題・目標topicに加えて、公式予算階層から全事業へ到達するための
+`administrative_function` topicがあります。行政機能topicはみらい議会の探索用整理で、
+世田谷区の公式な課題分類ではありません。
 公開用7ファイルの公式項目だけから、人間レビュー用の候補CSVを生成できます。
 
 ```bash
@@ -114,8 +117,8 @@ pnpm budget:web:topics:review
 
 起動時に `B_strong_structural` かつ確信度 `high` の候補を `approve` へ一括更新します。
 既存の `revise` / `reject` と衝突する場合は上書きせず、起動を中止します。現在の
-全175候補では146件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
-表示します。初期状態の未判断は23件です。大分類、判断、根拠レベル、検索語で
+全1,331候補では1,302件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
+表示します。提出済みCSVの未判断は0件です。大分類、判断、根拠レベル、検索語で
 絞り込み、各候補を `approve`、`revise`、`reject` から選択して `CSVへ保存` を
 押してください。`revise` は公開対象になる最終判断なので、関係種別または説明を
 修正し、レビュー注記も入力します。
@@ -132,6 +135,13 @@ pnpm budget:web:topics:review -- \
   --review-dir /path/to/review \
   --definitions-dir /path/to/topic-definitions \
   --port 4411
+```
+
+画面を起動せず、既に合意したB・High一括承認ルールだけを冪等に適用する場合は、
+次を実行します。
+
+```bash
+pnpm budget:web:topics:review -- --auto-approve-only
 ```
 
 人間が全行を `approve`、`revise`、`reject` のいずれかで確認したCSVだけを
@@ -159,9 +169,11 @@ pnpm budget:web:topics:publish -- \
 
 本番への公開は、ローカルCLIからは実行できません。`main` の手動workflow
 `Publish Reviewed Budget Topics` だけが、GitHubの `production` 環境を使って実行
-できます。workflowは確認文、全10 review CSVのdry-run、active dataset、レビュー
+できます。workflowは確認文、topic定義と同数の全20 review CSVのdry-run、active dataset、レビュー
 担当者、公開後のtopic・category・relation内容を検証します。現在の提出結果では
-`approve/revise=167`、`reject=8`、`pending=0` が期待値です。公式予算テーブル、
+`approve/revise=1,323`、`reject=8`、`pending=0` が期待値です。1,156 identityは
+10個の行政機能topicのいずれかにちょうど1回含まれ、従来候補外だった981 identityも
+探索可能になります。公式予算テーブル、
 予算dataset、Storageは変更しません。
 
 ```bash

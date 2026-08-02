@@ -41,7 +41,7 @@ function createDatasetAndDefinition() {
   program.budget_program_name = "区立保育園運営";
   program.detail_program_name = "区立保育園運営";
   const definition = loadBudgetTopicDefinitions(definitionsPath).find(
-    (candidate) => candidate.categorySlug === "child-rearing"
+    (candidate) => candidate.topic.slug === "childcare-services-and-environment"
   );
   if (!definition) {
     throw new Error("child-rearing definition is missing");

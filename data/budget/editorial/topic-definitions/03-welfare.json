@@ -40,6 +40,73 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "welfare-health-and-social-security-administration",
+      "name": "福祉・保健・社会保障を支える行政",
+      "shortDescription": "福祉、保健、医療保険、介護保険、生活支援などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の会計・款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "welfare-health-social-security-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "social-welfare-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で民生費の社会福祉費または生活保護費に属するため、福祉・社会保障に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["民生費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["社会福祉費", "生活保護費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "public-health-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で衛生費に属するため、保健・公衆衛生に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["衛生費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "welfare-health-staff-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の職員費で民生職員費または衛生職員費に属するため、福祉・保健・社会保障に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["民生職員費", "衛生職員費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "social-insurance-accounts-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で国民健康保険、後期高齢者医療、介護保険の特別会計に属するため、社会保障に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "national_health_insurance",
+                "latter_stage_elderly_healthcare",
+                "long_term_care_insurance"
+              ]
+            }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

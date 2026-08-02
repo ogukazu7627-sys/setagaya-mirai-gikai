@@ -77,6 +77,57 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "education-and-learning-administration",
+      "name": "教育・学びを支える行政",
+      "shortDescription": "学校教育、幼児教育、学校給食など、教育と学びに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "education-learning-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "education-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で教育費に属するため、教育・学びに関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            {
+              "field": "kou_name",
+              "operator": "equals",
+              "values": ["教育総務費", "小学校費", "中学校費", "校外施設費", "幼稚園費", "学校給食管理費"]
+            }
+          ],
+          "any": []
+        },
+        {
+          "id": "education-staff-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の職員費で教育職員費または学校職員費に属するため、教育・学びに関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["教育職員費", "学校職員費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "school-lunch-account-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で学校給食費会計に属するため、教育・学びに関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["school_lunch_fee"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

@@ -2,10 +2,10 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { readBudgetTopicReviewFile } from "./budget-topic-review";
 import {
-  BudgetTopicReviewConflictError,
-  BudgetTopicReviewInputError,
   autoApproveStrongHighBudgetTopicCandidates,
   automaticBudgetTopicApprovalNote,
+  BudgetTopicReviewConflictError,
+  BudgetTopicReviewInputError,
   type BudgetTopicReviewSiteOptions,
   readBudgetTopicReviewSiteSnapshot,
   saveBudgetTopicReviewSiteChanges,
@@ -27,27 +27,27 @@ afterEach(() => {
 });
 
 describe("budget topic review site data", () => {
-  it("B・Highを除いた29件を手動確認対象として集計する", () => {
+  it("全件到達用topicを含め、B・High以外の29件だけを手動確認対象にする", () => {
     const snapshot = readBudgetTopicReviewSiteSnapshot(createOptions());
 
     expect(snapshot.summary).toEqual({
-      total: 175,
+      total: 1_331,
       pending: 23,
-      approve: 149,
+      approve: 1_305,
       revise: 0,
       reject: 3,
       categoryCount: 10,
-      topicCount: 10,
-      automaticApprovalRuleMatches: 146,
-      automaticallyApproved: 146,
+      topicCount: 20,
+      automaticApprovalRuleMatches: 1_302,
+      automaticallyApproved: 1_302,
       manualReviewTotal: 29,
       manualPending: 23,
       manualApprove: 3,
       manualRevise: 0,
       manualReject: 3,
     });
-    expect(snapshot.rows).toHaveLength(175);
-    expect(new Set(snapshot.rows.map((row) => row.rowKey)).size).toBe(175);
+    expect(snapshot.rows).toHaveLength(1_331);
+    expect(new Set(snapshot.rows.map((row) => row.rowKey)).size).toBe(1_331);
     expect(
       snapshot.rows.filter((row) => row.requiresManualReview)
     ).toHaveLength(29);
@@ -66,17 +66,17 @@ describe("budget topic review site data", () => {
 
     expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
       {
-        matched: 146,
-        updated: 136,
+        matched: 1_302,
+        updated: 1_292,
         alreadyApproved: 10,
-        updatedFiles: 9,
+        updatedFiles: 19,
       }
     );
     const after = readBudgetTopicReviewSiteSnapshot(fixture.options);
     expect(after.summary).toMatchObject({
       pending: 23,
-      approve: 149,
-      automaticallyApproved: 146,
+      approve: 1_305,
+      automaticallyApproved: 1_302,
       manualReviewTotal: 29,
     });
     const targetAfter = after.rows.find(
@@ -89,9 +89,9 @@ describe("budget topic review site data", () => {
     });
     expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
       {
-        matched: 146,
+        matched: 1_302,
         updated: 0,
-        alreadyApproved: 146,
+        alreadyApproved: 1_302,
         updatedFiles: 0,
       }
     );
@@ -123,7 +123,7 @@ describe("budget topic review site data", () => {
     });
 
     expect(after.summary.pending).toBe(22);
-    expect(after.summary.approve).toBe(150);
+    expect(after.summary.approve).toBe(1_306);
     const afterFile = readBudgetTopicReviewFile(inputFile);
     expect(afterFile.rows).toHaveLength(beforeFile.rows.length);
     for (const beforeRow of beforeFile.rows) {

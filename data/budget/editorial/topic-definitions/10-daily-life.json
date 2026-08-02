@@ -28,6 +28,42 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "community-and-resident-services-administration",
+      "name": "地域・窓口・区民生活を支える行政",
+      "shortDescription": "地域行政、総合支所、区民施設、戸籍・住民記録などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "daily-life-community-services-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "community-services-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で区民総務費、支所費または区民施設費に属するため、地域・窓口・区民生活に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["区民総務費", "支所費", "区民施設費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "resident-registry-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で戸籍住民基本台帳費に属するため、窓口・区民生活に関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["戸籍住民基本台帳費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

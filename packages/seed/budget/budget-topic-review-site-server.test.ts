@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 describe("budget topic review local server", () => {
-  it("静的画面と175件のAPIをlocalhostだけへ返す", async () => {
+  it("静的画面と全topic候補のAPIをlocalhostだけへ返す", async () => {
     const started = await startBudgetTopicReviewServer(createOptions(), 0);
     try {
       const page = await fetch(started.url);
@@ -36,9 +36,9 @@ describe("budget topic review local server", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as BudgetTopicReviewSiteSnapshot;
       expect(body.summary).toMatchObject({
-        total: 175,
+        total: 1_331,
         pending: 23,
-        automaticallyApproved: 146,
+        automaticallyApproved: 1_302,
         manualReviewTotal: 29,
         manualPending: 23,
       });

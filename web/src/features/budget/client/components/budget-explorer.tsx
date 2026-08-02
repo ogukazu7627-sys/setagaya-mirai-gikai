@@ -18,6 +18,7 @@ import type {
 } from "../../shared/types/budget-exploration";
 import {
   getBudgetExplorerAnnouncement,
+  getBudgetTopicKindLabel,
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
@@ -504,7 +505,7 @@ function BudgetExplorerHeading({ view }: { view: BudgetExplorerStableView }) {
             copy: view.category.shortDescription,
           }
         : {
-            eyebrow: `${view.category.name}の課題`,
+            eyebrow: `${view.category.name}の${getBudgetTopicKindLabel(view.topic.topicKind)}`,
             title: view.topic.name,
             copy: view.topic.shortDescription,
           };

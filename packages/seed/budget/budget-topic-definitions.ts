@@ -15,6 +15,19 @@ export const budgetTopicCategoryCatalog = [
   { slug: "daily-life", name: "暮らし" },
 ] as const;
 
+export const budgetAdministrativeCoverageTopicSlugs = [
+  "education-and-learning-administration",
+  "child-and-family-administration",
+  "welfare-health-and-social-security-administration",
+  "urban-infrastructure-administration",
+  "disaster-and-safety-administration",
+  "government-and-finance-administration",
+  "culture-sports-and-lifelong-learning-administration",
+  "industry-agriculture-and-consumer-administration",
+  "environment-and-resource-circulation-administration",
+  "community-and-resident-services-administration",
+] as const;
+
 export const budgetTopicCandidateFieldSchema = z.enum([
   "account_code",
   "account_name",

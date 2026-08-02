@@ -3,6 +3,7 @@ import { TEST_ACTIVE_BUDGET_DATASET } from "../test-data/education-school-aging-
 import type { BudgetExplorationData } from "../types/budget-exploration";
 import {
   getBudgetExplorerAnnouncement,
+  getBudgetTopicKindLabel,
   resolveBudgetExplorerView,
 } from "./budget-explorer-view";
 
@@ -33,6 +34,12 @@ const exploration: BudgetExplorationData = {
 };
 
 describe("resolveBudgetExplorerView", () => {
+  it("topic kindを課題・目標・行政機能として区別する", () => {
+    expect(getBudgetTopicKindLabel("problem")).toBe("課題");
+    expect(getBudgetTopicKindLabel("goal")).toBe("目標");
+    expect(getBudgetTopicKindLabel("administrative_function")).toBe("行政機能");
+  });
+
   it("URLなし・category・topicを決定的に復元する", () => {
     expect(
       resolveBudgetExplorerView(exploration, {

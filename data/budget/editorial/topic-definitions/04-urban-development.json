@@ -42,6 +42,41 @@
           "any": []
         }
       ]
+    },
+    {
+      "slug": "urban-infrastructure-administration",
+      "name": "道路・公園・住まいを支える行政",
+      "shortDescription": "道路、橋梁、河川、公園、住宅、都市計画などに関する予算事業を公式予算階層から探すための行政機能。",
+      "topicKind": "administrative_function",
+      "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
+      "reviewFile": "urban-infrastructure-administration-candidates.csv",
+      "rules": [
+        {
+          "id": "urban-infrastructure-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算で土木費に属するため、道路・公園・住まい・まちづくりに関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["土木費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "urban-staff-official-hierarchy",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の職員費で土木職員費に属するため、道路・公園・住まい・まちづくりに関する行政機能を支える予算事業として整理した。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["土木職員費"] }
+          ],
+          "any": []
+        }
+      ]
     }
   ]
 }

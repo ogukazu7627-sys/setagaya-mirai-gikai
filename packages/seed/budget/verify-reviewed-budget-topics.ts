@@ -3,11 +3,11 @@ import path from "node:path";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ResolvedBudgetTopicDefinition } from "./budget-topic-definitions";
+import { assertSafeBudgetTopicPublishTarget } from "./budget-topic-publish-target";
 import {
   type BudgetTopicReviewFile,
   readBudgetTopicReviewFile,
 } from "./budget-topic-review";
-import { assertSafeBudgetTopicPublishTarget } from "./budget-topic-publish-target";
 
 export interface BudgetTopicPublishExpectation {
   definition: ResolvedBudgetTopicDefinition;
@@ -16,6 +16,7 @@ export interface BudgetTopicPublishExpectation {
 
 export interface PublishedBudgetTopicVerificationSnapshot {
   activeDatasetId: string;
+  activeIdentityCount: number;
   categories: Array<{ id: string; slug: string; status: string }>;
   topics: Array<{ id: string; slug: string; status: string }>;
   topicCategories: Array<{ topic_id: string; category_id: string }>;
@@ -35,11 +36,13 @@ export interface PublishedBudgetTopicVerificationSnapshot {
 export interface PublishedBudgetTopicVerificationResult {
   datasetId: string;
   topicCount: number;
+  publishedIdentityCount: number;
   publishedRelationCount: number;
   rejectedRelationCount: number;
 }
 
 type AdminClient = SupabaseClient;
+const RELATION_PAGE_SIZE = 1_000;
 
 function requireEnvironment(name: string): string {
   const value = process.env[name];
@@ -185,12 +188,56 @@ export function assertPublishedBudgetTopicsMatchReviews(
     rejectedRelationCount += review.rejectedRows.length;
   }
 
+  const publishedIdentityCount = new Set(
+    snapshot.relations.map((relation) => relation.budget_program_identity_id)
+  ).size;
+  if (publishedIdentityCount !== snapshot.activeIdentityCount) {
+    throw new Error(
+      `公開topicで到達できるidentity件数がactive datasetと一致しません: expected=${snapshot.activeIdentityCount}, actual=${publishedIdentityCount}`
+    );
+  }
+
   return {
     datasetId: snapshot.activeDatasetId,
     topicCount: expectations.length,
+    publishedIdentityCount,
     publishedRelationCount,
     rejectedRelationCount,
   };
+}
+
+async function fetchAllPublishedTopicRelations(
+  adminClient: AdminClient,
+  datasetId: string,
+  topicIds: string[]
+): Promise<PublishedBudgetTopicVerificationSnapshot["relations"]> {
+  if (topicIds.length === 0) {
+    return [];
+  }
+
+  const relations: PublishedBudgetTopicVerificationSnapshot["relations"] = [];
+  for (let offset = 0; ; offset += RELATION_PAGE_SIZE) {
+    const response = await adminClient
+      .from("budget_topic_programs")
+      .select(
+        "topic_id,budget_program_identity_id,relation_type,explanation,evidence_level,evidence_fields,review_status,reviewed_by,reviewed_at"
+      )
+      .eq("dataset_id", datasetId)
+      .in("topic_id", topicIds)
+      .order("topic_id", { ascending: true })
+      .order("budget_program_identity_id", { ascending: true })
+      .range(offset, offset + RELATION_PAGE_SIZE - 1);
+    if (response.error) {
+      throw new Error(
+        `公開topic関係の取得に失敗しました: ${response.error.message}`
+      );
+    }
+    const page = response.data ?? [];
+    relations.push(...page);
+    if (page.length < RELATION_PAGE_SIZE) {
+      return relations;
+    }
+  }
 }
 
 export async function fetchPublishedBudgetTopicVerificationSnapshot(
@@ -251,37 +298,41 @@ export async function fetchPublishedBudgetTopicVerificationSnapshot(
   }
 
   const topicIds = (topics.data ?? []).map((topic) => topic.id);
-  const [topicCategories, relations] = await Promise.all([
+  const [topicCategories, activeIdentities] = await Promise.all([
     topicIds.length > 0
       ? adminClient
           .from("budget_topic_categories")
           .select("topic_id,category_id")
           .in("topic_id", topicIds)
       : Promise.resolve({ data: [], error: null }),
-    topicIds.length > 0
-      ? adminClient
-          .from("budget_topic_programs")
-          .select(
-            "topic_id,budget_program_identity_id,relation_type,explanation,evidence_level,evidence_fields,review_status,reviewed_by,reviewed_at"
-          )
-          .eq("dataset_id", dataset.id)
-          .in("topic_id", topicIds)
-      : Promise.resolve({ data: [], error: null }),
+    adminClient
+      .from("budget_program_identities")
+      .select("budget_program_identity_id", { count: "exact", head: true })
+      .eq("dataset_id", dataset.id),
   ]);
-  if (topicCategories.error || relations.error) {
+  if (topicCategories.error || activeIdentities.error) {
     throw new Error(
-      `公開topic関係の取得に失敗しました: ${
-        topicCategories.error?.message ?? relations.error?.message
+      `公開topic検証データの取得に失敗しました: ${
+        topicCategories.error?.message ?? activeIdentities.error?.message
       }`
     );
   }
+  if (activeIdentities.count === null) {
+    throw new Error("active datasetのidentity件数を取得できませんでした");
+  }
+  const relations = await fetchAllPublishedTopicRelations(
+    adminClient,
+    dataset.id,
+    topicIds
+  );
 
   return {
     activeDatasetId: dataset.id,
+    activeIdentityCount: activeIdentities.count,
     categories: categories.data ?? [],
     topics: topics.data ?? [],
     topicCategories: topicCategories.data ?? [],
-    relations: relations.data ?? [],
+    relations,
   };
 }
 
