@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "child-rearing", "name": "子育て" },
+  "topics": [
+    {
+      "slug": "childcare-services-and-environment",
+      "name": "保育サービスと保育環境の充実",
+      "shortDescription": "多様な保育サービスの提供と、保育施設の運営・整備に関連する予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "child-rearing-childcare-services-candidates.csv",
+      "rules": [
+        {
+          "id": "childcare-official-fields",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "民生費／児童福祉費に属し、公式の事業名または事業階層に保育が明記されているため、保育サービスと保育環境を支える候補とした。対象範囲は人間レビューで確定する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["民生費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["児童福祉費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["保育"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["保育"] },
+            { "field": "detail_program_name", "operator": "includes", "values": ["保育"] },
+            { "field": "moku_name", "operator": "equals", "values": ["保育所費"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

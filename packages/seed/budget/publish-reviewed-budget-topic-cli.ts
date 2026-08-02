@@ -3,6 +3,12 @@ import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { z } from "zod";
 import {
+  findBudgetTopicDefinitionForReviewFile,
+  getDefaultBudgetTopicDefinitionsDirectory,
+  loadBudgetTopicDefinitions,
+  type ResolvedBudgetTopicDefinition,
+} from "./budget-topic-definitions";
+import {
   type BudgetTopicReviewFile,
   buildReviewedBudgetTopicPayload,
   publishReviewedBudgetTopic,
@@ -11,11 +17,12 @@ import {
 } from "./publish-reviewed-budget-topic";
 
 const usage = `Usage:
-  pnpm budget:web:topics:publish -- --input-file <path> [--dry-run]
-  pnpm budget:web:topics:publish -- --input-file <path> --reviewed-by <uuid> --reviewed-at <ISO-8601> --apply
+  pnpm budget:web:topics:publish -- --input-file <path> [--definitions-dir <path>] [--dry-run]
+  pnpm budget:web:topics:publish -- --input-file <path> [--definitions-dir <path>] --reviewed-by <uuid> --reviewed-at <ISO-8601> --apply
 
 Options:
   --input-file <path>  人間レビュー済み候補CSV（必須）
+  --definitions-dir    topic定義ディレクトリ
   --reviewed-by <uuid> Supabase Authのレビュー者UUID（--apply時に必須）
   --reviewed-at <time> レビュー日時（ISO-8601、--apply時に必須）
   --dry-run            CSV検証と対象件数の表示だけを行う（デフォルト）
@@ -28,6 +35,7 @@ const reviewedAtSchema = z.iso.datetime({ offset: true });
 
 interface BudgetTopicPublishCliOptions {
   inputFile: string;
+  definitionsDirectory: string;
   mode: "dry-run" | "apply";
   reviewedBy?: string;
   reviewedAt?: string;
@@ -57,6 +65,7 @@ function parseCliOptions(
     strict: true,
     options: {
       "input-file": { type: "string" },
+      "definitions-dir": { type: "string" },
       "reviewed-by": { type: "string" },
       "reviewed-at": { type: "string" },
       "dry-run": { type: "boolean" },
@@ -83,6 +92,9 @@ function parseCliOptions(
 
   return {
     inputFile: path.resolve(invocationDirectory, values["input-file"]),
+    definitionsDirectory: values["definitions-dir"]
+      ? path.resolve(invocationDirectory, values["definitions-dir"])
+      : getDefaultBudgetTopicDefinitionsDirectory(invocationDirectory),
     mode: values.apply ? "apply" : "dry-run",
     reviewedBy: values["reviewed-by"],
     reviewedAt: values["reviewed-at"],
@@ -112,8 +124,14 @@ export async function runBudgetTopicPublishCli(
   }
 
   let reviewFile: BudgetTopicReviewFile;
+  let definition: ResolvedBudgetTopicDefinition;
   try {
     reviewFile = readBudgetTopicReviewFile(options.inputFile);
+    definition = findBudgetTopicDefinitionForReviewFile(
+      loadBudgetTopicDefinitions(options.definitionsDirectory),
+      options.inputFile,
+      reviewFile.candidateTopicName
+    );
   } catch (error) {
     stderr(
       `[budget:web:topics:publish] CSV検証に失敗しました: ${
@@ -130,6 +148,8 @@ export async function runBudgetTopicPublishCli(
       `revise=${reviewFile.decisionCounts.revise}`,
       `reject=${reviewFile.decisionCounts.reject}`,
       `pending=${reviewFile.decisionCounts[""]}`,
+      `category=${definition.categorySlug}`,
+      `topic=${definition.topic.slug}`,
     ].join(", ")
   );
 
@@ -143,7 +163,7 @@ export async function runBudgetTopicPublishCli(
   try {
     const reviewedBy = reviewerIdSchema.parse(options.reviewedBy);
     const reviewedAt = reviewedAtSchema.parse(options.reviewedAt);
-    const payload = buildReviewedBudgetTopicPayload(reviewFile, {
+    const payload = buildReviewedBudgetTopicPayload(reviewFile, definition, {
       id: reviewedBy,
       reviewedAt,
     });

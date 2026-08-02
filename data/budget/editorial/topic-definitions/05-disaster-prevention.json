@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "disaster-prevention", "name": "防災" },
+  "topics": [
+    {
+      "slug": "disaster-readiness",
+      "name": "災害への備えと地域防災力の向上",
+      "shortDescription": "備蓄、訓練、防災施設、災害対策など、地域の備えに関連する予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "disaster-prevention-readiness-candidates.csv",
+      "rules": [
+        {
+          "id": "explicit-disaster-readiness",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式の防災対策費に属し、事業名に防災、災害、備蓄または避難が明記されているため、災害への備えを支える強い候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["防災対策費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["防災", "災害", "備蓄", "避難"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["防災", "災害", "備蓄", "避難"] }
+          ]
+        },
+        {
+          "id": "other-disaster-budget-item",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "公式の防災対策費には属するが、事業名だけでは災害への備えとの直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["防災対策費"] }
+          ],
+          "any": []
+        }
+      ]
+    }
+  ]
+}

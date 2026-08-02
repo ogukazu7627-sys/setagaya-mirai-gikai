@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "industry", "name": "産業" },
+  "topics": [
+    {
+      "slug": "local-business-support",
+      "name": "地域の事業者と産業の成長支援",
+      "shortDescription": "中小企業、商業、ものづくり、雇用、産業連携など、地域経済を支える予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "industry-local-business-support-candidates.csv",
+      "rules": [
+        {
+          "id": "industry-administration-adjacent",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "商工振興費には属するが、部門の庶務事務が地域事業者の成長支援へどう関係するかは公式事業名だけでは確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] },
+            { "field": "display_program_name", "operator": "equals", "values": ["経済産業部庶務事務"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "explicit-business-industry-support",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "産業経済費／商工振興費に属し、公式事業名に経営支援、商業・工業振興、雇用、産業連携等が明記されているため、地域の事業者と産業を支える候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["支援", "振興", "促進", "産業", "雇用", "就業", "経営", "商業", "工業", "ものづくり"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["支援", "振興", "促進", "産業", "雇用", "就業", "経営", "商業", "工業", "ものづくり"] }
+          ]
+        },
+        {
+          "id": "other-commerce-industry-budget-item",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "商工振興費には属するが、公式事業名だけでは地域事業者の成長支援との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] }
+          ],
+          "any": []
+        }
+      ]
+    }
+  ]
+}

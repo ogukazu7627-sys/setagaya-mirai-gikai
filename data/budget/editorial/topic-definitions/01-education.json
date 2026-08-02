@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "education", "name": "教育" },
+  "topics": [
+    {
+      "slug": "school-facility-aging",
+      "name": "学校施設の老朽化への対応",
+      "shortDescription": "区立小・中学校の改築、施設改修、維持管理など、学校施設の老朽化への対応に関連する予算を探すための課題。",
+      "topicKind": "problem",
+      "editorialNote": "みらい議会の編集データ。公開予算7ファイルに基づく人間レビュー済み関係であり、世田谷区の公式分類ではない。",
+      "reviewFile": "education-school-aging-candidates.csv",
+      "rules": [
+        {
+          "id": "school-facility-renewal",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "教育費の小・中学校施設について、公式の事業名と学校施設充実費・学校施設建設費の階層から、施設改修・改築との構造的な関係が強い候補とした。老朽化を目的とすること自体は公開データだけでは確定しないため、人間レビューを要する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["小学校費", "中学校費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["学校施設充実費", "学校施設建設費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["施設改修", "施設整備", "改築"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["施設改修", "施設整備", "改築"] }
+          ]
+        },
+        {
+          "id": "school-facility-maintenance",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "medium",
+          "explanation": "教育費の学校管理費に属し、公式事業名が学校施設の維持管理を示すため、学校施設を保つ関係候補とした。老朽化対応との範囲は人間レビューを要する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["学校管理費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["維持管理"] }
+          ]
+        },
+        {
+          "id": "school-facility-operation-adjacent",
+          "relationType": "maintains",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "学校管理費に属し、同じ目に施設の維持管理事業がある一方、事業名は維持運営であり施設老朽化への対応部分を公式予算情報から識別できないため、編集判断を要する隣接候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["小学校費", "中学校費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["学校管理費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "equals", "values": ["小学校維持運営", "中学校維持運営"] }
+          ]
+        },
+        {
+          "id": "school-land-purchase-adjacent",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "学校施設建設費に属し、同じ目に改築事業がある一方、用地取得の目的が老朽化対応かは公式予算情報から確認できないため、編集判断を要する隣接候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
+            { "field": "kou_name", "operator": "equals", "values": ["小学校費"] },
+            { "field": "moku_name", "operator": "equals", "values": ["学校施設建設費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "equals", "values": ["小学校用地買収"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

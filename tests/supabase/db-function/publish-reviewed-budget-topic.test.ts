@@ -2,6 +2,10 @@ import { fileURLToPath } from "node:url";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  findBudgetTopicDefinitionForReviewFile,
+  loadBudgetTopicDefinitions,
+} from "../../../packages/seed/budget/budget-topic-definitions";
+import {
   buildReviewedBudgetTopicPayload,
   type ReviewedBudgetTopicPayload,
   readBudgetTopicReviewFile,
@@ -28,6 +32,9 @@ const reviewedCandidatesPath = fileURLToPath(
     "../../../data/budget/editorial/review/education-school-aging-candidates.csv",
     import.meta.url
   )
+);
+const definitionsPath = fileURLToPath(
+  new URL("../../../data/budget/editorial/topic-definitions", import.meta.url)
 );
 
 describe("publish_reviewed_budget_topic", () => {
@@ -89,7 +96,7 @@ describe("publish_reviewed_budget_topic", () => {
       reviewFile.selectedRows[0].evidence_fields.budget_item_key
     );
     firstRejectedIdentityId =
-      reviewFile.excludedRows[0].budget_program_identity_id;
+      reviewFile.rejectedRows[0].budget_program_identity_id;
 
     const candidateIdentities = await admin
       .from("budget_program_identities")
@@ -107,10 +114,19 @@ describe("publish_reviewed_budget_topic", () => {
     }
 
     topicSlug = `school-facility-aging-test-${crypto.randomUUID()}`;
-    const reviewedPayload = buildReviewedBudgetTopicPayload(reviewFile, {
-      id: reviewerId,
-      reviewedAt,
-    });
+    const definition = findBudgetTopicDefinitionForReviewFile(
+      loadBudgetTopicDefinitions(definitionsPath),
+      reviewedCandidatesPath,
+      reviewFile.candidateTopicName
+    );
+    const reviewedPayload = buildReviewedBudgetTopicPayload(
+      reviewFile,
+      definition,
+      {
+        id: reviewerId,
+        reviewedAt,
+      }
+    );
     payload = {
       ...reviewedPayload,
       topic: {

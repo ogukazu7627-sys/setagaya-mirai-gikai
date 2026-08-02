@@ -1,0 +1,192 @@
+name: Publish Reviewed Budget Topics
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: PUBLISH_REVIEWED_BUDGET_TOPICS と入力
+        required: true
+        type: string
+      reviewed_at:
+        description: 人間レビュー完了日時（ISO-8601）
+        required: true
+        type: string
+      reviewer_uuid:
+        description: レビュアーUUID（空欄時は既存公開関係または一意なadminから解決）
+        required: false
+        type: string
+
+concurrency:
+  group: publish-reviewed-budget-topics-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      BUDGET_IMPORT_ENVIRONMENT: production
+      BUDGET_TOPIC_PUBLISH_CONFIRMATION: ${{ inputs.confirmation }}
+      REVIEWED_AT: ${{ inputs.reviewed_at }}
+      REQUESTED_REVIEWER_UUID: ${{ inputs.reviewer_uuid }}
+
+    steps:
+      - name: Validate manual production confirmation
+        run: |
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "::error::This workflow may only run from main."
+            exit 1
+          fi
+          if [ "$BUDGET_TOPIC_PUBLISH_CONFIRMATION" != "PUBLISH_REVIEWED_BUDGET_TOPICS" ]; then
+            echo "::error::The production confirmation phrase does not match."
+            exit 1
+          fi
+
+      - name: Checkout main
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: latest
+
+      - name: Resolve production API credentials
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          api_keys_json="$(
+            supabase projects api-keys \
+              --project-ref "$SUPABASE_PROJECT_REF" \
+              --reveal \
+              --output json
+          )"
+          service_key="$(
+            printf '%s' "$api_keys_json" | jq -er '
+              ([.[] | select(.type == "secret") | .api_key][0]
+                // [.[] | select(.name == "service_role") | .api_key][0]
+                // error("service role key was not found"))
+            '
+          )"
+          echo "::add-mask::$service_key"
+          printf 'SUPABASE_URL=https://%s.supabase.co\n' "$SUPABASE_PROJECT_REF" >> "$GITHUB_ENV"
+          printf 'SUPABASE_SECRET_KEY=%s\n' "$service_key" >> "$GITHUB_ENV"
+
+      - name: Resolve reviewer without logging identity data
+        run: |
+          reviewer_uuid="$REQUESTED_REVIEWER_UUID"
+          if [ -z "$reviewer_uuid" ]; then
+            datasets_json="$(
+              curl --fail-with-body --silent --show-error \
+                --connect-timeout 10 \
+                --max-time 30 \
+                --get \
+                --header "apikey: $SUPABASE_SECRET_KEY" \
+                --header "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+                --data-urlencode "select=id" \
+                --data-urlencode "fiscal_year=eq.2026" \
+                --data-urlencode "budget_type=eq.initial_budget" \
+                --data-urlencode "status=eq.active" \
+                "$SUPABASE_URL/rest/v1/budget_datasets"
+            )"
+            dataset_id="$(
+              printf '%s' "$datasets_json" | jq -er '
+                if length == 1 then .[0].id
+                else error("active budget dataset is not unique") end
+              '
+            )"
+            reviewers_json="$(
+              curl --fail-with-body --silent --show-error \
+                --connect-timeout 10 \
+                --max-time 30 \
+                --get \
+                --header "apikey: $SUPABASE_SECRET_KEY" \
+                --header "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+                --data-urlencode "select=reviewed_by" \
+                --data-urlencode "dataset_id=eq.$dataset_id" \
+                --data-urlencode "review_status=eq.published" \
+                --data-urlencode "reviewed_by=not.is.null" \
+                "$SUPABASE_URL/rest/v1/budget_topic_programs"
+            )"
+            reviewer_uuid="$(
+              printf '%s' "$reviewers_json" | jq -r '
+                [.[].reviewed_by] | unique |
+                if length == 1 then .[0] else empty end
+              '
+            )"
+          fi
+          if [ -z "$reviewer_uuid" ]; then
+            admins_json="$(
+              curl --fail-with-body --silent --show-error \
+                --connect-timeout 10 \
+                --max-time 30 \
+                --request POST \
+                --header "apikey: $SUPABASE_SECRET_KEY" \
+                --header "Authorization: Bearer $SUPABASE_SECRET_KEY" \
+                --header "Content-Type: application/json" \
+                --data '{}' \
+                "$SUPABASE_URL/rest/v1/rpc/get_admin_users"
+            )"
+            reviewer_uuid="$(
+              printf '%s' "$admins_json" | jq -er '
+                if length == 1 then .[0].id
+                else error("reviewer is not uniquely resolvable") end
+              '
+            )"
+          fi
+          echo "::add-mask::$reviewer_uuid"
+          printf 'REVIEWER_UUID=%s\n' "$reviewer_uuid" >> "$GITHUB_ENV"
+
+      - name: Validate all review files without writing
+        run: |
+          mapfile -t review_files < <(
+            find data/budget/editorial/review \
+              -maxdepth 1 \
+              -type f \
+              -name '*-candidates.csv' \
+              -print | sort
+          )
+          if [ "${#review_files[@]}" -ne 10 ]; then
+            echo "::error::Expected 10 review files, found ${#review_files[@]}."
+            exit 1
+          fi
+          for review_file in "${review_files[@]}"; do
+            pnpm --filter @mirai-gikai/seed budget:web:topics:publish -- \
+              --input-file "$review_file"
+          done
+
+      - name: Publish reviewed relations idempotently
+        run: |
+          mapfile -t review_files < <(
+            find data/budget/editorial/review \
+              -maxdepth 1 \
+              -type f \
+              -name '*-candidates.csv' \
+              -print | sort
+          )
+          for review_file in "${review_files[@]}"; do
+            pnpm --filter @mirai-gikai/seed budget:web:topics:publish -- \
+              --input-file "$review_file" \
+              --reviewed-by "$REVIEWER_UUID" \
+              --reviewed-at "$REVIEWED_AT" \
+              --apply
+          done
+
+      - name: Verify production relations against submitted reviews
+        run: pnpm --filter @mirai-gikai/seed budget:web:topics:verify

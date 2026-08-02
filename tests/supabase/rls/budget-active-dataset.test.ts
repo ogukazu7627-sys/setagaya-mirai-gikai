@@ -22,6 +22,7 @@ describe("budget dataset RLS", () => {
   let stagingDataset: BudgetTestDataset;
   let activeDatasetId: string;
   let stagingDatasetId: string;
+  let previousActiveDatasetId: string | null = null;
   let userId: string;
   let email: string;
   const password = "test-password-123";
@@ -29,6 +30,19 @@ describe("budget dataset RLS", () => {
   const serviceStoragePath = `rls/${crypto.randomUUID()}/service.json`;
 
   beforeAll(async () => {
+    const { data: previousActiveDataset, error: previousActiveDatasetError } =
+      await admin
+        .from("budget_datasets")
+        .select("id")
+        .eq("fiscal_year", 2026)
+        .eq("budget_type", "initial_budget")
+        .eq("status", "active")
+        .maybeSingle();
+    if (previousActiveDatasetError) {
+      throw previousActiveDatasetError;
+    }
+    previousActiveDatasetId = previousActiveDataset?.id ?? null;
+
     activeDataset = createBudgetTestDataset();
     stagingDataset = createBudgetTestDataset();
     const { data: activeImport, error: activeImportError } = await admin.rpc(
@@ -76,6 +90,25 @@ describe("budget dataset RLS", () => {
     await cleanupTestUser(userId);
     cleanupBudgetTestDataset(activeDataset);
     cleanupBudgetTestDataset(stagingDataset);
+
+    if (previousActiveDatasetId) {
+      const { error: stagingError } = await admin
+        .from("budget_datasets")
+        .update({ status: "staging", archived_at: null })
+        .eq("id", previousActiveDatasetId)
+        .eq("status", "archived");
+      if (stagingError) {
+        throw stagingError;
+      }
+
+      const { error: activationError } = await admin.rpc(
+        "activate_budget_dataset",
+        { p_dataset_id: previousActiveDatasetId }
+      );
+      if (activationError) {
+        throw activationError;
+      }
+    }
   });
 
   it("anonはactive datasetだけSELECTできる", async () => {

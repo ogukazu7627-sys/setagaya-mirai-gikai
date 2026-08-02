@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "welfare", "name": "福祉" },
+  "topics": [
+    {
+      "slug": "preventive-care-and-community-support",
+      "name": "介護予防と地域生活の支援",
+      "shortDescription": "介護予防、地域包括支援、認知症支援など、地域での生活を支える予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "welfare-preventive-care-community-candidates.csv",
+      "rules": [
+        {
+          "id": "long-term-care-community-support",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "介護保険事業会計の地域支援事業費に属することが公式階層で確認できるため、介護予防と地域生活を支える構造的な候補とした。個別の関係は人間レビューで確定する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["long_term_care_insurance"] },
+            { "field": "kan_name", "operator": "equals", "values": ["地域支援事業費"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "general-account-community-care",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "medium",
+          "explanation": "一般会計の高齢者福祉費に属し、公式事業名に介護予防、地域包括支援、認知症または生活支援が明記されているため候補とした。対象範囲は人間レビューで確定する。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["高齢者福祉費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["介護予防", "地域包括支援", "認知症", "生活支援"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["介護予防", "地域包括支援", "認知症", "生活支援"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

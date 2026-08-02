@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "environment", "name": "環境問題" },
+  "topics": [
+    {
+      "slug": "decarbonization-and-renewable-energy",
+      "name": "脱炭素と再生可能エネルギーの推進",
+      "shortDescription": "脱炭素、気候危機対策、再生可能エネルギー、省エネルギーに関連する予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "environment-decarbonization-candidates.csv",
+      "rules": [
+        {
+          "id": "explicit-decarbonization-fields",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "一般会計の公式事業名に脱炭素、気候危機、再生可能エネルギー、エコ区役所または環境配慮型住宅が明記されているため、脱炭素等を支える強い候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["脱炭素", "気候危機", "再生可能エネルギー", "エコ区役所", "環境配慮型住宅", "省エネルギー"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["脱炭素", "気候危機", "再生可能エネルギー", "エコ区役所", "環境配慮型住宅", "省エネルギー"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

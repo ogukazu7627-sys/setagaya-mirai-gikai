@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "daily-life", "name": "暮らし" },
+  "topics": [
+    {
+      "slug": "community-facilities",
+      "name": "身近な地域施設の維持と活用",
+      "shortDescription": "区民センター、区民会館、地区会館、区民集会所など、地域の活動拠点に関連する予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "daily-life-community-facilities-candidates.csv",
+      "rules": [
+        {
+          "id": "explicit-community-facilities",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "一般会計の区民施設費に属し、公式事業名に区民センター、区民会館、地区会館、区民集会所または区民施設が明記されているため、身近な地域施設を維持・活用する候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["区民施設費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["区民センター", "区民会館", "地区会館", "区民集会所", "区民施設"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["区民センター", "区民会館", "地区会館", "区民集会所", "区民施設"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

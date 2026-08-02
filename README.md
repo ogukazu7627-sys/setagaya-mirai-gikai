@@ -66,9 +66,50 @@ pnpm budget:web:import -- --input-dir /path/to/budget-data --apply
 
 ### 人間レビュー済み課題関係の登録
 
-教育「学校施設の老朽化への対応」の候補CSVは、`review_decision` が
-`approve` または `revise` の行だけを公開関係として登録します。`reject`
-または空欄の行は登録しません。
+10大分類のtopic定義は `data/budget/editorial/topic-definitions/` に置きます。
+公開用7ファイルの公式項目だけから、人間レビュー用の候補CSVを生成できます。
+
+```bash
+pnpm budget:web:topics:candidates -- --input-dir /path/to/budget-data
+```
+
+候補生成は `review_decision` が入った既存CSVを上書きしません。新規候補の
+`review_decision` と `review_note` は空欄です。候補生成では
+`A_official_direct` を使わず、公式階層・事業名・部署から強く読める
+`B_strong_structural` と、編集判断を要する `C_editorial` を区別します。
+C候補を含め、候補は自動公開されません。
+
+レビューCSVは、localhost専用の画面から確認・保存できます。
+
+```bash
+pnpm budget:web:topics:review
+```
+
+起動時に `B_strong_structural` かつ確信度 `high` の候補を `approve` へ一括更新します。
+既存の `revise` / `reject` と衝突する場合は上書きせず、起動を中止します。現在の
+全175候補では146件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
+表示します。初期状態の未判断は23件です。大分類、判断、根拠レベル、検索語で
+絞り込み、各候補を `approve`、`revise`、`reject` から選択して `CSVへ保存` を
+押してください。`revise` は公開対象になる最終判断なので、関係種別または説明を
+修正し、レビュー注記も入力します。
+
+この画面は `127.0.0.1` だけで待受け、Supabaseへ接続しません。保存先は
+`data/budget/editorial/review/` の既存CSVだけです。保存しても本番反映は行われません。
+手動確認対象の未判断が0件になったらCodexへ「提出したよ」と伝え、CSV差分、
+dry-run、接続先を確認した後に、明示された指示に従って既存の公開CLIを実行します。
+
+ポートや入力場所を変える場合は次の引数を使用できます。
+
+```bash
+pnpm budget:web:topics:review -- \
+  --review-dir /path/to/review \
+  --definitions-dir /path/to/topic-definitions \
+  --port 4411
+```
+
+人間が全行を `approve`、`revise`、`reject` のいずれかで確認したCSVだけを
+公開できます。`approve` または `revise` の行だけを公開関係として登録し、
+`reject` は除外します。空欄が1件でも残るファイルは `--apply` を拒否します。
 
 ```bash
 # dry-run（デフォルト）
@@ -87,6 +128,38 @@ pnpm budget:web:topics:publish -- \
 登録先は編集データの `budget_topics`、`budget_topic_categories`、
 `budget_topic_programs` だけです。公式予算テーブルは更新しません。同じCSVを
 再実行しても関係は重複せず、却下済みの候補は公開関係として残りません。
+空欄は未判断であり、既存公開関係を削除する根拠にも使いません。
+
+本番への公開は、ローカルCLIからは実行できません。`main` の手動workflow
+`Publish Reviewed Budget Topics` だけが、GitHubの `production` 環境を使って実行
+できます。workflowは確認文、全10 review CSVのdry-run、active dataset、レビュー
+担当者、公開後のtopic・category・relation内容を検証します。現在の提出結果では
+`approve/revise=167`、`reject=8`、`pending=0` が期待値です。公式予算テーブル、
+予算dataset、Storageは変更しません。
+
+```bash
+gh workflow run publish_budget_topics.yml \
+  --ref main \
+  -f confirmation=PUBLISH_REVIEWED_BUDGET_TOPICS \
+  -f reviewed_at=2026-08-03T12:00:00+09:00
+```
+
+既存公開関係のreviewerが一意なら、そのSupabase Authユーザーを引き継ぎます。
+一意に決められない場合だけ `reviewer_uuid` を明示します。秘密鍵とレビュアー情報は
+ログへ出さず、workflow終了時に `budget:web:topics:verify` がreview CSVとの完全一致を
+確認します。途中失敗時は関係を推測で補正せず、ログとDB状態を確認してから冪等に
+再実行します。
+
+active dataset、review CSV、実際の公開関係を突合した管理レポートは次で
+再生成します。大分類別・topic別の候補、B/C、review待ち、公開済み、未分類
+identityを確認できます。
+
+```bash
+pnpm budget:web:topics:report -- --input-dir /path/to/budget-data
+```
+
+出力は `docs/budget/topic-workflow-report.md` です。未分類はエラーではなく、
+検索・公式分類・全予算一覧から引き続き閲覧できます。
 
 ### 予算データセット改訂時の課題関係リリース
 
@@ -97,12 +170,14 @@ pnpm budget:web:topics:publish -- \
 
 1. `pnpm budget:web:import -- --input-dir /path/to/budget-data` で新データをdry-run検証する。
 2. `--apply` 後、active datasetのID、件数、金額、validation結果を確認する。
-3. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
-4. `pnpm budget:web:topics:publish` をまずdry-runし、承認13件・却下3件であることを確認する。
-5. 元のレビュー担当者・レビュー日時を明示して `--apply` し、`教育 → 学校施設の老朽化への対応 → 承認済み13事業` を取得APIで確認する。
+3. `pnpm budget:web:topics:candidates` を実行する。レビュー済みCSVが保護されたこと、新規候補が空欄で出力されたことを確認する。
+4. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
+5. 公開済みtopicの各review CSVについて `pnpm budget:web:topics:publish` をまずdry-runし、approve / revise / reject / pending件数を確認する。pendingがあるtopicは公開しない。
+6. 元のレビュー担当者・レビュー日時を明示して、全行レビュー済みのtopicだけを `--apply` する。
+7. `pnpm budget:web:topics:report` を実行し、active datasetのmanifest、公開済み件数、未分類件数を確認する。公開APIとグラフにはpublished関係だけが出ることを確認する。
 
 identity IDや根拠項目が変わった場合は、旧関係を推測でコピーせず候補CSVを再生成し、
-人間の再レビューへ戻してください。手順3〜5が終わるまで、新datasetでは課題に紐づく
+人間の再レビューへ戻してください。手順3〜7が終わるまで、新datasetでは課題に紐づく
 事業が一時的に空になることがあります。
 
 ## マイグレーション

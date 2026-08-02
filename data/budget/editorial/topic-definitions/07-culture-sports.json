@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": { "slug": "culture-sports", "name": "文化・スポーツ" },
+  "topics": [
+    {
+      "slug": "access-to-sports",
+      "name": "スポーツに親しめる環境づくり",
+      "shortDescription": "スポーツ活動、施設の整備・維持、参加機会に関連する予算を探すための入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
+      "reviewFile": "culture-sports-access-candidates.csv",
+      "rules": [
+        {
+          "id": "sports-administration-adjacent",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "スポーツ振興費には属するが、部門の庶務事務が市民のスポーツ参加環境へどう関係するかは公式事業名だけでは確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] },
+            { "field": "display_program_name", "operator": "equals", "values": ["スポーツ推進部庶務事務"] }
+          ],
+          "any": []
+        },
+        {
+          "id": "explicit-sports-access",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "スポーツ振興費に属し、公式事業名にスポーツ活動、スポーツ施設、運動施設、体育施設またはプールが明記されているため、スポーツに親しめる環境を支える候補とした。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] }
+          ],
+          "any": [
+            { "field": "display_program_name", "operator": "includes", "values": ["スポーツ", "運動", "体育", "プール"] },
+            { "field": "budget_program_name", "operator": "includes", "values": ["スポーツ", "運動", "体育", "プール"] }
+          ]
+        },
+        {
+          "id": "other-sports-budget-item",
+          "relationType": "enables",
+          "evidenceLevel": "C_editorial",
+          "confidence": "low",
+          "explanation": "スポーツ振興費には属するが、公式事業名だけでは市民の参加環境との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
+          "all": [
+            { "field": "account_code", "operator": "equals", "values": ["general"] },
+            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] }
+          ],
+          "any": []
+        }
+      ]
+    }
+  ]
+}
