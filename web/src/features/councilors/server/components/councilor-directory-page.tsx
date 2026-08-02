@@ -18,7 +18,7 @@ export async function CouncilorDirectoryPage() {
           </p>
           <h1 className="text-3xl font-bold text-mirai-text">議員</h1>
           <p className="max-w-2xl text-[15px] leading-relaxed text-mirai-text-secondary">
-            世田谷区議会の議員と、このサイトに掲載している案件での発言を確認できます。
+            世田谷区議会の議員と、このサイトに掲載している発言を確認できます。
           </p>
         </div>
 

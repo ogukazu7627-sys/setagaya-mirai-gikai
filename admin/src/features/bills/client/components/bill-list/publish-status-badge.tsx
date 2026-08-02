@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronDown, Clock, Eye, EyeOff, Loader2 } from "lucide-react";
+import {
+  ChevronDown,
+  Clock,
+  Eye,
+  EyeOff,
+  FileText,
+  Loader2,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +48,11 @@ const PUBLISH_STATUS_CONFIG: Record<
     badgeClass:
       "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
   },
+  published_non_bill: {
+    label: "公開（案件以外）",
+    icon: FileText,
+    badgeClass: "bg-sky-100 text-sky-800 border-sky-200 hover:bg-sky-200",
+  },
 };
 
 export function PublishStatusBadge({
@@ -77,7 +89,7 @@ export function PublishStatusBadge({
         <Button
           variant="ghost"
           size="sm"
-          className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border-2 hover:opacity-80 min-w-[152px] ${currentConfig.badgeClass}`}
+          className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border-2 hover:opacity-80 min-w-[176px] ${currentConfig.badgeClass}`}
         >
           <CurrentIcon className="h-4 w-4" />
           <span>{currentConfig.label}</span>

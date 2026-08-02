@@ -104,6 +104,8 @@ function bulkStatusLabel(status: string | undefined) {
   switch (status) {
     case "published":
       return "公開";
+    case "published_non_bill":
+      return "公開（案件以外）";
     case "draft":
       return "下書き";
     default:

@@ -62,7 +62,7 @@ export async function CouncilorDetailPage({
               id="councilor-statements-title"
               className="text-2xl font-bold text-mirai-text"
             >
-              掲載案件での発言
+              掲載中の発言
             </h2>
           </div>
 
@@ -74,32 +74,46 @@ export async function CouncilorDetailPage({
                   return null;
                 }
 
-                return (
-                  <li key={statement.id}>
-                    <Link
-                      href={routes.billDetail(bill.id) as Route}
-                      className="group block rounded-lg border border-mirai-border bg-white p-5 transition-colors hover:bg-mirai-surface-gray"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <h3 className="font-bold leading-relaxed text-mirai-text">
-                            {bill.name}
-                          </h3>
-                          {bill.submitted_date && (
-                            <time className="mt-1 block text-xs text-mirai-text-muted">
-                              {formatDateWithDots(bill.submitted_date)}
-                            </time>
-                          )}
-                        </div>
+                const cardContent = (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h3 className="font-bold leading-relaxed text-mirai-text">
+                          {bill.name}
+                        </h3>
+                        {bill.submitted_date && (
+                          <time className="mt-1 block text-xs text-mirai-text-muted">
+                            {formatDateWithDots(bill.submitted_date)}
+                          </time>
+                        )}
+                      </div>
+                      {bill.publish_status === "published" && (
                         <ArrowRight
                           aria-hidden="true"
                           className="mt-1 size-5 shrink-0 text-primary-accent"
                         />
+                      )}
+                    </div>
+                    <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mirai-text-secondary">
+                      {statement.content_text}
+                    </p>
+                  </>
+                );
+
+                return (
+                  <li key={statement.id}>
+                    {bill.publish_status === "published" ? (
+                      <Link
+                        href={routes.billDetail(bill.id) as Route}
+                        className="group block rounded-lg border border-mirai-border bg-white p-5 transition-colors hover:bg-mirai-surface-gray"
+                      >
+                        {cardContent}
+                      </Link>
+                    ) : (
+                      <div className="rounded-lg border border-mirai-border bg-white p-5">
+                        {cardContent}
                       </div>
-                      <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mirai-text-secondary">
-                        {statement.content_text}
-                      </p>
-                    </Link>
+                    )}
                   </li>
                 );
               })}
@@ -107,7 +121,7 @@ export async function CouncilorDetailPage({
           ) : (
             <div className="mt-5 rounded-lg border border-mirai-border bg-white p-6">
               <p className="text-sm leading-relaxed text-mirai-text-secondary">
-                このサイトに掲載している公開案件では、同期済みの発言がまだありません。
+                このサイトに掲載している発言はまだありません。
               </p>
             </div>
           )}

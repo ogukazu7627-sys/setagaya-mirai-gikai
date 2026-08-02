@@ -3135,7 +3135,11 @@ export type Database = {
     }
     Enums: {
       bill_item_type: "bill" | "report" | "petition" | "question"
-      bill_publish_status: "draft" | "published" | "coming_soon"
+      bill_publish_status:
+        | "draft"
+        | "published"
+        | "coming_soon"
+        | "published_non_bill"
       bill_status_enum:
         | "introduced"
         | "in_originating_house"
@@ -3315,7 +3319,12 @@ export const Constants = {
   },
   public: {
     Enums: {
-      bill_publish_status: ["draft", "published", "coming_soon"],
+      bill_publish_status: [
+        "draft",
+        "published",
+        "coming_soon",
+        "published_non_bill",
+      ],
       bill_status_enum: [
         "introduced",
         "in_originating_house",

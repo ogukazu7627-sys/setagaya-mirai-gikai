@@ -67,6 +67,7 @@ export const PUBLISH_STATUS_OPTIONS: Array<{
 }> = [
   { value: "draft", label: "下書き" },
   { value: "published", label: "公開" },
+  { value: "published_non_bill", label: "公開（案件以外）" },
 ];
 
 export const SOURCE_TYPE_OPTIONS = [
