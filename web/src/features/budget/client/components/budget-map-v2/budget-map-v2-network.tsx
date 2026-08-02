@@ -17,6 +17,7 @@ import type {
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../../../shared/types/budget-exploration";
+import { getBudgetOfficialClassificationContext } from "../../../shared/utils/budget-official-classification";
 import { getBudgetExplorerSceneLabel } from "../../../shared/utils/budget-explorer-view";
 import { getBudgetMapStableView } from "../../../shared/utils/budget-map-layout";
 import { getBudgetMapProgramPageSize } from "../../../shared/utils/budget-map-programs";
@@ -458,6 +459,9 @@ function BudgetMapV2Chrome({
     view.kind === "overview" && availability !== "available";
   const showEmptyTopic = view.kind === "topic" && (page?.totalCount ?? 0) === 0;
   const emptyCopy = getExplorationEmptyCopy(availability);
+  const officialClassification = getBudgetOfficialClassificationContext(
+    view.kind === "overview" ? null : view.category.slug
+  );
 
   return (
     <>
@@ -484,7 +488,7 @@ function BudgetMapV2Chrome({
           className="budget-map-v2-official rounded-md border-budget-space-line bg-white/95 text-mirai-text hover:bg-white"
         >
           <BookOpen aria-hidden="true" className="size-4" />
-          公式予算分類からすべて見る
+          {officialClassification.label}
         </Button>
       )}
 
@@ -511,7 +515,7 @@ function BudgetMapV2Chrome({
               className="min-h-11 rounded-md border-budget-space-line"
             >
               <BookOpen aria-hidden="true" className="size-4" />
-              公式予算分類からすべて見る
+              {officialClassification.label}
             </Button>
           </div>
         </div>

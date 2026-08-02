@@ -29,11 +29,13 @@ vi.mock("next/navigation", () => ({
 vi.mock("./budget-map-iframe", () => ({
   BudgetMapIframe: function MockBudgetMapIframe({
     onBack,
+    onOpenOfficialHierarchy,
     onSelectCategory,
     onSelectProgram,
     onSelectTopic,
   }: {
     onBack: () => void;
+    onOpenOfficialHierarchy: () => void;
     onSelectCategory: (slug: string) => void;
     onSelectProgram: (identityId: string) => void;
     onSelectTopic: (categorySlug: string, topicSlug: string) => void;
@@ -54,6 +56,9 @@ vi.mock("./budget-map-iframe", () => ({
         </button>
         <button type="button" onClick={onBack}>
           戻る
+        </button>
+        <button type="button" onClick={onOpenOfficialHierarchy}>
+          公式分類を見る
         </button>
       </div>
     );
@@ -192,6 +197,23 @@ describe("BudgetExplorer", () => {
       expect(mocks.push).toHaveBeenCalledWith("/budget/programs/bpi_school", {
         scroll: true,
       })
+    );
+  });
+
+  it("教育カテゴリーの公式分類導線を「教育費」に絞り込む", async () => {
+    mocks.getSearchParam.mockImplementation((key: string) =>
+      key === "category" ? "education" : null
+    );
+    const user = userEvent.setup();
+    render(<BudgetExplorer exploration={exploration} />);
+
+    await user.click(screen.getByRole("button", { name: "公式分類を見る" }));
+
+    await waitFor(() =>
+      expect(mocks.push).toHaveBeenCalledWith(
+        "/budget/all?account=general&kan=08",
+        { scroll: true }
+      )
     );
   });
 

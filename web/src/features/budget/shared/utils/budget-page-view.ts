@@ -82,6 +82,19 @@ export function formatRawThousandYen(amountThousandYen: number): string {
   return `${thousandYenFormatter.format(amountThousandYen)} 千円`;
 }
 
+export function formatBudgetDifference(amountThousandYen: number): string {
+  if (!Number.isSafeInteger(amountThousandYen)) {
+    throw new Error("予算増減額が安全整数ではありません");
+  }
+  if (amountThousandYen > 0) {
+    return `+${formatRawThousandYen(amountThousandYen)}`;
+  }
+  if (amountThousandYen < 0) {
+    return `−${formatRawThousandYen(Math.abs(amountThousandYen))}`;
+  }
+  return formatRawThousandYen(0);
+}
+
 export function shortenBudgetDepartmentName(
   departmentDisplayName: string
 ): string {

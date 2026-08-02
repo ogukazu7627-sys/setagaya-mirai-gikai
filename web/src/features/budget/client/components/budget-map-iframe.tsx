@@ -308,7 +308,7 @@ export function BudgetMapIframe({
                 予算検索
               </a>
               または
-              <a className="underline" href={routes.budgetOfficialHierarchy()}>
+              <a className="underline" href={routes.budgetAll()}>
                 公式予算分類
               </a>
               を利用できます。

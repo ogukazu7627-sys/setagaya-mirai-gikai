@@ -15,6 +15,10 @@ export const routes = {
   reportProblemThanks: () => "/report-problem/thanks" as const,
   bills: () => "/bills" as const,
   budget: () => "/budget" as const,
+  budgetAll: (filters?: BudgetDirectoryRouteFilters) =>
+    buildBudgetDirectoryRoute("/budget/all", filters),
+  budgetRevenue: (filters?: BudgetDirectoryRouteFilters) =>
+    buildBudgetDirectoryRoute("/budget/revenue", filters),
   budgetCategory: (categorySlug: string) =>
     `/budget?category=${encodeURIComponent(categorySlug)}` as const,
   budgetTopic: (categorySlug: string, topicSlug: string) =>
@@ -108,3 +112,43 @@ export const routes = {
   // ── 世田谷区議会セッション ────────────────────────────────
   kokkaiSessionBills: (slug: string) => `/kokkai/${slug}/bills` as const,
 } as const;
+
+export type BudgetDirectoryRouteFilters = {
+  accountCode?: string | null;
+  kanCode?: string | null;
+  kouCode?: string | null;
+  mokuCode?: string | null;
+  includeZeroAmount?: boolean;
+  sort?: "amount_desc" | "name_asc";
+  page?: number;
+};
+
+function buildBudgetDirectoryRoute(
+  pathname: "/budget/all" | "/budget/revenue",
+  filters?: BudgetDirectoryRouteFilters
+) {
+  const searchParams = new URLSearchParams();
+  if (filters?.accountCode) {
+    searchParams.set("account", filters.accountCode);
+  }
+  if (filters?.kanCode) {
+    searchParams.set("kan", filters.kanCode);
+  }
+  if (filters?.kouCode) {
+    searchParams.set("kou", filters.kouCode);
+  }
+  if (filters?.mokuCode) {
+    searchParams.set("moku", filters.mokuCode);
+  }
+  if (filters?.includeZeroAmount) {
+    searchParams.set("includeZeroAmount", "true");
+  }
+  if (filters?.sort && filters.sort !== "amount_desc") {
+    searchParams.set("sort", filters.sort);
+  }
+  if (filters?.page && filters.page > 1) {
+    searchParams.set("page", String(filters.page));
+  }
+  const query = searchParams.toString();
+  return query ? (`${pathname}?${query}` as const) : pathname;
+}

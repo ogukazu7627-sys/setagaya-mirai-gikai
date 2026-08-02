@@ -34,6 +34,7 @@ import type {
   BudgetExplorationProgram,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
+import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   type BudgetMapMode,
   type BudgetMapPosition,
@@ -352,6 +353,9 @@ function CategoryNetwork({
     | Extract<BudgetExplorerView, { kind: "transitioning" }>["target"]
     | null;
 }) {
+  const officialClassification = getBudgetOfficialClassificationContext(
+    category.slug
+  );
   const overviewLayout = getBudgetMapOverviewLayout(mode, dimensions);
   const layout = getBudgetMapCategoryLayout(category, mode, dimensions);
   const selectedTopicSlug =
@@ -495,7 +499,7 @@ function CategoryNetwork({
           className="budget-map-node absolute z-30 rounded-md border-budget-space-line bg-white/95 text-mirai-text"
         >
           <BookOpen aria-hidden="true" className="size-4" />
-          公式予算分類からすべて見る
+          {officialClassification.label}
         </Button>
       </div>
     </div>

@@ -129,4 +129,21 @@ describe("routes", () => {
       "/budget/map?embed=1&variant=v1&dataset=none"
     );
   });
+
+  it("公式分類ブラウザの条件を決定的なURLにする", () => {
+    expect(
+      routes.budgetAll({
+        accountCode: "general",
+        kanCode: "08",
+        kouCode: "02",
+        mokuCode: "06",
+        includeZeroAmount: true,
+        sort: "name_asc",
+        page: 2,
+      })
+    ).toBe(
+      "/budget/all?account=general&kan=08&kou=02&moku=06&includeZeroAmount=true&sort=name_asc&page=2"
+    );
+    expect(routes.budgetRevenue()).toBe("/budget/revenue");
+  });
 });
