@@ -673,7 +673,7 @@
   function resetFilters() {
     elements.searchInput.value = "";
     elements.categoryFilter.value = "all";
-    elements.decisionFilter.value = "pending";
+    elements.decisionFilter.value = "all";
     elements.evidenceFilter.value = "all";
     elements.sortSelect.value = "source";
     state.page = 1;
