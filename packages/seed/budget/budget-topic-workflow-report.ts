@@ -17,6 +17,7 @@ export interface PublishedBudgetTopicRelationSnapshot {
 }
 
 export interface PublishedBudgetTopicSnapshot {
+  sourceEnvironment: "local" | "validation";
   activeDatasetId: string;
   manifestSha256: string;
   publishedTopicSlugs: string[];
@@ -164,6 +165,10 @@ export async function fetchPublishedBudgetTopicSnapshot(): Promise<PublishedBudg
   });
 
   return {
+    sourceEnvironment:
+      process.env.BUDGET_IMPORT_ENVIRONMENT === "validation"
+        ? "validation"
+        : "local",
     activeDatasetId: dataset.data.id,
     manifestSha256: dataset.data.manifest_sha256,
     publishedTopicSlugs: [...topicSlugById.values()].sort(),
@@ -354,6 +359,7 @@ export function renderBudgetTopicWorkflowReport(
 
 **PASS**
 
+- DBスナップショット環境: \`${snapshot.sourceEnvironment}\`
 - active dataset: \`${snapshot.activeDatasetId}\`
 - manifest SHA-256: \`${snapshot.manifestSha256}\`
 - 予算事業identity総数: ${metrics.totalIdentityCount}
@@ -365,6 +371,7 @@ export function renderBudgetTopicWorkflowReport(
 - review待ち件数: ${metrics.reviewPendingCount}
 
 未分類identityはエラーではない。課題へ分類されていない事業も、検索、公式分類、全予算一覧から閲覧できる。
+このレポートの公開済み件数は上記環境のスナップショットであり、本番状態を自動的には表さない。
 
 ## 大分類別
 

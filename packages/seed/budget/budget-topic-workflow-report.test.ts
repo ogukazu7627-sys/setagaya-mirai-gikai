@@ -69,6 +69,7 @@ describe("budget topic workflow report", () => {
       ],
     ]);
     const snapshot: PublishedBudgetTopicSnapshot = {
+      sourceEnvironment: "local",
       activeDatasetId: "11111111-1111-4111-8111-111111111111",
       manifestSha256: dataset.manifestSha256,
       publishedTopicSlugs: [definition.topic.slug],
@@ -110,6 +111,7 @@ describe("budget topic workflow report", () => {
 
     expect(() =>
       buildBudgetTopicWorkflowMetrics(dataset, [], new Map(), {
+        sourceEnvironment: "local",
         activeDatasetId: "11111111-1111-4111-8111-111111111111",
         manifestSha256: "different",
         publishedTopicSlugs: [],

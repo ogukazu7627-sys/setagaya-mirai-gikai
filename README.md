@@ -130,6 +130,26 @@ pnpm budget:web:topics:publish -- \
 再実行しても関係は重複せず、却下済みの候補は公開関係として残りません。
 空欄は未判断であり、既存公開関係を削除する根拠にも使いません。
 
+本番への公開は、ローカルCLIからは実行できません。`main` の手動workflow
+`Publish Reviewed Budget Topics` だけが、GitHubの `production` 環境を使って実行
+できます。workflowは確認文、全10 review CSVのdry-run、active dataset、レビュー
+担当者、公開後のtopic・category・relation内容を検証します。現在の提出結果では
+`approve/revise=167`、`reject=8`、`pending=0` が期待値です。公式予算テーブル、
+予算dataset、Storageは変更しません。
+
+```bash
+gh workflow run publish_budget_topics.yml \
+  --ref main \
+  -f confirmation=PUBLISH_REVIEWED_BUDGET_TOPICS \
+  -f reviewed_at=2026-08-03T12:00:00+09:00
+```
+
+既存公開関係のreviewerが一意なら、そのSupabase Authユーザーを引き継ぎます。
+一意に決められない場合だけ `reviewer_uuid` を明示します。秘密鍵とレビュアー情報は
+ログへ出さず、workflow終了時に `budget:web:topics:verify` がreview CSVとの完全一致を
+確認します。途中失敗時は関係を推測で補正せず、ログとDB状態を確認してから冪等に
+再実行します。
+
 active dataset、review CSV、実際の公開関係を突合した管理レポートは次で
 再生成します。大分類別・topic別の候補、B/C、review待ち、公開済み、未分類
 identityを確認できます。

@@ -7,7 +7,7 @@ import type {
   ReviewedEvidenceLevel,
   ReviewedRelationType,
 } from "./budget-topic-review";
-import { assertSafeBudgetImportTarget } from "./import-public-budget";
+import { assertSafeBudgetTopicPublishTarget } from "./budget-topic-publish-target";
 
 export {
   type BudgetTopicReviewCandidate,
@@ -118,9 +118,13 @@ export async function publishReviewedBudgetTopic(
 ): Promise<PublishReviewedBudgetTopicResult> {
   const supabaseUrl = requireEnvironment("SUPABASE_URL");
   requireEnvironment("SUPABASE_SECRET_KEY");
-  assertSafeBudgetImportTarget({
+  assertSafeBudgetTopicPublishTarget({
     supabaseUrl,
     environmentName: process.env.BUDGET_IMPORT_ENVIRONMENT,
+    productionConfirmation: process.env.BUDGET_TOPIC_PUBLISH_CONFIRMATION,
+    githubActions: process.env.GITHUB_ACTIONS,
+    githubRefName: process.env.GITHUB_REF_NAME,
+    githubEventName: process.env.GITHUB_EVENT_NAME,
   });
 
   const adminClient = client ?? (createAdminClient() as AdminClient);

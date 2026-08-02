@@ -11,6 +11,7 @@
     "budget:web:topics:publish": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:publish",
     "budget:web:topics:review": "pnpm --filter @mirai-gikai/seed budget:web:topics:review",
     "budget:web:topics:report": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:report",
+    "budget:web:topics:verify": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:verify",
     "budget:web:validate": "pnpm --filter @mirai-gikai/seed budget:web:validate",
     "dev": "dotenv -e .env -- pnpm -r --stream --parallel run dev",
     "seed": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed seed",
