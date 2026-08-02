@@ -21,11 +21,11 @@ import {
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
-import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   BUDGET_MAP_HOST_VARIANT_PARAM,
   parseBudgetMapVariant,
 } from "../../shared/utils/budget-map-variant";
+import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import { requestBudgetProgramSearch } from "../utils/budget-search-api";
 import { getBrowserBudgetSearchInstallationId } from "../utils/budget-search-storage";
 import { BudgetMapIframe } from "./budget-map-iframe";
@@ -39,7 +39,32 @@ type BudgetExplorerProps = {
   exploration: BudgetExplorationData;
 };
 
+type BudgetExplorerRouteState = {
+  categorySlug: string | null;
+  topicSlug: string | null;
+};
+
+type BudgetExplorerMapTarget = Extract<
+  BudgetExplorerTransitionTarget,
+  { kind: "overview" | "category" | "topic" }
+>;
+
 const BUDGET_SEARCH_WARP_DURATION_MS = 420;
+
+function getBudgetExplorerRouteState(
+  target: BudgetExplorerMapTarget
+): BudgetExplorerRouteState {
+  if (target.kind === "overview") {
+    return { categorySlug: null, topicSlug: null };
+  }
+  if (target.kind === "category") {
+    return { categorySlug: target.category.slug, topicSlug: null };
+  }
+  return {
+    categorySlug: target.category.slug,
+    topicSlug: target.topic.slug,
+  };
+}
 
 export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const router = useRouter();
@@ -56,14 +81,19 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const networkSectionRef = useRef<HTMLElement>(null);
   const requestControllerRef = useRef<AbortController | null>(null);
   const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const categorySlug = searchParams.get("category");
-  const topicSlug = searchParams.get("topic");
+  const searchParamCategorySlug = searchParams.get("category");
+  const searchParamTopicSlug = searchParams.get("topic");
+  const [routeState, setRouteState] = useState<BudgetExplorerRouteState>(
+    () => ({
+      categorySlug: searchParamCategorySlug,
+      topicSlug: searchParamTopicSlug,
+    })
+  );
+  const { categorySlug, topicSlug } = routeState;
   // 描画層は既定で v2。比較したいときだけ ?mapVariant=v1 を付ける。
   const mapVariant = parseBudgetMapVariant(
     searchParams.get(BUDGET_MAP_HOST_VARIANT_PARAM)
   );
-  const navigationKey = `${categorySlug ?? ""}:${topicSlug ?? ""}`;
-  const lastNavigationKeyRef = useRef(navigationKey);
   const stableView = useMemo(
     () =>
       resolveBudgetExplorerView(exploration, {
@@ -80,11 +110,16 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       }
     : stableView;
   useEffect(() => {
-    if (navigationKey !== lastNavigationKeyRef.current) {
-      lastNavigationKeyRef.current = navigationKey;
-      setTransitionTarget(null);
-    }
-  }, [navigationKey]);
+    setRouteState((current) =>
+      current.categorySlug === searchParamCategorySlug &&
+      current.topicSlug === searchParamTopicSlug
+        ? current
+        : {
+            categorySlug: searchParamCategorySlug,
+            topicSlug: searchParamTopicSlug,
+          }
+    );
+  }, [searchParamCategorySlug, searchParamTopicSlug]);
 
   useEffect(
     () => () => {
@@ -102,6 +137,11 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
         clearTimeout(navigationTimerRef.current);
         navigationTimerRef.current = null;
       }
+      const currentUrl = new URL(window.location.href);
+      setRouteState({
+        categorySlug: currentUrl.searchParams.get("category"),
+        topicSlug: currentUrl.searchParams.get("topic"),
+      });
       setTransitionTarget(null);
     };
     window.addEventListener("popstate", handlePopState);
@@ -139,6 +179,42 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     [router, transitionTarget]
   );
 
+  // 探索データは親に全件あるため、同一ページの状態変更では
+  // Server Componentを再取得せず、iframeを保ったままURL履歴だけ同期する。
+  const navigateMapWithTransition = useCallback(
+    (
+      target: BudgetExplorerMapTarget,
+      href: string,
+      options: { replace?: boolean } = {}
+    ) => {
+      if (transitionTarget) {
+        return;
+      }
+      setTransitionTarget(target);
+      if (navigationTimerRef.current) {
+        clearTimeout(navigationTimerRef.current);
+      }
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      navigationTimerRef.current = setTimeout(
+        () => {
+          const nextRouteState = getBudgetExplorerRouteState(target);
+          if (options.replace) {
+            window.history.replaceState(null, "", href);
+          } else {
+            window.history.pushState(null, "", href);
+          }
+          setRouteState(nextRouteState);
+          setTransitionTarget(null);
+          navigationTimerRef.current = null;
+        },
+        reduceMotion ? 0 : getBudgetMapTransitionDuration(target)
+      );
+    },
+    [transitionTarget]
+  );
+
   const handleSelectCategory = useCallback(
     (slug: string) => {
       const category = exploration.categories.find(
@@ -147,12 +223,12 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       if (!category) {
         return;
       }
-      navigateWithTransition(
+      navigateMapWithTransition(
         { kind: "category", category },
         routes.budgetCategory(category.slug)
       );
     },
-    [exploration.categories, navigateWithTransition]
+    [exploration.categories, navigateMapWithTransition]
   );
 
   const handleSelectTopic = useCallback(
@@ -166,12 +242,12 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       if (!category || !topic) {
         return;
       }
-      navigateWithTransition(
+      navigateMapWithTransition(
         { kind: "topic", category, topic },
         routes.budgetTopic(category.slug, topic.slug)
       );
     },
-    [exploration.categories, navigateWithTransition]
+    [exploration.categories, navigateMapWithTransition]
   );
 
   const handleSelectProgram = useCallback(
@@ -196,20 +272,19 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
 
   const handleBack = useCallback(() => {
     if (stableView.kind === "topic") {
-      navigateWithTransition(
+      navigateMapWithTransition(
         { kind: "category", category: stableView.category },
         routes.budgetCategory(stableView.category.slug),
-        { replace: true, scroll: false }
+        { replace: true }
       );
       return;
     }
     if (stableView.kind === "category") {
-      navigateWithTransition({ kind: "overview" }, routes.budget(), {
+      navigateMapWithTransition({ kind: "overview" }, routes.budget(), {
         replace: true,
-        scroll: false,
       });
     }
-  }, [navigateWithTransition, stableView]);
+  }, [navigateMapWithTransition, stableView]);
 
   const openOfficialHierarchy = useCallback(() => {
     const categorySlugToOpen =

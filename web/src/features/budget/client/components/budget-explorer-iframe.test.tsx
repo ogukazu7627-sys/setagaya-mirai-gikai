@@ -52,6 +52,11 @@ describe("BudgetExplorer iframe integration", () => {
       }
       return null;
     });
+    window.history.replaceState(
+      null,
+      "",
+      "/budget?category=education&topic=school-facility-aging"
+    );
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: vi.fn().mockReturnValue({
@@ -60,6 +65,62 @@ describe("BudgetExplorer iframe integration", () => {
         removeEventListener: vi.fn(),
       }),
     });
+  });
+
+  it("初回のcategory messageだけでiframeを再読込せず選択状態へ進む", async () => {
+    mocks.getSearchParam.mockReturnValue(null);
+    window.history.replaceState(null, "", "/budget");
+    render(<BudgetExplorer exploration={exploration} />);
+    const iframe = screen.getByTitle(
+      "触れる予算の探索マップ"
+    ) as HTMLIFrameElement;
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage(
+            { action: "ready" },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+    await waitFor(() =>
+      expect(iframe.closest("[data-map-loaded]")).toHaveAttribute(
+        "data-map-loaded",
+        "true"
+      )
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage(
+            {
+              action: "select-category",
+              categorySlug: "culture-sports",
+            },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "文化・スポーツ",
+      })
+    ).toBeVisible();
+    expect(window.location.pathname + window.location.search).toBe(
+      "/budget?category=culture-sports"
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
+    expect(screen.getByTitle("触れる予算の探索マップ")).toBe(iframe);
   });
 
   it("実iframeのprogram messageを戻り文脈付き詳細URLへ接続する", async () => {
