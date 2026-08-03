@@ -36,7 +36,9 @@ export interface PublishedBudgetTopicVerificationSnapshot {
 export interface PublishedBudgetTopicVerificationResult {
   datasetId: string;
   topicCount: number;
+  archivedTopicCount: number;
   publishedIdentityCount: number;
+  unclassifiedIdentityCount: number;
   publishedRelationCount: number;
   rejectedRelationCount: number;
 }
@@ -92,8 +94,19 @@ export function loadBudgetTopicPublishExpectations(
         `${definition.topic.slug} に未判断が${review.pendingRows.length}件あります`
       );
     }
-    if (review.selectedRows.length === 0) {
-      throw new Error(`${definition.topic.slug} に公開対象がありません`);
+    if (definition.topic.publicationStatus === "published") {
+      if (review.selectedRows.length === 0) {
+        throw new Error(`${definition.topic.slug} に公開対象がありません`);
+      }
+      if (review.selectedRows.length > 12) {
+        throw new Error(
+          `${definition.topic.slug} の公開対象が12件を超えています`
+        );
+      }
+    } else if (review.selectedRows.length > 0) {
+      throw new Error(
+        `${definition.topic.slug} はarchivedですが公開対象が残っています`
+      );
     }
     return { definition, review };
   });
@@ -105,14 +118,19 @@ export function assertPublishedBudgetTopicsMatchReviews(
 ): PublishedBudgetTopicVerificationResult {
   let publishedRelationCount = 0;
   let rejectedRelationCount = 0;
+  let publishedTopicCount = 0;
+  let archivedTopicCount = 0;
+  const publishedTopicCountByCategory = new Map<string, number>();
 
   for (const { definition, review } of expectations) {
     const topic = requireExactlyOne(
       snapshot.topics.filter((row) => row.slug === definition.topic.slug),
-      `published topic ${definition.topic.slug}`
+      `budget topic ${definition.topic.slug}`
     );
-    if (topic.status !== "published") {
-      throw new Error(`${definition.topic.slug} がpublishedではありません`);
+    if (topic.status !== definition.topic.publicationStatus) {
+      throw new Error(
+        `${definition.topic.slug} のstatusが不一致です: expected=${definition.topic.publicationStatus}, actual=${topic.status}`
+      );
     }
 
     const category = requireExactlyOne(
@@ -133,8 +151,31 @@ export function assertPublishedBudgetTopicsMatchReviews(
       );
     }
 
-    const actualRelations = snapshot.relations.filter(
+    const allActualRelations = snapshot.relations.filter(
       (relation) => relation.topic_id === topic.id
+    );
+    if (definition.topic.publicationStatus === "archived") {
+      if (
+        allActualRelations.some(
+          (relation) => relation.review_status === "published"
+        )
+      ) {
+        throw new Error(
+          `${definition.topic.slug} のpublished関係が残っています`
+        );
+      }
+      archivedTopicCount += 1;
+      rejectedRelationCount += review.rejectedRows.length;
+      continue;
+    }
+
+    publishedTopicCount += 1;
+    publishedTopicCountByCategory.set(
+      definition.categorySlug,
+      (publishedTopicCountByCategory.get(definition.categorySlug) ?? 0) + 1
+    );
+    const actualRelations = allActualRelations.filter(
+      (relation) => relation.review_status === "published"
     );
     const actualByIdentityId = new Map(
       actualRelations.map((relation) => [
@@ -188,19 +229,27 @@ export function assertPublishedBudgetTopicsMatchReviews(
     rejectedRelationCount += review.rejectedRows.length;
   }
 
-  const publishedIdentityCount = new Set(
-    snapshot.relations.map((relation) => relation.budget_program_identity_id)
-  ).size;
-  if (publishedIdentityCount !== snapshot.activeIdentityCount) {
-    throw new Error(
-      `公開topicで到達できるidentity件数がactive datasetと一致しません: expected=${snapshot.activeIdentityCount}, actual=${publishedIdentityCount}`
-    );
+  for (const [categorySlug, topicCount] of publishedTopicCountByCategory) {
+    if (topicCount > 12) {
+      throw new Error(
+        `${categorySlug} のpublished topicが12件を超えています: ${topicCount}`
+      );
+    }
   }
+
+  const publishedIdentityCount = new Set(
+    snapshot.relations
+      .filter((relation) => relation.review_status === "published")
+      .map((relation) => relation.budget_program_identity_id)
+  ).size;
 
   return {
     datasetId: snapshot.activeDatasetId,
-    topicCount: expectations.length,
+    topicCount: publishedTopicCount,
+    archivedTopicCount,
     publishedIdentityCount,
+    unclassifiedIdentityCount:
+      snapshot.activeIdentityCount - publishedIdentityCount,
     publishedRelationCount,
     rejectedRelationCount,
   };

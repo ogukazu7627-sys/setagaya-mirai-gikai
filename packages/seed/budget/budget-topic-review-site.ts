@@ -14,6 +14,7 @@ import {
   type ReviewedRelationType,
   serializeBudgetTopicReviewRows,
 } from "./budget-topic-review";
+import { curateBudgetTopicPublicationFiles } from "./curate-budget-topic-publication";
 
 const editableDecisionSchema = z.enum(["approve", "revise", "reject", ""]);
 const editableRelationTypeSchema = z.enum([
@@ -108,7 +109,7 @@ export class BudgetTopicReviewConflictError extends Error {}
 export class BudgetTopicReviewInputError extends Error {}
 
 export const automaticBudgetTopicApprovalNote =
-  "B_strong_structural・確信度highの一括承認ルールにより承認";
+  "[publication-policy] B_strong_structural・highを確認し、topicとの直接性が高い代表事業として承認";
 
 export interface AutomaticBudgetTopicApprovalResult {
   matched: number;
@@ -213,9 +214,7 @@ function toSiteRow(
     reviewDecision: row.review_decision,
     reviewNote: row.review_note,
     automaticApprovalRuleMatches,
-    requiresManualReview: !(
-      automaticApprovalRuleMatches && row.review_decision === "approve"
-    ),
+    requiresManualReview: row.review_decision === "",
   };
 }
 
@@ -272,58 +271,45 @@ function buildSnapshotFromStates(
 export function autoApproveStrongHighBudgetTopicCandidates(
   options: BudgetTopicReviewSiteOptions
 ): AutomaticBudgetTopicApprovalResult {
-  const states = loadReviewFileStates(options);
-  const matchingRows = states.flatMap((state) =>
-    state.rows.filter(matchesAutomaticBudgetTopicApprovalRule)
+  const before = loadReviewFileStates(options);
+  const beforeDecisionByKey = new Map(
+    before.flatMap((state) =>
+      state.rows.map((row) => [
+        `${state.definition.topic.slug}:${row.budget_program_identity_id}`,
+        row.review_decision,
+      ])
+    )
   );
-  const conflicts = matchingRows.filter(
-    (row) => row.review_decision !== "" && row.review_decision !== "approve"
+  const beforeSourceByFile = new Map(
+    before.map((state) => [state.filePath, state.source])
   );
-  if (conflicts.length > 0) {
-    const identities = conflicts
-      .slice(0, 8)
-      .map((row) => row.budget_program_identity_id)
-      .join(", ");
-    throw new BudgetTopicReviewInputError(
-      `B・Highの一括承認対象に既存のrevise/rejectがあります: ${identities}`
+  curateBudgetTopicPublicationFiles(
+    options.definitionsDirectory,
+    options.reviewDirectory
+  );
+  const after = loadReviewFileStates(options);
+  const selected = after.flatMap((state) =>
+    state.rows
+      .filter(
+        (row) =>
+          row.review_decision === "approve" || row.review_decision === "revise"
+      )
+      .map((row) => ({ state, row }))
+  );
+  const updated = selected.filter(({ state, row }) => {
+    const beforeDecision = beforeDecisionByKey.get(
+      `${state.definition.topic.slug}:${row.budget_program_identity_id}`
     );
-  }
-
-  const updatedSources = new Map<string, string>();
-  let updated = 0;
-  for (const state of states) {
-    let fileUpdated = false;
-    const rows = state.rows.map((row) => {
-      if (
-        !matchesAutomaticBudgetTopicApprovalRule(row) ||
-        row.review_decision === "approve"
-      ) {
-        return row;
-      }
-      fileUpdated = true;
-      updated += 1;
-      return {
-        ...row,
-        review_decision: "approve" as const,
-        review_note: automaticBudgetTopicApprovalNote,
-      };
-    });
-    if (!fileUpdated) {
-      continue;
-    }
-    const source = serializeBudgetTopicReviewRows(rows);
-    parseBudgetTopicReviewCsv(source);
-    updatedSources.set(state.filePath, source);
-  }
-
-  if (updatedSources.size > 0) {
-    writeFilesWithRollback(updatedSources);
-  }
+    return beforeDecision !== "approve" && beforeDecision !== "revise";
+  }).length;
+  const updatedFiles = after.filter(
+    (state) => beforeSourceByFile.get(state.filePath) !== state.source
+  ).length;
   return {
-    matched: matchingRows.length,
+    matched: selected.length,
     updated,
-    alreadyApproved: matchingRows.length - updated,
-    updatedFiles: updatedSources.size,
+    alreadyApproved: selected.length - updated,
+    updatedFiles,
   };
 }
 

@@ -9,7 +9,7 @@
   "topics": [
     {
       "slug": "diverse-learning-and-education-support",
-      "name": "多様な学びと教育相談を充実する",
+      "name": "多様な学び",
       "shortDescription": "一人ひとりに応じた学び、教育相談、特別支援教育、学習機会に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -21,7 +21,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「多様な学びと教育相談を充実する」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「多様な学び」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -36,11 +36,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "school-health-and-safety",
-      "name": "学校での健康と安全を守る",
+      "name": "学校の健康・安全",
       "shortDescription": "児童・生徒・園児の健康診断や保健衛生に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -52,7 +53,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「学校での健康と安全を守る」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「学校の健康・安全」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -65,11 +66,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "safe-and-accessible-school-meals",
-      "name": "安心できる学校給食を届ける",
+      "name": "学校給食",
       "shortDescription": "学校給食の運営、調理場、保護者負担の軽減に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -81,7 +83,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「安心できる学校給食を届ける」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「学校給食」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -96,11 +98,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "early-childhood-education-support",
-      "name": "幼児教育と預かり保育を支える",
+      "name": "幼児教育",
       "shortDescription": "区立幼稚園、認定こども園、預かり保育、園児の健康に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -112,7 +115,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「幼児教育と預かり保育を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「幼児教育」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -126,11 +129,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "learning-experiences-beyond-school",
-      "name": "学校外の体験と学びを広げる",
+      "name": "校外学習",
       "shortDescription": "移動教室、林間学園など学校外での体験と学びに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -142,7 +146,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「学校外の体験と学びを広げる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「校外学習」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -155,11 +159,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "stable-school-and-education-operations",
-      "name": "教育現場を安定して運営する",
+      "name": "学校運営",
       "shortDescription": "学校運営、教育委員会、教職員と教育行政の基盤に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -171,7 +176,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「教育現場を安定して運営する」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「学校運営」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -188,7 +193,8 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     }
   ]
 }

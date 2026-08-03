@@ -1,11 +1,13 @@
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   findBudgetTopicDefinitionForReviewFile,
   loadBudgetTopicDefinitions,
 } from "./budget-topic-definitions";
-import { parseBudgetTopicReviewCsv } from "./budget-topic-review";
+import {
+  parseBudgetTopicReviewCsv,
+  serializeBudgetTopicReviewRows,
+} from "./budget-topic-review";
 import {
   buildReviewedBudgetTopicPayload,
   readBudgetTopicReviewFile,
@@ -31,17 +33,17 @@ function getEducationDefinition() {
 }
 
 describe("reviewed budget topic candidates", () => {
-  it("人間レビュー結果を13件の公開対象と3件の除外対象に分ける", () => {
+  it("直接性の高い10件だけを公開対象にする", () => {
     const reviewFile = readBudgetTopicReviewFile(reviewedCandidatesPath);
 
     expect(reviewFile.rows).toHaveLength(16);
-    expect(reviewFile.selectedRows).toHaveLength(13);
-    expect(reviewFile.rejectedRows).toHaveLength(3);
+    expect(reviewFile.selectedRows).toHaveLength(10);
+    expect(reviewFile.rejectedRows).toHaveLength(6);
     expect(reviewFile.pendingRows).toHaveLength(0);
     expect(reviewFile.decisionCounts).toEqual({
-      approve: 13,
+      approve: 10,
       revise: 0,
-      reject: 3,
+      reject: 6,
       "": 0,
     });
     expect(
@@ -49,13 +51,13 @@ describe("reviewed budget topic candidates", () => {
         (total, row) => total + Number(row.amount_thousand_yen),
         0
       )
-    ).toBe(17_872_606);
+    ).toBe(13_083_893);
     expect(
       reviewFile.rejectedRows.reduce(
         (total, row) => total + Number(row.amount_thousand_yen),
         0
       )
-    ).toBe(1_041_073);
+    ).toBe(5_829_786);
   });
 
   it("承認・修正行だけをpublished payloadへ入れる", () => {
@@ -74,7 +76,7 @@ describe("reviewed budget topic candidates", () => {
       editorialNote: definition.topic.editorialNote,
     });
     expect(payload.categorySlug).toBe("education");
-    expect(payload.relations).toHaveLength(13);
+    expect(payload.relations).toHaveLength(10);
     expect(
       payload.relations.every(
         (relation) =>
@@ -106,9 +108,11 @@ describe("reviewed budget topic candidates", () => {
   });
 
   it("review_decisionが空欄の候補を公開payloadへ入れない", () => {
-    const source = readFileSync(reviewedCandidatesPath, "utf8").replace(
-      '"high","approve","2026-07-30 チャットレビューで、課題との関係候補を承認"',
-      '"high","",""'
+    const reviewed = readBudgetTopicReviewFile(reviewedCandidatesPath);
+    const source = serializeBudgetTopicReviewRows(
+      reviewed.rows.map((row, index) =>
+        index === 0 ? { ...row, review_decision: "", review_note: "" } : row
+      )
     );
     const reviewFile = parseBudgetTopicReviewCsv(source);
 

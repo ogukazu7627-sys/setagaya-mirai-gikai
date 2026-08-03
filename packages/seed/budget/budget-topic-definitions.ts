@@ -83,6 +83,7 @@ const budgetTopicCandidateRuleSchema = z
 const budgetTopicDefinitionSchema = z.strictObject({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   name: z.string().min(1),
+  publicationStatus: z.enum(["published", "archived"]).default("published"),
   shortDescription: z.string().min(1),
   topicKind: z.enum(["problem", "goal", "administrative_function"]),
   editorialNote: z.string().min(1),

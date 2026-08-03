@@ -26,7 +26,11 @@ export function createBudgetTopicReviewSiteTestFixture(options?: {
   remove: () => void;
 } {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "budget-topic-review-"));
+  const copiedDefinitionsDirectory = path.join(root, "topic-definitions");
   const reviewDirectory = path.join(root, "review");
+  fs.cpSync(definitionsDirectory, copiedDefinitionsDirectory, {
+    recursive: true,
+  });
   fs.cpSync(sourceReviewDirectory, reviewDirectory, { recursive: true });
 
   for (const fileName of fs.readdirSync(reviewDirectory).sort()) {
@@ -51,7 +55,10 @@ export function createBudgetTopicReviewSiteTestFixture(options?: {
     );
   }
 
-  const siteOptions = { definitionsDirectory, reviewDirectory };
+  const siteOptions = {
+    definitionsDirectory: copiedDefinitionsDirectory,
+    reviewDirectory,
+  };
   if (options?.autoApprove !== false) {
     autoApproveStrongHighBudgetTopicCandidates(siteOptions);
   }

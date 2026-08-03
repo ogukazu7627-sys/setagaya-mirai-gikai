@@ -29,6 +29,7 @@ export interface BudgetTopicMetric {
   categoryName: string;
   topicSlug: string;
   topicName: string;
+  publicationStatus: "published" | "archived";
   candidateCount: number;
   evidenceBCount: number;
   evidenceCCount: number;
@@ -55,6 +56,7 @@ export interface BudgetTopicCategoryMetric {
 export interface BudgetTopicWorkflowMetrics {
   totalIdentityCount: number;
   topicDefinitionCount: number;
+  archivedTopicDefinitionCount: number;
   candidateIdentityCount: number;
   publishedIdentityCount: number;
   unclassifiedIdentityCount: number;
@@ -245,6 +247,7 @@ export function buildBudgetTopicWorkflowMetrics(
       categoryName: definition.categoryName,
       topicSlug: definition.topic.slug,
       topicName: definition.topic.name,
+      publicationStatus: definition.topic.publicationStatus,
       candidateCount: review.rows.length,
       evidenceBCount: review.rows.filter(
         (row) => row.evidence_level === "B_strong_structural"
@@ -262,7 +265,9 @@ export function buildBudgetTopicWorkflowMetrics(
   });
 
   const categoryPairs = new Map<string, BudgetTopicMetric[]>();
-  for (const topic of topics) {
+  for (const topic of topics.filter(
+    (candidate) => candidate.publicationStatus === "published"
+  )) {
     const categoryTopics = categoryPairs.get(topic.categorySlug) ?? [];
     categoryTopics.push(topic);
     categoryPairs.set(topic.categorySlug, categoryTopics);
@@ -310,7 +315,12 @@ export function buildBudgetTopicWorkflowMetrics(
 
   return {
     totalIdentityCount: identityIds.size,
-    topicDefinitionCount: definitions.length,
+    topicDefinitionCount: definitions.filter(
+      (definition) => definition.topic.publicationStatus === "published"
+    ).length,
+    archivedTopicDefinitionCount: definitions.filter(
+      (definition) => definition.topic.publicationStatus === "archived"
+    ).length,
     candidateIdentityCount: candidateIdentityIds.size,
     publishedIdentityCount: publishedIdentityIds.size,
     unclassifiedIdentityCount: identityIds.size - publishedIdentityIds.size,
@@ -349,7 +359,7 @@ export function renderBudgetTopicWorkflowReport(
   const topicRows = metrics.topics
     .map(
       (topic) =>
-        `| ${topic.categoryName} | ${topic.topicName} | ${topic.candidateCount} | ${topic.evidenceBCount} | ${topic.evidenceCCount} | ${topic.approveCount + topic.reviseCount} | ${topic.rejectCount} | ${topic.pendingCount} | ${topic.publishedProgramCount} | ${topic.published ? "published" : "not_published"} |`
+        `| ${topic.categoryName} | ${topic.topicName} | ${topic.candidateCount} | ${topic.evidenceBCount} | ${topic.evidenceCCount} | ${topic.approveCount + topic.reviseCount} | ${topic.rejectCount} | ${topic.pendingCount} | ${topic.publishedProgramCount} | ${topic.publicationStatus} | ${topic.published ? "published" : "not_published"} |`
     )
     .join("\n");
 
@@ -363,7 +373,8 @@ export function renderBudgetTopicWorkflowReport(
 - active dataset: \`${snapshot.activeDatasetId}\`
 - manifest SHA-256: \`${snapshot.manifestSha256}\`
 - 予算事業identity総数: ${metrics.totalIdentityCount}
-- topic定義数: ${metrics.topicDefinitionCount}
+- 公開topic定義数: ${metrics.topicDefinitionCount}
+- archived topic定義数: ${metrics.archivedTopicDefinitionCount}
 - 候補に含まれるidentity数: ${metrics.candidateIdentityCount}
 - 公開済みidentity数: ${metrics.publishedIdentityCount}
 - 未分類identity数: ${metrics.unclassifiedIdentityCount}
@@ -381,8 +392,8 @@ ${categoryRows}
 
 ## topic別
 
-| 大分類 | topic | 候補 | B | C | approve/revise | reject | review待ち | 公開済み事業 | topic状態 |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 大分類 | topic | 候補 | B | C | approve/revise | reject | review待ち | 公開済み事業 | 定義状態 | DB状態 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
 ${topicRows}
 
 ## 運用ルール
@@ -391,6 +402,7 @@ ${topicRows}
 - Bは公式の款・項・目、事業名、部署名から構造的に強く判断できる候補である。
 - Cは編集判断を多く含み、\`review_decision\` が空欄のまま自動公開しない。
 - Supabaseへ送るのは、人間が全候補を確認し、\`approve\` または \`revise\` とした行だけである。
+- 公開topicは大分類ごとに12件以下、公開事業はtopicごとに12件以下とする。枠を埋めるための分類はしない。
 - \`reject\` は公開関係から除外する。空欄は未判断として、既存公開関係の削除にも使わない。
 - グラフと公開APIは、\`published\` topicかつ\`published\` relationだけを返す。
 

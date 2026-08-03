@@ -50,6 +50,7 @@ describe("publish_reviewed_budget_topic", () => {
   let firstApprovedDisplayName: string;
   let firstApprovedBudgetItemKey: string;
   let firstRejectedIdentityId: string;
+  let approvedCount: number;
 
   beforeAll(async () => {
     dataset = createBudgetTestDataset();
@@ -89,6 +90,7 @@ describe("publish_reviewed_budget_topic", () => {
       throw identity.error;
     }
     const reviewFile = readBudgetTopicReviewFile(reviewedCandidatesPath);
+    approvedCount = reviewFile.selectedRows.length;
     firstApprovedIdentityId =
       reviewFile.selectedRows[0].budget_program_identity_id;
     firstApprovedDisplayName = reviewFile.selectedRows[0].display_program_name;
@@ -159,7 +161,7 @@ describe("publish_reviewed_budget_topic", () => {
     expect(first.error).toBeNull();
     expect(first.data).toMatchObject({
       datasetId,
-      publishedRelationCount: 13,
+      publishedRelationCount: approvedCount,
       removedRelationCount: 0,
       status: "published",
     });
@@ -186,7 +188,7 @@ describe("publish_reviewed_budget_topic", () => {
     expect(second.data).toMatchObject({
       datasetId,
       topicId,
-      publishedRelationCount: 13,
+      publishedRelationCount: approvedCount,
       removedRelationCount: 1,
       status: "published",
     });
@@ -197,7 +199,7 @@ describe("publish_reviewed_budget_topic", () => {
       .eq("topic_id", topicId)
       .eq("dataset_id", datasetId);
     expect(relations.error).toBeNull();
-    expect(relations.data).toHaveLength(13);
+    expect(relations.data).toHaveLength(approvedCount);
     expect(relations.data).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -251,7 +253,7 @@ describe("publish_reviewed_budget_topic", () => {
       .single();
     expect(topic.error).toBeNull();
     expect(topic.data).toMatchObject({
-      name: "学校施設の老朽化への対応",
+      name: "学校施設の老朽化",
       status: "published",
     });
 
@@ -262,7 +264,7 @@ describe("publish_reviewed_budget_topic", () => {
       )
       .eq("topic_id", topic.data.id);
     expect(relations.error).toBeNull();
-    expect(relations.data).toHaveLength(13);
+    expect(relations.data).toHaveLength(approvedCount);
     expect(relations.data).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -336,5 +338,66 @@ describe("publish_reviewed_budget_topic", () => {
       .eq("slug", missingTopicSlug);
     expect(topic.error).toBeNull();
     expect(topic.data).toEqual([]);
+  });
+
+  it("service roleだけがtopicと既存関係を冪等にarchivedへ移せる", async () => {
+    const archivePayload = {
+      fiscalYear: payload.fiscalYear,
+      budgetType: payload.budgetType,
+      categorySlug: payload.categorySlug,
+      topic: payload.topic,
+    };
+    const authenticated = (await getAuthenticatedClient(
+      reviewerEmail,
+      reviewerPassword
+    )) as SupabaseClient;
+    const [anonResult, authenticatedResult] = await Promise.all([
+      anon.rpc("archive_reviewed_budget_topic", {
+        p_payload: archivePayload,
+      }),
+      authenticated.rpc("archive_reviewed_budget_topic", {
+        p_payload: archivePayload,
+      }),
+    ]);
+    expect(anonResult.error).not.toBeNull();
+    expect(authenticatedResult.error).not.toBeNull();
+
+    const first = await admin.rpc("archive_reviewed_budget_topic", {
+      p_payload: archivePayload,
+    });
+    expect(first.error).toBeNull();
+    expect(first.data).toMatchObject({
+      datasetId,
+      topicId,
+      archivedRelationCount: approvedCount,
+      status: "archived",
+    });
+
+    const archivedTopic = await admin
+      .from("budget_topics")
+      .select("status")
+      .eq("id", topicId)
+      .single();
+    expect(archivedTopic.data?.status).toBe("archived");
+    const archivedRelations = await admin
+      .from("budget_topic_programs")
+      .select("review_status")
+      .eq("topic_id", topicId);
+    expect(archivedRelations.data).toHaveLength(approvedCount);
+    expect(
+      archivedRelations.data?.every(
+        (relation) => relation.review_status === "archived"
+      )
+    ).toBe(true);
+
+    const second = await admin.rpc("archive_reviewed_budget_topic", {
+      p_payload: archivePayload,
+    });
+    expect(second.error).toBeNull();
+    expect(second.data).toMatchObject({
+      topicId,
+      archivedRelationCount: 0,
+      status: "archived",
+    });
   });
 });

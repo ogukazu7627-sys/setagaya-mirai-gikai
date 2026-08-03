@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { BudgetTopicDefinitionFile } from "./budget-topic-definitions";
+import {
+  getBudgetTopicPublicationStatus,
+  getBudgetTopicShortName,
+} from "./budget-topic-publication-policy";
 
 type CandidateMatcher =
   BudgetTopicDefinitionFile["topics"][number]["rules"][number]["all"][number];
@@ -595,6 +599,7 @@ export const budgetConcreteTopicExpansionCatalog: ExpansionCategorySpec[] = [
 ];
 
 function buildRule(spec: ExpansionTopicSpec): CandidateRule {
+  const topicName = getBudgetTopicShortName(spec.slug);
   const all: CandidateMatcher[] = [];
   if (spec.accountCodes) {
     all.push({
@@ -615,7 +620,7 @@ function buildRule(spec: ExpansionTopicSpec): CandidateRule {
     relationType: spec.relationType,
     evidenceLevel: "B_strong_structural",
     confidence: "high",
-    explanation: `公式予算の会計・款・項・目と事業名から「${spec.name}」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。`,
+    explanation: `公式予算の会計・款・項・目と事業名から「${topicName}」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。`,
     all,
     any: spec.any ?? [],
     none: spec.none ?? [],
@@ -635,7 +640,8 @@ export function buildBudgetConcreteTopicExpansionDefinitionFiles(): Array<{
       category: category.category,
       topics: category.topics.map((topic) => ({
         slug: topic.slug,
-        name: topic.name,
+        name: getBudgetTopicShortName(topic.slug),
+        publicationStatus: getBudgetTopicPublicationStatus(topic.slug),
         shortDescription: topic.description,
         topicKind: "goal",
         editorialNote,

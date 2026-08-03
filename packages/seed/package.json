@@ -8,6 +8,7 @@
     "budget:web:import:inspect": "tsx budget/inspect-public-budget-import-state-cli.ts",
     "budget:web:import:verify": "tsx budget/verify-public-budget-import-cli.ts",
     "budget:web:topics:candidates": "tsx budget/generate-budget-topic-candidates-cli.ts",
+    "budget:web:topics:curate": "tsx budget/curate-budget-topic-publication-cli.ts",
     "budget:web:topics:expand-definitions": "tsx budget/generate-budget-concrete-topic-definitions-cli.ts",
     "budget:web:topics:publish": "tsx budget/publish-reviewed-budget-topic-cli.ts",
     "budget:web:topics:review": "tsx budget/budget-topic-review-site-cli.ts",

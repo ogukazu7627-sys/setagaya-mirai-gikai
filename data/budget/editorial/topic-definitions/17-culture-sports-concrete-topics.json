@@ -9,7 +9,7 @@
   "topics": [
     {
       "slug": "libraries-reading-and-knowledge-access",
-      "name": "図書館と読書・知識へのアクセスを充実する",
+      "name": "図書館・読書",
       "shortDescription": "図書館、図書資料、読書活動、情報システムに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -21,7 +21,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「図書館と読書・知識へのアクセスを充実する」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「図書館・読書」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -35,11 +35,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "cultural-heritage-and-local-history",
-      "name": "文化財と地域の歴史を未来へつなぐ",
+      "name": "文化財・地域史",
       "shortDescription": "文化財、郷土資料館、民家園、埋蔵文化財に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -51,7 +52,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「文化財と地域の歴史を未来へつなぐ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「文化財・地域史」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -65,11 +66,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "arts-culture-and-multicultural-exchange",
-      "name": "文化芸術と多文化交流を広げる",
+      "name": "文化芸術・多文化交流",
       "shortDescription": "文化芸術、文化施設、国際交流、外国人の暮らしに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -81,7 +83,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「文化芸術と多文化交流を広げる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「文化芸術・多文化交流」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -95,11 +97,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "lifelong-learning-and-community-education",
-      "name": "生涯学習と地域の学びを広げる",
+      "name": "生涯学習",
       "shortDescription": "社会教育、家庭教育、学校開放、放課後の遊び場に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -111,7 +114,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「生涯学習と地域の学びを広げる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「生涯学習」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -125,11 +128,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "active-aging-and-community-participation",
-      "name": "年齢を重ねても学び地域で活動できる環境をつくる",
+      "name": "生涯現役",
       "shortDescription": "高齢者の地域参加、学び、交流、いきがいに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -141,7 +145,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「年齢を重ねても学び地域で活動できる環境をつくる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「生涯現役」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -154,11 +158,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "interregional-exchange-and-rural-experiences",
-      "name": "地域間交流と自然体験の機会をつくる",
+      "name": "地域間交流",
       "shortDescription": "区民健康村の運営・整備と地域間交流に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -170,7 +175,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域間交流と自然体験の機会をつくる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域間交流」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -183,7 +188,8 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     }
   ]
 }

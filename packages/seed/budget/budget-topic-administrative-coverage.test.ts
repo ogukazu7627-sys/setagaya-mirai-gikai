@@ -7,7 +7,6 @@ import {
   loadBudgetTopicDefinitions,
 } from "./budget-topic-definitions";
 import { readBudgetTopicReviewFile } from "./budget-topic-review";
-import { automaticBudgetTopicApprovalNote } from "./budget-topic-review-site";
 
 const definitionsDirectory = fileURLToPath(
   new URL("../../../data/budget/editorial/topic-definitions", import.meta.url)
@@ -17,7 +16,7 @@ const reviewDirectory = fileURLToPath(
 );
 
 describe("budget administrative coverage topics", () => {
-  it("全1,156 identityを重複なく10大分類へ接続する", () => {
+  it("全1,156 identityの分類元候補を保持するが広域topicは公開しない", () => {
     const coverageSlugs = new Set<string>(
       budgetAdministrativeCoverageTopicSlugs
     );
@@ -47,9 +46,12 @@ describe("budget administrative coverage topics", () => {
     );
 
     expect(definitions).toHaveLength(10);
-    expect(new Set(definitions.map((row) => row.categorySlug))).toHaveLength(
-      10
-    );
+    expect(
+      definitions.every(
+        (definition) => definition.topic.publicationStatus === "archived"
+      )
+    ).toBe(true);
+    expect(new Set(definitions.map((row) => row.categorySlug)).size).toBe(10);
     expect(rows).toHaveLength(1_156);
     expect(
       new Set(rows.map((row) => row.budget_program_identity_id)).size
@@ -65,8 +67,8 @@ describe("budget administrative coverage topics", () => {
         (row) =>
           row.evidence_level === "B_strong_structural" &&
           row.confidence === "high" &&
-          row.review_decision === "approve" &&
-          row.review_note === automaticBudgetTopicApprovalNote
+          row.review_decision === "reject" &&
+          row.review_note.startsWith("[publication-policy]")
       )
     ).toBe(true);
     expect(

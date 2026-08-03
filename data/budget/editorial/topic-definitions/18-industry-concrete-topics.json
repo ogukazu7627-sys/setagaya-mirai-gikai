@@ -9,7 +9,7 @@
   "topics": [
     {
       "slug": "urban-agriculture-and-farmland",
-      "name": "都市農業と農地を次世代につなぐ",
+      "name": "都市農業",
       "shortDescription": "農地保全、農業経営、区民農園、農産物の魅力発信に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -21,7 +21,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「都市農業と農地を次世代につなぐ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「都市農業」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -35,11 +35,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "consumer-rights-and-safe-transactions",
-      "name": "消費者の権利と安全な取引を守る",
+      "name": "消費者の安全",
       "shortDescription": "消費生活相談、啓発、学習に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -51,7 +52,7 @@
           "relationType": "responds_to",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「消費者の権利と安全な取引を守る」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「消費者の安全」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -64,11 +65,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "stable-industry-administration",
-      "name": "地域産業を支える行政基盤を整える",
+      "name": "産業行政の基盤",
       "shortDescription": "産業・農業・消費生活分野の職員と行政運営に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -80,7 +82,7 @@
           "relationType": "enables",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域産業を支える行政基盤を整える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「産業行政の基盤」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -93,7 +95,8 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

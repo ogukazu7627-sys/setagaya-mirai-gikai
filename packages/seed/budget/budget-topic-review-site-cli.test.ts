@@ -70,7 +70,7 @@ describe("budget topic review site CLI", () => {
     expect(events).toEqual(["auto-approve"]);
   });
 
-  it("B・Highの一括承認後にレビューサーバーを起動する", async () => {
+  it("公開ポリシー適用後にレビューサーバーを起動する", async () => {
     const events: string[] = [];
     const stdout: string[] = [];
     const exitCode = await runBudgetTopicReviewSiteCli([], {
@@ -100,7 +100,7 @@ describe("budget topic review site CLI", () => {
     expect(exitCode).toBe(0);
     expect(events).toEqual(["auto-approve", "start-server"]);
     expect(stdout.join("\n")).toContain(
-      "B・High自動承認: 対象146件 / 今回更新136件 / 承認済み10件"
+      "公開ポリシー適用: 公開対象146件 / 今回承認136件 / 承認済み10件"
     );
     expect(stdout.join("\n")).toContain("手動確認対象: 29件 / 未判断: 23件");
   });

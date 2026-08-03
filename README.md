@@ -94,19 +94,23 @@ applyはローカル検証を再実行してから、Storage保存、staging投�
 ### 人間レビュー済み課題関係の登録
 
 10大分類のtopic定義は `data/budget/editorial/topic-definitions/` に置きます。
-各分類には、個別の課題・目標topicに加えて、公式予算階層から全事業へ到達するための
-`administrative_function` topicがあります。行政機能topicはみらい議会の探索用整理で、
-世田谷区の公式な課題分類ではありません。
+各分類には個別の課題・目標topicがあります。候補生成時の母集団に使う
+`administrative_function` topicは定義として保持しますが、広すぎるため本番グラフには
+公開しません。世田谷区の公式な課題分類ではありません。
 公開用7ファイルの公式項目だけから、人間レビュー用の候補CSVを生成できます。
 
 ```bash
 pnpm budget:web:topics:expand-definitions
 pnpm budget:web:topics:candidates -- --input-dir /path/to/budget-data
+pnpm budget:web:topics:curate
 ```
 
 `expand-definitions` は、行政機能topicを母集団として、初期10 topic候補の外にいた
 981 identityを56個の具体的topicへ分ける定義ファイルを決定的に再生成します。
 初期候補175件との混入、追加候補間の重複、行政機能topic外への割当をテストで拒否します。
+`curate` はtopic名を14文字以下の短い語句へ統一し、公開topicを大分類ごとに12件以下、
+公開事業をtopicごとに12件以下へ絞ります。B・Highであっても、一般管理、人件費、基金、
+topicとの直接一致が弱い候補は公開しません。上限を埋めるための承認も行いません。
 
 候補生成は `review_decision` が入った既存CSVを上書きしません。新規候補の
 `review_decision` と `review_note` は空欄です。候補生成では
@@ -120,10 +124,9 @@ C候補を含め、候補は自動公開されません。
 pnpm budget:web:topics:review
 ```
 
-起動時に `B_strong_structural` かつ確信度 `high` の候補を `approve` へ一括更新します。
-既存の `revise` / `reject` と衝突する場合は上書きせず、起動を中止します。現在の
-全2,312候補では2,283件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
-表示します。提出済みCSVの未判断は0件です。大分類、判断、根拠レベル、検索語で
+起動時に短名・直接性・件数上限の公開ポリシーを冪等に適用します。現在の
+全2,312候補では582件を公開候補、1,730件を非公開候補とし、未判断は0件です。
+大分類、判断、根拠レベル、検索語で
 絞り込み、各候補を `approve`、`revise`、`reject` から選択して `CSVへ保存` を
 押してください。`revise` は公開対象になる最終判断なので、関係種別または説明を
 修正し、レビュー注記も入力します。
@@ -142,7 +145,7 @@ pnpm budget:web:topics:review -- \
   --port 4411
 ```
 
-画面を起動せず、既に合意したB・High一括承認ルールだけを冪等に適用する場合は、
+画面を起動せず、公開ポリシーだけを冪等に適用する場合は、
 次を実行します。
 
 ```bash
@@ -176,10 +179,9 @@ pnpm budget:web:topics:publish -- \
 `Publish Reviewed Budget Topics` だけが、GitHubの `production` 環境を使って実行
 できます。workflowは確認文、topic定義と同数の全76 review CSVのdry-run、active dataset、レビュー
 担当者、公開後のtopic・category・relation内容を検証します。現在の提出結果では
-`approve/revise=2,304`、`reject=8`、`pending=0` が期待値です。1,156 identityは
-10個の行政機能topicのいずれかにちょうど1回含まれます。初期10 topic候補の外にいた
-981 identityも、56個の具体的topicのいずれかへ重複なく接続されます。公式予算テーブル、
-予算dataset、Storageは変更しません。
+公開topic64件、archived topic12件、`approve/revise=582`、`reject=1,730`、
+`pending=0` が期待値です。公開topicへ接続しない574 identityは正常で、検索、公式分類、
+全予算一覧から閲覧できます。公式予算テーブル、予算dataset、Storageは変更しません。
 
 ```bash
 gh workflow run publish_budget_topics.yml \
@@ -215,13 +217,14 @@ pnpm budget:web:topics:report -- --input-dir /path/to/budget-data
 1. `pnpm budget:web:import -- --input-dir /path/to/budget-data` で新データをdry-run検証する。
 2. `--apply` 後、active datasetのID、件数、金額、validation結果を確認する。
 3. `pnpm budget:web:topics:candidates` を実行する。レビュー済みCSVが保護されたこと、新規候補が空欄で出力されたことを確認する。
-4. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
-5. 公開済みtopicの各review CSVについて `pnpm budget:web:topics:publish` をまずdry-runし、approve / revise / reject / pending件数を確認する。pendingがあるtopicは公開しない。
-6. 元のレビュー担当者・レビュー日時を明示して、全行レビュー済みのtopicだけを `--apply` する。
-7. `pnpm budget:web:topics:report` を実行し、active datasetのmanifest、公開済み件数、未分類件数を確認する。公開APIとグラフにはpublished関係だけが出ることを確認する。
+4. `pnpm budget:web:topics:curate` を実行し、短名・直接性・大分類12 topic・topic 12事業の上限を再適用する。
+5. レビュー済み候補CSVに記録された `budget_program_identity_id` が新datasetにも存在し、事業名・金額・公式階層に意図しない変更がないことを確認する。
+6. 各review CSVについて `pnpm budget:web:topics:publish` をまずdry-runし、approve / revise / reject / pending件数を確認する。pendingがあるtopicは公開しない。
+7. 元のレビュー担当者・レビュー日時を明示して、全行レビュー済みのtopicを `--apply` する。`publicationStatus=archived` は公開関係も冪等に非公開化する。
+8. `pnpm budget:web:topics:report` を実行し、active datasetのmanifest、公開済み件数、未分類件数を確認する。公開APIとグラフにはpublished関係だけが出ることを確認する。
 
 identity IDや根拠項目が変わった場合は、旧関係を推測でコピーせず候補CSVを再生成し、
-人間の再レビューへ戻してください。手順3〜7が終わるまで、新datasetでは課題に紐づく
+人間の再レビューへ戻してください。手順3〜8が終わるまで、新datasetでは課題に紐づく
 事業が一時的に空になることがあります。
 
 ## マイグレーション

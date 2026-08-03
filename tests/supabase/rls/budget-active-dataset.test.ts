@@ -181,6 +181,9 @@ describe("budget dataset RLS", () => {
         roleClient.rpc("publish_reviewed_budget_topic", {
           p_payload: {},
         }),
+        roleClient.rpc("archive_reviewed_budget_topic", {
+          p_payload: {},
+        }),
       ])
     );
 
