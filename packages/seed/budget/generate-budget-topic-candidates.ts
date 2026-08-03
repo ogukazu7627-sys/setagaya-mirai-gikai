@@ -7,6 +7,7 @@ import type {
   BudgetTopicCandidateRule,
   ResolvedBudgetTopicDefinition,
 } from "./budget-topic-definitions";
+import { budgetInitialConcreteTopicSlugs } from "./budget-topic-definitions";
 import {
   type BudgetTopicReviewCandidate,
   readBudgetTopicReviewFile,
@@ -90,7 +91,10 @@ function matchesRule(
   return (
     rule.all.every((matcher) => matchesMatcher(identity, programs, matcher)) &&
     (rule.any.length === 0 ||
-      rule.any.some((matcher) => matchesMatcher(identity, programs, matcher)))
+      rule.any.some((matcher) =>
+        matchesMatcher(identity, programs, matcher)
+      )) &&
+    rule.none.every((matcher) => !matchesMatcher(identity, programs, matcher))
   );
 }
 
@@ -215,8 +219,79 @@ export function buildBudgetTopicCandidates(
     dataset.programIdentities
   );
 
+  const definitionsBySlug = new Map(
+    definitions.map((definition) => [definition.topic.slug, definition])
+  );
+  const sourceAdministrativeTopicSlugs = new Set(
+    definitions.flatMap((definition) =>
+      definition.topic.sourceAdministrativeTopicSlug
+        ? [definition.topic.sourceAdministrativeTopicSlug]
+        : []
+    )
+  );
+  const identitiesMatchingDefinition = (
+    definition: ResolvedBudgetTopicDefinition
+  ): Set<string> =>
+    new Set(
+      dataset.programIdentities.flatMap((identity) => {
+        const programs = programsByIdentity.get(
+          identity.budget_program_identity_id
+        );
+        if (
+          !programs ||
+          !definition.topic.rules.some((rule) =>
+            matchesRule(identity, programs, rule)
+          )
+        ) {
+          return [];
+        }
+        return [identity.budget_program_identity_id];
+      })
+    );
+  const initialConcreteIdentityIds = new Set<string>();
+  if (sourceAdministrativeTopicSlugs.size > 0) {
+    for (const topicSlug of budgetInitialConcreteTopicSlugs) {
+      const definition = definitionsBySlug.get(topicSlug);
+      if (!definition) {
+        throw new Error(`初期topic定義が見つかりません: ${topicSlug}`);
+      }
+      for (const identityId of identitiesMatchingDefinition(definition)) {
+        initialConcreteIdentityIds.add(identityId);
+      }
+    }
+  }
+  const sourcePopulationByTopicSlug = new Map<string, Set<string>>();
+  for (const topicSlug of sourceAdministrativeTopicSlugs) {
+    const definition = definitionsBySlug.get(topicSlug);
+    if (!definition) {
+      throw new Error(`行政機能topic定義が見つかりません: ${topicSlug}`);
+    }
+    sourcePopulationByTopicSlug.set(
+      topicSlug,
+      identitiesMatchingDefinition(definition)
+    );
+  }
+
   return definitions.map((definition) => {
     const rows = dataset.programIdentities.flatMap((identity) => {
+      const sourceAdministrativeTopicSlug =
+        definition.topic.sourceAdministrativeTopicSlug;
+      if (sourceAdministrativeTopicSlug) {
+        const sourcePopulation = sourcePopulationByTopicSlug.get(
+          sourceAdministrativeTopicSlug
+        );
+        if (!sourcePopulation) {
+          throw new Error(
+            `行政機能topicの候補集合が見つかりません: ${sourceAdministrativeTopicSlug}`
+          );
+        }
+        if (
+          !sourcePopulation.has(identity.budget_program_identity_id) ||
+          initialConcreteIdentityIds.has(identity.budget_program_identity_id)
+        ) {
+          return [];
+        }
+      }
       const programs = programsByIdentity.get(
         identity.budget_program_identity_id
       );

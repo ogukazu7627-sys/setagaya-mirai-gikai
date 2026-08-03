@@ -28,6 +28,19 @@ export const budgetAdministrativeCoverageTopicSlugs = [
   "community-and-resident-services-administration",
 ] as const;
 
+export const budgetInitialConcreteTopicSlugs = [
+  "school-facility-aging",
+  "childcare-services-and-environment",
+  "preventive-care-and-community-support",
+  "road-bridge-maintenance",
+  "disaster-readiness",
+  "digital-public-services",
+  "access-to-sports",
+  "local-business-support",
+  "decarbonization-and-renewable-energy",
+  "community-facilities",
+] as const;
+
 export const budgetTopicCandidateFieldSchema = z.enum([
   "account_code",
   "account_name",
@@ -56,6 +69,7 @@ const budgetTopicCandidateRuleSchema = z
     explanation: z.string().min(1),
     all: z.array(budgetTopicMatcherSchema).default([]),
     any: z.array(budgetTopicMatcherSchema).default([]),
+    none: z.array(budgetTopicMatcherSchema).default([]),
   })
   .superRefine((rule, context) => {
     if (rule.all.length === 0 && rule.any.length === 0) {
@@ -73,6 +87,9 @@ const budgetTopicDefinitionSchema = z.strictObject({
   topicKind: z.enum(["problem", "goal", "administrative_function"]),
   editorialNote: z.string().min(1),
   reviewFile: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*-candidates\.csv$/),
+  sourceAdministrativeTopicSlug: z
+    .enum(budgetAdministrativeCoverageTopicSlugs)
+    .optional(),
   rules: z.array(budgetTopicCandidateRuleSchema).min(1),
 });
 
@@ -131,9 +148,10 @@ function assertCategoryCatalog(definitions: BudgetTopicDefinitionFile[]): void {
   const actual = new Map<string, string>();
 
   for (const definition of definitions) {
-    if (actual.has(definition.category.slug)) {
+    const existingName = actual.get(definition.category.slug);
+    if (existingName && existingName !== definition.category.name) {
       throw new Error(
-        `category定義が重複しています: ${definition.category.slug}`
+        `category名が定義ファイル間で一致しません: ${definition.category.slug}`
       );
     }
     actual.set(definition.category.slug, definition.category.name);

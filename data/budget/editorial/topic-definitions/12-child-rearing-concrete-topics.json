@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": {
+    "slug": "child-rearing",
+    "name": "子育て"
+  },
+  "topics": [
+    {
+      "slug": "children-youth-places-and-activities",
+      "name": "子ども・若者の居場所と活動を広げる",
+      "shortDescription": "児童館、学童クラブ、中高生支援、自然体験などに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "children-youth-places-and-activities-candidates.csv",
+      "sourceAdministrativeTopicSlug": "child-and-family-administration",
+      "rules": [
+        {
+          "id": "children-youth-places-and-activities-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子ども・若者の居場所と活動を広げる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "児童育成費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "family-benefits-and-medical-support",
+      "name": "子育て世帯の生活と医療を支える",
+      "shortDescription": "児童手当、医療費助成、ひとり親支援、出産費助成などに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "family-benefits-and-medical-support-candidates.csv",
+      "sourceAdministrativeTopicSlug": "child-and-family-administration",
+      "rules": [
+        {
+          "id": "family-benefits-and-medical-support-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子育て世帯の生活と医療を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "児童措置費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "child-protection-and-family-care",
+      "name": "子どもを守り家庭での養育を支える",
+      "shortDescription": "児童相談、一時保護、家庭養育、児童養護施設などに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "child-protection-and-family-care-candidates.csv",
+      "sourceAdministrativeTopicSlug": "child-and-family-administration",
+      "rules": [
+        {
+          "id": "child-protection-and-family-care-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子どもを守り家庭での養育を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "児童相談所費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "community-child-and-family-support",
+      "name": "地域で子どもと家庭を支える",
+      "shortDescription": "在宅子育て、産後ケア、子どもの権利、若者支援などに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "community-child-and-family-support-candidates.csv",
+      "sourceAdministrativeTopicSlug": "child-and-family-administration",
+      "rules": [
+        {
+          "id": "community-child-and-family-support-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域で子どもと家庭を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "児童福祉総務費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "safe-child-support-facilities",
+      "name": "子どもの居場所となる施設を安全に保つ",
+      "shortDescription": "児童館など子どもが利用する施設の維持管理・改修に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "safe-child-support-facilities-candidates.csv",
+      "sourceAdministrativeTopicSlug": "child-and-family-administration",
+      "rules": [
+        {
+          "id": "safe-child-support-facilities-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子どもの居場所となる施設を安全に保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "保育児童施設費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    }
+  ]
+}

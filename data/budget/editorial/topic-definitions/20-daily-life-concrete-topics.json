@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": {
+    "slug": "daily-life",
+    "name": "暮らし"
+  },
+  "topics": [
+    {
+      "slug": "safe-community-and-crime-prevention",
+      "name": "地域の防犯と暮らしの安全を高める",
+      "shortDescription": "防犯、犯罪被害者支援、地域の安全安心に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "safe-community-and-crime-prevention-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "safe-community-and-crime-prevention-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域の防犯と暮らしの安全を高める」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民総務費"
+              ]
+            }
+          ],
+          "any": [
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "安全安心",
+                "防犯",
+                "犯罪被害",
+                "防火防災",
+                "災害時"
+              ]
+            }
+          ],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "human-rights-gender-equality-and-peace",
+      "name": "人権・男女共同参画・平和を大切にする",
+      "shortDescription": "人権、DV防止、女性支援、男女共同参画、平和に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "human-rights-gender-equality-and-peace-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "human-rights-gender-equality-and-peace-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「人権・男女共同参画・平和を大切にする」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民総務費"
+              ]
+            }
+          ],
+          "any": [
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "ＤＶ",
+                "人権",
+                "男女共同",
+                "平和"
+              ]
+            }
+          ],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "community-participation-events-and-support",
+      "name": "地域活動と区民生活を支える",
+      "shortDescription": "町会・自治会、市民活動、地域行事、地域行政に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "community-participation-events-and-support-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "community-participation-events-and-support-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域活動と区民生活を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民総務費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": [
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "安全安心",
+                "防犯",
+                "犯罪被害",
+                "防火防災",
+                "災害時",
+                "ＤＶ",
+                "人権",
+                "男女共同",
+                "平和"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "accessible-local-offices-and-services",
+      "name": "身近な地域窓口と行政サービスを保つ",
+      "shortDescription": "総合支所、出張所、相談、地域窓口の維持・改修に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "accessible-local-offices-and-services-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "accessible-local-offices-and-services-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「身近な地域窓口と行政サービスを保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "支所費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "resident-records-family-register-and-identity",
+      "name": "住民記録・戸籍の手続きを確実に届ける",
+      "shortDescription": "住民票、戸籍、マイナンバーなど住民記録に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "resident-records-family-register-and-identity-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "resident-records-family-register-and-identity-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「住民記録・戸籍の手続きを確実に届ける」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "住民記録費",
+                "戸籍事務費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "community-learning-and-civic-facilities",
+      "name": "地域の学びと区民利用施設を支える",
+      "shortDescription": "地域の生涯学習、区民利用施設、区民斎場に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "community-learning-and-civic-facilities-candidates.csv",
+      "sourceAdministrativeTopicSlug": "community-and-resident-services-administration",
+      "rules": [
+        {
+          "id": "community-learning-and-civic-facilities-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域の学びと区民利用施設を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民施設費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    }
+  ]
+}

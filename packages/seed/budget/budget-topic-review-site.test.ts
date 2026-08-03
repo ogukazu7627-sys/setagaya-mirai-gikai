@@ -31,27 +31,27 @@ describe("budget topic review site data", () => {
     const snapshot = readBudgetTopicReviewSiteSnapshot(createOptions());
 
     expect(snapshot.summary).toEqual({
-      total: 1_331,
+      total: 2_312,
       pending: 23,
-      approve: 1_305,
+      approve: 2_286,
       revise: 0,
       reject: 3,
       categoryCount: 10,
-      topicCount: 20,
-      automaticApprovalRuleMatches: 1_302,
-      automaticallyApproved: 1_302,
+      topicCount: 76,
+      automaticApprovalRuleMatches: 2_283,
+      automaticallyApproved: 2_283,
       manualReviewTotal: 29,
       manualPending: 23,
       manualApprove: 3,
       manualRevise: 0,
       manualReject: 3,
     });
-    expect(snapshot.rows).toHaveLength(1_331);
-    expect(new Set(snapshot.rows.map((row) => row.rowKey)).size).toBe(1_331);
+    expect(snapshot.rows).toHaveLength(2_312);
+    expect(new Set(snapshot.rows.map((row) => row.rowKey)).size).toBe(2_312);
     expect(
       snapshot.rows.filter((row) => row.requiresManualReview)
     ).toHaveLength(29);
-  });
+  }, 10_000);
 
   it("B・Highの未判断だけを決定的に一括承認する", () => {
     const fixture = createBudgetTopicReviewSiteTestFixture({
@@ -66,17 +66,17 @@ describe("budget topic review site data", () => {
 
     expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
       {
-        matched: 1_302,
-        updated: 1_292,
+        matched: 2_283,
+        updated: 2_273,
         alreadyApproved: 10,
-        updatedFiles: 19,
+        updatedFiles: 75,
       }
     );
     const after = readBudgetTopicReviewSiteSnapshot(fixture.options);
     expect(after.summary).toMatchObject({
       pending: 23,
-      approve: 1_305,
-      automaticallyApproved: 1_302,
+      approve: 2_286,
+      automaticallyApproved: 2_283,
       manualReviewTotal: 29,
     });
     const targetAfter = after.rows.find(
@@ -89,9 +89,9 @@ describe("budget topic review site data", () => {
     });
     expect(autoApproveStrongHighBudgetTopicCandidates(fixture.options)).toEqual(
       {
-        matched: 1_302,
+        matched: 2_283,
         updated: 0,
-        alreadyApproved: 1_302,
+        alreadyApproved: 2_283,
         updatedFiles: 0,
       }
     );
@@ -123,7 +123,7 @@ describe("budget topic review site data", () => {
     });
 
     expect(after.summary.pending).toBe(22);
-    expect(after.summary.approve).toBe(1_306);
+    expect(after.summary.approve).toBe(2_287);
     const afterFile = readBudgetTopicReviewFile(inputFile);
     expect(afterFile.rows).toHaveLength(beforeFile.rows.length);
     for (const beforeRow of beforeFile.rows) {

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": {
+    "slug": "environment",
+    "name": "環境問題"
+  },
+  "topics": [
+    {
+      "slug": "waste-collection-and-clean-neighborhoods",
+      "name": "ごみを適切に収集し清潔なまちを保つ",
+      "shortDescription": "ごみ・し尿の収集、不法投棄、清掃車両に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "waste-collection-and-clean-neighborhoods-candidates.csv",
+      "sourceAdministrativeTopicSlug": "environment-and-resource-circulation-administration",
+      "rules": [
+        {
+          "id": "waste-collection-and-clean-neighborhoods-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「ごみを適切に収集し清潔なまちを保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "廃棄物対策費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "resource-circulation-and-recycling",
+      "name": "ごみを減らし資源を循環させる",
+      "shortDescription": "分別回収、拠点回収、リサイクル活動に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "resource-circulation-and-recycling-candidates.csv",
+      "sourceAdministrativeTopicSlug": "environment-and-resource-circulation-administration",
+      "rules": [
+        {
+          "id": "resource-circulation-and-recycling-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「ごみを減らし資源を循環させる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "省資源対策費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "clean-safe-and-comfortable-environment",
+      "name": "清潔で安全な生活環境を守る",
+      "shortDescription": "ポイ捨て、公害、環境監視、生活環境保全に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "clean-safe-and-comfortable-environment-candidates.csv",
+      "sourceAdministrativeTopicSlug": "environment-and-resource-circulation-administration",
+      "rules": [
+        {
+          "id": "clean-safe-and-comfortable-environment-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「清潔で安全な生活環境を守る」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "環境対策費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "stable-cleaning-and-environment-operations",
+      "name": "清掃・環境サービスの基盤を安定して保つ",
+      "shortDescription": "清掃施設、事務所、職員、安全衛生と清掃事業運営に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "stable-cleaning-and-environment-operations-candidates.csv",
+      "sourceAdministrativeTopicSlug": "environment-and-resource-circulation-administration",
+      "rules": [
+        {
+          "id": "stable-cleaning-and-environment-operations-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「清掃・環境サービスの基盤を安定して保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "清掃管理費",
+                "施設整備費",
+                "環境職員費",
+                "清掃職員費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    }
+  ]
+}

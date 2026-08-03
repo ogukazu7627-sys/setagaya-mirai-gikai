@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": {
+    "slug": "urban-development",
+    "name": "まちづくり"
+  },
+  "topics": [
+    {
+      "slug": "safe-streets-and-cycling",
+      "name": "歩行者・自転車が安全に移動できる道をつくる",
+      "shortDescription": "交通安全施設、自転車環境、街路灯、生活道路の整備に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "safe-streets-and-cycling-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "safe-streets-and-cycling-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「歩行者・自転車が安全に移動できる道をつくる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "交通安全対策費",
+                "街路照明費",
+                "道路新設改良費",
+                "私道整備費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "flood-river-and-drainage-resilience",
+      "name": "豪雨・水害に備え水の流れを整える",
+      "shortDescription": "河川・水路、雨水、下水道、水洗化に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "flood-river-and-drainage-resilience-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "flood-river-and-drainage-resilience-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「豪雨・水害に備え水の流れを整える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "河川総務費",
+                "河川整備費",
+                "公共下水道建設費",
+                "水洗化促進費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "parks-and-public-open-spaces",
+      "name": "公園と身近な屋外空間を育てる",
+      "shortDescription": "公園・広場の維持、新設、改修、公衆トイレに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "parks-and-public-open-spaces-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "parks-and-public-open-spaces-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「公園と身近な屋外空間を育てる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "公園管理費",
+                "公園新設改良費",
+                "公衆トイレ費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "urban-green-and-water-conservation",
+      "name": "まちの緑と水を守り増やす",
+      "shortDescription": "樹林地、地域緑化、湧水、緑と水のまちづくりに関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "urban-green-and-water-conservation-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "urban-green-and-water-conservation-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「まちの緑と水を守り増やす」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "緑化推進費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "housing-security-and-quality",
+      "name": "安心して住み続けられる住まいを支える",
+      "shortDescription": "公的住宅、居住支援、住宅改修・保全に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "housing-security-and-quality-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "housing-security-and-quality-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「安心して住み続けられる住まいを支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "住宅費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "safe-buildings-and-resilient-neighborhoods",
+      "name": "安全で災害に強い市街地をつくる",
+      "shortDescription": "耐震化、建築安全、空家、密集市街地、再開発に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "safe-buildings-and-resilient-neighborhoods-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "safe-buildings-and-resilient-neighborhoods-official-structure",
+          "relationType": "responds_to",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「安全で災害に強い市街地をつくる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "建築行政費",
+                "市街地開発費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "stations-transit-and-community-planning",
+      "name": "駅・交通と地域のまちづくりを進める",
+      "shortDescription": "駅周辺、鉄道、バス、バリアフリー、都市計画に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "stations-transit-and-community-planning-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "stations-transit-and-community-planning-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「駅・交通と地域のまちづくりを進める」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "都市計画総務費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "stable-urban-infrastructure-operations",
+      "name": "都市基盤を安定して管理する",
+      "shortDescription": "道路・公共物の管理、土木事務、技術・人員の基盤に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "stable-urban-infrastructure-operations-candidates.csv",
+      "sourceAdministrativeTopicSlug": "urban-infrastructure-administration",
+      "rules": [
+        {
+          "id": "stable-urban-infrastructure-operations-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「都市基盤を安定して管理する」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "土木総務費",
+                "道路橋梁総務費",
+                "土木職員費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    }
+  ]
+}
