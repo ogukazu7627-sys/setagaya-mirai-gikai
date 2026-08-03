@@ -2,11 +2,14 @@
   "schemaVersion": "budget-topic-definition-v1",
   "fiscalYear": 2026,
   "budgetType": "initial_budget",
-  "category": { "slug": "daily-life", "name": "暮らし" },
+  "category": {
+    "slug": "daily-life",
+    "name": "暮らし"
+  },
   "topics": [
     {
       "slug": "community-facilities",
-      "name": "身近な地域施設の維持と活用",
+      "name": "地域施設",
       "shortDescription": "区民センター、区民会館、地区会館、区民集会所など、地域の活動拠点に関連する予算を探すための入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
@@ -19,19 +22,52 @@
           "confidence": "high",
           "explanation": "一般会計の区民施設費に属し、公式事業名に区民センター、区民会館、地区会館、区民集会所または区民施設が明記されているため、身近な地域施設を維持・活用する候補とした。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["区民施設費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民施設費"
+              ]
+            }
           ],
           "any": [
-            { "field": "display_program_name", "operator": "includes", "values": ["区民センター", "区民会館", "地区会館", "区民集会所", "区民施設"] },
-            { "field": "budget_program_name", "operator": "includes", "values": ["区民センター", "区民会館", "地区会館", "区民集会所", "区民施設"] }
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "区民センター",
+                "区民会館",
+                "地区会館",
+                "区民集会所",
+                "区民施設"
+              ]
+            },
+            {
+              "field": "budget_program_name",
+              "operator": "includes",
+              "values": [
+                "区民センター",
+                "区民会館",
+                "地区会館",
+                "区民集会所",
+                "区民施設"
+              ]
+            }
           ]
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "community-and-resident-services-administration",
-      "name": "地域・窓口・区民生活を支える行政",
+      "name": "地域・区民行政",
       "shortDescription": "地域行政、総合支所、区民施設、戸籍・住民記録などに関する予算事業を公式予算階層から探すための行政機能。",
       "topicKind": "administrative_function",
       "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
@@ -44,9 +80,29 @@
           "confidence": "high",
           "explanation": "公式予算で区民総務費、支所費または区民施設費に属するため、地域・窓口・区民生活に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["区民総務費", "支所費", "区民施設費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "総務費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "区民総務費",
+                "支所費",
+                "区民施設費"
+              ]
+            }
           ],
           "any": []
         },
@@ -57,13 +113,32 @@
           "confidence": "high",
           "explanation": "公式予算で戸籍住民基本台帳費に属するため、窓口・区民生活に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
-            { "field": "kou_name", "operator": "equals", "values": ["戸籍住民基本台帳費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "総務費"
+              ]
+            },
+            {
+              "field": "kou_name",
+              "operator": "equals",
+              "values": [
+                "戸籍住民基本台帳費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

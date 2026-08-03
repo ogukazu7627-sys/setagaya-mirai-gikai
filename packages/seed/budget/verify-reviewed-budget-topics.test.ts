@@ -31,7 +31,7 @@ function buildMatchingSnapshot(): PublishedBudgetTopicVerificationSnapshot {
   const topics = expectations.map(({ definition }) => ({
     id: `topic-${definition.topic.slug}`,
     slug: definition.topic.slug,
-    status: "published",
+    status: definition.topic.publicationStatus,
   }));
   const topicCategories = expectations.map(({ definition }) => ({
     topic_id: `topic-${definition.topic.slug}`,
@@ -61,7 +61,7 @@ function buildMatchingSnapshot(): PublishedBudgetTopicVerificationSnapshot {
 }
 
 describe("reviewed budget topic production verification", () => {
-  it("提出済み76topicを2,304公開・8除外として検証する", () => {
+  it("64topic・582関係を公開し、未分類を正常として検証する", () => {
     const expectations = loadBudgetTopicPublishExpectations(
       loadBudgetTopicDefinitions(definitionsPath),
       reviewPath
@@ -72,13 +72,13 @@ describe("reviewed budget topic production verification", () => {
         (sum, expectation) => sum + expectation.review.selectedRows.length,
         0
       )
-    ).toBe(2_304);
+    ).toBe(582);
     expect(
       expectations.reduce(
         (sum, expectation) => sum + expectation.review.rejectedRows.length,
         0
       )
-    ).toBe(8);
+    ).toBe(1_730);
     expect(
       assertPublishedBudgetTopicsMatchReviews(
         expectations,
@@ -86,10 +86,12 @@ describe("reviewed budget topic production verification", () => {
       )
     ).toEqual({
       datasetId: "22222222-2222-4222-8222-222222222222",
-      topicCount: 76,
-      publishedIdentityCount: 1_156,
-      publishedRelationCount: 2_304,
-      rejectedRelationCount: 8,
+      topicCount: 64,
+      archivedTopicCount: 12,
+      publishedIdentityCount: 582,
+      unclassifiedIdentityCount: 574,
+      publishedRelationCount: 582,
+      rejectedRelationCount: 1_730,
     });
   });
 

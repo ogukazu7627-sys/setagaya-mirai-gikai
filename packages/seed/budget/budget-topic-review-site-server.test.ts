@@ -8,8 +8,8 @@ import { createBudgetTopicReviewSiteTestFixture } from "./budget-topic-review-si
 
 const fixtureCleanup: Array<() => void> = [];
 
-function createOptions(): BudgetTopicReviewSiteOptions {
-  const fixture = createBudgetTopicReviewSiteTestFixture();
+function createOptions(autoApprove = true): BudgetTopicReviewSiteOptions {
+  const fixture = createBudgetTopicReviewSiteTestFixture({ autoApprove });
   fixtureCleanup.push(fixture.remove);
   return fixture.options;
 }
@@ -37,10 +37,10 @@ describe("budget topic review local server", () => {
       const body = (await response.json()) as BudgetTopicReviewSiteSnapshot;
       expect(body.summary).toMatchObject({
         total: 2_312,
-        pending: 23,
-        automaticallyApproved: 2_283,
-        manualReviewTotal: 29,
-        manualPending: 23,
+        pending: 0,
+        automaticallyApproved: 582,
+        manualReviewTotal: 0,
+        manualPending: 0,
       });
     } finally {
       await started.close();
@@ -48,7 +48,7 @@ describe("budget topic review local server", () => {
   }, 10_000);
 
   it("外部originを拒否し、同一originの保存だけを受け付ける", async () => {
-    const started = await startBudgetTopicReviewServer(createOptions(), 0);
+    const started = await startBudgetTopicReviewServer(createOptions(false), 0);
     try {
       const snapshotResponse = await fetch(`${started.url}/api/review`);
       const snapshot =
@@ -93,10 +93,10 @@ describe("budget topic review local server", () => {
       expect(saved.status).toBe(200);
       const body = (await saved.json()) as BudgetTopicReviewSiteSnapshot;
       expect(body.summary).toMatchObject({
-        pending: 22,
-        reject: 4,
-        manualPending: 22,
-        manualReject: 4,
+        pending: 2_295,
+        reject: 7,
+        manualPending: 2_295,
+        manualReject: 0,
       });
     } finally {
       await started.close();

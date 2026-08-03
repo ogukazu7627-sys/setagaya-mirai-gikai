@@ -2784,6 +2784,10 @@ export type Database = {
         Args: { p_dataset_id: string }
         Returns: Json
       }
+      archive_reviewed_budget_topic: {
+        Args: { p_payload: Json }
+        Returns: Json
+      }
       apply_admin_role_if_eligible: {
         Args: { target_user_id: string }
         Returns: boolean

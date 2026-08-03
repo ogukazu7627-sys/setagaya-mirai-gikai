@@ -2,11 +2,14 @@
   "schemaVersion": "budget-topic-definition-v1",
   "fiscalYear": 2026,
   "budgetType": "initial_budget",
-  "category": { "slug": "industry", "name": "産業" },
+  "category": {
+    "slug": "industry",
+    "name": "産業"
+  },
   "topics": [
     {
       "slug": "local-business-support",
-      "name": "地域の事業者と産業の成長支援",
+      "name": "中小企業支援",
       "shortDescription": "中小企業、商業、ものづくり、雇用、産業連携など、地域経済を支える予算を探すための入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
@@ -19,10 +22,34 @@
           "confidence": "low",
           "explanation": "商工振興費には属するが、部門の庶務事務が地域事業者の成長支援へどう関係するかは公式事業名だけでは確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] },
-            { "field": "display_program_name", "operator": "equals", "values": ["経済産業部庶務事務"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "産業経済費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "商工振興費"
+              ]
+            },
+            {
+              "field": "display_program_name",
+              "operator": "equals",
+              "values": [
+                "経済産業部庶務事務"
+              ]
+            }
           ],
           "any": []
         },
@@ -33,13 +60,61 @@
           "confidence": "high",
           "explanation": "産業経済費／商工振興費に属し、公式事業名に経営支援、商業・工業振興、雇用、産業連携等が明記されているため、地域の事業者と産業を支える候補とした。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "産業経済費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "商工振興費"
+              ]
+            }
           ],
           "any": [
-            { "field": "display_program_name", "operator": "includes", "values": ["支援", "振興", "促進", "産業", "雇用", "就業", "経営", "商業", "工業", "ものづくり"] },
-            { "field": "budget_program_name", "operator": "includes", "values": ["支援", "振興", "促進", "産業", "雇用", "就業", "経営", "商業", "工業", "ものづくり"] }
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "支援",
+                "振興",
+                "促進",
+                "産業",
+                "雇用",
+                "就業",
+                "経営",
+                "商業",
+                "工業",
+                "ものづくり"
+              ]
+            },
+            {
+              "field": "budget_program_name",
+              "operator": "includes",
+              "values": [
+                "支援",
+                "振興",
+                "促進",
+                "産業",
+                "雇用",
+                "就業",
+                "経営",
+                "商業",
+                "工業",
+                "ものづくり"
+              ]
+            }
           ]
         },
         {
@@ -49,17 +124,36 @@
           "confidence": "low",
           "explanation": "商工振興費には属するが、公式事業名だけでは地域事業者の成長支援との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["商工振興費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "産業経済費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "商工振興費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "industry-agriculture-and-consumer-administration",
-      "name": "商工・農業・消費生活を支える行政",
+      "name": "産業・農業行政",
       "shortDescription": "商工業、農業、雇用、消費生活などに関する予算事業を公式予算階層から探すための行政機能。",
       "topicKind": "administrative_function",
       "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
@@ -72,8 +166,20 @@
           "confidence": "high",
           "explanation": "公式予算で産業経済費に属するため、商工・農業・雇用に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["産業経済費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "産業経済費"
+              ]
+            }
           ],
           "any": []
         },
@@ -84,8 +190,20 @@
           "confidence": "high",
           "explanation": "公式予算で消費者行政費に属するため、消費生活に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["消費者行政費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "消費者行政費"
+              ]
+            }
           ],
           "any": []
         },
@@ -96,13 +214,32 @@
           "confidence": "high",
           "explanation": "公式予算の職員費で産業経済職員費に属するため、商工・農業・雇用に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["産業経済職員費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "職員費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "産業経済職員費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

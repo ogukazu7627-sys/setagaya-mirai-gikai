@@ -9,7 +9,7 @@
   "topics": [
     {
       "slug": "safe-community-and-crime-prevention",
-      "name": "地域の防犯と暮らしの安全を高める",
+      "name": "防犯・暮らしの安全",
       "shortDescription": "防犯、犯罪被害者支援、地域の安全安心に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -21,7 +21,7 @@
           "relationType": "responds_to",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域の防犯と暮らしの安全を高める」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「防犯・暮らしの安全」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -46,11 +46,12 @@
           ],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "human-rights-gender-equality-and-peace",
-      "name": "人権・男女共同参画・平和を大切にする",
+      "name": "人権・平和",
       "shortDescription": "人権、DV防止、女性支援、男女共同参画、平和に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -62,7 +63,7 @@
           "relationType": "responds_to",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「人権・男女共同参画・平和を大切にする」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「人権・平和」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -86,11 +87,12 @@
           ],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "community-participation-events-and-support",
-      "name": "地域活動と区民生活を支える",
+      "name": "地域活動",
       "shortDescription": "町会・自治会、市民活動、地域行事、地域行政に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -102,7 +104,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域活動と区民生活を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域活動」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -131,11 +133,12 @@
             }
           ]
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "accessible-local-offices-and-services",
-      "name": "身近な地域窓口と行政サービスを保つ",
+      "name": "地域窓口・支所",
       "shortDescription": "総合支所、出張所、相談、地域窓口の維持・改修に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -147,7 +150,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「身近な地域窓口と行政サービスを保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域窓口・支所」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -160,11 +163,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "resident-records-family-register-and-identity",
-      "name": "住民記録・戸籍の手続きを確実に届ける",
+      "name": "住民記録・戸籍",
       "shortDescription": "住民票、戸籍、マイナンバーなど住民記録に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -176,7 +180,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「住民記録・戸籍の手続きを確実に届ける」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「住民記録・戸籍」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -190,11 +194,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "community-learning-and-civic-facilities",
-      "name": "地域の学びと区民利用施設を支える",
+      "name": "地域の学び",
       "shortDescription": "地域の生涯学習、区民利用施設、区民斎場に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -206,7 +211,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域の学びと区民利用施設を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「地域の学び」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -219,7 +224,8 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     }
   ]
 }

@@ -63,7 +63,7 @@ describe("budget topic candidate generation", () => {
     expect(generated?.rows).toHaveLength(1);
     expect(generated?.rows[0]).toMatchObject({
       budget_program_identity_id: "bpi_test",
-      candidate_topic: "保育サービスと保育環境の充実",
+      candidate_topic: "保育サービス",
       evidence_level: "B_strong_structural",
       confidence: "high",
       review_decision: "",

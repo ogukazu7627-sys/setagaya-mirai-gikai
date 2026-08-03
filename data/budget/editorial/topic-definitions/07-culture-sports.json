@@ -2,11 +2,14 @@
   "schemaVersion": "budget-topic-definition-v1",
   "fiscalYear": 2026,
   "budgetType": "initial_budget",
-  "category": { "slug": "culture-sports", "name": "文化・スポーツ" },
+  "category": {
+    "slug": "culture-sports",
+    "name": "文化・スポーツ"
+  },
   "topics": [
     {
       "slug": "access-to-sports",
-      "name": "スポーツに親しめる環境づくり",
+      "name": "スポーツ環境",
       "shortDescription": "スポーツ活動、施設の整備・維持、参加機会に関連する予算を探すための入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
@@ -19,9 +22,27 @@
           "confidence": "low",
           "explanation": "スポーツ振興費には属するが、部門の庶務事務が市民のスポーツ参加環境へどう関係するかは公式事業名だけでは確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] },
-            { "field": "display_program_name", "operator": "equals", "values": ["スポーツ推進部庶務事務"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "スポーツ振興費"
+              ]
+            },
+            {
+              "field": "display_program_name",
+              "operator": "equals",
+              "values": [
+                "スポーツ推進部庶務事務"
+              ]
+            }
           ],
           "any": []
         },
@@ -32,12 +53,42 @@
           "confidence": "high",
           "explanation": "スポーツ振興費に属し、公式事業名にスポーツ活動、スポーツ施設、運動施設、体育施設またはプールが明記されているため、スポーツに親しめる環境を支える候補とした。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "スポーツ振興費"
+              ]
+            }
           ],
           "any": [
-            { "field": "display_program_name", "operator": "includes", "values": ["スポーツ", "運動", "体育", "プール"] },
-            { "field": "budget_program_name", "operator": "includes", "values": ["スポーツ", "運動", "体育", "プール"] }
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "スポーツ",
+                "運動",
+                "体育",
+                "プール"
+              ]
+            },
+            {
+              "field": "budget_program_name",
+              "operator": "includes",
+              "values": [
+                "スポーツ",
+                "運動",
+                "体育",
+                "プール"
+              ]
+            }
           ]
         },
         {
@@ -47,16 +98,29 @@
           "confidence": "low",
           "explanation": "スポーツ振興費には属するが、公式事業名だけでは市民の参加環境との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["スポーツ振興費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "スポーツ振興費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "culture-sports-and-lifelong-learning-administration",
-      "name": "文化・スポーツ・生涯学習を支える行政",
+      "name": "文化・スポーツ行政",
       "shortDescription": "文化、国際交流、スポーツ、社会教育、図書館などに関する予算事業を公式予算階層から探すための行政機能。",
       "topicKind": "administrative_function",
       "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
@@ -69,12 +133,30 @@
           "confidence": "high",
           "explanation": "公式予算で健康村、文化・国際、文化施設、スポーツ振興または生涯現役推進に関する目に属するため、文化・スポーツ・生涯学習に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "総務費"
+              ]
+            },
             {
               "field": "moku_name",
               "operator": "equals",
-              "values": ["健康村費", "文化・国際費", "文化施設費", "スポーツ振興費", "生涯現役推進費"]
+              "values": [
+                "健康村費",
+                "文化・国際費",
+                "文化施設費",
+                "スポーツ振興費",
+                "生涯現役推進費"
+              ]
             }
           ],
           "any": []
@@ -86,13 +168,32 @@
           "confidence": "high",
           "explanation": "公式予算で教育費の社会教育費に属するため、文化・生涯学習に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["教育費"] },
-            { "field": "kou_name", "operator": "equals", "values": ["社会教育費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "教育費"
+              ]
+            },
+            {
+              "field": "kou_name",
+              "operator": "equals",
+              "values": [
+                "社会教育費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

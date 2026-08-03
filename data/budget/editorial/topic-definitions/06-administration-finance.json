@@ -2,11 +2,14 @@
   "schemaVersion": "budget-topic-definition-v1",
   "fiscalYear": 2026,
   "budgetType": "initial_budget",
-  "category": { "slug": "administration-finance", "name": "行財政" },
+  "category": {
+    "slug": "administration-finance",
+    "name": "行財政"
+  },
   "topics": [
     {
       "slug": "digital-public-services",
-      "name": "行政サービスと情報基盤のデジタル化",
+      "name": "デジタル行政",
       "shortDescription": "行政DX、業務システム、通信環境など、行政サービスを支えるデジタル基盤の予算を探すための入口。",
       "topicKind": "administrative_function",
       "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
@@ -19,12 +22,42 @@
           "confidence": "high",
           "explanation": "電子計算費に属し、公式事業名にDX、システム、無線LANまたは電算が明記されているため、行政サービスと情報基盤のデジタル化を可能にする候補とした。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["電子計算費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "電子計算費"
+              ]
+            }
           ],
           "any": [
-            { "field": "display_program_name", "operator": "includes", "values": ["DX", "システム", "無線LAN", "電算"] },
-            { "field": "budget_program_name", "operator": "includes", "values": ["DX", "システム", "無線LAN", "電算"] }
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "DX",
+                "システム",
+                "無線LAN",
+                "電算"
+              ]
+            },
+            {
+              "field": "budget_program_name",
+              "operator": "includes",
+              "values": [
+                "DX",
+                "システム",
+                "無線LAN",
+                "電算"
+              ]
+            }
           ]
         },
         {
@@ -34,16 +67,29 @@
           "confidence": "low",
           "explanation": "電子計算費には属するが、公式事業名だけではデジタル化との直接性を確定できないため、編集判断を要する候補とした。C候補は自動公開しない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["電子計算費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "電子計算費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "government-and-finance-administration",
-      "name": "区政・財政・議会を支える行政",
+      "name": "行財政運営",
       "shortDescription": "議会、区政運営、税、財政、選挙、監査などに関する予算事業を公式予算階層から探すための行政機能。",
       "topicKind": "administrative_function",
       "editorialNote": "公式予算の款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
@@ -56,8 +102,23 @@
           "confidence": "high",
           "explanation": "公式予算で議会費、公債費、諸支出金または予備費に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["議会費", "公債費", "諸支出金", "予備費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "議会費",
+                "公債費",
+                "諸支出金",
+                "予備費"
+              ]
+            }
           ],
           "any": []
         },
@@ -68,12 +129,30 @@
           "confidence": "high",
           "explanation": "公式予算で総務管理、徴税、統計、選挙または監査に関する項に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["総務費"] },
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "総務費"
+              ]
+            },
             {
               "field": "kou_name",
               "operator": "equals",
-              "values": ["総務管理費", "徴税費", "統計調査費", "選挙費", "監査委員費"]
+              "values": [
+                "総務管理費",
+                "徴税費",
+                "統計調査費",
+                "選挙費",
+                "監査委員費"
+              ]
             }
           ],
           "any": []
@@ -85,13 +164,33 @@
           "confidence": "high",
           "explanation": "公式予算の職員費で議会職員費または総務職員費に属するため、区政・財政・議会に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["議会職員費", "総務職員費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "職員費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "議会職員費",
+                "総務職員費"
+              ]
+            }
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

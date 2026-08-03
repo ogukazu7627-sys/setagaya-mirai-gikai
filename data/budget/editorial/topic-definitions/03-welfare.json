@@ -2,11 +2,14 @@
   "schemaVersion": "budget-topic-definition-v1",
   "fiscalYear": 2026,
   "budgetType": "initial_budget",
-  "category": { "slug": "welfare", "name": "福祉" },
+  "category": {
+    "slug": "welfare",
+    "name": "福祉"
+  },
   "topics": [
     {
       "slug": "preventive-care-and-community-support",
-      "name": "介護予防と地域生活の支援",
+      "name": "介護予防",
       "shortDescription": "介護予防、地域包括支援、認知症支援など、地域での生活を支える予算を探すための入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の編集データ。公式予算の階層・事業名・部署名だけから候補を生成し、人間が確認した関係だけを公開する。",
@@ -19,8 +22,20 @@
           "confidence": "high",
           "explanation": "介護保険事業会計の地域支援事業費に属することが公式階層で確認できるため、介護予防と地域生活を支える構造的な候補とした。個別の関係は人間レビューで確定する。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["long_term_care_insurance"] },
-            { "field": "kan_name", "operator": "equals", "values": ["地域支援事業費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "long_term_care_insurance"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "地域支援事業費"
+              ]
+            }
           ],
           "any": []
         },
@@ -31,19 +46,50 @@
           "confidence": "medium",
           "explanation": "一般会計の高齢者福祉費に属し、公式事業名に介護予防、地域包括支援、認知症または生活支援が明記されているため候補とした。対象範囲は人間レビューで確定する。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "moku_name", "operator": "equals", "values": ["高齢者福祉費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "高齢者福祉費"
+              ]
+            }
           ],
           "any": [
-            { "field": "display_program_name", "operator": "includes", "values": ["介護予防", "地域包括支援", "認知症", "生活支援"] },
-            { "field": "budget_program_name", "operator": "includes", "values": ["介護予防", "地域包括支援", "認知症", "生活支援"] }
+            {
+              "field": "display_program_name",
+              "operator": "includes",
+              "values": [
+                "介護予防",
+                "地域包括支援",
+                "認知症",
+                "生活支援"
+              ]
+            },
+            {
+              "field": "budget_program_name",
+              "operator": "includes",
+              "values": [
+                "介護予防",
+                "地域包括支援",
+                "認知症",
+                "生活支援"
+              ]
+            }
           ]
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "welfare-health-and-social-security-administration",
-      "name": "福祉・保健・社会保障を支える行政",
+      "name": "福祉・保健行政",
       "shortDescription": "福祉、保健、医療保険、介護保険、生活支援などに関する予算事業を公式予算階層から探すための行政機能。",
       "topicKind": "administrative_function",
       "editorialNote": "公式予算の会計・款・項・目に基づく、みらい議会の探索用整理。世田谷区の公式な課題分類ではない。",
@@ -56,9 +102,28 @@
           "confidence": "high",
           "explanation": "公式予算で民生費の社会福祉費または生活保護費に属するため、福祉・社会保障に関する行政機能を支える予算事業として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["民生費"] },
-            { "field": "kou_name", "operator": "equals", "values": ["社会福祉費", "生活保護費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "民生費"
+              ]
+            },
+            {
+              "field": "kou_name",
+              "operator": "equals",
+              "values": [
+                "社会福祉費",
+                "生活保護費"
+              ]
+            }
           ],
           "any": []
         },
@@ -69,8 +134,20 @@
           "confidence": "high",
           "explanation": "公式予算で衛生費に属するため、保健・公衆衛生に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["衛生費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "衛生費"
+              ]
+            }
           ],
           "any": []
         },
@@ -81,9 +158,28 @@
           "confidence": "high",
           "explanation": "公式予算の職員費で民生職員費または衛生職員費に属するため、福祉・保健・社会保障に関する行政機能を支える予算事業として整理した。",
           "all": [
-            { "field": "account_code", "operator": "equals", "values": ["general"] },
-            { "field": "kan_name", "operator": "equals", "values": ["職員費"] },
-            { "field": "moku_name", "operator": "equals", "values": ["民生職員費", "衛生職員費"] }
+            {
+              "field": "account_code",
+              "operator": "equals",
+              "values": [
+                "general"
+              ]
+            },
+            {
+              "field": "kan_name",
+              "operator": "equals",
+              "values": [
+                "職員費"
+              ]
+            },
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "民生職員費",
+                "衛生職員費"
+              ]
+            }
           ],
           "any": []
         },
@@ -106,7 +202,8 @@
           ],
           "any": []
         }
-      ]
+      ],
+      "publicationStatus": "archived"
     }
   ]
 }

@@ -9,6 +9,9 @@ import {
   type ResolvedBudgetTopicDefinition,
 } from "./budget-topic-definitions";
 import {
+  type ArchivedBudgetTopicPayload,
+  archiveReviewedBudgetTopic,
+  buildArchivedBudgetTopicPayload,
   type BudgetTopicReviewFile,
   buildReviewedBudgetTopicPayload,
   publishReviewedBudgetTopic,
@@ -49,6 +52,13 @@ export interface BudgetTopicPublishCliDependencies {
     publishedRelationCount: number;
     removedRelationCount: number;
     status: "published";
+  }>;
+  archivePayload?: (payload: ArchivedBudgetTopicPayload) => Promise<{
+    datasetId: string;
+    categoryId: string;
+    topicId: string;
+    archivedRelationCount: number;
+    status: "archived";
   }>;
   stdout?: (message: string) => void;
   stderr?: (message: string) => void;
@@ -108,6 +118,8 @@ export async function runBudgetTopicPublishCli(
   const stdout = dependencies.stdout ?? console.log;
   const stderr = dependencies.stderr ?? console.error;
   const applyPayload = dependencies.applyPayload ?? publishReviewedBudgetTopic;
+  const archivePayload =
+    dependencies.archivePayload ?? archiveReviewedBudgetTopic;
 
   let options: BudgetTopicPublishCliOptions;
   try {
@@ -153,6 +165,24 @@ export async function runBudgetTopicPublishCli(
     ].join(", ")
   );
 
+  try {
+    if (definition.topic.publicationStatus === "archived") {
+      buildArchivedBudgetTopicPayload(reviewFile, definition);
+    } else {
+      buildReviewedBudgetTopicPayload(reviewFile, definition, {
+        id: "00000000-0000-4000-8000-000000000000",
+        reviewedAt: "2000-01-01T00:00:00.000Z",
+      });
+    }
+  } catch (error) {
+    stderr(
+      `[budget:web:topics:publish] 公開方針の検証に失敗しました: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    return 1;
+  }
+
   if (options.mode === "dry-run") {
     stdout(
       "[budget:web:topics:publish] dry-run completed; Supabaseへの書き込みなし"
@@ -161,6 +191,15 @@ export async function runBudgetTopicPublishCli(
   }
 
   try {
+    if (definition.topic.publicationStatus === "archived") {
+      const result = await archivePayload(
+        buildArchivedBudgetTopicPayload(reviewFile, definition)
+      );
+      stdout(
+        `[budget:web:topics:publish] archived topic=${result.topicId}, dataset=${result.datasetId}, relations=${result.archivedRelationCount}`
+      );
+      return 0;
+    }
     const reviewedBy = reviewerIdSchema.parse(options.reviewedBy);
     const reviewedAt = reviewedAtSchema.parse(options.reviewedAt);
     const payload = buildReviewedBudgetTopicPayload(reviewFile, definition, {

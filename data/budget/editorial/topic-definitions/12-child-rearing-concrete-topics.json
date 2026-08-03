@@ -9,7 +9,7 @@
   "topics": [
     {
       "slug": "children-youth-places-and-activities",
-      "name": "子ども・若者の居場所と活動を広げる",
+      "name": "子どもの居場所",
       "shortDescription": "児童館、学童クラブ、中高生支援、自然体験などに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -21,7 +21,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「子ども・若者の居場所と活動を広げる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子どもの居場所」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -34,11 +34,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "family-benefits-and-medical-support",
-      "name": "子育て世帯の生活と医療を支える",
+      "name": "子育て給付・医療",
       "shortDescription": "児童手当、医療費助成、ひとり親支援、出産費助成などに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -50,7 +51,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「子育て世帯の生活と医療を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子育て給付・医療」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -63,11 +64,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "child-protection-and-family-care",
-      "name": "子どもを守り家庭での養育を支える",
+      "name": "子どもの保護",
       "shortDescription": "児童相談、一時保護、家庭養育、児童養護施設などに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -79,7 +81,7 @@
           "relationType": "responds_to",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「子どもを守り家庭での養育を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子どもの保護」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -92,11 +94,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "community-child-and-family-support",
-      "name": "地域で子どもと家庭を支える",
+      "name": "子ども・家庭支援",
       "shortDescription": "在宅子育て、産後ケア、子どもの権利、若者支援などに関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -108,7 +111,7 @@
           "relationType": "supports",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「地域で子どもと家庭を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子ども・家庭支援」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -121,11 +124,12 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     },
     {
       "slug": "safe-child-support-facilities",
-      "name": "子どもの居場所となる施設を安全に保つ",
+      "name": "子ども施設の安全",
       "shortDescription": "児童館など子どもが利用する施設の維持管理・改修に関する予算を探す入口。",
       "topicKind": "goal",
       "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
@@ -137,7 +141,7 @@
           "relationType": "maintains",
           "evidenceLevel": "B_strong_structural",
           "confidence": "high",
-          "explanation": "公式予算の会計・款・項・目と事業名から「子どもの居場所となる施設を安全に保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "explanation": "公式予算の会計・款・項・目と事業名から「子ども施設の安全」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
           "all": [
             {
               "field": "moku_name",
@@ -150,7 +154,8 @@
           "any": [],
           "none": []
         }
-      ]
+      ],
+      "publicationStatus": "published"
     }
   ]
 }

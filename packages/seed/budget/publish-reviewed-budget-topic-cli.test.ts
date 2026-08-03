@@ -24,6 +24,12 @@ const pendingCandidatesPath = fileURLToPath(
     import.meta.url
   )
 );
+const archivedCandidatesPath = fileURLToPath(
+  new URL(
+    "../../../data/budget/editorial/review/education-learning-administration-candidates.csv",
+    import.meta.url
+  )
+);
 
 describe("runBudgetTopicPublishCli", () => {
   it("既定ではdry-runとなりSupabaseへ書き込まない", async () => {
@@ -47,18 +53,18 @@ describe("runBudgetTopicPublishCli", () => {
     expect(applyPayload).not.toHaveBeenCalled();
     expect(stdout).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("approve=13"),
+        expect.stringContaining("approve=10"),
         expect.stringContaining("dry-run completed"),
       ])
     );
   });
 
-  it("--applyではレビュー情報付きで13件を登録する", async () => {
+  it("--applyではレビュー情報付きで10件を登録する", async () => {
     const applyPayload = vi.fn().mockResolvedValue({
       datasetId: "11111111-1111-4111-8111-111111111111",
       categoryId: "22222222-2222-4222-8222-222222222222",
       topicId: "33333333-3333-4333-8333-333333333333",
-      publishedRelationCount: 13,
+      publishedRelationCount: 10,
       removedRelationCount: 0,
       status: "published",
     });
@@ -86,10 +92,47 @@ describe("runBudgetTopicPublishCli", () => {
         reviewedAt: "2026-07-30T16:33:02+09:00",
       },
     });
-    expect(applyPayload.mock.calls[0]?.[0].relations).toHaveLength(13);
+    expect(applyPayload.mock.calls[0]?.[0].relations).toHaveLength(10);
     expect(
       applyPayload.mock.calls[0]?.[0].excludedBudgetProgramIdentityIds
-    ).toHaveLength(3);
+    ).toHaveLength(6);
+  });
+
+  it("archived定義は公開せず冪等な非公開化処理へ渡す", async () => {
+    const applyPayload = vi.fn();
+    const archivePayload = vi.fn().mockResolvedValue({
+      datasetId: "11111111-1111-4111-8111-111111111111",
+      categoryId: "22222222-2222-4222-8222-222222222222",
+      topicId: "33333333-3333-4333-8333-333333333333",
+      archivedRelationCount: 124,
+      status: "archived",
+    });
+
+    const exitCode = await runBudgetTopicPublishCli(
+      [
+        "--input-file",
+        archivedCandidatesPath,
+        "--definitions-dir",
+        definitionsPath,
+        "--reviewed-by",
+        "11111111-1111-4111-8111-111111111111",
+        "--reviewed-at",
+        "2026-07-30T16:33:02+09:00",
+        "--apply",
+      ],
+      { applyPayload, archivePayload }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(applyPayload).not.toHaveBeenCalled();
+    expect(archivePayload).toHaveBeenCalledTimes(1);
+    expect(archivePayload.mock.calls[0]?.[0]).toMatchObject({
+      categorySlug: "education",
+      topic: {
+        slug: "education-and-learning-administration",
+        name: "教育行政",
+      },
+    });
   });
 
   it("--applyでレビュー情報が欠けていれば非0にする", async () => {

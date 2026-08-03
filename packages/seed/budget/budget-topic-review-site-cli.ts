@@ -30,7 +30,7 @@ Usage:
 Options:
   --review-dir <path>       review CSVディレクトリ
   --definitions-dir <path> topic定義ディレクトリ
-  --auto-approve-only       B・Highの承認だけを行い、画面を起動しない
+  --auto-approve-only       短名・直接性・件数上限の公開ポリシーだけを適用する
   --port <number>           localhostのポート（default: 4311）
   --help                    このヘルプを表示
 
@@ -104,7 +104,7 @@ export async function runBudgetTopicReviewSiteCli(
       dependencies.autoApprove ?? autoApproveStrongHighBudgetTopicCandidates;
     const approval = autoApprove(options);
     stdout(
-      `B・High自動承認: 対象${approval.matched}件 / 今回更新${approval.updated}件 / 承認済み${approval.alreadyApproved}件`
+      `公開ポリシー適用: 公開対象${approval.matched}件 / 今回承認${approval.updated}件 / 承認済み${approval.alreadyApproved}件`
     );
     if (options.autoApproveOnly) {
       return 0;
