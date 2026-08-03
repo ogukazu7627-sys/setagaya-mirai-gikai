@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   budgetAdministrativeCoverageTopicSlugs,
+  budgetInitialConcreteTopicSlugs,
   loadBudgetTopicDefinitions,
 } from "./budget-topic-definitions";
 import { readBudgetTopicReviewFile } from "./budget-topic-review";
@@ -32,7 +33,12 @@ describe("budget administrative coverage topics", () => {
     const rows = reviews.flatMap(({ review }) => review.rows);
     const initialTopicIdentityIds = new Set(
       loadBudgetTopicDefinitions(definitionsDirectory)
-        .filter((definition) => !coverageSlugs.has(definition.topic.slug))
+        .filter((definition) =>
+          budgetInitialConcreteTopicSlugs.includes(
+            definition.topic
+              .slug as (typeof budgetInitialConcreteTopicSlugs)[number]
+          )
+        )
         .flatMap((definition) =>
           readBudgetTopicReviewFile(
             path.join(reviewDirectory, definition.topic.reviewFile)

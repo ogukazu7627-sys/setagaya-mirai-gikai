@@ -10,6 +10,7 @@
     "budget:web:import:inspect": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:import:inspect",
     "budget:web:import:verify": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:import:verify",
     "budget:web:topics:candidates": "pnpm --filter @mirai-gikai/seed budget:web:topics:candidates",
+    "budget:web:topics:expand-definitions": "pnpm --filter @mirai-gikai/seed budget:web:topics:expand-definitions",
     "budget:web:topics:publish": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:publish",
     "budget:web:topics:review": "pnpm --filter @mirai-gikai/seed budget:web:topics:review",
     "budget:web:topics:report": "dotenv -e .env -- pnpm --filter @mirai-gikai/seed budget:web:topics:report",

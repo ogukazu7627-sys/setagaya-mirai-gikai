@@ -1,0 +1,204 @@
+{
+  "schemaVersion": "budget-topic-definition-v1",
+  "fiscalYear": 2026,
+  "budgetType": "initial_budget",
+  "category": {
+    "slug": "administration-finance",
+    "name": "行財政"
+  },
+  "topics": [
+    {
+      "slug": "public-information-and-citizen-voice",
+      "name": "区政情報を届け区民の声を聴く",
+      "shortDescription": "広報、相談、問い合わせ、区民の声に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "public-information-and-citizen-voice-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "public-information-and-citizen-voice-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「区政情報を届け区民の声を聴く」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "広報広聴費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "democratic-governance-elections-and-oversight",
+      "name": "議会・選挙・監査を通じた自治を支える",
+      "shortDescription": "区議会、選挙、監査と民主的な行政運営に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "democratic-governance-elections-and-oversight-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "democratic-governance-elections-and-oversight-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「議会・選挙・監査を通じた自治を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "議会費",
+                "議会職員費",
+                "監査委員費",
+                "選挙管理委員会費",
+                "地方選挙費",
+                "参議院議員選挙費",
+                "選挙啓発費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "sustainable-public-finance-and-taxation",
+      "name": "持続可能な財政と公金管理を支える",
+      "shortDescription": "予算、基金、区債、税、会計と公金管理に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "sustainable-public-finance-and-taxation-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "sustainable-public-finance-and-taxation-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「持続可能な財政と公金管理を支える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "財政管理費",
+                "財政積立金",
+                "賦課徴収費",
+                "税務総務費",
+                "会計管理費",
+                "一時借入金",
+                "元金",
+                "利子",
+                "公債諸費",
+                "予備費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "evidence-informed-policy-and-partnerships",
+      "name": "データと連携で政策をつくる",
+      "shortDescription": "政策企画、統計、調査研究、官民・大学・自治体連携に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "evidence-informed-policy-and-partnerships-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "evidence-informed-policy-and-partnerships-official-structure",
+          "relationType": "supports",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「データと連携で政策をつくる」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "企画調整費",
+                "基幹統計調査費",
+                "統計調査総務費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "public-assets-buildings-and-fleet",
+      "name": "公共資産・建物・車両を適切に保つ",
+      "shortDescription": "区有財産、公共建築、用地、公用車に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "public-assets-buildings-and-fleet-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "public-assets-buildings-and-fleet-official-structure",
+          "relationType": "maintains",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「公共資産・建物・車両を適切に保つ」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "財産管理費",
+                "車両管理費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    },
+    {
+      "slug": "public-workforce-and-administrative-foundation",
+      "name": "行政サービスを支える人と業務基盤を整える",
+      "shortDescription": "職員、人材育成、文書、庁舎など行政運営の基盤に関する予算を探す入口。",
+      "topicKind": "goal",
+      "editorialNote": "みらい議会の探索用編集データ。公式予算の会計・款・項・目と事業名に基づく候補であり、世田谷区の公式な課題分類ではない。",
+      "reviewFile": "public-workforce-and-administrative-foundation-candidates.csv",
+      "sourceAdministrativeTopicSlug": "government-and-finance-administration",
+      "rules": [
+        {
+          "id": "public-workforce-and-administrative-foundation-official-structure",
+          "relationType": "enables",
+          "evidenceLevel": "B_strong_structural",
+          "confidence": "high",
+          "explanation": "公式予算の会計・款・項・目と事業名から「行政サービスを支える人と業務基盤を整える」との構造的な関係が強い候補として整理した。これはみらい議会の探索用整理であり、区の公式な課題分類ではない。",
+          "all": [
+            {
+              "field": "moku_name",
+              "operator": "equals",
+              "values": [
+                "一般管理費",
+                "総務職員費"
+              ]
+            }
+          ],
+          "any": [],
+          "none": []
+        }
+      ]
+    }
+  ]
+}

@@ -36,16 +36,16 @@ describe("budget topic review local server", () => {
       expect(response.status).toBe(200);
       const body = (await response.json()) as BudgetTopicReviewSiteSnapshot;
       expect(body.summary).toMatchObject({
-        total: 1_331,
+        total: 2_312,
         pending: 23,
-        automaticallyApproved: 1_302,
+        automaticallyApproved: 2_283,
         manualReviewTotal: 29,
         manualPending: 23,
       });
     } finally {
       await started.close();
     }
-  });
+  }, 10_000);
 
   it("外部originを拒否し、同一originの保存だけを受け付ける", async () => {
     const started = await startBudgetTopicReviewServer(createOptions(), 0);

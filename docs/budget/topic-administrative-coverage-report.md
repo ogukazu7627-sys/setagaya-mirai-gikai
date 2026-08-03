@@ -1,5 +1,8 @@
 # 予算事業の全件到達用topicレポート
 
+> このレポートは行政機能topicによる全件到達を記録したもの。981件を56個の具体的topicへ
+> 展開した後の結果は `docs/budget/topic-concrete-expansion-report.md` を参照する。
+
 ## 判定
 
 **PASS**
@@ -60,8 +63,9 @@
 | pending | 0 |
 | 候補に含まれるidentity | 1,156 |
 
-本番反映後の期待値は、published topic 20件、published relation 1,323件、
-published identity 1,156件、未分類identity 0件である。
+行政機能topic反映時点の実績は、published topic 20件、published relation 1,323件、
+published identity 1,156件、未分類identity 0件である。具体的topic展開後の期待値は、
+published topic 76件、published relation 2,304件である。
 
 ## 再生成
 

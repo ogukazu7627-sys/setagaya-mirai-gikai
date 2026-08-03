@@ -100,8 +100,13 @@ applyはローカル検証を再実行してから、Storage保存、staging投�
 公開用7ファイルの公式項目だけから、人間レビュー用の候補CSVを生成できます。
 
 ```bash
+pnpm budget:web:topics:expand-definitions
 pnpm budget:web:topics:candidates -- --input-dir /path/to/budget-data
 ```
+
+`expand-definitions` は、行政機能topicを母集団として、初期10 topic候補の外にいた
+981 identityを56個の具体的topicへ分ける定義ファイルを決定的に再生成します。
+初期候補175件との混入、追加候補間の重複、行政機能topic外への割当をテストで拒否します。
 
 候補生成は `review_decision` が入った既存CSVを上書きしません。新規候補の
 `review_decision` と `review_note` は空欄です。候補生成では
@@ -117,7 +122,7 @@ pnpm budget:web:topics:review
 
 起動時に `B_strong_structural` かつ確信度 `high` の候補を `approve` へ一括更新します。
 既存の `revise` / `reject` と衝突する場合は上書きせず、起動を中止します。現在の
-全1,331候補では1,302件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
+全2,312候補では2,283件がこのルールに該当し、画面にはそれ以外の手動確認対象29件だけを
 表示します。提出済みCSVの未判断は0件です。大分類、判断、根拠レベル、検索語で
 絞り込み、各候補を `approve`、`revise`、`reject` から選択して `CSVへ保存` を
 押してください。`revise` は公開対象になる最終判断なので、関係種別または説明を
@@ -169,11 +174,11 @@ pnpm budget:web:topics:publish -- \
 
 本番への公開は、ローカルCLIからは実行できません。`main` の手動workflow
 `Publish Reviewed Budget Topics` だけが、GitHubの `production` 環境を使って実行
-できます。workflowは確認文、topic定義と同数の全20 review CSVのdry-run、active dataset、レビュー
+できます。workflowは確認文、topic定義と同数の全76 review CSVのdry-run、active dataset、レビュー
 担当者、公開後のtopic・category・relation内容を検証します。現在の提出結果では
-`approve/revise=1,323`、`reject=8`、`pending=0` が期待値です。1,156 identityは
-10個の行政機能topicのいずれかにちょうど1回含まれ、従来候補外だった981 identityも
-探索可能になります。公式予算テーブル、
+`approve/revise=2,304`、`reject=8`、`pending=0` が期待値です。1,156 identityは
+10個の行政機能topicのいずれかにちょうど1回含まれます。初期10 topic候補の外にいた
+981 identityも、56個の具体的topicのいずれかへ重複なく接続されます。公式予算テーブル、
 予算dataset、Storageは変更しません。
 
 ```bash
