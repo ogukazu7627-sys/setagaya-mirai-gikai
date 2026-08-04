@@ -171,6 +171,17 @@ describe("BudgetProgramDetailPage", () => {
     ).toBeVisible();
     expect(screen.getAllByText("41億4,051万8千円")).not.toHaveLength(0);
     expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "一般的な説明（みらい議会）",
+      })
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        /小学校の校舎や設備の劣化・不具合を改修し、安全に使い続けられる状態に整える/
+      )
+    ).toBeVisible();
+    expect(
       screen.getByText(
         "以下は、この事業が属する予算項目全体の節別内訳です。個別事業だけの内訳ではありません。"
       )
@@ -254,9 +265,23 @@ describe("BudgetProgramDetailPage", () => {
 
   it("公開済み課題関係がない事業を推測で補わない", () => {
     render(
-      <BudgetProgramDetailPage detail={{ ...detail, publishedTopics: [] }} />
+      <BudgetProgramDetailPage
+        detail={{
+          ...detail,
+          identity: {
+            ...detail.identity,
+            displayProgramName: "予備費",
+          },
+          publishedTopics: [],
+        }}
+      />
     );
 
+    expect(
+      screen.getByText(
+        /災害や制度変更など、予算編成時に見込めなかった緊急の支出に対応できるよう備える/
+      )
+    ).toBeVisible();
     expect(
       screen.getByText("この事業に公開済みの課題・テーマ整理はまだありません。")
     ).toBeVisible();

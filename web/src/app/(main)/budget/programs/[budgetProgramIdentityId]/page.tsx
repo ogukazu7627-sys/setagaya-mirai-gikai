@@ -28,7 +28,7 @@ export async function generateMetadata({
     );
     return {
       title: `${detail.identity.displayProgramName} | 触れる予算`,
-      description: `${detail.identity.displayProgramName}の${fiscalYearLabel}当初予算額、公式予算分類、目全体の費目内訳を確認できます。`,
+      description: `${detail.identity.displayProgramName}の一般的な説明、${fiscalYearLabel}当初予算額、公式予算分類、目全体の費目内訳を確認できます。`,
       alternates: {
         canonical: routes.budgetProgramDetail(budgetProgramIdentityId),
       },
