@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  Clock,
-  Eye,
-  EyeOff,
-  FileText,
-  Loader2,
-} from "lucide-react";
+import { ChevronDown, Clock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,11 +40,6 @@ const PUBLISH_STATUS_CONFIG: Record<
     icon: Eye,
     badgeClass:
       "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
-  },
-  published_non_bill: {
-    label: "公開（案件以外）",
-    icon: FileText,
-    badgeClass: "bg-sky-100 text-sky-800 border-sky-200 hover:bg-sky-200",
   },
 };
 

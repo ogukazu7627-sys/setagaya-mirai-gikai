@@ -24,11 +24,7 @@ export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];
 export type StanceTypeEnum = Database["public"]["Enums"]["stance_type_enum"];
 
 // 公開ステータス型（議案の公開/非公開を管理）
-export type BillPublishStatus =
-  | "draft"
-  | "published"
-  | "coming_soon"
-  | "published_non_bill";
+export type BillPublishStatus = "draft" | "published" | "coming_soon";
 
 export type BillSource = {
   title: string;

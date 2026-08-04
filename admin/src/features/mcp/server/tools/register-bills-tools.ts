@@ -35,7 +35,7 @@ export function registerBillsTools(server: McpServer): void {
         "mirai議会adminに登録されている議案を返す。各議案にdiet_session名も含む。publish_status / status でフィルタ可能。",
       inputSchema: {
         publish_status: z
-          .enum(["draft", "published", "coming_soon", "published_non_bill"])
+          .enum(["draft", "published", "coming_soon"])
           .optional()
           .describe("公開ステータスでフィルタ"),
         status: billUpdateSchema.shape.status
@@ -135,15 +135,10 @@ export function registerBillsTools(server: McpServer): void {
     {
       title: "議案の公開ステータスを変更",
       description:
-        "議案の publish_status を draft / published / coming_soon / published_non_bill に変更する。",
+        "議案の publish_status を draft / published / coming_soon に変更する。",
       inputSchema: {
         billId: z.string().uuid(),
-        publishStatus: z.enum([
-          "draft",
-          "published",
-          "coming_soon",
-          "published_non_bill",
-        ]),
+        publishStatus: z.enum(["draft", "published", "coming_soon"]),
       },
     },
     async ({ billId, publishStatus }) => {

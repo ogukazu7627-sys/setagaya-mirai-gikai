@@ -58,11 +58,7 @@ type AdminBillSortParamInput = {
   sort_order?: string;
 };
 
-const publishStatusFilterValues = new Set([
-  "draft",
-  "published",
-  "published_non_bill",
-]);
+const publishStatusFilterValues = new Set(["draft", "published"]);
 const itemTypeFilterValues = new Set<string>(
   BILL_ITEM_TYPE_OPTIONS.map((option) => option.value)
 );

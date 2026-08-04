@@ -52,11 +52,7 @@ const OPTIMIZED_THUMBNAIL_EXTENSION = "webp";
 const OPTIMIZED_THUMBNAIL_MIME_TYPE = "image/webp";
 const OPTIMIZED_THUMBNAIL_MAX_WIDTH = 1600;
 const OPTIMIZED_THUMBNAIL_QUALITY = 82;
-const bulkPublishStatusSchema = z.enum([
-  "draft",
-  "published",
-  "published_non_bill",
-]);
+const bulkPublishStatusSchema = z.enum(["draft", "published"]);
 const bulkBillIdsSchema = z
   .array(z.string().uuid())
   .min(1, "一斉編集する案件を選択してください。")
@@ -217,9 +213,7 @@ export async function saveAdminBillInput(
 
   const supabase = createAdminClient();
   const now = options.now ?? new Date().toISOString();
-  const isPublishing =
-    input.publish_status === "published" ||
-    input.publish_status === "published_non_bill";
+  const isPublishing = input.publish_status === "published";
   const mode = input.id ? "updated" : "created";
   let billId = input.id;
   let thumbnailUrl = input.thumbnail_url;
@@ -653,10 +647,7 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
     .from("bills")
     .update({
       publish_status: targetStatus,
-      published_at:
-        targetStatus === "published" || targetStatus === "published_non_bill"
-          ? now
-          : null,
+      published_at: targetStatus === "published" ? now : null,
       updated_at: now,
     })
     .in("id", billIdsResult.data)

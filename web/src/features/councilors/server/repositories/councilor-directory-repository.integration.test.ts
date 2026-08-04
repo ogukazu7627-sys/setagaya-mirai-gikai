@@ -86,17 +86,13 @@ describe("councilor directory repository", () => {
     ).resolves.toBeNull();
   });
 
-  it("counts and returns statements from public statement sources but excludes draft bills", async () => {
+  it("counts and returns statements from published bills but excludes draft bills", async () => {
     const councilor = await createCouncilor();
     const publishedBill = await createTestBill({
       publish_status: "published",
     });
-    const publicNonBill = await createTestBill({
-      publish_status: "published_non_bill",
-    });
     const draftBill = await createTestBill({ publish_status: "draft" });
     billIds.add(publishedBill.id);
-    billIds.add(publicNonBill.id);
     billIds.add(draftBill.id);
 
     const statementBase = {
@@ -112,7 +108,6 @@ describe("councilor directory repository", () => {
       .from("councilor_bill_statements")
       .insert([
         { ...statementBase, bill_id: publishedBill.id },
-        { ...statementBase, bill_id: publicNonBill.id },
         { ...statementBase, bill_id: draftBill.id },
       ]);
     if (error) throw new Error(error.message);
@@ -127,15 +122,13 @@ describe("councilor directory repository", () => {
     expect(
       counts.find(({ councilorId }) => councilorId === councilor.id)
         ?.statementCount
-    ).toBe(2);
+    ).toBe(1);
     expect(selectedCounts).toEqual([
       {
         councilorId: councilor.id,
-        statementCount: 2,
+        statementCount: 1,
       },
     ]);
-    expect(details.map(({ bill_id }) => bill_id).sort()).toEqual(
-      [publishedBill.id, publicNonBill.id].sort()
-    );
+    expect(details.map(({ bill_id }) => bill_id)).toEqual([publishedBill.id]);
   });
 });
