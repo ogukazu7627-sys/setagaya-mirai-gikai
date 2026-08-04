@@ -11,9 +11,12 @@ describe("HomeBudgetPromo", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "世田谷区の予算を、暮らしのテーマから見てみる",
+        name: "世田谷区の予算",
       })
     ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: /予算ページを見る/ })
+    ).toHaveAttribute("href", "/budget");
     expect(
       screen.getByRole("link", { name: /予算マップを開く/ })
     ).toHaveAttribute("href", "/budget");
