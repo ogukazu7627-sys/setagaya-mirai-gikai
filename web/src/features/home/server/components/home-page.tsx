@@ -8,6 +8,7 @@ import { MobileDifficultySelector } from "@/features/bill-difficulty/client/comp
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { FeaturedBillSection } from "@/features/bills/server/components/featured-bill-section";
 import { loadHomeData } from "@/features/bills/server/loaders/load-home-data";
+import { HomeBudgetPromo } from "@/features/budget/server/components/home-budget-promo";
 import { CouncilorXPostsSection } from "@/features/councilor-x-posts/server/components/councilor-x-posts-section";
 import { loadLatestCouncilorXPosts } from "@/features/councilor-x-posts/server/loaders/load-latest-councilor-x-posts";
 import { RecommendedCouncilorsSection } from "@/features/councilors/server/components/recommended-councilors-section";
@@ -46,6 +47,8 @@ export async function HomePage() {
       <CurrentDietSession session={currentSession} />
 
       <TodayRecommendationsSection currentDifficulty={currentDifficulty} />
+
+      <HomeBudgetPromo />
 
       <Container>
         <div className="py-10">
