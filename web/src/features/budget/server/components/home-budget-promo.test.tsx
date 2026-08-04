@@ -15,13 +15,23 @@ describe("HomeBudgetPromo", () => {
       })
     ).toBeVisible();
     expect(
-      screen.getByRole("link", { name: /予算ページを見る/ })
-    ).toHaveAttribute("href", "/budget");
+      screen.getByRole("heading", {
+        name: /予算を\s*見やすく\s*分かりやすく/,
+      })
+    ).toBeVisible();
     expect(
       screen.getByRole("link", { name: /予算マップを開く/ })
     ).toHaveAttribute("href", "/budget");
     expect(
-      screen.getByRole("link", { name: /公式分類で見る/ })
-    ).toHaveAttribute("href", "/budget/all");
+      screen.getByRole("img", {
+        name: "令和8年度当初予算 世田谷区の予算マップ",
+      })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: /公式分類で見る/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /予算ページを見る/ })
+    ).not.toBeInTheDocument();
   });
 });
