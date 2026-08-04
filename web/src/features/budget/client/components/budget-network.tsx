@@ -58,6 +58,7 @@ import {
 import { getBudgetOfficialClassificationContext } from "../../shared/utils/budget-official-classification";
 import {
   formatBudgetAmount,
+  formatJapaneseFiscalYear,
   shortenBudgetDepartmentName,
 } from "../../shared/utils/budget-page-view";
 import { useBudgetMapCamera } from "../hooks/use-budget-map-camera";
@@ -170,6 +171,7 @@ export function BudgetNetwork({
             category={stableView.category}
             availability={exploration.availability}
             dimensions={dimensions}
+            fiscalYear={exploration.activeDataset?.fiscalYear ?? null}
             mode={mode}
             onFocusSearch={onFocusSearch}
             onOpenOfficialHierarchy={onOpenOfficialHierarchy}
@@ -336,6 +338,7 @@ function CategoryNetwork({
   category,
   availability,
   dimensions,
+  fiscalYear,
   mode,
   onFocusSearch,
   onOpenOfficialHierarchy,
@@ -345,6 +348,7 @@ function CategoryNetwork({
   category: BudgetExplorationCategory;
   availability: BudgetExplorationAvailability;
   dimensions: BudgetMapWorldDimensions;
+  fiscalYear: number | null;
   mode: BudgetMapMode;
   onFocusSearch: () => void;
   onOpenOfficialHierarchy: () => void;
@@ -360,6 +364,9 @@ function CategoryNetwork({
   const selectedTopicSlug =
     transitionTarget?.kind === "topic" ? transitionTarget.topic.slug : null;
   const FocusIcon = categoryIcons[category.slug] ?? CircleDot;
+  const fiscalYearLabel = fiscalYear
+    ? `${formatJapaneseFiscalYear(fiscalYear)}当初予算`
+    : "当初予算";
 
   return (
     <div
@@ -380,16 +387,18 @@ function CategoryNetwork({
       <div className="budget-map-nodes absolute inset-0">
         <div
           role="img"
-          aria-label={`選択中の分野、${category.name}`}
+          aria-label={`選択中の分野、${category.name}、${fiscalYearLabel}`}
           data-tone={category.tone}
           style={getNodePositionStyle(layout.center)}
           className="budget-map-node budget-network-focus-node budget-map-category-core absolute z-10 flex flex-col items-center justify-center gap-1.5 rounded-full text-center font-bold text-white"
         >
           <span aria-hidden="true" className="budget-map-core-orbit" />
           <FocusIcon aria-hidden="true" className="size-6" />
-          <span className="text-lg">{category.name}</span>
-          <span className="text-xs font-medium text-budget-space-copy">
-            公開中のテーマ {category.topics.length}件
+          <span className="max-w-[6.25rem] text-lg leading-tight">
+            {category.name}
+          </span>
+          <span className="text-[10px] font-medium leading-tight text-budget-space-copy">
+            {fiscalYearLabel}
           </span>
         </div>
 

@@ -286,10 +286,7 @@ function buildCategoryScene(
     world,
     cameraFocus: getBudgetMapV2CameraFocus("category", mode),
     coreCenter: core.center,
-    captionCenter: {
-      x: core.center.x,
-      y: core.center.y + getBudgetMapV2CaptionOffset("category", mode),
-    },
+    captionCenter: core.center,
     coreDots: createBudgetMapV2CoreDots({
       center: core.center,
       radius: core.radius,

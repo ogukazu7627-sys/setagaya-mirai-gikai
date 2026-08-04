@@ -339,13 +339,17 @@ function BudgetMapV2Core({
             } as BudgetMapV2Style
           }
         >
-          <Target className="size-[22px]" strokeWidth={1.4} />
+          {view.kind !== "category" && (
+            <Target className="size-[22px]" strokeWidth={1.4} />
+          )}
         </div>
       )}
       <div
         role="img"
         aria-label={getCoreLabel(view, activeDataset?.fiscalYear ?? null)}
         className="budget-map-v2-core-caption"
+        data-placement={view.kind === "category" ? "inside" : "outside"}
+        data-testid="budget-map-v2-core-caption"
         style={
           {
             ...coreStyle,
@@ -370,6 +374,9 @@ function BudgetMapV2CoreCaption({
   const fiscalYearLabel = activeDataset
     ? `${formatJapaneseFiscalYear(activeDataset.fiscalYear)}・当初予算`
     : "当初予算";
+  const categoryFiscalYearLabel = activeDataset
+    ? `${formatJapaneseFiscalYear(activeDataset.fiscalYear)}当初予算`
+    : "当初予算";
 
   if (view.kind === "overview") {
     return (
@@ -387,14 +394,11 @@ function BudgetMapV2CoreCaption({
   if (view.kind === "category") {
     return (
       <>
-        <span className="font-mirai-serif text-[22px] tracking-[0.2em] text-white sm:text-[27px]">
+        <strong className="budget-map-v2-core-category-name">
           {view.category.name}
-        </span>
-        <span className="text-[11px] tracking-[0.08em] text-budget-space-copy/75">
-          公開中のテーマ {view.category.topics.length}件
-        </span>
-        <span className="text-[10px] font-bold tracking-[0.14em] text-budget-space-eyebrow">
-          {fiscalYearLabel}
+        </strong>
+        <span className="budget-map-v2-core-category-year">
+          {categoryFiscalYearLabel}
         </span>
       </>
     );
@@ -555,7 +559,11 @@ function getCoreLabel(view: StableView, fiscalYear: number | null): string {
         ? "当初予算、世田谷区の予算"
         : `${formatJapaneseFiscalYear(fiscalYear)}当初予算、世田谷区の予算`;
     case "category":
-      return `選択中の分野、${view.category.name}`;
+      return `選択中の分野、${view.category.name}、${
+        fiscalYear === null
+          ? "当初予算"
+          : `${formatJapaneseFiscalYear(fiscalYear)}当初予算`
+      }`;
     case "topic":
       return `選択中のテーマ、${view.topic.name}`;
   }
