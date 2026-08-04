@@ -8,7 +8,7 @@ import {
 } from "./budget-map-programs";
 
 describe("budget map programs", () => {
-  it("初期星系を最大10件に制限し、残りを次ページへ送る", () => {
+  it("初期ページを最大10件に制限し、残りを次ページへ送る", () => {
     const programs = Array.from({ length: 13 }, (_, index) => index + 1);
     const firstPage = getBudgetMapProgramPage(programs, 0);
     const secondPage = getBudgetMapProgramPage(programs, 1);
@@ -32,7 +32,7 @@ describe("budget map programs", () => {
     });
   });
 
-  it("mobileは1星系を6件に抑える", () => {
+  it("mobileは1ページを6件に抑える", () => {
     const programs = Array.from({ length: 13 }, (_, index) => index + 1);
     const firstPage = getBudgetMapProgramPage(
       programs,
@@ -63,7 +63,7 @@ describe("budget map programs", () => {
     });
   });
 
-  it("同じ星系内の金額を過剰に差別化せず3段階へ分ける", () => {
+  it("同じ表示ページ内の金額を過剰に差別化せず3段階へ分ける", () => {
     const amounts = [0, 10, 20, 30, 40, 50];
 
     expect(getBudgetMapAmountTier(0, amounts)).toBe("low");

@@ -9,7 +9,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "触れる予算の探索マップ",
+  title: "触れる予算マップ",
   robots: {
     index: false,
     follow: false,

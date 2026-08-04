@@ -150,7 +150,7 @@ describe("BudgetNetwork", () => {
     ).toBeVisible();
     expect(
       screen.getByText(
-        "線は探索のための装飾です。公式分類やお金の流れ、優先順位を示しません。"
+        "線は画面上の配置を示す装飾です。公式分類やお金の流れ、優先順位を示しません。"
       )
     ).toBeVisible();
     expect(screen.queryByText(/621,033,664/)).not.toBeInTheDocument();
@@ -260,7 +260,7 @@ describe("BudgetNetwork", () => {
     ).toHaveAttribute("data-zero-amount", "true");
   });
 
-  it("topicの初期星系を10事業に抑え、残りを次の星系で表示する", async () => {
+  it("topicの初期ページを10事業に抑え、残りを次ページで表示する", async () => {
     const user = userEvent.setup();
     const baseTopic = education.topics[0];
     const baseProgram = baseTopic?.programs[0];
@@ -288,20 +288,20 @@ describe("BudgetNetwork", () => {
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(10);
-    expect(screen.getByText("星系 1 / 2")).toBeVisible();
+    expect(screen.getByText("1 / 2 ページ")).toBeVisible();
     expect(screen.queryByText("学校施設改修事業11")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
 
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(3);
-    expect(screen.getByText("星系 2 / 2")).toBeVisible();
+    expect(screen.getByText("2 / 2 ページ")).toBeVisible();
     expect(screen.getByText("学校施設改修事業11")).toBeVisible();
     expect(screen.queryByText("学校施設改修事業1")).not.toBeInTheDocument();
   });
 
-  it("mobileのtopicは1星系6事業に抑える", async () => {
+  it("mobileのtopicは1ページ6事業に抑える", async () => {
     const user = userEvent.setup();
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -336,19 +336,19 @@ describe("BudgetNetwork", () => {
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(6);
-    expect(screen.getByText("星系 1 / 3")).toBeVisible();
+    expect(screen.getByText("1 / 3 ページ")).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(6);
-    expect(screen.getByText("星系 2 / 3")).toBeVisible();
+    expect(screen.getByText("2 / 3 ページ")).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(1);
-    expect(screen.getByText("星系 3 / 3")).toBeVisible();
+    expect(screen.getByText("3 / 3 ページ")).toBeVisible();
   });
 
   it("topicがないcategoryでは整理中・検索・公式分類を示す", async () => {
@@ -370,7 +370,7 @@ describe("BudgetNetwork", () => {
     expect(callbacks.onFocusSearch).toHaveBeenCalledOnce();
     expect(
       screen.getByRole("button", {
-        name: "公式予算分類から探す",
+        name: "公式予算分類「民生費」を見る",
       })
     ).toBeVisible();
   });

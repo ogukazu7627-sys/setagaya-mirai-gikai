@@ -276,7 +276,7 @@ function SearchLoading() {
       <span className="budget-search-warp-core flex size-20 items-center justify-center rounded-full border border-budget-space-line">
         <LoaderCircle className="size-8 animate-spin" />
       </span>
-      <p className="mt-5 text-lg font-bold">予算の宇宙を移動しています</p>
+      <p className="mt-5 text-lg font-bold">予算を検索しています</p>
       <p className="mt-1 text-sm text-budget-space-copy">
         関連する事業を探しています
       </p>

@@ -12,7 +12,7 @@ export function getBudgetTopicKindLabel(
     case "goal":
       return "目標";
     case "administrative_function":
-      return "行政機能";
+      return "取り組み";
   }
 }
 

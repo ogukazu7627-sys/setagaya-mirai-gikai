@@ -97,7 +97,7 @@ describe("BudgetMapIframe", () => {
       />
     );
 
-    const iframe = screen.getByTitle("触れる予算の探索マップ");
+    const iframe = screen.getByTitle("触れる予算マップ");
     expect(iframe).toHaveAttribute(
       "src",
       `/budget/map?embed=1&dataset=${TEST_ACTIVE_BUDGET_DATASET.id}`
@@ -112,12 +112,12 @@ describe("BudgetMapIframe", () => {
     expect(iframe).not.toHaveAttribute("allow");
     expect(iframe).toHaveClass("budget-map-frame-topic", "w-full", "border-0");
     expect(screen.getByRole("status")).toHaveTextContent(
-      "予算宇宙を準備しています"
+      "予算マップを読み込んでいます"
     );
 
     fireEvent.load(iframe);
     expect(screen.getByRole("status")).toHaveTextContent(
-      "予算宇宙を準備しています"
+      "予算マップを読み込んでいます"
     );
     act(() => {
       window.dispatchEvent(
@@ -149,7 +149,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    fireEvent.load(screen.getByTitle("触れる予算の探索マップ"));
+    fireEvent.load(screen.getByTitle("触れる予算マップ"));
 
     act(() => {
       vi.advanceTimersByTime(BUDGET_MAP_LOAD_TIMEOUT_MS);
@@ -160,7 +160,7 @@ describe("BudgetMapIframe", () => {
     );
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(
-      screen.getByTitle("触れる予算の探索マップ").closest("[data-map-status]")
+      screen.getByTitle("触れる予算マップ").closest("[data-map-status]")
     ).toHaveAttribute("data-map-status", "error");
 
     fireEvent.click(screen.getByRole("button", { name: "予算検索" }));
@@ -168,9 +168,9 @@ describe("BudgetMapIframe", () => {
     expect(callbacks.onFocusSearch).toHaveBeenCalledOnce();
     expect(callbacks.onOpenOfficialHierarchy).toHaveBeenCalledOnce();
 
-    const firstIframe = screen.getByTitle("触れる予算の探索マップ");
+    const firstIframe = screen.getByTitle("触れる予算マップ");
     fireEvent.click(screen.getByRole("button", { name: "再読み込み" }));
-    const retriedIframe = screen.getByTitle("触れる予算の探索マップ");
+    const retriedIframe = screen.getByTitle("触れる予算マップ");
     expect(retriedIframe).not.toBe(firstIframe);
     expect(retriedIframe).toHaveAttribute(
       "src",
@@ -190,9 +190,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
 
     act(() => {
       window.dispatchEvent(
@@ -235,7 +233,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    const firstIframe = screen.getByTitle("触れる予算の探索マップ");
+    const firstIframe = screen.getByTitle("触れる予算マップ");
 
     rerender(
       <BudgetMapIframe
@@ -251,7 +249,7 @@ describe("BudgetMapIframe", () => {
       />
     );
 
-    const nextIframe = screen.getByTitle("触れる予算の探索マップ");
+    const nextIframe = screen.getByTitle("触れる予算マップ");
     expect(nextIframe).not.toBe(firstIframe);
     expect(nextIframe).toHaveAttribute(
       "src",
@@ -276,9 +274,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
     const postMessage = vi
       .spyOn(iframe.contentWindow as Window, "postMessage")
       .mockImplementation(() => undefined);
@@ -328,9 +324,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
 
     window.dispatchEvent(
       new MessageEvent("message", {
@@ -453,9 +447,7 @@ describe("BudgetMapIframe", () => {
         view={{ kind: "overview" }}
       />
     );
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
     const iframeWindow = iframe.contentWindow;
     unmount();
 

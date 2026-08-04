@@ -624,7 +624,7 @@ describe("BudgetMapEmbed", () => {
     );
   });
 
-  it("iframe内で承認済み13事業を10件と3件の星系として表示する", async () => {
+  it("iframe内で承認済み13事業を10件と3件のページとして表示する", async () => {
     const approvedCategory = EDUCATION_SCHOOL_AGING_EXPLORATION.categories[0];
     const approvedTopic = approvedCategory?.topics[0];
     if (!approvedCategory || !approvedTopic) {
@@ -649,14 +649,14 @@ describe("BudgetMapEmbed", () => {
     expect(
       screen.queryByText(/関連する予算事業\s*\d+件/)
     ).not.toBeInTheDocument();
-    expect(screen.getByText("星系 1 / 2")).toBeVisible();
+    expect(screen.getByText("1 / 2 ページ")).toBeVisible();
 
-    await user.click(screen.getByRole("button", { name: "次の星系" }));
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
 
     expect(
       screen.getAllByRole("button", { name: /、概要を見る$/ })
     ).toHaveLength(3);
-    expect(screen.getByText("星系 2 / 2")).toBeVisible();
+    expect(screen.getByText("2 / 2 ページ")).toBeVisible();
   });
 
   it("unmount時にmessageとkeydown listenerを解除する", () => {

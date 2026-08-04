@@ -222,7 +222,7 @@ export function BudgetMapIframe({
         key={`${activeDatasetId ?? "none"}:${frameAttempt}`}
         ref={iframeRef}
         src={routes.budgetMap(variant, activeDatasetId)}
-        title="触れる予算の探索マップ"
+        title="触れる予算マップ"
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"
         data-explorer-state={view.kind}
@@ -245,7 +245,7 @@ export function BudgetMapIframe({
               aria-hidden="true"
               className="size-4 motion-safe:animate-spin"
             />
-            予算宇宙を準備しています
+            予算マップを読み込んでいます
           </div>
         </div>
       )}

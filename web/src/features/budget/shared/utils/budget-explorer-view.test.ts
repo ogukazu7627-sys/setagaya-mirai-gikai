@@ -34,10 +34,10 @@ const exploration: BudgetExplorationData = {
 };
 
 describe("resolveBudgetExplorerView", () => {
-  it("topic kindを課題・目標・行政機能として区別する", () => {
+  it("topic kindを課題・目標・取り組みとして表示する", () => {
     expect(getBudgetTopicKindLabel("problem")).toBe("課題");
     expect(getBudgetTopicKindLabel("goal")).toBe("目標");
-    expect(getBudgetTopicKindLabel("administrative_function")).toBe("行政機能");
+    expect(getBudgetTopicKindLabel("administrative_function")).toBe("取り組み");
   });
 
   it("URLなし・category・topicを決定的に復元する", () => {

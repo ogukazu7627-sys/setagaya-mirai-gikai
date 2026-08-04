@@ -96,7 +96,7 @@ export function BudgetProgramDetailPage({
             icon={MessagesSquare}
             id="budget-program-topics-title"
             title="この事業が関係する課題・テーマ"
-            description="ここは公式予算分類ではなく、人が確認した情報をもとに、みらい議会が市民向けに整理した探索レイヤーです。"
+            description="ここは公式予算分類ではありません。人が確認した情報をもとに、みらい議会が予算事業との関係を整理しています。"
             kind="editorial"
           />
           {detail.publishedTopics.length > 0 ? (
