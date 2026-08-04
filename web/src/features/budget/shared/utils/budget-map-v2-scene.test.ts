@@ -211,6 +211,7 @@ describe("buildBudgetMapV2Scene category", () => {
     expect(scene.topics).toHaveLength(1);
     expect(scene.distantCategories).toEqual([]);
     expect(scene.solidCoreDiameter).toBe(148);
+    expect(scene.captionCenter).toEqual(scene.coreCenter);
   });
 
   it("mobile では遠景の他分野を出さない", () => {
@@ -227,6 +228,7 @@ describe("buildBudgetMapV2Scene category", () => {
 
     expect(scene.distantCategories).toEqual([]);
     expect(scene.solidCoreDiameter).toBeNull();
+    expect(scene.captionCenter).toEqual(scene.coreCenter);
   });
 
   it("課題0件でも架空の課題で埋めない", () => {

@@ -166,6 +166,13 @@ describe("BudgetNetwork", () => {
       />
     );
 
+    const categoryCore = screen.getByRole("img", {
+      name: "選択中の分野、教育、令和8年度当初予算",
+    });
+    expect(categoryCore).toHaveTextContent("教育");
+    expect(categoryCore).toHaveTextContent("令和8年度当初予算");
+    expect(categoryCore).not.toHaveTextContent("公開中のテーマ");
+
     await user.click(
       screen.getByRole("button", {
         name: "学校施設の老朽化への対応に関連する予算事業を見る",

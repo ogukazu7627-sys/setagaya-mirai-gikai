@@ -120,6 +120,13 @@ describe("BudgetMapEmbed", () => {
     expect(
       screen.getByRole("group", { name: "教育に公開されたテーマ" })
     ).toBeVisible();
+    const categoryCore = screen.getByRole("img", {
+      name: "選択中の分野、教育、令和8年度当初予算",
+    });
+    expect(categoryCore).toHaveAttribute("data-placement", "inside");
+    expect(categoryCore).toHaveTextContent("教育");
+    expect(categoryCore).toHaveTextContent("令和8年度当初予算");
+    expect(categoryCore).not.toHaveTextContent("公開中のテーマ");
 
     const topic = education.topics[0];
     if (!topic) {
@@ -255,6 +262,29 @@ describe("BudgetMapEmbed", () => {
         name: "令和9年度当初予算、世田谷区の予算",
       })
     ).toBeVisible();
+  });
+
+  it("categoryの分野名と年度を中心ノード内へ表示する", () => {
+    render(
+      <BudgetMapEmbed
+        exploration={{
+          ...exploration,
+          activeDataset: {
+            ...TEST_ACTIVE_BUDGET_DATASET,
+            fiscalYear: 2027,
+          },
+        }}
+        initialView={{ kind: "category", category: education }}
+      />
+    );
+
+    const categoryCore = screen.getByRole("img", {
+      name: "選択中の分野、教育、令和9年度当初予算",
+    });
+    expect(categoryCore).toHaveAttribute("data-placement", "inside");
+    expect(categoryCore).toHaveTextContent("教育");
+    expect(categoryCore).toHaveTextContent("令和9年度当初予算");
+    expect(screen.queryByText(/公開中のテーマ/)).not.toBeInTheDocument();
   });
 
   it("active datasetがない場合は公開準備中の空状態を表示する", () => {
