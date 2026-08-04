@@ -423,7 +423,9 @@ describe("BudgetMapEmbed", () => {
       within(dialog).getByText("一般的な説明（みらい議会）")
     ).toBeVisible();
     expect(
-      within(dialog).getByText(/施設や設備の整備、改修、更新/)
+      within(dialog).getByText(
+        /小学校の校舎や設備の劣化・不具合を改修し、安全に使い続けられる状態に整える/
+      )
     ).toBeVisible();
     expect(within(dialog).getByText("一般会計")).toBeVisible();
     expect(within(dialog).getByText("教育費")).toBeVisible();
