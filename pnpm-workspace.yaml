@@ -5,3 +5,6 @@ packages:
   - "worker"
 
 minimumReleaseAge: 4320
+
+allowBuilds:
+  sharp: true
