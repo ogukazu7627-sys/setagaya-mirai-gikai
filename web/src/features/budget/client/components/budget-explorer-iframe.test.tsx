@@ -71,9 +71,7 @@ describe("BudgetExplorer iframe integration", () => {
     mocks.getSearchParam.mockReturnValue(null);
     window.history.replaceState(null, "", "/budget");
     render(<BudgetExplorer exploration={exploration} />);
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
 
     act(() => {
       window.dispatchEvent(
@@ -120,7 +118,7 @@ describe("BudgetExplorer iframe integration", () => {
       "/budget?category=culture-sports"
     );
     expect(mocks.push).not.toHaveBeenCalled();
-    expect(screen.getByTitle("触れる予算の探索マップ")).toBe(iframe);
+    expect(screen.getByTitle("触れる予算マップ")).toBe(iframe);
   });
 
   it("実iframeのprogram messageを戻り文脈付き詳細URLへ接続する", async () => {
@@ -129,9 +127,7 @@ describe("BudgetExplorer iframe integration", () => {
     }
     expect(exploration.categories[0]?.topics[0]?.programs).toHaveLength(13);
     render(<BudgetExplorer exploration={exploration} />);
-    const iframe = screen.getByTitle(
-      "触れる予算の探索マップ"
-    ) as HTMLIFrameElement;
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
 
     act(() => {
       window.dispatchEvent(

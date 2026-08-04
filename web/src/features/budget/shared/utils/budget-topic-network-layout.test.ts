@@ -7,7 +7,7 @@ import {
 const programIds = Array.from({ length: 10 }, (_, index) => `bpi_${index}`);
 
 describe("budget topic network layout", () => {
-  it("10事業を入力順どおりの決定的なdesktop星系へ配置する", () => {
+  it("10事業を入力順どおりの決定的なdesktop配置にする", () => {
     const dimensions = { width: 1000, height: 700 };
     const first = getBudgetTopicProgramPositions(
       programIds,

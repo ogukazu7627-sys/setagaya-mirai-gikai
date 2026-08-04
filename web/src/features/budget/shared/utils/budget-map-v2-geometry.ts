@@ -170,12 +170,26 @@ export function getBudgetMapV2OverviewRing(
 ): BudgetMapV2RingNode[] {
   const ring = OVERVIEW_RING[mode];
   const core = BUDGET_MAP_V2_CORE[mode].overview;
-  return getBudgetMapV2RingNodes(
+  const nodes = getBudgetMapV2RingNodes(
     count,
     core.center,
     ring.rx,
     ring.ry,
     ring.labelReach
+  );
+
+  if (mode !== "desktop") {
+    return nodes;
+  }
+
+  return nodes.map((node) =>
+    Math.abs(node.ux) < 0.01 && node.uy > 0.99
+      ? {
+          ...node,
+          y: node.y + 34,
+          labelOffsetY: 58,
+        }
+      : node
   );
 }
 

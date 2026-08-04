@@ -325,7 +325,7 @@ function OverviewNetwork({
           })}
           className="budget-map-node budget-map-edge-note absolute z-20 w-80 max-w-[88%] text-center text-xs leading-5 text-budget-space-copy/75"
         >
-          線は探索のための装飾です。公式分類やお金の流れ、優先順位を示しません。
+          線は画面上の配置を示す装飾です。公式分類やお金の流れ、優先順位を示しません。
         </p>
       </div>
     </div>
@@ -648,7 +648,7 @@ function TopicNetwork({
         {page.pageCount > 1 && (
           <div
             role="group"
-            aria-label="関連事業の星系を切り替える"
+            aria-label="関連事業のページを切り替える"
             style={getNodePositionStyle({
               x: dimensions.width / 2,
               y: dimensions.height - 25,
@@ -664,13 +664,13 @@ function TopicNetwork({
               className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
-              前の星系
+              前のページ
             </Button>
             <span
               aria-live="polite"
               className="min-w-20 text-center text-xs tabular-nums text-budget-space-copy"
             >
-              星系 {page.pageIndex + 1} / {page.pageCount}
+              {page.pageIndex + 1} / {page.pageCount} ページ
             </span>
             <Button
               type="button"
@@ -680,7 +680,7 @@ function TopicNetwork({
               onClick={() => setPageIndex((current) => current + 1)}
               className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
             >
-              次の星系
+              次のページ
               <ChevronRight aria-hidden="true" className="size-4" />
             </Button>
           </div>

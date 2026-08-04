@@ -514,7 +514,7 @@ function BudgetMapV2Chrome({
       {page && page.pageCount > 1 && (
         <div
           role="group"
-          aria-label="関連事業の星系を切り替える"
+          aria-label="関連事業のページを切り替える"
           className="budget-map-v2-pagination"
         >
           <Button
@@ -526,10 +526,10 @@ function BudgetMapV2Chrome({
             className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
           >
             <ChevronLeft aria-hidden="true" className="size-4" />
-            前の星系
+            前のページ
           </Button>
           <span aria-live="polite" className="budget-map-v2-pagination-count">
-            星系 {page.pageIndex + 1} / {page.pageCount}
+            {page.pageIndex + 1} / {page.pageCount} ページ
           </span>
           <Button
             type="button"
@@ -539,7 +539,7 @@ function BudgetMapV2Chrome({
             onClick={() => onPageChange((current) => current + 1)}
             className="min-h-11 rounded-md px-2 text-white hover:bg-budget-space-mid hover:text-white"
           >
-            次の星系
+            次のページ
             <ChevronRight aria-hidden="true" className="size-4" />
           </Button>
         </div>

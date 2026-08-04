@@ -11,7 +11,7 @@ const category = {
 } as BudgetExplorationCategory;
 
 describe("budget map motion", () => {
-  it("星系移動は280〜420ms、事業遷移は220〜320msに収める", () => {
+  it("ページ移動は280〜420ms、事業遷移は220〜320msに収める", () => {
     expect(getBudgetMapTransitionDuration({ kind: "category", category })).toBe(
       BUDGET_MAP_SCENE_TRANSITION_DURATION_MS
     );

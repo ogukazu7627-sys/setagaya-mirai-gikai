@@ -80,6 +80,17 @@ describe("getBudgetMapV2OverviewRing", () => {
     expect(nodes).toHaveLength(10);
   });
 
+  it("desktopの真下の分野は中心見出しを避け、ラベルをアイコンへ近づける", () => {
+    const nodes = getBudgetMapV2OverviewRing(10, "desktop");
+
+    expect(nodes[5]).toMatchObject({
+      x: 500,
+      y: 505,
+      labelOffsetX: 0,
+      labelOffsetY: 58,
+    });
+  });
+
   it("mobile は縦長のリングになる", () => {
     const nodes = getBudgetMapV2OverviewRing(10, "mobile");
 

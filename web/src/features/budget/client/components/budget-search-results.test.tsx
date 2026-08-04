@@ -138,7 +138,7 @@ describe("BudgetSearchResults", () => {
   });
 
   it.each([
-    ["searching", "予算の宇宙を移動しています"],
+    ["searching", "予算を検索しています"],
     ["error", "検索できませんでした"],
   ] as const)("%s状態を明示する", (status, message) => {
     render(

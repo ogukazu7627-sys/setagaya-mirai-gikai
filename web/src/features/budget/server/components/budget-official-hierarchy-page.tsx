@@ -66,7 +66,7 @@ export function BudgetOfficialHierarchyPage({
             公式予算分類から探す
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-mirai-text-secondary">
-            行政の正式な「会計・款・項・目」の順にたどります。市民目線の大分類とは別の、公式資料に基づく分類です。
+            行政の正式な「会計・款・項・目」の順にたどります。予算ページの10分野とは別の、公式資料に基づく分類です。
           </p>
         </div>
       </header>

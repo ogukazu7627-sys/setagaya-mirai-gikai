@@ -100,6 +100,17 @@ const exploration: BudgetExplorationData = {
   ],
 };
 
+const administrationFinanceCategory: BudgetExplorationData["categories"][number] =
+  {
+    id: "category-administration-finance",
+    slug: "administration-finance",
+    name: "行財政",
+    shortDescription: "行政計画、財政、契約、行政DX",
+    sortOrder: 6,
+    tone: "mint",
+    topics: [],
+  };
+
 const schoolSearchItem: BudgetProgramSearchResult["items"][number] = {
   datasetId: "11111111-1111-4111-8111-111111111111",
   budgetProgramIdentityId: "bpi_school",
@@ -216,6 +227,82 @@ describe("BudgetExplorer", () => {
         { scroll: true }
       )
     );
+  });
+
+  it("教育以外のカテゴリーも対応する公式款に絞り込む", async () => {
+    mocks.getSearchParam.mockImplementation((key: string) =>
+      key === "category" ? "administration-finance" : null
+    );
+    const user = userEvent.setup();
+    render(
+      <BudgetExplorer
+        exploration={{
+          ...exploration,
+          categories: [
+            ...exploration.categories,
+            administrationFinanceCategory,
+          ],
+        }}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "公式分類を見る" }));
+
+    await waitFor(() =>
+      expect(mocks.push).toHaveBeenCalledWith(
+        "/budget/all?account=general&kan=02",
+        { scroll: true }
+      )
+    );
+  });
+
+  it("カテゴリーのヒーローを分野名までの2行で表示する", () => {
+    mocks.getSearchParam.mockImplementation((key: string) =>
+      key === "category" ? "administration-finance" : null
+    );
+    render(
+      <BudgetExplorer
+        exploration={{
+          ...exploration,
+          categories: [
+            ...exploration.categories,
+            administrationFinanceCategory,
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("予算の分野")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "行財政" })
+    ).toBeVisible();
+    expect(
+      screen.queryByText("行政計画、財政、契約、行政DX")
+    ).not.toBeInTheDocument();
+  });
+
+  it("課題のヒーローを課題名までの2行で表示する", () => {
+    mocks.getSearchParam.mockImplementation((key: string) => {
+      if (key === "category") {
+        return "education";
+      }
+      if (key === "topic") {
+        return "school-facility-aging";
+      }
+      return null;
+    });
+    render(<BudgetExplorer exploration={exploration} />);
+
+    expect(screen.getByText("教育の課題")).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "学校施設の老朽化への対応",
+      })
+    ).toBeVisible();
+    expect(
+      screen.queryByText("学校施設を維持・改修する取組")
+    ).not.toBeInTheDocument();
   });
 
   it("課題グラフから事業詳細へカテゴリーと課題の戻り文脈を渡す", async () => {
