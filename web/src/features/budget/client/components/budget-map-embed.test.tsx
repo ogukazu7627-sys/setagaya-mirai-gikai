@@ -526,6 +526,21 @@ describe("BudgetMapEmbed", () => {
     expect(
       screen.getByRole("group", { name: "教育に公開されたテーマ" })
     ).toBeVisible();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: window.parent,
+          data: createBudgetMapHostMessage(
+            { kind: "topic", category: education, topic },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("active datasetが切り替わると選択中の事業を解除する", async () => {
@@ -557,6 +572,15 @@ describe("BudgetMapEmbed", () => {
             id: OTHER_DATASET_ID,
           },
         }}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    rerender(
+      <BudgetMapEmbed
+        exploration={exploration}
         initialView={{ kind: "topic", category: education, topic }}
       />
     );

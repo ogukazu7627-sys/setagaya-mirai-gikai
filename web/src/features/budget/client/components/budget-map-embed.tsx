@@ -56,6 +56,12 @@ export function BudgetMapEmbed({
     selectedProgramIdentityId
   );
 
+  useEffect(() => {
+    setSelectedProgramReference((current) =>
+      current && current.contextKey !== selectionContextKey ? null : current
+    );
+  }, [selectionContextKey]);
+
   const postAction = useCallback(
     (action: BudgetMapAction) => {
       window.parent.postMessage(
