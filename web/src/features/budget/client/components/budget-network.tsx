@@ -34,6 +34,7 @@ import type {
   BudgetExplorationProgram,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
+import { getBudgetCategoryCoreLabelLayout } from "../../shared/utils/budget-category-core-label";
 import {
   type BudgetMapMode,
   type BudgetMapPosition,
@@ -367,6 +368,7 @@ function CategoryNetwork({
   const fiscalYearLabel = fiscalYear
     ? `${formatJapaneseFiscalYear(fiscalYear)}当初予算`
     : "当初予算";
+  const categoryLabelLayout = getBudgetCategoryCoreLabelLayout(category.slug);
 
   return (
     <div
@@ -394,7 +396,10 @@ function CategoryNetwork({
         >
           <span aria-hidden="true" className="budget-map-core-orbit" />
           <FocusIcon aria-hidden="true" className="size-6" />
-          <span className="max-w-[6.25rem] text-lg leading-tight">
+          <span
+            className="budget-map-category-core-name max-w-[6.25rem] text-lg leading-tight"
+            data-label-layout={categoryLabelLayout}
+          >
             {category.name}
           </span>
           <span className="text-[10px] font-medium leading-tight text-budget-space-copy">

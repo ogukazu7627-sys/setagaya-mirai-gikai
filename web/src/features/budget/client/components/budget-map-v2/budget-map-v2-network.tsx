@@ -17,6 +17,7 @@ import type {
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../../../shared/types/budget-exploration";
+import { getBudgetCategoryCoreLabelLayout } from "../../../shared/utils/budget-category-core-label";
 import { getBudgetExplorerSceneLabel } from "../../../shared/utils/budget-explorer-view";
 import { getBudgetMapStableView } from "../../../shared/utils/budget-map-layout";
 import { getBudgetMapProgramPageSize } from "../../../shared/utils/budget-map-programs";
@@ -392,9 +393,14 @@ function BudgetMapV2CoreCaption({
   }
 
   if (view.kind === "category") {
+    const labelLayout = getBudgetCategoryCoreLabelLayout(view.category.slug);
+
     return (
       <>
-        <strong className="budget-map-v2-core-category-name">
+        <strong
+          className="budget-map-v2-core-category-name"
+          data-label-layout={labelLayout}
+        >
           {view.category.name}
         </strong>
         <span className="budget-map-v2-core-category-year">
