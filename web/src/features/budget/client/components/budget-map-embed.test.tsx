@@ -287,6 +287,31 @@ describe("BudgetMapEmbed", () => {
     expect(screen.queryByText(/公開中のテーマ/)).not.toBeInTheDocument();
   });
 
+  it.each([
+    ["culture-sports", "文化・スポーツ", "culture-sports"],
+    ["urban-development", "まちづくり", "urban-development"],
+  ] as const)("%s の中心ラベルを改行しない専用表示にする", (slug, name, labelLayout) => {
+    const category: BudgetExplorationCategory = {
+      ...education,
+      id: `category-${slug}`,
+      slug,
+      name,
+      topics: [],
+    };
+
+    render(
+      <BudgetMapEmbed
+        exploration={{ ...exploration, categories: [category] }}
+        initialView={{ kind: "category", category }}
+      />
+    );
+
+    expect(screen.getByText(name)).toHaveAttribute(
+      "data-label-layout",
+      labelLayout
+    );
+  });
+
   it("active datasetがない場合は公開準備中の空状態を表示する", () => {
     render(
       <BudgetMapEmbed

@@ -1143,6 +1143,30 @@
     color: white;
   }
 
+  .budget-map-v2-core-category-name[data-label-layout="culture-sports"] {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 1rem;
+  }
+
+  .budget-map-v2-core-category-name[data-label-layout="urban-development"] {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 1.1rem;
+  }
+
+  .budget-map-category-core-name[data-label-layout="culture-sports"] {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 0.875rem;
+  }
+
+  .budget-map-category-core-name[data-label-layout="urban-development"] {
+    max-width: none;
+    white-space: nowrap;
+    font-size: 1rem;
+  }
+
   .budget-map-v2-core-category-year {
     font-size: 0.625rem;
     font-weight: 700;
@@ -1160,6 +1184,14 @@
 
     .budget-map-v2-core-category-name {
       font-size: 0.875rem;
+    }
+
+    .budget-map-v2-core-category-name[data-label-layout="culture-sports"] {
+      font-size: 0.75rem;
+    }
+
+    .budget-map-v2-core-category-name[data-label-layout="urban-development"] {
+      font-size: 0.8125rem;
     }
 
     .budget-map-v2-core-category-year {
