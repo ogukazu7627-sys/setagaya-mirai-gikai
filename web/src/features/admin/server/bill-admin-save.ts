@@ -6,7 +6,6 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import type { Route } from "next";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import sharp from "sharp";
 import { z } from "zod";
 import {
   appendAdminBillsReturnPath,
@@ -63,6 +62,28 @@ const bulkBillIdsSchema = z
   .min(1, "一斉編集する案件を選択してください。")
   .max(100, "一度に編集できる案件は100件までです。");
 
+function thumbnailExtensionFromMimeType(mimeType: string) {
+  switch (mimeType) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    default:
+      return "bin";
+  }
+}
+
+function isSharpLoadError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+
+  return (
+    error.message.includes('Could not load the "sharp" module') ||
+    error.message.includes("Failed to load external module sharp")
+  );
+}
+
 function adminBillsReturnPathFromFormData(formData: FormData) {
   return normalizeAdminBillsReturnPath(formData.get("return_path"));
 }
@@ -116,6 +137,7 @@ async function optimizeThumbnailFile(file: File) {
   const input = Buffer.from(await file.arrayBuffer());
 
   try {
+    const { default: sharp } = await import("sharp");
     const body = await sharp(input, { failOn: "error" })
       .rotate()
       .resize({
@@ -133,7 +155,19 @@ async function optimizeThumbnailFile(file: File) {
       contentType: OPTIMIZED_THUMBNAIL_MIME_TYPE,
       extension: OPTIMIZED_THUMBNAIL_EXTENSION,
     };
-  } catch {
+  } catch (error) {
+    if (isSharpLoadError(error)) {
+      console.warn(
+        "Sharp is unavailable in this runtime; uploading the original thumbnail."
+      );
+
+      return {
+        body: input,
+        contentType: file.type,
+        extension: thumbnailExtensionFromMimeType(file.type),
+      };
+    }
+
     throw new Error(
       "サムネイル画像の軽量化に失敗しました。JPEG、PNG、WebPの通常画像を選択してください。"
     );
