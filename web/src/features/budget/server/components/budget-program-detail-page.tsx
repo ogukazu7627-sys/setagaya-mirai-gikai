@@ -7,6 +7,7 @@ import {
   Building2,
   CircleDollarSign,
   FileText,
+  Info,
   Landmark,
   Layers3,
   ListTree,
@@ -23,6 +24,7 @@ import {
   formatJapaneseFiscalYear,
   formatRawThousandYen,
 } from "../../shared/utils/budget-page-view";
+import { buildBudgetProgramGeneralDescription } from "../../shared/utils/budget-program-general-description";
 import { resolveBudgetProgramReturnDestination } from "../../shared/utils/budget-program-return-context";
 import { describeBudgetSourceReference } from "../../shared/utils/budget-source-reference";
 import {
@@ -86,6 +88,26 @@ export function BudgetProgramDetailPage({
           </div>
         </div>
       </header>
+
+      <section
+        aria-labelledby="budget-program-general-description-title"
+        className="border-b border-mirai-border bg-white px-4 py-10 sm:px-8"
+      >
+        <div className="mx-auto max-w-5xl">
+          <SectionHeading
+            icon={Info}
+            id="budget-program-general-description-title"
+            title="一般的な説明（みらい議会）"
+            description="事業名と公式予算分類をもとに、この予算の一般的な使い道を説明しています。"
+            kind="editorial"
+          />
+          <p className="mt-5 max-w-3xl text-base leading-8 text-mirai-text-secondary">
+            {buildBudgetProgramGeneralDescription({
+              displayProgramName: identity.displayProgramName,
+            })}
+          </p>
+        </div>
+      </section>
 
       <section
         aria-labelledby="budget-program-topics-title"
