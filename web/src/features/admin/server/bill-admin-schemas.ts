@@ -21,7 +21,7 @@ export const billFormSchema = z
       "enacted",
       "rejected",
     ]),
-    publish_status: z.enum(["draft", "published", "published_non_bill"]),
+    publish_status: z.enum(["draft", "published"]),
     diet_session_id: z.string().uuid().nullable(),
     submitted_date: z.string().nullable(),
     status_label: z.string().trim().nullable(),

@@ -34,8 +34,6 @@ function publishStatusLabel(status: string) {
   switch (status) {
     case "published":
       return "公開";
-    case "published_non_bill":
-      return "公開（案件以外）";
     case "coming_soon":
       return "近日公開";
     default:
@@ -192,16 +190,6 @@ export function AdminBillList({
             disabled={bills.length === 0}
           >
             公開にする
-          </Button>
-          <Button
-            type="submit"
-            name="bulk_publish_status"
-            value="published_non_bill"
-            variant="outline"
-            size="sm"
-            disabled={bills.length === 0}
-          >
-            公開（案件以外）にする
           </Button>
           <Button
             type="submit"

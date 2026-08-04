@@ -125,11 +125,7 @@ export async function createTestBill(
       | "enacted"
       | "rejected"
       | "preparing";
-    publish_status:
-      | "draft"
-      | "published"
-      | "coming_soon"
-      | "published_non_bill";
+    publish_status: "draft" | "published" | "coming_soon";
     diet_session_id: string;
     is_featured: boolean;
     submitted_date: string;

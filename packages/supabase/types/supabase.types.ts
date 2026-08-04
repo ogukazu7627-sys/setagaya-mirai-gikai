@@ -3143,7 +3143,6 @@ export type Database = {
         | "draft"
         | "published"
         | "coming_soon"
-        | "published_non_bill"
       bill_status_enum:
         | "introduced"
         | "in_originating_house"
@@ -3327,7 +3326,6 @@ export const Constants = {
         "draft",
         "published",
         "coming_soon",
-        "published_non_bill",
       ],
       bill_status_enum: [
         "introduced",

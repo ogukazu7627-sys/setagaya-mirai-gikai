@@ -7,11 +7,7 @@ export type BillUpdate = Database["public"]["Tables"]["bills"]["Update"];
 export type BillInsert = Database["public"]["Tables"]["bills"]["Insert"];
 
 // 公開ステータス型
-export type BillPublishStatus =
-  | "draft"
-  | "published"
-  | "coming_soon"
-  | "published_non_bill";
+export type BillPublishStatus = "draft" | "published" | "coming_soon";
 
 // 共通のバリデーションスキーマ
 const billBaseSchema = z.object({
