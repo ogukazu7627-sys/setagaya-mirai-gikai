@@ -181,6 +181,12 @@ describe("BudgetNetwork", () => {
         name: "公式予算分類「教育費」を見る",
       })
     ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "防災へ切り替える" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/関連する予算事業\s*\d+件/)
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
         name: "公式予算分類「教育費」を見る",
@@ -207,6 +213,9 @@ describe("BudgetNetwork", () => {
     expect(screen.getByText("教育環境課")).toBeVisible();
     expect(screen.getByText("41億4,051万8千円")).toBeVisible();
     expect(screen.getByText("防災")).toBeVisible();
+    expect(
+      screen.queryByText(/関連する予算事業\s*\d+件/)
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
         name: /小学校施設改修工事、当初予算額/,
@@ -277,17 +286,17 @@ describe("BudgetNetwork", () => {
     );
 
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(10);
-    expect(screen.getByText("1〜10 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 1 / 2")).toBeVisible();
     expect(screen.queryByText("学校施設改修事業11")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "次の星系" }));
 
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(3);
-    expect(screen.getByText("11〜13 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 2 / 2")).toBeVisible();
     expect(screen.getByText("学校施設改修事業11")).toBeVisible();
     expect(screen.queryByText("学校施設改修事業1")).not.toBeInTheDocument();
   });
@@ -325,21 +334,21 @@ describe("BudgetNetwork", () => {
     );
 
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(6);
-    expect(screen.getByText("1〜6 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 1 / 3")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "次の星系" }));
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(6);
-    expect(screen.getByText("7〜12 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 2 / 3")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "次の星系" }));
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(1);
-    expect(screen.getByText("13〜13 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 3 / 3")).toBeVisible();
   });
 
   it("topicがないcategoryでは整理中・検索・公式分類を示す", async () => {
@@ -856,7 +865,7 @@ describe("BudgetNetwork", () => {
 
     expect(document.querySelectorAll(".budget-map-star")).toHaveLength(70);
     expect(
-      screen.getAllByRole("button", { name: /当初予算額.*詳細を見る/ })
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(6);
     expect(overviewElementCount).toBeLessThanOrEqual(225);
     expect(categoryElementCount).toBeLessThanOrEqual(180);

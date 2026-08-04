@@ -127,9 +127,6 @@ export function BudgetMapV2TopicNodeButton({
       </span>
       <span className="budget-map-v2-topic-text">
         <span className="budget-map-v2-topic-title">{node.title}</span>
-        <span className="budget-map-v2-topic-meta">
-          関連する予算事業 {node.programCount}件
-        </span>
       </span>
     </Button>
   );
@@ -161,7 +158,7 @@ export function BudgetMapV2ProgramNodeButton({
       data-selected={selected}
       data-tier={node.tier}
       data-zero-amount={node.isZeroAmount}
-      aria-label={`${node.name}、当初予算額${amount}、担当${department}、詳細を見る`}
+      aria-label={`${node.name}、当初予算額${amount}、担当${department}、概要を見る`}
       className="budget-map-v2-node budget-map-v2-program-node budget-map-v2-selectable h-auto whitespace-normal hover:bg-transparent"
       style={getPositionStyle(node, {
         "--budget-v2-program-size": `${node.diameter}px`,

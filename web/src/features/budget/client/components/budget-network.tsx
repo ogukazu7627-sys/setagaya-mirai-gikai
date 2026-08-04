@@ -71,6 +71,7 @@ type BudgetNetworkProps = {
   onSelectCategory: (slug: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
+  selectedProgramIdentityId?: string | null;
 };
 
 type NetworkEdge = {
@@ -119,6 +120,7 @@ export function BudgetNetwork({
   onSelectCategory,
   onSelectProgram,
   onSelectTopic,
+  selectedProgramIdentityId = null,
 }: BudgetNetworkProps) {
   const mode = useBudgetNetworkMode();
   const stableView = getBudgetMapStableView(view);
@@ -171,7 +173,6 @@ export function BudgetNetwork({
             mode={mode}
             onFocusSearch={onFocusSearch}
             onOpenOfficialHierarchy={onOpenOfficialHierarchy}
-            onSelectCategory={onSelectCategory}
             onSelectTopic={onSelectTopic}
             transitionTarget={transitionTarget}
           />
@@ -185,6 +186,7 @@ export function BudgetNetwork({
             mode={mode}
             onSelectProgram={onSelectProgram}
             programs={stableView.topic.programs}
+            selectedProgramIdentityId={selectedProgramIdentityId}
             topicName={stableView.topic.name}
             transitionTarget={transitionTarget}
           />
@@ -337,7 +339,6 @@ function CategoryNetwork({
   mode,
   onFocusSearch,
   onOpenOfficialHierarchy,
-  onSelectCategory,
   onSelectTopic,
   transitionTarget,
 }: {
@@ -347,7 +348,6 @@ function CategoryNetwork({
   mode: BudgetMapMode;
   onFocusSearch: () => void;
   onOpenOfficialHierarchy: () => void;
-  onSelectCategory: (slug: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
   transitionTarget:
     | Extract<BudgetExplorerView, { kind: "transitioning" }>["target"]
@@ -356,7 +356,6 @@ function CategoryNetwork({
   const officialClassification = getBudgetOfficialClassificationContext(
     category.slug
   );
-  const overviewLayout = getBudgetMapOverviewLayout(mode, dimensions);
   const layout = getBudgetMapCategoryLayout(category, mode, dimensions);
   const selectedTopicSlug =
     transitionTarget?.kind === "topic" ? transitionTarget.topic.slug : null;
@@ -369,10 +368,6 @@ function CategoryNetwork({
       aria-label={`${category.name}に公開されたテーマ`}
     >
       <NetworkEdges
-        decorations={overviewLayout.decorations.map((decoration) => ({
-          ...decoration,
-          size: Math.max(8, decoration.size / 2),
-        }))}
         dimensions={dimensions}
         edges={layout.topics.map((topic) => ({
           id: `category-topic-${topic.nodeId}`,
@@ -383,27 +378,6 @@ function CategoryNetwork({
       />
 
       <div className="budget-map-nodes absolute inset-0">
-        {overviewLayout.topics
-          .filter((topic) => topic.id !== category.slug)
-          .map((topic) => {
-            const Icon = categoryIcons[topic.id] ?? CircleDot;
-            return (
-              <Button
-                key={topic.id}
-                type="button"
-                variant="ghost"
-                data-tone={topic.tone}
-                onClick={() => onSelectCategory(topic.id)}
-                style={getNodePositionStyle(topic)}
-                className="budget-map-node budget-map-background-category absolute h-11 w-28 gap-1 p-0 text-xs font-bold text-budget-space-copy/40 hover:bg-transparent hover:text-white"
-                aria-label={`${topic.label}へ切り替える`}
-              >
-                <Icon aria-hidden="true" className="size-3" />
-                {topic.label}
-              </Button>
-            );
-          })}
-
         <div
           role="img"
           aria-label={`選択中の分野、${category.name}`}
@@ -513,6 +487,7 @@ function TopicNetwork({
   mode,
   onSelectProgram,
   programs,
+  selectedProgramIdentityId,
   topicName,
   transitionTarget,
 }: {
@@ -522,6 +497,7 @@ function TopicNetwork({
   mode: BudgetMapMode;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   programs: BudgetExplorationProgram[];
+  selectedProgramIdentityId: string | null;
   topicName: string;
   transitionTarget:
     | Extract<BudgetExplorerView, { kind: "transitioning" }>["target"]
@@ -541,7 +517,7 @@ function TopicNetwork({
   const selectedProgramId =
     transitionTarget?.kind === "program"
       ? transitionTarget.budgetProgramIdentityId
-      : null;
+      : selectedProgramIdentityId;
   const visibleAmounts = page.items.map((program) => program.amountThousandYen);
 
   return (
@@ -573,9 +549,6 @@ function TopicNetwork({
           <span className="line-clamp-2 max-w-60 text-base font-bold leading-6">
             {topicName}
           </span>
-          <span className="text-xs text-budget-space-copy">
-            関連する予算事業 {programs.length}件
-          </span>
         </div>
 
         {page.items.map((program, index) => {
@@ -606,7 +579,7 @@ function TopicNetwork({
                 selectedProgramId === program.budgetProgramIdentityId &&
                   "budget-network-node-selected"
               )}
-              aria-label={`${program.displayProgramName}、当初予算額${formatBudgetAmount(program.amountThousandYen)}、担当${shortenBudgetDepartmentName(program.departmentDisplayName)}、詳細を見る`}
+              aria-label={`${program.displayProgramName}、当初予算額${formatBudgetAmount(program.amountThousandYen)}、担当${shortenBudgetDepartmentName(program.departmentDisplayName)}、概要を見る`}
             >
               <span
                 aria-hidden="true"
@@ -697,7 +670,7 @@ function TopicNetwork({
               aria-live="polite"
               className="min-w-20 text-center text-xs tabular-nums text-budget-space-copy"
             >
-              {page.startNumber}〜{page.endNumber} / {page.totalCount}件
+              星系 {page.pageIndex + 1} / {page.pageCount}
             </span>
             <Button
               type="button"

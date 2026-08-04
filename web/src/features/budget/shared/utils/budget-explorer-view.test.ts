@@ -58,7 +58,9 @@ describe("resolveBudgetExplorerView", () => {
       topicSlug: "school-facility-aging",
     });
     expect(topicView.kind).toBe("topic");
-    expect(getBudgetExplorerAnnouncement(topicView)).toContain("0件");
+    expect(getBudgetExplorerAnnouncement(topicView)).toBe(
+      "学校施設の老朽化への対応に関連する予算事業を表示しています"
+    );
   });
 
   it("不正なcategoryはoverview、不一致topicはcategoryへ安全に戻す", () => {

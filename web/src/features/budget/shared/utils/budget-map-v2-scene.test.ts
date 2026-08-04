@@ -196,7 +196,7 @@ describe("buildBudgetMapV2Scene overview", () => {
 });
 
 describe("buildBudgetMapV2Scene category", () => {
-  it("公開中の課題を配置し、他分野を遠景に残す", () => {
+  it("公開中の課題だけを配置し、他分野を遠景に残さない", () => {
     const categories = createAllCategories();
     const scene = buildBudgetMapV2Scene({
       ...baseInput,
@@ -209,7 +209,7 @@ describe("buildBudgetMapV2Scene category", () => {
 
     expect(scene.kind).toBe("category");
     expect(scene.topics).toHaveLength(1);
-    expect(scene.distantCategories).toHaveLength(9);
+    expect(scene.distantCategories).toEqual([]);
     expect(scene.solidCoreDiameter).toBe(148);
   });
 
