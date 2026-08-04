@@ -57,7 +57,7 @@ export function getBudgetExplorerAnnouncement(
     case "category":
       return `${view.category.name}のテーマを表示しています`;
     case "topic":
-      return `${view.topic.name}に関連する${view.topic.programs.length}件の予算事業を表示しています`;
+      return `${view.topic.name}に関連する予算事業を表示しています`;
   }
 }
 

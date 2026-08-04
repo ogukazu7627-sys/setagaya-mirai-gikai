@@ -50,7 +50,6 @@ import {
 } from "./budget-map-v2-layers";
 import {
   BudgetMapV2CategoryNodeButton,
-  BudgetMapV2DistantNodeButton,
   BudgetMapV2ProgramNodeButton,
   BudgetMapV2TopicNodeButton,
 } from "./budget-map-v2-nodes";
@@ -74,6 +73,7 @@ type BudgetMapV2NetworkProps = {
   onSelectCategory: (slug: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
+  selectedProgramIdentityId?: string | null;
 };
 
 export function BudgetMapV2Network({
@@ -85,6 +85,7 @@ export function BudgetMapV2Network({
   onSelectCategory,
   onSelectProgram,
   onSelectTopic,
+  selectedProgramIdentityId = null,
 }: BudgetMapV2NetworkProps) {
   const mode = useBudgetMapV2Mode();
   const reduceMotion = useBudgetMapV2ReduceMotion();
@@ -180,7 +181,7 @@ export function BudgetMapV2Network({
   const selectedProgramId =
     transitionTarget?.kind === "program"
       ? transitionTarget.budgetProgramIdentityId
-      : null;
+      : selectedProgramIdentityId;
 
   const handleSelectCategory = (slug: string) => {
     if (isBusy) {
@@ -240,15 +241,6 @@ export function BudgetMapV2Network({
               scene={scene}
               view={stableView}
             />
-
-            {scene.distantCategories.map((node) => (
-              <BudgetMapV2DistantNodeButton
-                key={node.slug}
-                disabled={isBusy}
-                node={node}
-                onSelect={handleSelectCategory}
-              />
-            ))}
 
             {scene.categories.map((node) => (
               <BudgetMapV2CategoryNodeButton
@@ -362,11 +354,7 @@ function BudgetMapV2Core({
           } as BudgetMapV2Style
         }
       >
-        <BudgetMapV2CoreCaption
-          activeDataset={activeDataset}
-          scene={scene}
-          view={view}
-        />
+        <BudgetMapV2CoreCaption activeDataset={activeDataset} view={view} />
       </div>
     </>
   );
@@ -374,11 +362,9 @@ function BudgetMapV2Core({
 
 function BudgetMapV2CoreCaption({
   activeDataset,
-  scene,
   view,
 }: {
   activeDataset: BudgetExplorationDataset | null;
-  scene: SceneModel;
   view: StableView;
 }) {
   const fiscalYearLabel = activeDataset
@@ -414,17 +400,10 @@ function BudgetMapV2CoreCaption({
     );
   }
 
-  const page = scene.programPage;
   return (
     <>
       <span className="max-w-[300px] text-[15px] font-bold leading-snug text-white sm:text-[19px]">
         {view.topic.name}
-      </span>
-      <span className="text-[10.5px] tracking-[0.08em] text-budget-space-copy/80 sm:text-[12px]">
-        関連する予算事業 {page?.totalCount ?? 0}件
-        {page && page.totalCount > 0
-          ? ` ／ ${page.startNumber}〜${page.endNumber}件を表示`
-          : ""}
       </span>
       <span className="text-[10px] font-bold tracking-[0.14em] text-budget-space-eyebrow">
         {fiscalYearLabel}
@@ -550,7 +529,7 @@ function BudgetMapV2Chrome({
             前の星系
           </Button>
           <span aria-live="polite" className="budget-map-v2-pagination-count">
-            {page.startNumber}〜{page.endNumber} / {page.totalCount}件
+            星系 {page.pageIndex + 1} / {page.pageCount}
           </span>
           <Button
             type="button"

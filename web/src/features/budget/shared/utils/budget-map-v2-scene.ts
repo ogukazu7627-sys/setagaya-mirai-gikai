@@ -19,7 +19,6 @@ import {
   getBudgetMapV2CaptionOffset,
   getBudgetMapV2CategoryHue,
   getBudgetMapV2CategoryTopicNodes,
-  getBudgetMapV2DistantNodes,
   getBudgetMapV2OverviewRing,
   getBudgetMapV2ProgramDiameter,
   getBudgetMapV2ProgramNodes,
@@ -68,7 +67,6 @@ export type BudgetMapV2TopicNode = {
   hue: number;
   x: number;
   y: number;
-  programCount: number;
 };
 
 export type BudgetMapV2ProgramNode = {
@@ -280,28 +278,8 @@ function buildCategoryScene(
       hue,
       x: node?.x ?? core.center.x,
       y: node?.y ?? core.center.y,
-      programCount: topic.programs.length,
     };
   });
-
-  // 他分野は遠景として残す。モバイルでは表示しない。
-  const siblings = sortCategories(input.categories).filter(
-    (candidate) => candidate.slug !== category.slug
-  );
-  const distantPositions =
-    mode === "mobile" ? [] : getBudgetMapV2DistantNodes(siblings.length);
-  const distantCategories: BudgetMapV2DistantNode[] = distantPositions.map(
-    (position, index) => {
-      const sibling = siblings[index];
-      return {
-        slug: sibling?.slug ?? `sibling-${index}`,
-        label: sibling?.name ?? "",
-        hue: getBudgetMapV2CategoryHue(sibling?.slug ?? ""),
-        x: position.x,
-        y: position.y,
-      };
-    }
-  );
 
   return {
     kind: "category",
@@ -354,7 +332,7 @@ function buildCategoryScene(
     categories: [],
     topics,
     programs: [],
-    distantCategories,
+    distantCategories: [],
     programPage: null,
   };
 }

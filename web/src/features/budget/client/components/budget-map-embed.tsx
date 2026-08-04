@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type {
   BudgetExplorationData,
+  BudgetExplorationProgram,
   BudgetExplorerStableView,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
@@ -20,6 +21,7 @@ import {
 } from "../../shared/utils/budget-map-variant";
 import { BudgetMapV2Network } from "./budget-map-v2/budget-map-v2-network";
 import { BudgetNetwork } from "./budget-network";
+import { BudgetProgramPreviewPanel } from "./budget-program-preview-panel";
 
 type BudgetMapEmbedProps = {
   exploration: BudgetExplorationData;
@@ -28,14 +30,37 @@ type BudgetMapEmbedProps = {
   variant?: BudgetMapVariant;
 };
 
+type SelectedProgramReference = {
+  budgetProgramIdentityId: string;
+  contextKey: string;
+};
+
 export function BudgetMapEmbed({
   exploration,
   initialView,
   variant = BUDGET_MAP_DEFAULT_VARIANT,
 }: BudgetMapEmbedProps) {
   const [view, setView] = useState<BudgetExplorerView>(initialView);
+  const [selectedProgramReference, setSelectedProgramReference] =
+    useState<SelectedProgramReference | null>(null);
   const stableView = getBudgetMapStableView(view);
   const activeDatasetId = exploration.activeDataset?.id ?? null;
+  const stableViewKey = getStableViewKey(stableView);
+  const selectionContextKey = `${activeDatasetId ?? "no-dataset"}:${stableViewKey}`;
+  const selectedProgramIdentityId =
+    selectedProgramReference?.contextKey === selectionContextKey
+      ? selectedProgramReference.budgetProgramIdentityId
+      : null;
+  const selectedProgram = findSelectedProgram(
+    stableView,
+    selectedProgramIdentityId
+  );
+
+  useEffect(() => {
+    setSelectedProgramReference((current) =>
+      current && current.contextKey !== selectionContextKey ? null : current
+    );
+  }, [selectionContextKey]);
 
   const postAction = useCallback(
     (action: BudgetMapAction) => {
@@ -111,13 +136,27 @@ export function BudgetMapEmbed({
       if (view.kind === "transitioning") {
         return;
       }
-      postAction({
-        action: "select-program",
-        budgetProgramIdentityId,
-      });
+      const program = findSelectedProgram(stableView, budgetProgramIdentityId);
+      if (program) {
+        setSelectedProgramReference({
+          budgetProgramIdentityId: program.budgetProgramIdentityId,
+          contextKey: selectionContextKey,
+        });
+      }
     },
-    [postAction, view.kind]
+    [selectionContextKey, stableView, view.kind]
   );
+
+  const openProgramDetail = useCallback(() => {
+    if (!selectedProgram) {
+      return;
+    }
+    setSelectedProgramReference(null);
+    postAction({
+      action: "select-program",
+      budgetProgramIdentityId: selectedProgram.budgetProgramIdentityId,
+    });
+  }, [postAction, selectedProgram]);
 
   const goBack = useCallback(() => {
     if (view.kind === "transitioning" || stableView.kind === "overview") {
@@ -131,6 +170,11 @@ export function BudgetMapEmbed({
       if (event.key !== "Escape" || event.defaultPrevented) {
         return;
       }
+      if (selectedProgramIdentityId !== null) {
+        event.preventDefault();
+        setSelectedProgramReference(null);
+        return;
+      }
       if (view.kind === "transitioning" || stableView.kind === "overview") {
         return;
       }
@@ -139,7 +183,7 @@ export function BudgetMapEmbed({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goBack, stableView.kind, view.kind]);
+  }, [goBack, selectedProgramIdentityId, stableView.kind, view.kind]);
 
   const networkProps = {
     exploration,
@@ -151,6 +195,7 @@ export function BudgetMapEmbed({
     onSelectCategory: selectCategory,
     onSelectProgram: selectProgram,
     onSelectTopic: selectTopic,
+    selectedProgramIdentityId,
   };
 
   return (
@@ -171,6 +216,40 @@ export function BudgetMapEmbed({
       ) : (
         <BudgetNetwork {...networkProps} />
       )}
+      <BudgetProgramPreviewPanel
+        program={selectedProgram}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedProgramReference(null);
+          }
+        }}
+        onOpenDetail={openProgramDetail}
+      />
     </div>
+  );
+}
+
+function getStableViewKey(view: BudgetExplorerStableView): string {
+  switch (view.kind) {
+    case "overview":
+      return "overview";
+    case "category":
+      return `category:${view.category.slug}`;
+    case "topic":
+      return `topic:${view.category.slug}:${view.topic.slug}`;
+  }
+}
+
+function findSelectedProgram(
+  view: BudgetExplorerStableView,
+  budgetProgramIdentityId: string | null
+): BudgetExplorationProgram | null {
+  if (view.kind !== "topic" || budgetProgramIdentityId === null) {
+    return null;
+  }
+  return (
+    view.topic.programs.find(
+      (program) => program.budgetProgramIdentityId === budgetProgramIdentityId
+    ) ?? null
   );
 }

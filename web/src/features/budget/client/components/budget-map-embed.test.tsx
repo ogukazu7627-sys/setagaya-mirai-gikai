@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -391,7 +391,69 @@ describe("BudgetMapEmbed", () => {
     );
   });
 
-  it("topicからprogram選択を型付きmessageで親へ送る", async () => {
+  it("事業選択ではiframe内パネルを開き、詳細ボタンでだけ親へ通知する", async () => {
+    const topic = education.topics[0];
+    if (!topic) {
+      throw new Error("topic fixture is missing");
+    }
+    const postMessage = vi
+      .spyOn(window, "postMessage")
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    const programButton = screen.getByRole("button", {
+      name: /小学校施設改修工事、当初予算額/,
+    });
+    await user.click(programButton);
+
+    expect(postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: "select-program" }),
+      expect.anything()
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("小学校施設改修工事")).toBeVisible();
+    expect(within(dialog).getByText("10万円")).toBeVisible();
+    expect(
+      within(dialog).getByText("一般的な説明（みらい議会）")
+    ).toBeVisible();
+    expect(
+      within(dialog).getByText(/施設や設備の整備、改修、更新/)
+    ).toBeVisible();
+    expect(within(dialog).getByText("一般会計")).toBeVisible();
+    expect(within(dialog).getByText("教育費")).toBeVisible();
+    expect(within(dialog).getByText("小学校費")).toBeVisible();
+    expect(within(dialog).getByText("学校施設費")).toBeVisible();
+    expect(within(dialog).getByText("教育環境課")).toBeVisible();
+    expect(dialog).toHaveAttribute("data-panel-side", "right");
+    expect(programButton).toHaveAttribute("data-selected", "true");
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "詳しい予算情報を見る",
+      })
+    );
+
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        source: "mirai-gikai-budget-map",
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        action: "select-program",
+        budgetProgramIdentityId: "bpi_school",
+      },
+      window.location.origin
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("Escapeはプレビューパネルだけを閉じ、親へ戻る通知を送らない", async () => {
     const topic = education.topics[0];
     if (!topic) {
       throw new Error("topic fixture is missing");
@@ -412,16 +474,151 @@ describe("BudgetMapEmbed", () => {
         name: /小学校施設改修工事、当初予算額/,
       })
     );
+    expect(screen.getByRole("dialog")).toBeVisible();
 
-    expect(postMessage).toHaveBeenCalledWith(
-      {
-        source: "mirai-gikai-budget-map",
-        version: 2,
-        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
-        action: "select-program",
-        budgetProgramIdentityId: "bpi_school",
-      },
-      window.location.origin
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: "back" }),
+      expect.anything()
+    );
+    expect(postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: "select-program" }),
+      expect.anything()
+    );
+  });
+
+  it("親からviewが切り替わると選択中の事業を解除する", async () => {
+    const topic = education.topics[0];
+    if (!topic) {
+      throw new Error("topic fixture is missing");
+    }
+    const user = userEvent.setup();
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /小学校施設改修工事、当初予算額/,
+      })
+    );
+    expect(screen.getByRole("dialog")).toBeVisible();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: window.parent,
+          data: createBudgetMapHostMessage(
+            { kind: "category", category: education },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("group", { name: "教育に公開されたテーマ" })
+    ).toBeVisible();
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: window.parent,
+          data: createBudgetMapHostMessage(
+            { kind: "topic", category: education, topic },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("active datasetが切り替わると選択中の事業を解除する", async () => {
+    const topic = education.topics[0];
+    if (!topic) {
+      throw new Error("topic fixture is missing");
+    }
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /小学校施設改修工事、当初予算額/,
+      })
+    );
+    expect(screen.getByRole("dialog")).toBeVisible();
+
+    rerender(
+      <BudgetMapEmbed
+        exploration={{
+          ...exploration,
+          activeDataset: {
+            ...TEST_ACTIVE_BUDGET_DATASET,
+            id: OTHER_DATASET_ID,
+          },
+        }}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    rerender(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("モバイルではプレビューパネルを下から表示する", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    });
+    const topic = education.topics[0];
+    if (!topic) {
+      throw new Error("topic fixture is missing");
+    }
+    const user = userEvent.setup();
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /小学校施設改修工事、当初予算額/,
+      })
+    );
+
+    expect(screen.getByRole("dialog")).toHaveAttribute(
+      "data-panel-side",
+      "bottom"
     );
   });
 
@@ -445,16 +642,19 @@ describe("BudgetMapEmbed", () => {
     );
 
     expect(
-      screen.getAllByRole("button", { name: /、詳細を見る$/ })
+      screen.getAllByRole("button", { name: /、概要を見る$/ })
     ).toHaveLength(10);
-    expect(screen.getByText("1〜10 / 13件")).toBeVisible();
+    expect(
+      screen.queryByText(/関連する予算事業\s*\d+件/)
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("星系 1 / 2")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "次の星系" }));
 
     expect(
-      screen.getAllByRole("button", { name: /、詳細を見る$/ })
+      screen.getAllByRole("button", { name: /、概要を見る$/ })
     ).toHaveLength(3);
-    expect(screen.getByText("11〜13 / 13件")).toBeVisible();
+    expect(screen.getByText("星系 2 / 2")).toBeVisible();
   });
 
   it("unmount時にmessageとkeydown listenerを解除する", () => {
