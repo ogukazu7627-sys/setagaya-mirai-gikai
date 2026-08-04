@@ -16,9 +16,13 @@ describe("HomeBudgetPromo", () => {
     ).toBeVisible();
     expect(
       screen.getByRole("heading", {
-        name: /予算を\s*見やすく\s*分かりやすく/,
+        name: /予算を見やすく、\s*分かりやすく/,
       })
     ).toBeVisible();
+    expect(screen.getByText("触れる予算")).toBeVisible();
+    expect(screen.getByText(/暮らしに近いテーマ/)).toBeVisible();
+    expect(screen.getByText("教育")).toBeVisible();
+    expect(screen.getByText("子育て")).toBeVisible();
     expect(
       screen.getByRole("link", { name: /予算マップを開く/ })
     ).toHaveAttribute("href", "/budget");
