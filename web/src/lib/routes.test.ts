@@ -44,8 +44,8 @@ function collectDefinedRoutes(): string[] {
       (_, i) => `__PARAM_${i}__`
     );
     const result = routeFn(...args);
-    // クエリパラメータ除去
-    const withoutQuery = result.split("?")[0];
+    // クエリパラメータ・フラグメント除去
+    const withoutQuery = result.split(/[?#]/u)[0];
     // ダミー引数 → [param] に変換
     const normalized = withoutQuery.replace(/__PARAM_\d+__/g, "[param]");
     if (!patterns.includes(normalized)) {
@@ -117,6 +117,12 @@ describe("routes", () => {
       })
     ).toBe(
       "/budget/programs/bpi_school?fromCategory=education&fromTopic=school-facility-aging"
+    );
+  });
+
+  it("議員発言へのリンクを案件詳細内の該当フラグメントへ向ける", () => {
+    expect(routes.billDetailCouncilorStatement("bill-id", 2)).toBe(
+      "/bills/bill-id#councilor-opinion-2"
     );
   });
 

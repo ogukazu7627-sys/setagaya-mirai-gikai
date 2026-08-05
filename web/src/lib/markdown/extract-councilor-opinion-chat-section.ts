@@ -109,6 +109,20 @@ function getNodesEndOffset(nodes: MarkdownNode[], fallback: number): number {
   return getEndOffset(nodes.at(-1)) ?? fallback;
 }
 
+function hasGroupBody(
+  markdown: string,
+  groupHeading: MarkdownNode,
+  groupNodes: MarkdownNode[]
+): boolean {
+  return (
+    sliceMarkdown(
+      markdown,
+      getEndOffset(groupHeading),
+      getNodesEndOffset(groupNodes, getEndOffset(groupHeading) ?? 0)
+    ) !== ""
+  );
+}
+
 function normalizeSpeakerComparisonKey(value: string): string {
   const normalizedName = normalizeCouncilorName(value);
   const withoutRoleAfterSeparator = normalizeCouncilorName(
@@ -220,6 +234,7 @@ export function extractCouncilorOpinionChatSection(
     nextH1Offset === -1 ? nodes.length : sectionStartIndex + 1 + nextH1Offset;
   const sectionNodes = nodes.slice(sectionStartIndex + 1, sectionEndIndex);
   const groups: CouncilorOpinionChatGroup[] = [];
+  let statementIndex = 0;
 
   sectionNodes.forEach((node, index) => {
     if (!isHeading(node, 2)) {
@@ -230,13 +245,18 @@ export function extractCouncilorOpinionChatSection(
     const groupNodes = sectionNodes.slice(index + 1, nextHeadingIndex);
     const rawHeading = normalizeCouncilorText(getNodeText(node));
     const messages = extractMessagesFromGroup(markdown, groupNodes, rawHeading);
+    const groupStatementIndex = statementIndex;
+
+    if (hasGroupBody(markdown, node, groupNodes)) {
+      statementIndex += 1;
+    }
 
     if (messages.length === 0) {
       return;
     }
 
     groups.push({
-      groupIndex: groups.length,
+      groupIndex: groupStatementIndex,
       rawHeading,
       councilorName: normalizeCouncilorName(rawHeading),
       partyOrGroup: getCouncilorPartyOrGroup(rawHeading),

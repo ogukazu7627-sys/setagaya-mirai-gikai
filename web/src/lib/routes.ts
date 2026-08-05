@@ -6,6 +6,8 @@
  * 新しいページを追加したらここにもルートを追加し、テストを通すこと。
  */
 
+import { getCouncilorStatementAnchorId } from "./councilor-statement-anchor";
+
 export const routes = {
   // ── 静的ルート ──────────────────────────────────────
   home: () => "/" as const,
@@ -80,6 +82,8 @@ export const routes = {
 
   // ── 議案 ──────────────────────────────────────────
   billDetail: (billId: string) => `/bills/${billId}` as const,
+  billDetailCouncilorStatement: (billId: string, statementIndex: number) =>
+    `/bills/${billId}#${getCouncilorStatementAnchorId(statementIndex)}` as const,
   billOpinions: (billId: string) => `/bills/${billId}/opinions` as const,
   billTopics: (billId: string) => `/bills/${billId}/topics` as const,
   billTopicDetail: (billId: string, topicId: string, filter?: string) =>
