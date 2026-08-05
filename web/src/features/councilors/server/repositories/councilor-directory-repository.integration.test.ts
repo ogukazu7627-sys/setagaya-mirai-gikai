@@ -3,6 +3,7 @@ import {
   adminClient,
   cleanupTestBill,
   createTestBill,
+  createTestBillContent,
 } from "@test-utils/utils";
 import { afterEach, describe, expect, it } from "vitest";
 import {
@@ -91,6 +92,10 @@ describe("councilor directory repository", () => {
     const publishedBill = await createTestBill({
       publish_status: "published",
     });
+    await createTestBillContent(publishedBill.id, {
+      difficulty_level: "normal",
+      content: "# 議員、会派の意見\n\n## 発言者\n\n### 発言者\n質問です。",
+    });
     const draftBill = await createTestBill({ publish_status: "draft" });
     billIds.add(publishedBill.id);
     billIds.add(draftBill.id);
@@ -130,5 +135,6 @@ describe("councilor directory repository", () => {
       },
     ]);
     expect(details.map(({ bill_id }) => bill_id)).toEqual([publishedBill.id]);
+    expect(details[0]?.billNormalContent).toContain("### 発言者");
   });
 });

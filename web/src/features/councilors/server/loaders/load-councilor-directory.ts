@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { getCouncilorStatementPreviewText } from "../../shared/utils/get-councilor-statement-preview-text";
 import { selectDailyCouncilors } from "../../shared/utils/select-daily-councilors";
 import {
   findActivePublicCouncilorById,
@@ -55,9 +56,19 @@ export async function loadCouncilorDetail(councilorId: string) {
     return null;
   }
 
-  const statements = isSetagayaMockMode
+  const statementDetails = isSetagayaMockMode
     ? []
     : await findPublishedCouncilorStatementDetails({ councilorId });
+  const statements = statementDetails.map(
+    ({ billNormalContent, ...statement }) => ({
+      ...statement,
+      previewText: getCouncilorStatementPreviewText({
+        normalContent: billNormalContent,
+        statementIndex: statement.statement_index,
+        fallbackText: statement.content_text,
+      }),
+    })
+  );
 
   return {
     councilor,

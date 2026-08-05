@@ -35,6 +35,7 @@ export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
     submitted_date: string | null;
     publish_status: Database["public"]["Enums"]["bill_publish_status"];
   } | null;
+  billNormalContent: string | null;
 };
 
 export type SyncCouncilorBillStatementsResult = {
@@ -301,5 +302,32 @@ export async function findPublishedCouncilorStatementDetails({
     );
   }
 
-  return (data ?? []) as PublishedCouncilorStatementDetail[];
+  const rows = (data ?? []) as Array<
+    Omit<PublishedCouncilorStatementDetail, "billNormalContent">
+  >;
+  const billIds = Array.from(new Set(rows.map((row) => row.bill_id)));
+  if (billIds.length === 0) {
+    return [];
+  }
+
+  const { data: contentRows, error: contentError } = await supabase
+    .from("bill_contents")
+    .select("bill_id, content")
+    .eq("difficulty_level", "normal")
+    .in("bill_id", billIds);
+
+  if (contentError) {
+    throw new Error(
+      `Failed to fetch published councilor statement bill contents: ${contentError.message}`
+    );
+  }
+
+  const normalContentByBillId = new Map(
+    (contentRows ?? []).map((content) => [content.bill_id, content.content])
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    billNormalContent: normalContentByBillId.get(row.bill_id) ?? null,
+  }));
 }
