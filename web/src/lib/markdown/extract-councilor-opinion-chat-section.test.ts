@@ -87,6 +87,28 @@ describe("extractCouncilorOpinionChatSection", () => {
     expect(section?.groups[1]?.messages[0]?.side).toBe("questioner");
   });
 
+  it("keeps group indexes aligned with synced statement indexes when a plain group is skipped", () => {
+    const section = extractCouncilorOpinionChatSection(`# 議員、会派の意見
+
+## 中里光夫議員
+
+通常の発言要約です。
+
+## 田中優子議員
+
+### 田中優子議員
+質問です。
+
+### 部長
+答弁です。`);
+
+    expect(section?.groups).toHaveLength(1);
+    expect(section?.groups[0]).toMatchObject({
+      groupIndex: 1,
+      rawHeading: "田中優子議員",
+    });
+  });
+
   it("returns null for the old plain statement format", () => {
     expect(
       extractCouncilorOpinionChatSection(`# 議員、会派の意見

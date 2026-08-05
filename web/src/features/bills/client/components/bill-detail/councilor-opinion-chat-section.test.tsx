@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CouncilorOpinionChatSection as CouncilorOpinionChatSectionData } from "@/lib/markdown/extract-councilor-opinion-chat-section";
 import {
@@ -51,6 +51,7 @@ const baseSection: CouncilorOpinionChatSectionData = {
 
 describe("CouncilorOpinionChatSection", () => {
   beforeEach(() => {
+    window.location.hash = "";
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -74,6 +75,13 @@ describe("CouncilorOpinionChatSection", () => {
       unobserve: vi.fn(),
       disconnect: vi.fn(),
     }));
+    Object.defineProperty(window, "requestAnimationFrame", {
+      configurable: true,
+      value: (callback: FrameRequestCallback) => {
+        callback(0);
+        return 0;
+      },
+    });
   });
 
   it("renders one councilor group as continuous messages without carousel controls", () => {
@@ -95,6 +103,7 @@ describe("CouncilorOpinionChatSection", () => {
     expect(
       container.querySelector("[data-councilor-chat-scroll-region]")
     ).not.toBeInTheDocument();
+    expect(container.querySelector("#councilor-opinion-0")).toBeInTheDocument();
   });
 
   it("renders carousel controls for multiple councilor groups", () => {
@@ -139,11 +148,54 @@ describe("CouncilorOpinionChatSection", () => {
       "[data-councilor-chat-scroll-region='true']"
     );
     expect(scrollRegions).toHaveLength(2);
+    expect(container.querySelector("#councilor-opinion-1")).toBeInTheDocument();
     expect(scrollRegions[0]).toHaveClass(
       "h-[560px]",
       "max-h-[72vh]",
       "overflow-y-auto"
     );
+  });
+
+  it("reveals a later councilor group when loaded with a councilor opinion hash", async () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(Element.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    window.location.hash = "#councilor-opinion-1";
+
+    render(
+      <CouncilorOpinionChatSection
+        section={{
+          ...baseSection,
+          groups: [
+            baseSection.groups[0],
+            {
+              ...baseSection.groups[0],
+              groupIndex: 1,
+              rawHeading: "田中優子議員",
+              councilorName: "田中優子",
+              iconUrl: "/icons/councilors/tanaka-yuko.png",
+              messages: [
+                {
+                  messageIndex: 0,
+                  rawSpeaker: "田中優子・委員",
+                  speakerName: "田中優子・委員",
+                  partyOrGroup: null,
+                  bodyText: "2番目の議員グループです。",
+                  side: "questioner",
+                },
+              ],
+            },
+          ],
+        }}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("2 / 2")).toBeInTheDocument();
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
+    });
   });
 
   it("does not start carousel drag from inside chat bubbles", () => {

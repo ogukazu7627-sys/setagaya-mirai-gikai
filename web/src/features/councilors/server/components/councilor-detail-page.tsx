@@ -1,4 +1,10 @@
-import { ArrowLeft, ArrowRight, MessageSquareText } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  MessageSquareText,
+  Quote,
+} from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,6 +25,7 @@ export async function CouncilorDetailPage({
   if (!detail) {
     notFound();
   }
+  const statementCount = detail.statements.length;
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -31,24 +38,42 @@ export async function CouncilorDetailPage({
           議員一覧へ
         </Link>
 
-        <section className="mt-4 flex items-center gap-5 rounded-lg border border-mirai-border bg-white p-5">
-          <div className="relative size-20 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white sm:size-24">
-            <Image
-              src={detail.councilor.iconUrl}
-              alt=""
-              width={96}
-              height={96}
-              priority
-              className="size-full object-cover object-top"
-            />
+        <section className="mt-4 overflow-hidden rounded-lg border border-mirai-border bg-white shadow-sm">
+          <div className="bg-mirai-light-gradient px-5 py-6 sm:px-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              <div className="relative size-24 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white p-1 sm:size-28">
+                <Image
+                  src={detail.councilor.iconUrl}
+                  alt=""
+                  width={112}
+                  height={112}
+                  priority
+                  className="size-full rounded-full object-cover object-top"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-primary-strong">
+                  世田谷区議会議員
+                </p>
+                <h1 className="mt-1 text-3xl font-bold tracking-normal text-mirai-text sm:text-4xl">
+                  {detail.councilor.displayName}
+                </h1>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-3 py-1 text-xs font-bold text-mirai-text-secondary">
+                    <MessageSquareText
+                      aria-hidden="true"
+                      className="size-4 text-primary-accent"
+                    />
+                    掲載中の発言 {statementCount}件
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-primary-accent">
-              世田谷区議会議員
+          <div className="px-5 py-4 sm:px-7">
+            <p className="text-sm leading-relaxed text-mirai-text-secondary">
+              掲載案件での発言を、案件本文の「議員、会派の意見」の該当箇所へ直接たどれます。
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-mirai-text sm:text-3xl">
-              {detail.councilor.displayName}
-            </h1>
           </div>
         </section>
 
@@ -66,7 +91,7 @@ export async function CouncilorDetailPage({
             </h2>
           </div>
 
-          {detail.statements.length > 0 ? (
+          {statementCount > 0 ? (
             <ul className="mt-5 flex flex-col gap-4">
               {detail.statements.map((statement) => {
                 const bill = statement.bills;
@@ -76,44 +101,55 @@ export async function CouncilorDetailPage({
 
                 const cardContent = (
                   <>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <h3 className="font-bold leading-relaxed text-mirai-text">
-                          {bill.name}
-                        </h3>
-                        {bill.submitted_date && (
-                          <time className="mt-1 block text-xs text-mirai-text-muted">
-                            {formatDateWithDots(bill.submitted_date)}
-                          </time>
-                        )}
+                    <div className="flex items-start gap-4">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-mirai-border bg-mirai-light-gradient text-primary-strong">
+                        <Quote aria-hidden="true" className="size-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <h3 className="font-bold leading-relaxed text-mirai-text">
+                              {bill.name}
+                            </h3>
+                            {bill.submitted_date && (
+                              <time className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-mirai-text-muted">
+                                <CalendarDays
+                                  aria-hidden="true"
+                                  className="size-3.5"
+                                />
+                                {formatDateWithDots(bill.submitted_date)}
+                              </time>
+                            )}
+                          </div>
+                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary-accent bg-white px-3 py-1 text-xs font-bold text-primary-strong">
+                            該当箇所へ
+                            <ArrowRight
+                              aria-hidden="true"
+                              className="size-3.5"
+                            />
+                          </span>
+                        </div>
+                        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mirai-text-secondary">
+                          {statement.content_text}
+                        </p>
                       </div>
-                      {bill.publish_status === "published" && (
-                        <ArrowRight
-                          aria-hidden="true"
-                          className="mt-1 size-5 shrink-0 text-primary-accent"
-                        />
-                      )}
                     </div>
-                    <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mirai-text-secondary">
-                      {statement.content_text}
-                    </p>
                   </>
                 );
 
                 return (
                   <li key={statement.id}>
-                    {bill.publish_status === "published" ? (
-                      <Link
-                        href={routes.billDetail(bill.id) as Route}
-                        className="group block rounded-lg border border-mirai-border bg-white p-5 transition-colors hover:bg-mirai-surface-gray"
-                      >
-                        {cardContent}
-                      </Link>
-                    ) : (
-                      <div className="rounded-lg border border-mirai-border bg-white p-5">
-                        {cardContent}
-                      </div>
-                    )}
+                    <Link
+                      href={
+                        routes.billDetailCouncilorStatement(
+                          bill.id,
+                          statement.statement_index
+                        ) as Route
+                      }
+                      className="group block rounded-lg border border-mirai-border bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-accent hover:shadow-md"
+                    >
+                      {cardContent}
+                    </Link>
                   </li>
                 );
               })}

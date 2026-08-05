@@ -11,6 +11,10 @@ import {
   CarouselItem,
   type CarouselOptions,
 } from "@/components/ui/carousel";
+import {
+  getCouncilorStatementAnchorId,
+  getCouncilorStatementIndexFromHash,
+} from "@/lib/councilor-statement-anchor";
 import type {
   CouncilorOpinionChatGroup,
   CouncilorOpinionChatMessage,
@@ -86,6 +90,39 @@ export function CouncilorOpinionChatSection({
     };
   }, [api]);
 
+  useEffect(() => {
+    const revealHashTarget = () => {
+      const statementIndex = getCouncilorStatementIndexFromHash(
+        window.location.hash
+      );
+      if (statementIndex === null) {
+        return;
+      }
+
+      const carouselIndex = section.groups.findIndex(
+        (group) => group.groupIndex === statementIndex
+      );
+      if (carouselIndex === -1) {
+        return;
+      }
+
+      setCurrentIndex(carouselIndex);
+      api?.scrollTo(carouselIndex, true);
+      window.requestAnimationFrame(() => {
+        document
+          .getElementById(getCouncilorStatementAnchorId(statementIndex))
+          ?.scrollIntoView({ block: "start" });
+      });
+    };
+
+    revealHashTarget();
+    window.addEventListener("hashchange", revealHashTarget);
+
+    return () => {
+      window.removeEventListener("hashchange", revealHashTarget);
+    };
+  }, [api, section.groups]);
+
   return (
     <section
       className="!break-normal bg-white px-4 py-8 rounded-md mb-9"
@@ -146,14 +183,23 @@ export function CouncilorOpinionChatSection({
           <CarouselContent>
             {section.groups.map((group) => (
               <CarouselItem key={`${group.groupIndex}-${group.rawHeading}`}>
-                <CouncilorOpinionChatGroupView group={group} isScrollRegion />
+                <CouncilorOpinionChatGroupView
+                  anchorId={getCouncilorStatementAnchorId(group.groupIndex)}
+                  group={group}
+                  isScrollRegion
+                />
               </CarouselItem>
             ))}
           </CarouselContent>
         </Carousel>
       ) : (
         section.groups[0] && (
-          <CouncilorOpinionChatGroupView group={section.groups[0]} />
+          <CouncilorOpinionChatGroupView
+            anchorId={getCouncilorStatementAnchorId(
+              section.groups[0].groupIndex
+            )}
+            group={section.groups[0]}
+          />
         )
       )}
     </section>
@@ -161,16 +207,19 @@ export function CouncilorOpinionChatSection({
 }
 
 function CouncilorOpinionChatGroupView({
+  anchorId,
   group,
   isScrollRegion = false,
 }: {
+  anchorId: string;
   group: CouncilorOpinionChatGroup;
   isScrollRegion?: boolean;
 }) {
   return (
     <div
+      id={anchorId}
       className={cn(
-        "rounded-md bg-mirai-surface-gray",
+        "scroll-mt-24 rounded-md bg-mirai-surface-gray target:ring-2 target:ring-primary-accent target:ring-offset-2 target:ring-offset-white",
         isScrollRegion
           ? "h-[560px] max-h-[72vh] overflow-y-auto overscroll-contain px-3 py-4 touch-pan-y [scrollbar-gutter:stable] md:h-[620px] md:px-4"
           : "px-3 py-4 md:px-4"
