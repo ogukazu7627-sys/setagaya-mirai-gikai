@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -129,9 +131,27 @@ export async function CouncilorDetailPage({
                             />
                           </span>
                         </div>
-                        <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-mirai-text-secondary">
-                          {statement.content_text}
-                        </p>
+                        <div className="mt-5 rounded-md bg-mirai-surface-gray px-3 py-4">
+                          <div className="flex items-start gap-2">
+                            <span className="relative mt-0.5 size-9 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white">
+                              <Image
+                                src={detail.councilor.iconUrl}
+                                alt=""
+                                width={36}
+                                height={36}
+                                className="size-full object-cover object-top"
+                              />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1 max-w-full truncate text-xs font-bold text-mirai-text-secondary">
+                                {statement.raw_heading}
+                              </div>
+                              <div className="whitespace-pre-line rounded-md border border-mirai-border bg-white px-4 py-3 text-sm font-medium leading-7 text-mirai-text">
+                                {statement.previewText}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
