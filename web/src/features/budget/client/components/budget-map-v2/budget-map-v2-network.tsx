@@ -5,10 +5,11 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  CircleHelp,
   Search,
   Target,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type {
   BudgetExplorationAvailability,
@@ -21,6 +22,7 @@ import { getBudgetCategoryCoreLabelLayout } from "../../../shared/utils/budget-c
 import { getBudgetExplorerSceneLabel } from "../../../shared/utils/budget-explorer-view";
 import { getBudgetMapStableView } from "../../../shared/utils/budget-map-layout";
 import { getBudgetMapProgramPageSize } from "../../../shared/utils/budget-map-programs";
+import type { BudgetMapQuestion } from "../../../shared/utils/budget-map-question-orbit";
 import {
   createBudgetMapV2Stars,
   getBudgetMapV2StarCount,
@@ -36,6 +38,7 @@ import {
 } from "../../../shared/utils/budget-map-v2-transition";
 import { getBudgetOfficialClassificationContext } from "../../../shared/utils/budget-official-classification";
 import { formatJapaneseFiscalYear } from "../../../shared/utils/budget-page-view";
+import { useBudgetMapTutorial } from "../../hooks/use-budget-map-tutorial";
 import { useBudgetMapV2Camera } from "../../hooks/use-budget-map-v2-camera";
 import {
   useBudgetMapV2Mode,
@@ -54,6 +57,8 @@ import {
   BudgetMapV2ProgramNodeButton,
   BudgetMapV2TopicNodeButton,
 } from "./budget-map-v2-nodes";
+import { BudgetMapV2QuestionSatellites } from "./budget-map-v2-question-satellites";
+import { BudgetMapV2Tutorial } from "./budget-map-v2-tutorial";
 
 /**
  * 触れる予算・宇宙マップ v2 の描画層。
@@ -64,6 +69,14 @@ import {
  */
 
 const WARP_SHELLS = createBudgetMapV2WarpShells();
+/** 画面ごとに軌道を変えるための固定 seed。 */
+const QUESTION_SEEDS = { overview: 13, category: 29, topic: 41 } as const;
+
+function getBudgetMapQuestionSeed(
+  kind: "overview" | "category" | "topic"
+): number {
+  return QUESTION_SEEDS[kind];
+}
 
 type BudgetMapV2NetworkProps = {
   exploration: BudgetExplorationData;
@@ -75,6 +88,16 @@ type BudgetMapV2NetworkProps = {
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   selectedProgramIdentityId?: string | null;
+  /**
+   * 中心の周りを漂う議員の質問。親から渡す。iframe からは取得しない。
+   * 0件なら衛星を描かない。
+   */
+  questions?: readonly BudgetMapQuestion[];
+  onSelectQuestion?: (questionId: string) => void;
+  /** チュートリアルの表示判定。判定自体は親ページで行う。 */
+  signedIn?: boolean;
+  tutorialSeen?: boolean;
+  onTutorialSeen?: () => void;
 };
 
 export function BudgetMapV2Network({
@@ -87,6 +110,11 @@ export function BudgetMapV2Network({
   onSelectProgram,
   onSelectTopic,
   selectedProgramIdentityId = null,
+  questions = [],
+  onSelectQuestion,
+  signedIn = false,
+  tutorialSeen = false,
+  onTutorialSeen,
 }: BudgetMapV2NetworkProps) {
   const mode = useBudgetMapV2Mode();
   const reduceMotion = useBudgetMapV2ReduceMotion();
@@ -203,6 +231,67 @@ export function BudgetMapV2Network({
     onSelectProgram(budgetProgramIdentityId);
   };
 
+  // 質問衛星は overview と category にだけ出す。
+  const sceneQuestions = scene.kind === "topic" ? [] : questions;
+  // 画面が変わったら開いている質問を閉じる。effect ではなくレンダー中に
+  // 調整し、前の画面の質問文を1フレームも持ち越さない。
+  const [openQuestion, setOpenQuestion] = useState<{
+    sceneKind: string;
+    questionId: string | null;
+  }>({ sceneKind: scene.kind, questionId: null });
+  if (openQuestion.sceneKind !== scene.kind) {
+    setOpenQuestion({ sceneKind: scene.kind, questionId: null });
+  }
+  const openQuestionId =
+    openQuestion.sceneKind === scene.kind ? openQuestion.questionId : null;
+  const setOpenQuestionId = (questionId: string | null) => {
+    setOpenQuestion({ sceneKind: scene.kind, questionId });
+  };
+  // Esc で開いている質問を閉じる。
+  useEffect(() => {
+    if (openQuestionId === null) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        event.preventDefault();
+        setOpenQuestion((current) => ({ ...current, questionId: null }));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openQuestionId]);
+
+  const tutorialOpenRef = useRef<HTMLButtonElement>(null);
+  const tutorial = useBudgetMapTutorial({
+    signedIn,
+    tutorialSeen,
+    reduceMotion,
+    // チュートリアル専用の遷移は作らず、ノードのクリックと同じ経路を通す。
+    onAdvanceToCategory: () => {
+      const first = scene.categories[0];
+      if (first) {
+        onSelectCategory(first.slug);
+      }
+    },
+    onAdvanceToTopic: () => {
+      if (stableView.kind !== "category") {
+        return;
+      }
+      const first = stableView.category.topics[0];
+      if (first) {
+        onSelectTopic(stableView.category.slug, first.slug);
+      }
+    },
+    onRewind: (targetScene) => {
+      if (targetScene === "overview" && stableView.kind !== "overview") {
+        onBack();
+      }
+    },
+    onSeen: () => onTutorialSeen?.(),
+  });
+  const isTutorialOpen = tutorial.step !== null;
+
   return (
     <div
       ref={viewportRef}
@@ -272,6 +361,17 @@ export function BudgetMapV2Network({
                 selected={selectedProgramId === node.budgetProgramIdentityId}
               />
             ))}
+
+            <BudgetMapV2QuestionSatellites
+              center={scene.coreCenter}
+              disabled={isBusy || isTutorialOpen}
+              mode={mode}
+              onOpenChange={setOpenQuestionId}
+              onSelect={(question) => onSelectQuestion?.(question.questionId)}
+              openQuestionId={openQuestionId}
+              questions={sceneQuestions}
+              seed={getBudgetMapQuestionSeed(scene.kind)}
+            />
           </div>
         </div>
       </div>
@@ -288,6 +388,31 @@ export function BudgetMapV2Network({
         scene={scene}
         view={stableView}
       />
+
+      <Button
+        ref={tutorialOpenRef}
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={tutorial.open}
+        aria-label="使い方をもう一度見る"
+        className="budget-map-v2-tutorial-open rounded-md border-budget-space-line bg-white/95 text-mirai-text hover:bg-white"
+      >
+        <CircleHelp aria-hidden="true" className="size-4" />
+        使い方
+      </Button>
+
+      {tutorial.step && (
+        <BudgetMapV2Tutorial
+          held={tutorial.held}
+          mode={mode}
+          onClosed={() => tutorialOpenRef.current?.focus()}
+          onNext={tutorial.next}
+          onPrevious={tutorial.previous}
+          onSkip={tutorial.skip}
+          step={tutorial.step}
+        />
+      )}
     </div>
   );
 }

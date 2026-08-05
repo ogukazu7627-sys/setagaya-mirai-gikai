@@ -15,6 +15,7 @@ import {
   parseBudgetMapHostMessage,
   resolveBudgetMapViewReference,
 } from "../../shared/utils/budget-map-message";
+import type { BudgetMapQuestion } from "../../shared/utils/budget-map-question-orbit";
 import {
   BUDGET_MAP_DEFAULT_VARIANT,
   type BudgetMapVariant,
@@ -28,6 +29,15 @@ type BudgetMapEmbedProps = {
   initialView: BudgetExplorerStableView;
   /** 既定は v2。v1 は比較用に残している。 */
   variant?: BudgetMapVariant;
+  /**
+   * 中心の周りに漂わせる議員の質問。親ページが渡す。
+   * 質問と分野の対応づけは人が確認したものだけを渡すこと。
+   * 未指定なら衛星を出さない。
+   */
+  questions?: readonly BudgetMapQuestion[];
+  /** チュートリアルの表示判定。判定は親ページで行う。 */
+  signedIn?: boolean;
+  tutorialSeen?: boolean;
 };
 
 type SelectedProgramReference = {
@@ -39,6 +49,9 @@ export function BudgetMapEmbed({
   exploration,
   initialView,
   variant = BUDGET_MAP_DEFAULT_VARIANT,
+  questions = [],
+  signedIn = false,
+  tutorialSeen = false,
 }: BudgetMapEmbedProps) {
   const [view, setView] = useState<BudgetExplorerView>(initialView);
   const [selectedProgramReference, setSelectedProgramReference] =
@@ -185,6 +198,20 @@ export function BudgetMapEmbed({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goBack, selectedProgramIdentityId, stableView.kind, view.kind]);
 
+  // 渡すのは questionId だけ。遷移先URLの組み立ては親ページの責務。
+  const selectQuestion = useCallback(
+    (questionId: string) => {
+      if (view.kind === "transitioning") {
+        return;
+      }
+      if (!questions.some((question) => question.questionId === questionId)) {
+        return;
+      }
+      postAction({ action: "select-question", questionId });
+    },
+    [postAction, questions, view.kind]
+  );
+
   const networkProps = {
     exploration,
     view,
@@ -196,6 +223,11 @@ export function BudgetMapEmbed({
     onSelectProgram: selectProgram,
     onSelectTopic: selectTopic,
     selectedProgramIdentityId,
+    questions,
+    onSelectQuestion: selectQuestion,
+    signedIn,
+    tutorialSeen,
+    onTutorialSeen: () => postAction({ action: "tutorial-seen" }),
   };
 
   return (

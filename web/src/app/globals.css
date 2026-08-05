@@ -196,6 +196,11 @@
   --budget-v2-white: #f6fbff;
   --budget-v2-warp-white: #f0f9ff;
   --budget-v2-warp-lilac: #c4b5fd;
+  /* 議員の質問衛星・チュートリアル */
+  --budget-v2-chip: #062031;
+  --budget-v2-ink: #04212f;
+  --budget-v2-question-copy: #fff7e0;
+  --budget-v2-scrim: #030e16;
   --mirai-gradient-start: #7dd3fc;
   --mirai-gradient-end: #e0f2fe;
   --primary-foreground: oklch(0.985 0 0);
@@ -1644,6 +1649,491 @@
     );
   }
 
+  /* --- 議員の質問衛星 ---
+     中心とは線でつながない。予算の構造の一部ではなく、
+     その周りを巡っている別の存在であることを線の有無で区別する。
+     衛星の数・位置・軌道に意味はない。 */
+
+  /* 1要素に複数のtransformアニメーションを掛けられないため入れ子にする。 */
+  .budget-map-v2-question-orbit {
+    position: absolute;
+    left: var(--budget-q-x);
+    top: var(--budget-q-y);
+    width: 0;
+    height: 0;
+    z-index: 6;
+  }
+
+  .budget-map-v2-question-orbit[data-open="true"] {
+    z-index: 30;
+  }
+
+  .budget-map-v2-question-ax,
+  .budget-map-v2-question-ay,
+  .budget-map-v2-question-bob {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .budget-map-v2-question-ax {
+    animation: budget-map-q-x var(--budget-q-dur-x)
+      cubic-bezier(0.37, 0, 0.63, 1) var(--budget-q-delay) infinite alternate;
+  }
+
+  .budget-map-v2-question-ay {
+    animation: budget-map-q-y var(--budget-q-dur-y)
+      cubic-bezier(0.37, 0, 0.63, 1) var(--budget-q-delay) infinite alternate;
+  }
+
+  .budget-map-v2-question-bob {
+    animation: budget-map-q-bob var(--budget-q-dur-bob) ease-in-out infinite;
+  }
+
+  /* ヒット領域は見た目と切り離し、常に44px以上を保つ。 */
+  .budget-map-v2-question-hit {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    display: flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    font-family: inherit;
+    touch-action: manipulation;
+  }
+
+  .budget-map-v2-question-hit:focus-visible {
+    outline: 2px solid var(--budget-node-gold);
+    outline-offset: -4px;
+    border-radius: 999px;
+  }
+
+  /* チップには overflow を掛けない。掛けるとバッジが切り取られる。 */
+  .budget-map-v2-question-chip {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    box-sizing: border-box;
+    height: var(--budget-q-avatar);
+    padding: 0;
+    border-radius: 999px;
+    white-space: nowrap;
+    background: transparent;
+    border: 1px solid transparent;
+    transition:
+      max-width 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      gap 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .budget-map-v2-question-orbit[data-open="true"] .budget-map-v2-question-chip {
+    gap: var(--budget-q-gap);
+    background: color-mix(in srgb, var(--budget-v2-chip) 97%, transparent);
+    border-color: color-mix(in srgb, var(--budget-node-gold) 85%, transparent);
+    box-shadow: 0 0 18px
+      color-mix(in srgb, var(--budget-node-gold) 20%, transparent);
+  }
+
+  .budget-map-v2-question-avatar-wrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: var(--budget-q-avatar);
+    height: var(--budget-q-avatar);
+  }
+
+  /* 衛星の本体は顔写真そのもの。台座やピルなどの器を持たない。
+     border-box でないと1px枠のぶん外径が広がり、バッジの外接がずれる。 */
+  .budget-map-v2-question-avatar {
+    box-sizing: border-box;
+    display: block;
+    width: var(--budget-q-avatar);
+    height: var(--budget-q-avatar);
+    border-radius: 50%;
+    background-color: color-mix(
+      in srgb,
+      var(--budget-node-gold) 14%,
+      transparent
+    );
+    background-image: var(--budget-q-photo);
+    background-size: cover;
+    background-position: 50% 22%;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-node-gold) 70%, transparent);
+    box-shadow: 0 0 14px
+      color-mix(in srgb, var(--budget-node-gold) 22%, transparent);
+  }
+
+  .budget-map-v2-question-orbit[data-open="true"]
+    .budget-map-v2-question-avatar {
+    border-color: color-mix(in srgb, var(--budget-node-gold) 90%, transparent);
+    box-shadow: none;
+  }
+
+  /* 顔の円に外接させる。顔には重ねない。 */
+  .budget-map-v2-question-mark {
+    position: absolute;
+    right: var(--budget-q-mark-right);
+    bottom: var(--budget-q-mark-bottom);
+    box-sizing: border-box;
+    display: flex;
+    width: var(--budget-q-mark);
+    height: var(--budget-q-mark);
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--budget-node-gold);
+    color: var(--budget-v2-ink);
+    border: 1px solid color-mix(in srgb, var(--budget-v2-chip) 92%, transparent);
+  }
+
+  /* クリップはテキスト側だけに掛ける。 */
+  .budget-map-v2-question-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    padding-right: 0;
+    text-align: left;
+    transition:
+      max-width 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 200ms ease,
+      padding-right 300ms;
+  }
+
+  .budget-map-v2-question-orbit[data-open="true"] .budget-map-v2-question-body {
+    max-width: 300px;
+    opacity: 1;
+    padding-right: var(--budget-q-body-padding);
+  }
+
+  .budget-map-v2-question-text {
+    font-size: var(--budget-q-label-size);
+    line-height: 1.35;
+    color: color-mix(in srgb, var(--budget-v2-question-copy) 96%, transparent);
+    white-space: normal;
+  }
+
+  .budget-map-v2-question-member {
+    font-size: var(--budget-q-member-size);
+    letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--budget-node-gold) 85%, transparent);
+  }
+
+  /* --- チュートリアル ---
+     dim・リング・カードは world の内側に入れず、viewport 直下の兄弟として置く。 */
+
+  /* 位置と大きさに transition を付けないこと。mask-image は補間できず即座に
+     切り替わるため、リング側だけ補間するとレンダリングが抑制された環境で
+     輪が1ステップ前の位置に取り残され、光っている場所と別のものを指す。 */
+  .budget-map-v2-tutorial-dim {
+    position: absolute;
+    inset: 0;
+    z-index: 52;
+    background: color-mix(in srgb, var(--budget-v2-scrim) 84%, transparent);
+    -webkit-mask-image: var(--budget-tut-mask);
+    mask-image: var(--budget-tut-mask);
+  }
+
+  .budget-map-v2-tutorial-ring {
+    position: absolute;
+    z-index: 53;
+    left: var(--budget-tut-x);
+    top: var(--budget-tut-y);
+    width: var(--budget-tut-w);
+    height: var(--budget-tut-h);
+    margin-left: var(--budget-tut-mx);
+    margin-top: var(--budget-tut-my);
+    border-radius: 50%;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-node-mint) 45%, transparent);
+    pointer-events: none;
+  }
+
+  .budget-map-v2-tutorial-slot {
+    position: absolute;
+    z-index: 54;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+  }
+
+  .budget-map-v2-tutorial-slot[data-position="left"] {
+    left: 40px;
+    top: 50%;
+    bottom: auto;
+    margin-top: -125px;
+    transform: none;
+  }
+
+  /* 開いた時点で opacity:1 を直接与える。transition の開始値に表示状態を
+     依存させると、タイムラインが進まない環境でカードが永久に不可視になり、
+     dim だけが残ってマップが操作不能になる。 */
+  .budget-map-v2-tutorial-card {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    width: 452px;
+    max-width: calc(100vw - 32px);
+    flex-direction: column;
+    gap: 15px;
+    border-radius: 12px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 34%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-chip) 97%, transparent);
+    padding: 22px 24px 20px;
+    box-shadow: 0 26px 64px
+      color-mix(in srgb, var(--budget-v2-void) 60%, transparent);
+    opacity: 1;
+    color: var(--budget-space-copy);
+  }
+
+  /* 三角は必ずスポットライトの方角を向かせる。 */
+  .budget-map-v2-tutorial-caret {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: color-mix(in srgb, var(--budget-v2-chip) 97%, transparent);
+    border-top: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 34%, transparent);
+    border-left: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 34%, transparent);
+  }
+
+  .budget-map-v2-tutorial-caret[data-direction="up"] {
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .budget-map-v2-tutorial-caret[data-direction="right"] {
+    right: -7px;
+    top: 50%;
+    transform: translateY(-50%) rotate(135deg);
+  }
+
+  .budget-map-v2-tutorial-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-white);
+  }
+
+  .budget-map-v2-tutorial-body {
+    font-size: 13px;
+    line-height: 1.95;
+  }
+
+  .budget-map-v2-tutorial-dot {
+    height: 6px;
+    width: 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--budget-space-copy) 28%, transparent);
+    transition:
+      width 240ms ease,
+      background 240ms ease;
+  }
+
+  .budget-map-v2-tutorial-dot[data-current="true"] {
+    width: 20px;
+    background: var(--budget-node-mint);
+  }
+
+  /* dim より前面に置く。埋もれると、万一カードが描けなかったときに
+     逃げ道がなくなる。 */
+  .budget-map-v2-tutorial-open {
+    position: absolute;
+    right: 26px;
+    top: 22px;
+    z-index: 56;
+    min-height: 44px;
+  }
+
+  /* ステップ別のミニアニメーション。CSS animation だけで作る。 */
+  .budget-map-v2-tutorial-figure {
+    display: flex;
+    height: 74px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--budget-v2-void) 55%, transparent);
+    padding: 0 12px;
+  }
+
+  .budget-map-v2-tutorial-chip {
+    position: relative;
+    height: 22px;
+    width: 34px;
+    border-radius: 999px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 40%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-disc) 70%, transparent);
+  }
+
+  .budget-map-v2-tutorial-chip[data-highlight="true"] {
+    border-color: var(--budget-node-mint);
+    animation: budget-map-tut-pulse 1.9s ease-out infinite;
+  }
+
+  .budget-map-v2-tutorial-tap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--budget-node-mint);
+    animation: budget-map-tut-tap 1.9s ease-out infinite;
+  }
+
+  .budget-map-v2-tutorial-core {
+    height: 26px;
+    width: 26px;
+    border-radius: 50%;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 55%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-disc) 70%, transparent);
+  }
+
+  .budget-map-v2-tutorial-link {
+    height: 1px;
+    width: 18px;
+    background: color-mix(in srgb, var(--budget-space-line) 40%, transparent);
+  }
+
+  .budget-map-v2-tutorial-bar {
+    height: 12px;
+    width: 46px;
+    border-radius: 3px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 34%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-disc) 70%, transparent);
+  }
+
+  .budget-map-v2-tutorial-bar[data-highlight="true"] {
+    border-color: var(--budget-node-mint);
+    animation: budget-map-tut-pulse 1.9s ease-out infinite;
+  }
+
+  .budget-map-v2-tutorial-disc {
+    border-radius: 50%;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 60%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-disc) 70%, transparent);
+    animation: budget-map-tut-rise 620ms ease-out both;
+    animation-delay: var(--budget-tut-delay);
+  }
+
+  .budget-map-v2-tutorial-search {
+    display: flex;
+    height: 22px;
+    flex: 1;
+    max-width: 150px;
+    align-items: center;
+    border-radius: 5px;
+    border: 1px solid
+      color-mix(in srgb, var(--budget-space-line) 34%, transparent);
+    background: color-mix(in srgb, var(--budget-v2-disc) 70%, transparent);
+    padding: 0 7px;
+  }
+
+  .budget-map-v2-tutorial-caretbar {
+    height: 11px;
+    width: 1px;
+    background: var(--budget-node-mint);
+    animation: budget-map-tut-caret 1.1s step-end infinite;
+  }
+
+  .budget-map-v2-tutorial-row {
+    height: 10px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--budget-space-line) 26%, transparent);
+    animation: budget-map-tut-row 520ms ease-out both;
+    animation-delay: var(--budget-tut-delay);
+  }
+
+  /* 画面が低いときはカードを詰める。カードがスポットライトを覆うと
+     何のための説明か分からなくなるため、重なりは必ず避ける。 */
+  @media (max-height: 620px) {
+    .budget-map-v2-tutorial-slot {
+      bottom: 16px;
+    }
+
+    .budget-map-v2-tutorial-card {
+      gap: 10px;
+      padding: 14px 18px 12px;
+    }
+
+    .budget-map-v2-tutorial-title {
+      font-size: 15px;
+    }
+
+    .budget-map-v2-tutorial-body {
+      font-size: 12.5px;
+      line-height: 1.7;
+    }
+
+    .budget-map-v2-tutorial-figure {
+      height: 48px;
+    }
+  }
+
+  @media (max-width: 999px) {
+    .budget-map-v2-tutorial-slot {
+      bottom: 18px;
+    }
+
+    /* モバイルではカードを常に下中央へ置く。 */
+    .budget-map-v2-tutorial-slot[data-position="left"] {
+      left: 50%;
+      top: auto;
+      bottom: 18px;
+      margin-top: 0;
+      transform: translateX(-50%);
+    }
+
+    .budget-map-v2-tutorial-card {
+      width: 342px;
+      gap: 11px;
+      padding: 16px 16px 14px;
+    }
+
+    .budget-map-v2-tutorial-caret[data-direction="right"] {
+      right: auto;
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .budget-map-v2-tutorial-title {
+      font-size: 14.5px;
+    }
+
+    .budget-map-v2-tutorial-body {
+      font-size: 12px;
+      line-height: 1.85;
+    }
+
+    .budget-map-v2-tutorial-figure {
+      height: 56px;
+    }
+
+    .budget-map-v2-tutorial-open {
+      right: 14px;
+      top: 14px;
+    }
+  }
+
   /* --- chrome（戻る・ページ送り・空状態） --- */
   .budget-map-v2-chrome-button {
     position: absolute;
@@ -2074,6 +2564,107 @@
   }
 }
 
+/* ===== 議員の質問衛星 =====
+   X と Y に周期の異なる往復運動を掛け合わせ、閉じない軌跡を作る。
+   回転は掛けない。顔写真が傾くと不自然なため。 */
+
+@keyframes budget-map-q-x {
+  from {
+    transform: translateX(var(--budget-q-ax));
+  }
+
+  to {
+    transform: translateX(calc(var(--budget-q-ax) * -1));
+  }
+}
+
+@keyframes budget-map-q-y {
+  from {
+    transform: translateY(calc(var(--budget-q-ay) * -1));
+  }
+
+  to {
+    transform: translateY(var(--budget-q-ay));
+  }
+}
+
+@keyframes budget-map-q-bob {
+  0%,
+  100% {
+    transform: translateY(-1.5px);
+  }
+
+  50% {
+    transform: translateY(1.5px);
+  }
+}
+
+/* ===== チュートリアルのミニアニメーション ===== */
+
+@keyframes budget-map-tut-tap {
+  0% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+
+  70% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.1);
+  }
+}
+
+@keyframes budget-map-tut-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--budget-node-mint) 55%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@keyframes budget-map-tut-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes budget-map-tut-caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes budget-map-tut-row {
+  0% {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .budget-detail-enter {
   animation: budget-detail-enter 220ms ease-out both;
 }
@@ -2120,6 +2711,32 @@
   .budget-map-v2-category-disc,
   .budget-map-v2-topic-disc,
   .budget-map-v2-program-disc {
+    transition-duration: 0.01ms;
+  }
+
+  /* 質問衛星は漂うのをやめて定位置に留まる。開閉と遷移は動く。 */
+  .budget-map-v2-question-ax,
+  .budget-map-v2-question-ay,
+  .budget-map-v2-question-bob {
+    animation: none;
+  }
+
+  .budget-map-v2-question-chip,
+  .budget-map-v2-question-body {
+    transition-duration: 0.01ms;
+  }
+
+  /* チュートリアルはミニアニメーションを止め、カードは即表示する。 */
+  .budget-map-v2-tutorial-chip[data-highlight="true"],
+  .budget-map-v2-tutorial-bar[data-highlight="true"],
+  .budget-map-v2-tutorial-tap,
+  .budget-map-v2-tutorial-disc,
+  .budget-map-v2-tutorial-caretbar,
+  .budget-map-v2-tutorial-row {
+    animation: none;
+  }
+
+  .budget-map-v2-tutorial-dot {
     transition-duration: 0.01ms;
   }
 }

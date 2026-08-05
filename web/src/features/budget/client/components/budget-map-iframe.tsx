@@ -20,6 +20,7 @@ import {
   createBudgetMapHostMessage,
   parseBudgetMapMessage,
 } from "../../shared/utils/budget-map-message";
+import type { BudgetMapQuestion } from "../../shared/utils/budget-map-question-orbit";
 import {
   BUDGET_MAP_DEFAULT_VARIANT,
   type BudgetMapVariant,
@@ -37,6 +38,10 @@ type BudgetMapIframeProps = {
   onSelectCategory: (slug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
+  /** 中心の周りに漂わせる議員の質問。未指定なら衛星を出さない。 */
+  questions?: readonly BudgetMapQuestion[];
+  onSelectQuestion?: (questionId: string) => void;
+  onTutorialSeen?: () => void;
 };
 
 export const BUDGET_MAP_LOAD_TIMEOUT_MS = 10_000;
@@ -54,6 +59,9 @@ export function BudgetMapIframe({
   onSelectCategory,
   onSelectProgram,
   onSelectTopic,
+  questions = [],
+  onSelectQuestion,
+  onTutorialSeen,
 }: BudgetMapIframeProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [frameAttempt, setFrameAttempt] = useState(0);
@@ -180,6 +188,22 @@ export function BudgetMapIframe({
           ) {
             onSelectProgram(message.budgetProgramIdentityId);
           }
+          return;
+        case "select-question":
+          if (!isLoaded) {
+            return;
+          }
+          // 受け取ったIDを検証してから遷移先を組み立てるのは親の責務。
+          if (
+            questions.some(
+              (question) => question.questionId === message.questionId
+            )
+          ) {
+            onSelectQuestion?.(message.questionId);
+          }
+          return;
+        case "tutorial-seen":
+          onTutorialSeen?.();
       }
     };
 
@@ -194,7 +218,10 @@ export function BudgetMapIframe({
     onOpenOfficialHierarchy,
     onSelectCategory,
     onSelectProgram,
+    onSelectQuestion,
     onSelectTopic,
+    onTutorialSeen,
+    questions,
     syncView,
   ]);
 
