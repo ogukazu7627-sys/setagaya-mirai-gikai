@@ -88,6 +88,7 @@ export type Database = {
           major_category: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
+          publication_category: Database["public"]["Enums"]["bill_publication_category"]
           publish_status: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order: number | null
           published_at: string | null
@@ -116,6 +117,7 @@ export type Database = {
           major_category?: string | null
           name: string
           originating_house: Database["public"]["Enums"]["house_enum"]
+          publication_category?: Database["public"]["Enums"]["bill_publication_category"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null
@@ -144,6 +146,7 @@ export type Database = {
           major_category?: string | null
           name?: string
           originating_house?: Database["public"]["Enums"]["house_enum"]
+          publication_category?: Database["public"]["Enums"]["bill_publication_category"]
           publish_status?: Database["public"]["Enums"]["bill_publish_status"]
           publish_status_order?: number | null
           published_at?: string | null
@@ -3139,6 +3142,7 @@ export type Database = {
     }
     Enums: {
       bill_item_type: "bill" | "report" | "petition" | "question"
+      bill_publication_category: "report" | "general_question" | "budget"
       bill_publish_status:
         | "draft"
         | "published"
@@ -3322,6 +3326,11 @@ export const Constants = {
   },
   public: {
     Enums: {
+      bill_publication_category: [
+        "report",
+        "general_question",
+        "budget",
+      ],
       bill_publish_status: [
         "draft",
         "published",

@@ -3,7 +3,10 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import type { BillItemType } from "@/features/bills/shared/types";
+import type {
+  BillItemType,
+  BillPublicationCategory,
+} from "@/features/bills/shared/types";
 import { findUnknownCouncilorNamesByBillId } from "@/features/councilors/server/repositories/councilor-statement-repository";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { env } from "@/lib/env";
@@ -29,6 +32,7 @@ import {
   type ListAdminBillKnowledgeSourcesApiResponse,
   type PublishAdminDraftBillApiResponse,
   type SaveAdminDraftBillApiResponse,
+  publicationCategoryValues,
 } from "./bill-admin-shared";
 import {
   getFirstZodIssueMessage,
@@ -121,6 +125,10 @@ export async function saveAdminDraftBillFromJson(
 const adminPublishDraftBillApiSchema = z.object({
   id: z.string().uuid("idはUUID形式で指定してください。"),
   publish_status: z.literal("published").optional(),
+  publication_category: z
+    .enum(publicationCategoryValues)
+    .optional()
+    .default("report"),
   is_review_completed: z.boolean().optional(),
 });
 
@@ -229,13 +237,16 @@ export async function publishAdminDraftBillFromJson(
     .from("bills")
     .update({
       publish_status: "published",
+      publication_category: parsed.publication_category,
       published_at: now,
       updated_at: now,
       is_review_completed: isReviewCompleted,
     })
     .eq("id", parsed.id)
     .eq("publish_status", "draft")
-    .select("id, publish_status, is_review_completed, published_at")
+    .select(
+      "id, publish_status, publication_category, is_review_completed, published_at"
+    )
     .maybeSingle();
 
   if (updateError) {
@@ -266,6 +277,7 @@ export async function publishAdminDraftBillFromJson(
     billId: updatedBill.id,
     previousPublishStatus: "draft",
     publish_status: "published",
+    publication_category: updatedBill.publication_category,
     is_review_completed: updatedBill.is_review_completed,
     publishedAt: updatedBill.published_at ?? now,
     adminEditUrl: new URL(
@@ -397,6 +409,7 @@ export async function getAdminDraftBillForApi(
       status_label: bill.status_label,
       status_note: bill.status_note,
       publish_status: "draft",
+      publication_category: bill.publication_category,
       is_review_completed: false,
       is_featured: bill.is_featured,
       interview_enabled: true,
@@ -430,6 +443,7 @@ type AdminBillKnowledgeSourceExportRow = Pick<
   | "name"
   | "item_type"
   | "publish_status"
+  | "publication_category"
   | "submitted_date"
   | "major_category"
   | "status"
@@ -466,6 +480,7 @@ function normalizeKnowledgeSourceExportRow(
     name: row.name,
     item_type: row.item_type as BillItemType,
     publish_status: row.publish_status,
+    publication_category: row.publication_category as BillPublicationCategory,
     submitted_date: toDateInputValue(row.submitted_date) || null,
     major_category: row.major_category,
     status: row.status,
@@ -517,6 +532,7 @@ export async function listAdminBillKnowledgeSourcesForApi(
         name,
         item_type,
         publish_status,
+        publication_category,
         submitted_date,
         major_category,
         status,

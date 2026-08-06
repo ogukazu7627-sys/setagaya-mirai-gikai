@@ -191,6 +191,7 @@ function loadMockData() {
       updated_at: row.updated_at,
       thumbnail_url: row.thumbnail_url || null,
       publish_status: row.publish_status as BillWithContent["publish_status"],
+      publication_category: "report",
       is_featured: bool(row.is_featured),
       major_category: row.major_category || null,
       interview_enabled: boolDefaultTrue(row.interview_enabled),

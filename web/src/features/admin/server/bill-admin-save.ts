@@ -11,7 +11,6 @@ import {
   appendAdminBillsReturnPath,
   normalizeAdminBillsReturnPath,
 } from "@/features/admin/shared/admin-bill-return-path";
-import type { BillPublishStatus } from "@/features/bills/shared/types";
 import {
   findUnknownCouncilorNamesByBillId,
   syncCouncilorBillStatements,
@@ -32,6 +31,8 @@ import {
   type AdminSupabaseClient,
   type SaveAdminBillInputOptions,
   type SaveAdminBillInputResult,
+  adminPublicationStatusValues,
+  splitAdminPublicationStatus,
 } from "./bill-admin-shared";
 import { resolveTagIds } from "./bill-admin-tags";
 import {
@@ -52,7 +53,7 @@ const OPTIMIZED_THUMBNAIL_EXTENSION = "webp";
 const OPTIMIZED_THUMBNAIL_MIME_TYPE = "image/webp";
 const OPTIMIZED_THUMBNAIL_MAX_WIDTH = 1600;
 const OPTIMIZED_THUMBNAIL_QUALITY = 82;
-const bulkPublishStatusSchema = z.enum(["draft", "published"]);
+const bulkPublishStatusSchema = z.enum(adminPublicationStatusValues);
 const bulkBillIdsSchema = z
   .array(z.string().uuid())
   .min(1, "一斉編集する案件を選択してください。")
@@ -280,6 +281,7 @@ export async function saveAdminBillInput(
     status_label: input.status_label,
     status_note: input.status_note,
     publish_status: input.publish_status,
+    publication_category: input.publication_category,
     originating_house: "HR" as const,
     diet_session_id: input.diet_session_id,
     submitted_date: submittedDateToDbValue(input.submitted_date),
@@ -640,14 +642,15 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
     });
   }
 
-  const targetStatus: BillPublishStatus = targetStatusResult.data;
+  const targetStatus = splitAdminPublicationStatus(targetStatusResult.data);
   const now = new Date().toISOString();
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
     .update({
-      publish_status: targetStatus,
-      published_at: targetStatus === "published" ? now : null,
+      publish_status: targetStatus.publish_status,
+      publication_category: targetStatus.publication_category,
+      published_at: targetStatus.publish_status === "published" ? now : null,
       updated_at: now,
     })
     .in("id", billIdsResult.data)
@@ -670,7 +673,7 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
 
   redirectToAdminBillsWithParams(returnPath, {
     bulk_updated: String(updatedCount),
-    bulk_status: targetStatus,
+    bulk_status: targetStatusResult.data,
   });
 }
 

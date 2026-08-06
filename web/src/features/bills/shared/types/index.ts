@@ -21,6 +21,8 @@ export type MiraiStance = Database["public"]["Tables"]["mirai_stances"]["Row"];
 export type HouseEnum = Database["public"]["Enums"]["house_enum"];
 export type BillItemType = Database["public"]["Enums"]["bill_item_type"];
 export type BillStatusEnum = Database["public"]["Enums"]["bill_status_enum"];
+export type BillPublicationCategory =
+  Database["public"]["Enums"]["bill_publication_category"];
 export type StanceTypeEnum = Database["public"]["Enums"]["stance_type_enum"];
 
 // 公開ステータス型（議案の公開/非公開を管理）
@@ -71,7 +73,7 @@ export type FeaturedTag = {
 
 export type BillWithContent = Omit<
   Bill,
-  "sources" | "major_category" | "interview_enabled"
+  "sources" | "major_category" | "interview_enabled" | "publication_category"
 > & {
   bill_content?: BillContent;
   mirai_stance?: MiraiStance;
@@ -79,6 +81,7 @@ export type BillWithContent = Omit<
   sources?: unknown;
   major_category?: MajorCategoryLabel | string | null;
   interview_enabled?: boolean;
+  publication_category?: BillPublicationCategory;
   featured_tag?: FeaturedTag;
   diet_session?: BillDietSession | null;
   hasPublicInterview?: boolean;

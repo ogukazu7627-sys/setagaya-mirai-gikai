@@ -4,6 +4,7 @@ import type { createAdminClient, Database } from "@mirai-gikai/supabase";
 import { z } from "zod";
 import type {
   BillItemType,
+  BillPublicationCategory,
   BillPublishStatus,
   BillSource,
   BillStatusEnum,
@@ -11,6 +12,19 @@ import type {
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import type { AdminBillSourceFilter } from "../shared/admin-bill-source-filter";
+import type { AdminPublicationStatus } from "../shared/admin-publication-status";
+export {
+  ADMIN_PUBLICATION_STATUS_OPTIONS,
+  PUBLICATION_CATEGORY_OPTIONS,
+  adminPublicationStatusLabel,
+  adminPublicationStatusValues,
+  billPublicationStatusLabel,
+  normalizeBillPublicationCategory,
+  publicationCategoryValues,
+  splitAdminPublicationStatus,
+  toAdminPublicationStatus,
+} from "../shared/admin-publication-status";
+export type { AdminPublicationStatus } from "../shared/admin-publication-status";
 
 export type BillRow = Database["public"]["Tables"]["bills"]["Row"];
 export type BillContentRow =
@@ -91,7 +105,7 @@ export type AdminBillListItem = BillRow & {
 
 export type AdminBillSearchFilters = {
   query: string;
-  publishStatus: "" | BillPublishStatus;
+  publishStatus: "" | AdminPublicationStatus;
   itemType: "" | BillItemType;
   majorCategory: "" | MajorCategoryLabel;
   statusLabel: string;
@@ -188,6 +202,7 @@ export type PublishAdminDraftBillApiResponse = {
   billId: string;
   previousPublishStatus: "draft";
   publish_status: "published";
+  publication_category: BillPublicationCategory;
   is_review_completed: boolean;
   publishedAt: string;
   adminEditUrl: string;
@@ -212,6 +227,7 @@ export type AdminDraftBillApiPayload = {
   status_label: string | null;
   status_note: string | null;
   publish_status: "draft";
+  publication_category: BillPublicationCategory;
   is_review_completed: false;
   is_featured: boolean;
   interview_enabled: boolean;
@@ -250,6 +266,7 @@ export type AdminBillKnowledgeSourceExportItem = {
   name: string;
   item_type: BillItemType;
   publish_status: string;
+  publication_category: BillPublicationCategory;
   submitted_date: string | null;
   major_category: string | null;
   status: string;
