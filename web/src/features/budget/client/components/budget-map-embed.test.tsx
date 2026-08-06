@@ -446,6 +446,40 @@ describe("BudgetMapEmbed", () => {
     );
   });
 
+  it("topicから選択中分野の公式予算分類を開ける", async () => {
+    const topic = education.topics[0];
+    if (!topic) {
+      throw new Error("topic fixture is missing");
+    }
+    const postMessage = vi
+      .spyOn(window, "postMessage")
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(
+      <BudgetMapEmbed
+        exploration={exploration}
+        initialView={{ kind: "topic", category: education, topic }}
+      />
+    );
+    postMessage.mockClear();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "公式予算分類「教育費」を見る",
+      })
+    );
+
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        source: "mirai-gikai-budget-map",
+        version: 2,
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        action: "open-official-hierarchy",
+      },
+      window.location.origin
+    );
+  });
+
   it("事業選択ではiframe内パネルを開き、詳細ボタンでだけ親へ通知する", async () => {
     const topic = education.topics[0];
     if (!topic) {

@@ -2167,6 +2167,10 @@
     min-height: 44px;
   }
 
+  .budget-map-v2-official-with-pagination {
+    bottom: 78px;
+  }
+
   /* 下段の事業ラベルと重ならないよう、デスクトップでは右下へ寄せる。 */
   .budget-map-v2-pagination {
     position: absolute;
@@ -2301,6 +2305,10 @@
       left: 18px;
       right: 18px;
       bottom: 16px;
+    }
+
+    .budget-map-v2-official-with-pagination {
+      bottom: 80px;
     }
 
     .budget-map-v2-pagination {

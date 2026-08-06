@@ -55,6 +55,9 @@ describe("requestBudgetProgramSearch", () => {
         {
           installationId: "22222222-2222-4222-8222-222222222222",
           query: "学校 改修",
+          fiscalYear: 2026,
+          accountCode: "general",
+          includeZeroAmount: true,
           page: 2,
         },
         controller.signal
@@ -67,6 +70,9 @@ describe("requestBudgetProgramSearch", () => {
         body: JSON.stringify({
           installationId: "22222222-2222-4222-8222-222222222222",
           query: "学校 改修",
+          fiscalYear: 2026,
+          accountCode: "general",
+          includeZeroAmount: true,
           page: 2,
         }),
         signal: controller.signal,

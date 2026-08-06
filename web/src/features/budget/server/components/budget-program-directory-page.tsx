@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { routes } from "@/lib/routes";
 import { BudgetDirectoryFilters } from "../../client/components/budget-directory-filters";
+import { BudgetDirectorySearch } from "../../client/components/budget-directory-search";
 import type {
   BudgetProgramDirectory,
   BudgetProgramDirectoryItem,
@@ -35,6 +36,12 @@ export function BudgetProgramDirectoryPage({
           <BudgetDirectoryUnavailable status={directory.status} />
         ) : (
           <>
+            <BudgetDirectorySearch
+              key={`search-${fiscalYear}-${directory.selection.accountCode ?? "all"}-${directory.selection.includeZeroAmount}`}
+              accountCode={directory.selection.accountCode}
+              fiscalYear={fiscalYear}
+              includeZeroAmount={directory.selection.includeZeroAmount}
+            />
             <BudgetDirectoryFilters
               key={JSON.stringify(directory.selection)}
               hierarchy={directory.hierarchy}

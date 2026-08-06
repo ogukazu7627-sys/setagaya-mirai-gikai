@@ -1,10 +1,16 @@
-import type { BudgetProgramSearchResult } from "../../shared/types/budget";
+import type {
+  BudgetAccountCode,
+  BudgetProgramSearchResult,
+} from "../../shared/types/budget";
 import { budgetProgramSearchResponseSchema } from "../../shared/utils/budget-search-schema";
 
 export async function requestBudgetProgramSearch(
   input: {
     installationId: string;
     query: string;
+    fiscalYear?: number | null;
+    accountCode?: BudgetAccountCode | null;
+    includeZeroAmount?: boolean;
     page?: number;
   },
   signal?: AbortSignal

@@ -225,6 +225,12 @@ describe("BudgetNetwork", () => {
     ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
+        name: "公式予算分類「教育費」を見る",
+      })
+    );
+    expect(callbacks.onOpenOfficialHierarchy).toHaveBeenCalledOnce();
+    await user.click(
+      screen.getByRole("button", {
         name: /小学校施設改修工事、当初予算額/,
       })
     );

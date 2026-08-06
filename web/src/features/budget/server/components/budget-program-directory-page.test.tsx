@@ -95,6 +95,9 @@ describe("BudgetProgramDirectoryPage", () => {
         "課題に未分類の事業も含む、公式データ由来の予算事業です。"
       )
     ).toBeVisible();
+    expect(
+      screen.getByRole("searchbox", { name: "予算事業を検索" })
+    ).toBeVisible();
     await user.click(screen.getByText("内部の事業明細 1件"));
     expect(screen.getByText("普通教室改修")).toBeVisible();
     expect(screen.getByText(/08 教育費/)).toBeVisible();
