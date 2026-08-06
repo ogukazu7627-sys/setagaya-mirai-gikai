@@ -69,9 +69,12 @@ export const BUDGET_MAP_TUTORIAL_STEPS: readonly BudgetMapTutorialStep[] = [
     title: "区の予算事業を発見する",
     body: "課題に関わる予算事業が並びます。丸の大きさは、この画面内での金額の相対的な大小です。",
     scene: "topic",
+    // 事業ノードはリング状に広がるため横長の楕円で上側の並びを照らす。
+    // 縦半径を確定デザインの152から詰めているのは、iframeが最小高さの
+    // ときにカードと重なるため。カードで覆うと何を押せばよいか伝わらない。
     spotlight: {
-      desktop: { xPercent: 50, yPercent: 33, radiusXPx: 336, radiusYPx: 152 },
-      mobile: { xPercent: 50, yPercent: 40, radiusXPx: 126, radiusYPx: 94 },
+      desktop: { xPercent: 50, yPercent: 30, radiusXPx: 336, radiusYPx: 124 },
+      mobile: { xPercent: 50, yPercent: 36, radiusXPx: 126, radiusYPx: 78 },
     },
     cardPosition: { desktop: "bottom", mobile: "bottom" },
   },

@@ -1730,17 +1730,22 @@
     white-space: nowrap;
     background: transparent;
     border: 1px solid transparent;
+    /* 表示状態を transition の開始値に依存させない。
+       タイムラインが進まない環境では開いた内容が出ないままになる。
+       動かすのは見た目だけに留める。 */
     transition:
-      max-width 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
-      gap 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
+      background 220ms ease,
+      border-color 220ms ease,
+      box-shadow 220ms ease;
   }
 
-  .budget-map-v2-question-orbit[data-open="true"] .budget-map-v2-question-chip {
-    gap: var(--budget-q-gap);
-    background: color-mix(in srgb, var(--budget-v2-chip) 97%, transparent);
-    border-color: color-mix(in srgb, var(--budget-node-gold) 85%, transparent);
-    box-shadow: 0 0 18px
-      color-mix(in srgb, var(--budget-node-gold) 20%, transparent);
+  /* 開閉は属性ではなくインラインの CSS 変数で切り替える。
+     属性セレクタだと Tailwind の層構成で当たらないことがある。 */
+  .budget-map-v2-question-chip {
+    gap: var(--budget-q-open-gap, 0px);
+    background: var(--budget-q-open-bg, transparent);
+    border-color: var(--budget-q-open-border, transparent);
+    box-shadow: var(--budget-q-open-shadow, none);
   }
 
   .budget-map-v2-question-avatar-wrap {
@@ -1766,16 +1771,8 @@
     background-image: var(--budget-q-photo);
     background-size: cover;
     background-position: 50% 22%;
-    border: 1px solid
-      color-mix(in srgb, var(--budget-node-gold) 70%, transparent);
-    box-shadow: 0 0 14px
-      color-mix(in srgb, var(--budget-node-gold) 22%, transparent);
-  }
-
-  .budget-map-v2-question-orbit[data-open="true"]
-    .budget-map-v2-question-avatar {
-    border-color: color-mix(in srgb, var(--budget-node-gold) 90%, transparent);
-    box-shadow: none;
+    border: 1px solid var(--budget-q-open-face-border);
+    box-shadow: var(--budget-q-open-face-shadow);
   }
 
   /* 顔の円に外接させる。顔には重ねない。 */
@@ -1801,27 +1798,18 @@
     flex-direction: column;
     gap: 1px;
     overflow: hidden;
-    max-width: 0;
-    opacity: 0;
-    padding-right: 0;
+    max-width: var(--budget-q-open-body-max, 0px);
+    opacity: var(--budget-q-open-body-opacity, 0);
+    padding-right: var(--budget-q-open-body-pad, 0px);
     text-align: left;
-    transition:
-      max-width 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
-      opacity 200ms ease,
-      padding-right 300ms;
-  }
-
-  .budget-map-v2-question-orbit[data-open="true"] .budget-map-v2-question-body {
-    max-width: 300px;
-    opacity: 1;
-    padding-right: var(--budget-q-body-padding);
   }
 
   .budget-map-v2-question-text {
     font-size: var(--budget-q-label-size);
     line-height: 1.35;
     color: color-mix(in srgb, var(--budget-v2-question-copy) 96%, transparent);
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .budget-map-v2-question-member {
@@ -2721,8 +2709,7 @@
     animation: none;
   }
 
-  .budget-map-v2-question-chip,
-  .budget-map-v2-question-body {
+  .budget-map-v2-question-chip {
     transition-duration: 0.01ms;
   }
 

@@ -99,6 +99,44 @@ describe("BudgetMapV2QuestionSatellites", () => {
     expect(chip?.style.overflow).toBe("");
   });
 
+  it("開いた状態を transition の開始値に依存させない", () => {
+    const { container, rerender } = renderSatellites();
+    const closedHit = container.querySelector<HTMLElement>(
+      ".budget-map-v2-question-hit"
+    );
+
+    // 閉じているときは開いた分の指定を持たない
+    expect(closedHit?.style.getPropertyValue("--budget-q-open-body-max")).toBe(
+      ""
+    );
+
+    rerender(
+      <BudgetMapV2QuestionSatellites
+        center={{ x: 500, y: 325 }}
+        disabled={false}
+        mode="desktop"
+        onOpenChange={vi.fn()}
+        onSelect={vi.fn()}
+        openQuestionId="question-1"
+        questions={questions}
+        seed={13}
+      />
+    );
+    const openHit = container.querySelector<HTMLElement>(
+      ".budget-map-v2-question-hit"
+    );
+
+    // 開いた時点で最終値を直接与える。transition が進まない環境でも
+    // 質問文が出ないままにならないこと。
+    expect(openHit?.style.getPropertyValue("--budget-q-open-body-max")).toBe(
+      "300px"
+    );
+    expect(
+      openHit?.style.getPropertyValue("--budget-q-open-body-opacity")
+    ).toBe("1");
+    expect(openHit?.style.getPropertyValue("--budget-q-open-gap")).toBe("9px");
+  });
+
   it("静止時はラベルの背面、開いたら最前面へ置く", () => {
     const { container, rerender } = renderSatellites();
     const orbit = container.querySelector(".budget-map-v2-question-orbit");

@@ -76,6 +76,33 @@ export function BudgetMapV2QuestionSatellites({
   );
 }
 
+/**
+ * 開閉で変わる見た目を CSS 変数で渡す。
+ * 属性セレクタに頼らないのは、Tailwind の層構成では当たらないことがあるため。
+ */
+function getOpenStateVariables(
+  isOpen: boolean,
+  orbit: BudgetMapQuestionOrbit
+): Record<string, string> {
+  if (!isOpen) {
+    return {
+      "--budget-q-open-face-border": "rgb(253 230 138 / 0.7)",
+      "--budget-q-open-face-shadow": "0 0 14px rgb(253 230 138 / 0.22)",
+    };
+  }
+  return {
+    "--budget-q-open-gap": `${orbit.gapPx}px`,
+    "--budget-q-open-bg": "rgb(6 32 49 / 0.97)",
+    "--budget-q-open-border": "rgb(253 230 138 / 0.85)",
+    "--budget-q-open-shadow": "0 0 18px rgb(253 230 138 / 0.2)",
+    "--budget-q-open-face-border": "rgb(253 230 138 / 0.9)",
+    "--budget-q-open-face-shadow": "none",
+    "--budget-q-open-body-max": "300px",
+    "--budget-q-open-body-opacity": "1",
+    "--budget-q-open-body-pad": `${orbit.bodyPaddingRightPx}px`,
+  };
+}
+
 function BudgetMapV2QuestionSatellite({
   disabled,
   isOpen,
@@ -177,14 +204,16 @@ function BudgetMapV2QuestionSatellite({
                   "--budget-q-member-size": `${orbit.memberFontPx}px`,
                   // 写真は img の src ではなく background-image で指定する。
                   "--budget-q-photo": `url("${encodeURI(question.photo)}")`,
+                  ...getOpenStateVariables(isOpen, orbit),
                 } as BudgetMapV2Style
               }
             >
-              <span className="budget-map-v2-question-chip">
+              <span className="budget-map-v2-question-chip" data-open={isOpen}>
                 <span className="budget-map-v2-question-avatar-wrap">
                   <span
                     aria-hidden="true"
                     className="budget-map-v2-question-avatar"
+                    data-open={isOpen}
                   />
                   <span
                     aria-hidden="true"
@@ -199,7 +228,10 @@ function BudgetMapV2QuestionSatellite({
                     />
                   </span>
                 </span>
-                <span className="budget-map-v2-question-body">
+                <span
+                  className="budget-map-v2-question-body"
+                  data-open={isOpen}
+                >
                   <span className="budget-map-v2-question-text">
                     {question.text}
                   </span>

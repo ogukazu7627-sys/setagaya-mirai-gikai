@@ -38,8 +38,13 @@ type BudgetMapIframeProps = {
   onSelectCategory: (slug: string) => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   onSelectTopic: (categorySlug: string, topicSlug: string) => void;
-  /** 中心の周りに漂わせる議員の質問。未指定なら衛星を出さない。 */
+  /**
+   * 中心の周りに漂わせる議員の質問。届いた `select-question` の検証に使う。
+   * 未指定なら衛星を出さない。
+   */
   questions?: readonly BudgetMapQuestion[];
+  /** 動作確認用データを iframe 側でも出すかどうか。 */
+  questionSample?: boolean;
   onSelectQuestion?: (questionId: string) => void;
   onTutorialSeen?: () => void;
 };
@@ -60,6 +65,7 @@ export function BudgetMapIframe({
   onSelectProgram,
   onSelectTopic,
   questions = [],
+  questionSample = false,
   onSelectQuestion,
   onTutorialSeen,
 }: BudgetMapIframeProps) {
@@ -248,7 +254,7 @@ export function BudgetMapIframe({
       <iframe
         key={`${activeDatasetId ?? "none"}:${frameAttempt}`}
         ref={iframeRef}
-        src={routes.budgetMap(variant, activeDatasetId)}
+        src={routes.budgetMap(variant, activeDatasetId, questionSample)}
         title="触れる予算マップ"
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"
