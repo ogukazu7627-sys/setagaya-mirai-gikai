@@ -187,6 +187,7 @@ export function BudgetNetwork({
             dimensions={dimensions}
             exploration={exploration}
             mode={mode}
+            onOpenOfficialHierarchy={onOpenOfficialHierarchy}
             onSelectProgram={onSelectProgram}
             programs={stableView.topic.programs}
             selectedProgramIdentityId={selectedProgramIdentityId}
@@ -499,6 +500,7 @@ function TopicNetwork({
   dimensions,
   exploration,
   mode,
+  onOpenOfficialHierarchy,
   onSelectProgram,
   programs,
   selectedProgramIdentityId,
@@ -509,6 +511,7 @@ function TopicNetwork({
   dimensions: BudgetMapWorldDimensions;
   exploration: BudgetExplorationData;
   mode: BudgetMapMode;
+  onOpenOfficialHierarchy: () => void;
   onSelectProgram: (budgetProgramIdentityId: string) => void;
   programs: BudgetExplorationProgram[];
   selectedProgramIdentityId: string | null;
@@ -533,6 +536,9 @@ function TopicNetwork({
       ? transitionTarget.budgetProgramIdentityId
       : selectedProgramIdentityId;
   const visibleAmounts = page.items.map((program) => program.amountThousandYen);
+  const officialClassification = getBudgetOfficialClassificationContext(
+    category.slug
+  );
 
   return (
     <div
@@ -699,6 +705,24 @@ function TopicNetwork({
             </Button>
           </div>
         )}
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onOpenOfficialHierarchy}
+          style={getNodePositionStyle({
+            x:
+              mode === "mobile" ? dimensions.width / 2 : dimensions.width - 180,
+            y:
+              dimensions.height -
+              (mode === "mobile" && page.pageCount > 1 ? 90 : 42),
+          })}
+          className="budget-map-node absolute z-30 rounded-md border-budget-space-line bg-white/95 text-mirai-text"
+        >
+          <BookOpen aria-hidden="true" className="size-4" />
+          {officialClassification.label}
+        </Button>
       </div>
     </div>
   );

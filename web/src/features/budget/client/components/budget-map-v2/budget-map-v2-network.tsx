@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type {
   BudgetExplorationAvailability,
   BudgetExplorationData,
@@ -593,13 +594,18 @@ function BudgetMapV2Chrome({
         </Button>
       )}
 
-      {view.kind === "category" && (
+      {view.kind !== "overview" && (
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={onOpenOfficialHierarchy}
-          className="budget-map-v2-official rounded-md border-budget-space-line bg-white/95 text-mirai-text hover:bg-white"
+          className={cn(
+            "budget-map-v2-official rounded-md border-budget-space-line bg-white/95 text-mirai-text hover:bg-white",
+            page &&
+              page.pageCount > 1 &&
+              "budget-map-v2-official-with-pagination"
+          )}
         >
           <BookOpen aria-hidden="true" className="size-4" />
           {officialClassification.label}
