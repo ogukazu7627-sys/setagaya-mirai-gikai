@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "@/features/admin/shared/admin-budget-form-values";
 import type {
   BillItemType,
   BillPublicationCategory,
@@ -404,9 +405,11 @@ export async function getAdminDraftBillForApi(
     .map((row) => normalizeJoinedTag(row.tags))
     .filter((tag): tag is AdminDraftBillApiTag => Boolean(tag));
   const previewToken = await ensurePreviewToken(bill.id, "admin-api");
-  const majorCategory = isMajorCategoryLabel(bill.major_category)
-    ? bill.major_category
-    : "教育🏫";
+  const majorCategory =
+    isMajorCategoryLabel(bill.major_category) ||
+    bill.major_category === BUDGET_OVERALL_MAJOR_CATEGORY
+      ? bill.major_category
+      : "教育🏫";
 
   return {
     success: true,

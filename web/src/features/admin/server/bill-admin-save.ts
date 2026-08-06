@@ -30,6 +30,7 @@ import {
   AdminBillSaveError,
   type AdminSupabaseClient,
   adminPublicationStatusValues,
+  publicationCategoryValues,
   type SaveAdminBillInputOptions,
   type SaveAdminBillInputResult,
   splitAdminPublicationStatus,
@@ -54,6 +55,7 @@ const OPTIMIZED_THUMBNAIL_MIME_TYPE = "image/webp";
 const OPTIMIZED_THUMBNAIL_MAX_WIDTH = 1600;
 const OPTIMIZED_THUMBNAIL_QUALITY = 82;
 const bulkPublishStatusSchema = z.enum(adminPublicationStatusValues);
+const bulkPublicationCategorySchema = z.enum(publicationCategoryValues);
 const bulkBillIdsSchema = z
   .array(z.string().uuid())
   .min(1, "一斉編集する案件を選択してください。")
@@ -507,40 +509,45 @@ export async function saveAdminBill(formData: FormData) {
 
   const returnPath = adminBillsReturnPathFromFormData(formData);
   const parsed = parseBillFormDataOrRedirect(formData);
-  const thumbnailFile = (() => {
-    try {
-      return thumbnailFileFromFormData(formData);
-    } catch (error) {
-      redirectToAdminBillFormError(
-        parsed.id,
-        error instanceof Error
-          ? error.message
-          : "サムネイル画像を確認してください。",
-        returnPath
-      );
-    }
-  })();
-  const knowledgeSource = await (async () => {
-    const file = formData.get("knowledge_source_file");
-    if (!isFormFile(file) || file.size === 0) {
-      return parsed.knowledge_source;
-    }
+  const isBudgetPublication = parsed.publication_category === "budget";
+  const thumbnailFile = isBudgetPublication
+    ? null
+    : (() => {
+        try {
+          return thumbnailFileFromFormData(formData);
+        } catch (error) {
+          redirectToAdminBillFormError(
+            parsed.id,
+            error instanceof Error
+              ? error.message
+              : "サムネイル画像を確認してください。",
+            returnPath
+          );
+        }
+      })();
+  const knowledgeSource = isBudgetPublication
+    ? null
+    : await (async () => {
+        const file = formData.get("knowledge_source_file");
+        if (!isFormFile(file) || file.size === 0) {
+          return parsed.knowledge_source;
+        }
 
-    try {
-      return mergeKnowledgeSourceText(
-        parsed.knowledge_source,
-        await extractKnowledgeSourceFile(file)
-      );
-    } catch (error) {
-      redirectToAdminBillFormError(
-        parsed.id,
-        error instanceof Error
-          ? error.message
-          : "ナレッジソースファイルを読み取れませんでした。",
-        returnPath
-      );
-    }
-  })();
+        try {
+          return mergeKnowledgeSourceText(
+            parsed.knowledge_source,
+            await extractKnowledgeSourceFile(file)
+          );
+        } catch (error) {
+          redirectToAdminBillFormError(
+            parsed.id,
+            error instanceof Error
+              ? error.message
+              : "ナレッジソースファイルを読み取れませんでした。",
+            returnPath
+          );
+        }
+      })();
 
   let result: SaveAdminBillInputResult;
   try {
@@ -618,14 +625,31 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
   await requireAdmin("/admin/bills");
 
   const returnPath = adminBillsReturnPathFromFormData(formData);
-  const targetStatusResult = bulkPublishStatusSchema.safeParse(
-    nullableString(formData.get("bulk_publish_status"))
+  const targetStatusInput = nullableString(formData.get("bulk_publish_status"));
+  const targetCategoryInput = nullableString(
+    formData.get("bulk_publication_category")
   );
-  if (!targetStatusResult.success) {
+  const targetStatusResult =
+    bulkPublishStatusSchema.safeParse(targetStatusInput);
+  const targetCategoryResult =
+    bulkPublicationCategorySchema.safeParse(targetCategoryInput);
+  if (!targetStatusResult.success && !targetCategoryResult.success) {
     redirectToAdminBillsWithParams(returnPath, {
-      error: "一斉編集の公開状態を確認できませんでした。",
+      error: "一斉編集の内容を確認できませんでした。",
     });
   }
+  if (targetStatusResult.success && targetCategoryResult.success) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error: "一度に変更できるのは公開状態または公開種別のどちらかです。",
+    });
+  }
+
+  const targetStatus = targetStatusResult.success
+    ? splitAdminPublicationStatus(targetStatusResult.data)
+    : null;
+  const targetCategory = targetCategoryResult.success
+    ? targetCategoryResult.data
+    : null;
 
   const billIdsResult = bulkBillIdsSchema.safeParse(
     Array.from(new Set(formData.getAll("bulk_bill_ids"))).filter(
@@ -647,17 +671,23 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
     });
   }
 
-  const targetStatus = splitAdminPublicationStatus(targetStatusResult.data);
   const now = new Date().toISOString();
   const supabase = createAdminClient();
+  const updatePayload = targetStatus
+    ? {
+        publish_status: targetStatus.publish_status,
+        published_at: targetStatus.publish_status === "published" ? now : null,
+        updated_at: now,
+      }
+    : {
+        publication_category: targetCategory as NonNullable<
+          typeof targetCategory
+        >,
+        updated_at: now,
+      };
   const { data, error } = await supabase
     .from("bills")
-    .update({
-      publish_status: targetStatus.publish_status,
-      publication_category: targetStatus.publication_category,
-      published_at: targetStatus.publish_status === "published" ? now : null,
-      updated_at: now,
-    })
+    .update(updatePayload)
     .in("id", billIdsResult.data)
     .select("id");
 
@@ -678,7 +708,10 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
 
   redirectToAdminBillsWithParams(returnPath, {
     bulk_updated: String(updatedCount),
-    bulk_status: targetStatusResult.data,
+    ...(targetStatusResult.success
+      ? { bulk_status: targetStatusResult.data }
+      : {}),
+    ...(targetCategory ? { bulk_category: targetCategory } : {}),
   });
 }
 

@@ -351,6 +351,91 @@ describe("/api/admin/bills/draft", () => {
     );
   });
 
+  it("publication_categoryがbudgetのときは予算用の最小JSONでdraftを作成する", async () => {
+    const res = await postDraft(
+      validDraftBody({
+        name: "令和8年度当初予算",
+        publication_category: "budget",
+        item_type: "question",
+        major_category: "全体",
+        status: "enacted",
+        status_label: "入力しても保存しない",
+        status_note: "入力しても保存しない",
+        thumbnail_url: "https://example.com/thumbnail.png",
+        share_thumbnail_url: "https://example.com/share.png",
+        knowledge_source: "入力しても保存しないナレッジソース",
+        is_featured: true,
+        normal_title: undefined,
+        normal_summary: undefined,
+        normal_content:
+          "# 歳出全体\n\n[公式資料](https://example.com) を確認する。",
+        hard_title: undefined,
+        hard_summary: undefined,
+        hard_content: "### hard\n\n詳しい説明",
+        tag_labels: ["防災訓練"],
+        sources: [
+          {
+            title: "入力しても保存しない出典",
+            url: "https://example.com/source",
+            source_type: "official_page",
+          },
+        ],
+      })
+    );
+    const body = (await res.json()) as DraftApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    if (!body.billId) throw new Error("billId was not returned");
+    billIds.push(body.billId);
+
+    const { data: bill } = await adminClient
+      .from("bills")
+      .select(
+        "item_type, major_category, status, status_label, status_note, publication_category, sources, knowledge_source, thumbnail_url, share_thumbnail_url, is_featured"
+      )
+      .eq("id", body.billId)
+      .single();
+    expect(bill).toMatchObject({
+      item_type: "report",
+      major_category: "全体",
+      status: "introduced",
+      status_label: null,
+      status_note: null,
+      publication_category: "budget",
+      sources: [],
+      knowledge_source: null,
+      thumbnail_url: null,
+      share_thumbnail_url: null,
+      is_featured: false,
+    });
+
+    const { data: contents } = await adminClient
+      .from("bill_contents")
+      .select("difficulty_level, title, summary, content")
+      .eq("bill_id", body.billId);
+    const normal = contents?.find(
+      (content) => content.difficulty_level === "normal"
+    );
+    const hard = contents?.find(
+      (content) => content.difficulty_level === "hard"
+    );
+    expect(normal).toMatchObject({
+      title: "令和8年度当初予算",
+      summary: "歳出全体 公式資料 を確認する。",
+    });
+    expect(hard).toMatchObject({
+      title: "令和8年度当初予算",
+      summary: "hard 詳しい説明",
+      content: "### hard\n\n詳しい説明",
+    });
+
+    const { data: billTags } = await adminClient
+      .from("bills_tags")
+      .select("tag_id")
+      .eq("bill_id", body.billId);
+    expect(billTags).toHaveLength(0);
+  });
+
   it("既存draft案件は更新でき、既存preview tokenは維持する", async () => {
     const bill = await createTestBill({ publish_status: "draft" });
     billIds.push(bill.id);

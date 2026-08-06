@@ -11,22 +11,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type {
+  BillPublicationCategory,
   BillSource,
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import { saveAdminBillAction } from "../server/actions";
 import {
-  type AdminBillFormData,
   ADMIN_PUBLICATION_STATUS_OPTIONS,
+  type AdminBillFormData,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
   BILL_STATUS_OPTIONS,
   getInitialAdminBillValues,
   getPreviewPath,
+  normalizeBillPublicationCategory,
+  PUBLICATION_CATEGORY_OPTIONS,
   SOURCE_TYPE_OPTIONS,
   toAdminPublicationStatus,
 } from "../server/bill-admin";
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "../shared/admin-budget-form-values";
+import { AdminBillPublicationKindController } from "./admin-bill-publication-kind-controller";
 import { AdminDietSessionField } from "./admin-diet-session-field";
 import { AdminTagSelector } from "./admin-tag-selector";
 
@@ -102,6 +107,24 @@ function ToggleField({
   );
 }
 
+function BudgetHidden({
+  children,
+  initiallyHidden,
+}: {
+  children: React.ReactNode;
+  initiallyHidden: boolean;
+}) {
+  return (
+    <fieldset
+      data-admin-bill-budget-hidden=""
+      disabled={initiallyHidden}
+      style={{ display: initiallyHidden ? "none" : "contents" }}
+    >
+      {children}
+    </fieldset>
+  );
+}
+
 function normalizeSources(sources: unknown): BillSource[] {
   if (!Array.isArray(sources)) return [];
   return sources.filter(
@@ -114,8 +137,16 @@ function normalizeSources(sources: unknown): BillSource[] {
 }
 
 function normalizeMajorCategory(
-  majorCategory: string | null | undefined
-): MajorCategoryLabel {
+  majorCategory: string | null | undefined,
+  publicationCategory: BillPublicationCategory
+): MajorCategoryLabel | typeof BUDGET_OVERALL_MAJOR_CATEGORY {
+  if (
+    publicationCategory === "budget" &&
+    majorCategory === BUDGET_OVERALL_MAJOR_CATEGORY
+  ) {
+    return BUDGET_OVERALL_MAJOR_CATEGORY;
+  }
+
   return (
     MAJOR_CATEGORY_OPTIONS.find((category) => category.label === majorCategory)
       ?.label ?? "教育🏫"
@@ -130,7 +161,18 @@ export function AdminBillForm({
 }: AdminBillFormProps) {
   const bill = data.bill;
   const values = getInitialAdminBillValues(data);
-  const initialMajorCategory = normalizeMajorCategory(bill?.major_category);
+  const initialPublicationCategory = normalizeBillPublicationCategory(
+    bill?.publication_category
+  );
+  const initialMajorCategory = normalizeMajorCategory(
+    bill?.major_category,
+    initialPublicationCategory
+  );
+  const initialTagMajorCategory =
+    MAJOR_CATEGORY_OPTIONS.find(
+      (category) => category.label === initialMajorCategory
+    )?.label ?? "教育🏫";
+  const isInitialBudget = initialPublicationCategory === "budget";
   const sources = normalizeSources(bill?.sources);
   const sourceRows = Array.from({
     length: Math.max(5, sources.length + 1),
@@ -162,10 +204,15 @@ export function AdminBillForm({
     <form
       action={saveAdminBillAction}
       encType="multipart/form-data"
+      data-admin-bill-form=""
       className="flex flex-col gap-6"
     >
       {bill?.id && <input type="hidden" name="id" value={bill.id} />}
       <input type="hidden" name="return_path" value={returnPath} />
+      <AdminBillPublicationKindController
+        budgetMajorCategory={BUDGET_OVERALL_MAJOR_CATEGORY}
+        defaultMajorCategory="教育🏫"
+      />
 
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
@@ -220,13 +267,23 @@ export function AdminBillForm({
           <Field label="公開状態">
             <NativeSelect
               name="publish_status"
-              defaultValue={toAdminPublicationStatus(
-                bill?.publish_status,
-                bill?.publication_category
-              )}
+              defaultValue={toAdminPublicationStatus(bill?.publish_status)}
               required
             >
               {ADMIN_PUBLICATION_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+          <Field label="公開種別">
+            <NativeSelect
+              name="publication_category"
+              defaultValue={initialPublicationCategory}
+              required
+            >
+              {PUBLICATION_CATEGORY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -238,34 +295,39 @@ export function AdminBillForm({
               <Input name="name" defaultValue={bill?.name ?? ""} required />
             </Field>
           </div>
-          <Field label="案件タイプ">
-            <NativeSelect
-              name="item_type"
-              defaultValue={bill?.item_type ?? "bill"}
-              required
-            >
-              {BILL_ITEM_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="ステータス表示ラベル">
-            <NativeSelect name="status_label" defaultValue={currentStatusLabel}>
-              <option value="">未設定</option>
-              {!hasCurrentStatusLabelOption && (
-                <option value={currentStatusLabel}>
-                  {currentStatusLabel}（現在の値）
-                </option>
-              )}
-              {BILL_STATUS_LABEL_OPTIONS.map((label) => (
-                <option key={label} value={label}>
-                  {label}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
+          <BudgetHidden initiallyHidden={isInitialBudget}>
+            <Field label="案件タイプ">
+              <NativeSelect
+                name="item_type"
+                defaultValue={bill?.item_type ?? "bill"}
+                required
+              >
+                {BILL_ITEM_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label="ステータス表示ラベル">
+              <NativeSelect
+                name="status_label"
+                defaultValue={currentStatusLabel}
+              >
+                <option value="">未設定</option>
+                {!hasCurrentStatusLabelOption && (
+                  <option value={currentStatusLabel}>
+                    {currentStatusLabel}（現在の値）
+                  </option>
+                )}
+                {BILL_STATUS_LABEL_OPTIONS.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+          </BudgetHidden>
           <Field label="大分類">
             <NativeSelect
               name="major_category"
@@ -277,6 +339,11 @@ export function AdminBillForm({
                   {category.label}
                 </option>
               ))}
+              {isInitialBudget && (
+                <option value={BUDGET_OVERALL_MAJOR_CATEGORY}>
+                  {BUDGET_OVERALL_MAJOR_CATEGORY}
+                </option>
+              )}
             </NativeSelect>
           </Field>
           <AdminDietSessionField
@@ -290,61 +357,63 @@ export function AdminBillForm({
               defaultValue={values.submittedDate}
             />
           </Field>
-          <Field label="進行ステータス">
-            <NativeSelect
-              name="status"
-              defaultValue={bill?.status ?? "introduced"}
-              required
-            >
-              {BILL_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-          <Field label="ステータス説明文">
-            <Input
-              name="status_note"
-              defaultValue={bill?.status_note ?? ""}
-              placeholder="例: 2025-12-01 文教常任委員会で報告"
-            />
-          </Field>
-          <Field
-            label="サムネイル"
-            hint="画像を選ぶと保存時にWebPへ軽量化してアップロードします。未選択の場合は現在の画像を維持します。"
-          >
-            <input
-              type="hidden"
-              name="thumbnail_url"
-              value={bill?.thumbnail_url ?? ""}
-            />
-            <div className="grid gap-3 rounded-md border border-input bg-white p-3">
-              {bill?.thumbnail_url && (
-                <div className="flex items-center gap-3">
-                  <img
-                    src={bill.thumbnail_url}
-                    alt="現在のサムネイル"
-                    className="h-20 w-28 rounded-md border object-cover"
-                  />
-                  <span className="text-xs text-mirai-text-secondary">
-                    現在のサムネイル
-                  </span>
-                </div>
-              )}
+          <BudgetHidden initiallyHidden={isInitialBudget}>
+            <Field label="進行ステータス">
+              <NativeSelect
+                name="status"
+                defaultValue={bill?.status ?? "introduced"}
+                required
+              >
+                {BILL_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </Field>
+            <Field label="ステータス説明文">
               <Input
-                type="file"
-                name="thumbnail_file"
-                accept="image/png,image/jpeg,image/webp"
+                name="status_note"
+                defaultValue={bill?.status_note ?? ""}
+                placeholder="例: 2025-12-01 文教常任委員会で報告"
               />
-            </div>
-          </Field>
-          <Field label="共有画像URL">
-            <Input
-              name="share_thumbnail_url"
-              defaultValue={bill?.share_thumbnail_url ?? ""}
-            />
-          </Field>
+            </Field>
+            <Field
+              label="サムネイル"
+              hint="画像を選ぶと保存時にWebPへ軽量化してアップロードします。未選択の場合は現在の画像を維持します。"
+            >
+              <input
+                type="hidden"
+                name="thumbnail_url"
+                value={bill?.thumbnail_url ?? ""}
+              />
+              <div className="grid gap-3 rounded-md border border-input bg-white p-3">
+                {bill?.thumbnail_url && (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={bill.thumbnail_url}
+                      alt="現在のサムネイル"
+                      className="h-20 w-28 rounded-md border object-cover"
+                    />
+                    <span className="text-xs text-mirai-text-secondary">
+                      現在のサムネイル
+                    </span>
+                  </div>
+                )}
+                <Input
+                  type="file"
+                  name="thumbnail_file"
+                  accept="image/png,image/jpeg,image/webp"
+                />
+              </div>
+            </Field>
+            <Field label="共有画像URL">
+              <Input
+                name="share_thumbnail_url"
+                defaultValue={bill?.share_thumbnail_url ?? ""}
+              />
+            </Field>
+          </BudgetHidden>
         </CardContent>
       </Card>
 
@@ -358,21 +427,23 @@ export function AdminBillForm({
         <CardContent className="grid gap-6">
           <div className="grid gap-4">
             <h2 className="text-lg font-bold">normal</h2>
-            <Field label="表示タイトル">
-              <Input
-                name="normal_title"
-                defaultValue={values.normalTitle}
-                required
-              />
-            </Field>
-            <Field label="概要">
-              <Textarea
-                name="normal_summary"
-                defaultValue={values.normalSummary}
-                rows={3}
-                required
-              />
-            </Field>
+            <BudgetHidden initiallyHidden={isInitialBudget}>
+              <Field label="表示タイトル">
+                <Input
+                  name="normal_title"
+                  defaultValue={values.normalTitle}
+                  required
+                />
+              </Field>
+              <Field label="概要">
+                <Textarea
+                  name="normal_summary"
+                  defaultValue={values.normalSummary}
+                  rows={3}
+                  required
+                />
+              </Field>
+            </BudgetHidden>
             <Field label="Markdown本文">
               <Textarea
                 name="normal_content"
@@ -385,16 +456,18 @@ export function AdminBillForm({
           </div>
           <div className="grid gap-4 border-t pt-6">
             <h2 className="text-lg font-bold">hard</h2>
-            <Field label="表示タイトル">
-              <Input name="hard_title" defaultValue={values.hardTitle} />
-            </Field>
-            <Field label="概要">
-              <Textarea
-                name="hard_summary"
-                defaultValue={values.hardSummary}
-                rows={3}
-              />
-            </Field>
+            <BudgetHidden initiallyHidden={isInitialBudget}>
+              <Field label="表示タイトル">
+                <Input name="hard_title" defaultValue={values.hardTitle} />
+              </Field>
+              <Field label="概要">
+                <Textarea
+                  name="hard_summary"
+                  defaultValue={values.hardSummary}
+                  rows={3}
+                />
+              </Field>
+            </BudgetHidden>
             <Field label="Markdown本文">
               <Textarea
                 name="hard_content"
@@ -407,105 +480,109 @@ export function AdminBillForm({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>タグ・出典・チャット情報</CardTitle>
-          <CardDescription>
-            小分類タグは固定候補から選びます。出典は公開詳細ページの補足資料として表示されます。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <AdminTagSelector
-            majorCategory={initialMajorCategory}
-            tags={data.tags}
-            selectedTagIds={data.selectedTagIds}
-          />
-          <Field
-            label="ナレッジソース"
-            hint="AIチャット・AIインタビューに渡す内部用テキストです。"
-          >
-            <div className="grid gap-3">
-              <Textarea
-                name="knowledge_source"
-                defaultValue={bill?.knowledge_source ?? ""}
-                rows={8}
-              />
-              <div className="grid gap-2 rounded-md border border-input bg-white p-3">
-                <span className="text-xs font-bold text-mirai-text-secondary">
-                  ファイルから追加
-                </span>
-                <Input
-                  type="file"
-                  name="knowledge_source_file"
-                  accept=".md,.txt,.docx,text/markdown,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      <BudgetHidden initiallyHidden={isInitialBudget}>
+        <Card>
+          <CardHeader>
+            <CardTitle>タグ・出典・チャット情報</CardTitle>
+            <CardDescription>
+              小分類タグは固定候補から選びます。出典は公開詳細ページの補足資料として表示されます。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <AdminTagSelector
+              majorCategory={initialTagMajorCategory}
+              tags={data.tags}
+              selectedTagIds={data.selectedTagIds}
+            />
+            <Field
+              label="ナレッジソース"
+              hint="AIチャット・AIインタビューに渡す内部用テキストです。"
+            >
+              <div className="grid gap-3">
+                <Textarea
+                  name="knowledge_source"
+                  defaultValue={bill?.knowledge_source ?? ""}
+                  rows={8}
                 />
-                <span className="text-xs text-mirai-text-secondary">
-                  .md / .txt /
-                  .docxのみ対応。PDFは使えません。選択したファイルの本文は保存時に上のナレッジソースへ追記されます。
-                </span>
+                <div className="grid gap-2 rounded-md border border-input bg-white p-3">
+                  <span className="text-xs font-bold text-mirai-text-secondary">
+                    ファイルから追加
+                  </span>
+                  <Input
+                    type="file"
+                    name="knowledge_source_file"
+                    accept=".md,.txt,.docx,text/markdown,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  />
+                  <span className="text-xs text-mirai-text-secondary">
+                    .md / .txt /
+                    .docxのみ対応。PDFは使えません。選択したファイルの本文は保存時に上のナレッジソースへ追記されます。
+                  </span>
+                </div>
               </div>
-            </div>
-          </Field>
-          <div className="grid gap-4">
-            <h2 className="text-sm font-bold">公式資料・出典</h2>
-            {sourceRows.map(({ source, index, key }) => (
-              <div
-                key={key}
-                className="grid gap-3 rounded-lg border bg-white p-4 md:grid-cols-[1.2fr_1.2fr_0.9fr_0.8fr_0.8fr]"
-              >
-                <Input
-                  name={`source_${index}_title`}
-                  defaultValue={source?.title ?? ""}
-                  placeholder="タイトル"
-                />
-                <Input
-                  name={`source_${index}_url`}
-                  defaultValue={source?.url ?? ""}
-                  placeholder="URL"
-                />
-                <NativeSelect
-                  name={`source_${index}_source_type`}
-                  defaultValue={source?.source_type ?? "official_page"}
+            </Field>
+            <div className="grid gap-4">
+              <h2 className="text-sm font-bold">公式資料・出典</h2>
+              {sourceRows.map(({ source, index, key }) => (
+                <div
+                  key={key}
+                  className="grid gap-3 rounded-lg border bg-white p-4 md:grid-cols-[1.2fr_1.2fr_0.9fr_0.8fr_0.8fr]"
                 >
-                  {SOURCE_TYPE_OPTIONS.map((sourceType) => (
-                    <option key={sourceType} value={sourceType}>
-                      {sourceType}
-                    </option>
-                  ))}
-                </NativeSelect>
-                <Input
-                  name={`source_${index}_published_at`}
-                  defaultValue={source?.published_at ?? ""}
-                  placeholder="公開日"
-                />
-                <Input
-                  name={`source_${index}_accessed_at`}
-                  defaultValue={source?.accessed_at ?? ""}
-                  placeholder="確認日"
-                />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                  <Input
+                    name={`source_${index}_title`}
+                    defaultValue={source?.title ?? ""}
+                    placeholder="タイトル"
+                  />
+                  <Input
+                    name={`source_${index}_url`}
+                    defaultValue={source?.url ?? ""}
+                    placeholder="URL"
+                  />
+                  <NativeSelect
+                    name={`source_${index}_source_type`}
+                    defaultValue={source?.source_type ?? "official_page"}
+                  >
+                    {SOURCE_TYPE_OPTIONS.map((sourceType) => (
+                      <option key={sourceType} value={sourceType}>
+                        {sourceType}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                  <Input
+                    name={`source_${index}_published_at`}
+                    defaultValue={source?.published_at ?? ""}
+                    placeholder="公開日"
+                  />
+                  <Input
+                    name={`source_${index}_accessed_at`}
+                    defaultValue={source?.accessed_at ?? ""}
+                    placeholder="確認日"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </BudgetHidden>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>公開設定</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          <ToggleField
-            name="is_review_completed"
-            label="レビュー完了"
-            defaultChecked={bill?.is_review_completed ?? false}
-          />
-          <ToggleField
-            name="is_featured"
-            label="注目表示"
-            defaultChecked={bill?.is_featured ?? false}
-          />
-        </CardContent>
-      </Card>
+      <BudgetHidden initiallyHidden={isInitialBudget}>
+        <Card>
+          <CardHeader>
+            <CardTitle>公開設定</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2">
+            <ToggleField
+              name="is_review_completed"
+              label="レビュー完了"
+              defaultChecked={bill?.is_review_completed ?? false}
+            />
+            <ToggleField
+              name="is_featured"
+              label="注目表示"
+              defaultChecked={bill?.is_featured ?? false}
+            />
+          </CardContent>
+        </Card>
+      </BudgetHidden>
 
       <div className="sticky bottom-4 flex justify-end">
         <Button type="submit" className="shadow-lg">

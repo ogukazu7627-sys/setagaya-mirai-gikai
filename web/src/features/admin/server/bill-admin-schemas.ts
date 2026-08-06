@@ -2,6 +2,11 @@ import "server-only";
 
 import { z } from "zod";
 import {
+  BUDGET_OVERALL_MAJOR_CATEGORY,
+  buildBudgetContentMetadata,
+} from "@/features/admin/shared/admin-budget-form-values";
+import type { MajorCategoryLabel } from "@/features/bills/shared/types";
+import {
   getAdminTagMajorCategory,
   normalizeAdminTagLabels,
 } from "../shared/fixed-admin-tags";
@@ -11,12 +16,33 @@ import {
   publicationCategoryValues,
 } from "./bill-admin-shared";
 
+function isBaseMajorCategoryLabel(value: string): value is MajorCategoryLabel {
+  return (majorCategoryLabels as readonly string[]).includes(value);
+}
+
+function isBudgetMajorCategoryLabel(value: string) {
+  return (
+    isBaseMajorCategoryLabel(value) || value === BUDGET_OVERALL_MAJOR_CATEGORY
+  );
+}
+
+function addInvalidMajorCategoryIssue(
+  ctx: z.RefinementCtx,
+  message = "大分類を確認してください"
+) {
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    path: ["major_category"],
+    message,
+  });
+}
+
 export const billFormSchema = z
   .object({
     id: z.string().uuid().optional(),
     name: z.string().trim().min(1, "正式タイトルは必須です"),
     item_type: z.enum(["bill", "report", "petition", "question"]),
-    major_category: z.enum(majorCategoryLabels),
+    major_category: z.string().trim().min(1, "大分類は必須です"),
     status: z.enum([
       "preparing",
       "introduced",
@@ -62,6 +88,21 @@ export const billFormSchema = z
     ),
   })
   .superRefine((value, ctx) => {
+    if (value.publication_category === "budget") {
+      if (!isBudgetMajorCategoryLabel(value.major_category)) {
+        addInvalidMajorCategoryIssue(
+          ctx,
+          "予算の大分類は既存の10分類または全体を選んでください"
+        );
+      }
+      return;
+    }
+
+    if (!isBaseMajorCategoryLabel(value.major_category)) {
+      addInvalidMajorCategoryIssue(ctx);
+      return;
+    }
+
     if (value.tag_ids.length + value.new_tags.length > 3) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -98,7 +139,7 @@ export const adminDraftBillApiSchema = z
     item_type: z
       .enum(["bill", "report", "petition", "question"])
       .default("bill"),
-    major_category: z.enum(majorCategoryLabels),
+    major_category: z.string().trim().min(1, "大分類は必須です"),
     status: z
       .enum([
         "preparing",
@@ -125,8 +166,8 @@ export const adminDraftBillApiSchema = z
     is_featured: z.boolean().optional().default(false),
     interview_enabled: z.boolean().optional().default(true),
     use_knowledge_source_in_chat: z.boolean().optional().default(true),
-    normal_title: z.string().trim().min(1, "normalの表示タイトルは必須です"),
-    normal_summary: z.string().trim().min(1, "normalの概要は必須です"),
+    normal_title: nullableTrimmedStringSchema,
+    normal_summary: nullableTrimmedStringSchema,
     normal_content: z.string().trim().min(1, "normalの本文は必須です"),
     hard_title: nullableTrimmedStringSchema,
     hard_summary: nullableTrimmedStringSchema,
@@ -162,6 +203,36 @@ export const adminDraftBillApiSchema = z
       .default([]),
   })
   .superRefine((value, ctx) => {
+    if (value.publication_category === "budget") {
+      if (!isBudgetMajorCategoryLabel(value.major_category)) {
+        addInvalidMajorCategoryIssue(
+          ctx,
+          "予算の大分類は既存の10分類または全体を指定してください"
+        );
+      }
+      return;
+    }
+
+    if (!isBaseMajorCategoryLabel(value.major_category)) {
+      addInvalidMajorCategoryIssue(ctx);
+      return;
+    }
+
+    if (!value.normal_title) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["normal_title"],
+        message: "normalの表示タイトルは必須です",
+      });
+    }
+    if (!value.normal_summary) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["normal_summary"],
+        message: "normalの概要は必須です",
+      });
+    }
+
     const inputLabels = [
       ...value.tag_labels.map((label) => label.trim()).filter(Boolean),
       ...value.new_tag_labels.map((label) => label.trim()).filter(Boolean),
@@ -190,6 +261,45 @@ export const adminDraftBillApiSchema = z
     }
   })
   .transform((value) => {
+    const majorCategory = value.major_category as MajorCategoryLabel;
+    if (value.publication_category === "budget") {
+      const budgetContentMetadata = buildBudgetContentMetadata({
+        hardContent: value.hard_content,
+        name: value.name,
+        normalContent: value.normal_content,
+      });
+
+      return {
+        id: value.id,
+        name: value.name,
+        item_type: "report",
+        major_category: value.major_category,
+        status: "introduced",
+        publish_status: "draft" as const,
+        diet_session_id: value.diet_session_id ?? null,
+        submitted_date: value.submitted_date,
+        status_label: null,
+        status_note: null,
+        thumbnail_url: null,
+        share_thumbnail_url: null,
+        knowledge_source: null,
+        is_review_completed: false,
+        is_featured: false,
+        interview_enabled: true,
+        use_knowledge_source_in_chat: true,
+        normal_title: budgetContentMetadata.normalTitle,
+        normal_summary: budgetContentMetadata.normalSummary,
+        normal_content: value.normal_content,
+        hard_title: budgetContentMetadata.hardTitle,
+        hard_summary: budgetContentMetadata.hardSummary,
+        hard_content: value.hard_content,
+        tag_ids: [],
+        new_tags: [],
+        sources: [],
+        publication_category: value.publication_category,
+      } satisfies AdminBillSaveInput;
+    }
+
     const hasTagLabelInput =
       value.tag_labels.some((label) => label.trim().length > 0) ||
       value.new_tag_labels.some((label) => label.trim().length > 0) ||
@@ -200,11 +310,11 @@ export const adminDraftBillApiSchema = z
         ...value.new_tag_labels,
         ...value.new_tags.map((tag) => tag.label),
       ],
-      value.major_category
+      majorCategory
     );
     const tagsFromFixedLabels = normalizedTags.labels.map((label) => ({
       label,
-      major_category: getAdminTagMajorCategory(label, value.major_category),
+      major_category: getAdminTagMajorCategory(label, majorCategory),
     }));
 
     const dedupedNewTags = new Map<string, NewTagInput>();
@@ -232,8 +342,8 @@ export const adminDraftBillApiSchema = z
       is_featured: value.is_featured,
       interview_enabled: true,
       use_knowledge_source_in_chat: true,
-      normal_title: value.normal_title,
-      normal_summary: value.normal_summary,
+      normal_title: value.normal_title ?? "",
+      normal_summary: value.normal_summary ?? "",
       normal_content: value.normal_content,
       hard_title: value.hard_title,
       hard_summary: value.hard_summary,

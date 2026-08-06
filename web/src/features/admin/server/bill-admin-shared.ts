@@ -22,6 +22,7 @@ export {
   billPublicationStatusLabel,
   normalizeBillPublicationCategory,
   PUBLICATION_CATEGORY_OPTIONS,
+  publicationCategoryLabel,
   publicationCategoryValues,
   splitAdminPublicationStatus,
   toAdminPublicationStatus,
@@ -107,8 +108,9 @@ export type AdminBillListItem = BillRow & {
 export type AdminBillSearchFilters = {
   query: string;
   publishStatus: "" | AdminPublicationStatus;
+  publicationCategory: "" | BillPublicationCategory;
   itemType: "" | BillItemType;
-  majorCategory: "" | MajorCategoryLabel;
+  majorCategory: string;
   statusLabel: string;
   thumbnail: "" | "with" | "without";
   officialSources: AdminBillSourceFilter;
@@ -222,7 +224,7 @@ export type AdminDraftBillApiPayload = {
   id: string;
   name: string;
   item_type: BillItemType;
-  major_category: MajorCategoryLabel;
+  major_category: string;
   diet_session_id: string | null;
   submitted_date: string | null;
   status: BillStatusEnum;

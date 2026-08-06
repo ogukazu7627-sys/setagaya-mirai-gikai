@@ -18,6 +18,8 @@ import {
   billPublicationStatusLabel,
   formatAdminDateTime,
   getPreviewPath,
+  PUBLICATION_CATEGORY_OPTIONS,
+  publicationCategoryLabel,
 } from "../server/bill-admin";
 import { AdminBillBulkSelectAll } from "./admin-bill-bulk-select-all";
 import { AdminDeleteBillButton } from "./admin-delete-bill-button";
@@ -54,6 +56,11 @@ function adminBillsPageHref(
   params.set("sort_order", sort.direction);
   setSearchParamIfPresent(params, "q", filters.query);
   setSearchParamIfPresent(params, "publish_status", filters.publishStatus);
+  setSearchParamIfPresent(
+    params,
+    "publication_category",
+    filters.publicationCategory
+  );
   setSearchParamIfPresent(params, "item_type", filters.itemType);
   setSearchParamIfPresent(params, "major_category", filters.majorCategory);
   setSearchParamIfPresent(params, "status_label", filters.statusLabel);
@@ -174,32 +181,12 @@ export function AdminBillList({
           <Button
             type="submit"
             name="bulk_publish_status"
-            value="published_general_question"
+            value="published"
             variant="outline"
             size="sm"
             disabled={bills.length === 0}
           >
-            公開（一般質問）にする
-          </Button>
-          <Button
-            type="submit"
-            name="bulk_publish_status"
-            value="published_budget"
-            variant="outline"
-            size="sm"
-            disabled={bills.length === 0}
-          >
-            公開（予算）にする
-          </Button>
-          <Button
-            type="submit"
-            name="bulk_publish_status"
-            value="published_report"
-            variant="outline"
-            size="sm"
-            disabled={bills.length === 0}
-          >
-            公開（報告事項）にする
+            公開にする
           </Button>
           <Button
             type="submit"
@@ -211,6 +198,19 @@ export function AdminBillList({
           >
             下書きにする
           </Button>
+          {PUBLICATION_CATEGORY_OPTIONS.map((option) => (
+            <Button
+              key={option.value}
+              type="submit"
+              name="bulk_publication_category"
+              value={option.value}
+              variant="outline"
+              size="sm"
+              disabled={bills.length === 0}
+            >
+              {option.label}にする
+            </Button>
+          ))}
         </div>
       </form>
       <div className="overflow-x-auto">
@@ -249,6 +249,7 @@ export function AdminBillList({
                   sortKey="publish_status"
                 />
               </th>
+              <th className="px-4 py-3 font-bold">公開種別</th>
               <th className="px-4 py-3 font-bold">
                 <SortableHeader
                   filters={filters}
@@ -307,10 +308,12 @@ export function AdminBillList({
                           : "outline"
                       }
                     >
-                      {billPublicationStatusLabel(
-                        bill.publish_status,
-                        bill.publication_category
-                      )}
+                      {billPublicationStatusLabel(bill.publish_status)}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-4">
+                    <Badge variant="outline">
+                      {publicationCategoryLabel(bill.publication_category)}
                     </Badge>
                   </td>
                   <td className="px-4 py-4">
