@@ -10,6 +10,8 @@ const BUDGET_MAP_HOST_MESSAGE_SOURCE = "mirai-gikai-budget-host";
 const BUDGET_MAP_MESSAGE_VERSION = 2;
 const slugPattern = /^[a-z0-9-]{1,80}$/;
 const identityIdPattern = /^[A-Za-z0-9_-]{1,200}$/;
+// 質問案件のIDはUUID。親側で遷移先を組み立てる前にここで形を絞る。
+const questionIdPattern = /^[A-Za-z0-9_-]{1,200}$/;
 const datasetIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -28,7 +30,13 @@ export type BudgetMapAction =
   | {
       action: "select-program";
       budgetProgramIdentityId: string;
-    };
+    }
+  // 渡すのは questionId だけ。遷移先URLの組み立ては親ページの責務。
+  | {
+      action: "select-question";
+      questionId: string;
+    }
+  | { action: "tutorial-seen" };
 
 export type BudgetMapMessage = BudgetMapAction & {
   source: typeof BUDGET_MAP_MESSAGE_SOURCE;
@@ -121,6 +129,7 @@ export function parseBudgetMapMessage(
     case "back":
     case "focus-search":
     case "open-official-hierarchy":
+    case "tutorial-seen":
       return { action: value.action, activeDatasetId: value.activeDatasetId };
     case "select-category":
       return isSlug(value.categorySlug)
@@ -145,6 +154,15 @@ export function parseBudgetMapMessage(
         ? {
             action: value.action,
             budgetProgramIdentityId: value.budgetProgramIdentityId,
+            activeDatasetId: value.activeDatasetId,
+          }
+        : null;
+    case "select-question":
+      return typeof value.questionId === "string" &&
+        questionIdPattern.test(value.questionId)
+        ? {
+            action: value.action,
+            questionId: value.questionId,
             activeDatasetId: value.activeDatasetId,
           }
         : null;

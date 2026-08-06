@@ -26,13 +26,21 @@ export const routes = {
   budgetTopic: (categorySlug: string, topicSlug: string) =>
     `/budget?category=${encodeURIComponent(categorySlug)}&topic=${encodeURIComponent(topicSlug)}` as const,
   // 描画層は既定で v2。比較したいときだけ "v1" を渡す。
-  budgetMap: (variant?: "v1" | "v2", activeDatasetId?: string | null) => {
+  budgetMap: (
+    variant?: "v1" | "v2",
+    activeDatasetId?: string | null,
+    // 質問衛星の動作確認用データを出すかどうか。既定では出さない。
+    questionSample?: boolean
+  ) => {
     const searchParams = new URLSearchParams({ embed: "1" });
     if (variant === "v1") {
       searchParams.set("variant", "v1");
     }
     if (activeDatasetId !== undefined) {
       searchParams.set("dataset", activeDatasetId ?? "none");
+    }
+    if (questionSample) {
+      searchParams.set("questionSample", "1");
     }
     return `/budget/map?${searchParams.toString()}` as const;
   },
@@ -59,6 +67,9 @@ export const routes = {
     }
     return `${pathname}?${searchParams.toString()}` as const;
   },
+  // 議員の質問の詳細。マップの質問衛星から遷移する。
+  budgetQuestionDetail: (questionId: string) =>
+    `/budget/questions/${questionId}` as const,
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,
