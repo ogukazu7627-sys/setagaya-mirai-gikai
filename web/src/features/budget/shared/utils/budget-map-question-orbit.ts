@@ -70,6 +70,18 @@ export function getBudgetMapQuestionScale(mode: BudgetMapMode): number {
 }
 
 /**
+ * 表示用の議員名。誰の質問かがひと目で分かるよう必ず「議員」を添える。
+ * データ側に既に付いている場合は重ねない。
+ */
+export function formatBudgetMapQuestionMember(member: string): string {
+  const trimmed = member.trim();
+  if (trimmed === "") {
+    return "";
+  }
+  return trimmed.endsWith("議員") ? trimmed : `${trimmed}議員`;
+}
+
+/**
  * 質問バッジを顔の円に外接させる位置。水平から下向き20度の方向。
  *
  * 顔は `box-sizing: border-box` であることが前提。`content-box` だと
