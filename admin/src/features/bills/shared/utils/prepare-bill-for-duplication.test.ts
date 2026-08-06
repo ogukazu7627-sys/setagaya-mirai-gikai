@@ -18,6 +18,7 @@ const baseBill: Bill = {
   item_type: "bill",
   major_category: "教育🏫",
   originating_house: "HR",
+  publication_category: "report",
   publish_status: "published",
   published_at: null,
   submitted_date: null,
@@ -69,6 +70,7 @@ describe("prepareBillForDuplication", () => {
     expect(result.diet_session_id).toBe("session-001");
     expect(result.is_featured).toBe(true);
     expect(result.originating_house).toBe("HR");
+    expect(result.publication_category).toBe("report");
   });
 });
 

@@ -5,7 +5,11 @@ import {
   getAdminTagMajorCategory,
   normalizeAdminTagLabels,
 } from "../shared/fixed-admin-tags";
-import { majorCategoryLabels, type NewTagInput } from "./bill-admin-shared";
+import {
+  majorCategoryLabels,
+  type NewTagInput,
+  publicationCategoryValues,
+} from "./bill-admin-shared";
 
 export const billFormSchema = z
   .object({
@@ -22,6 +26,7 @@ export const billFormSchema = z
       "rejected",
     ]),
     publish_status: z.enum(["draft", "published"]),
+    publication_category: z.enum(publicationCategoryValues),
     diet_session_id: z.string().uuid().nullable(),
     submitted_date: z.string().nullable(),
     status_label: z.string().trim().nullable(),
@@ -105,6 +110,10 @@ export const adminDraftBillApiSchema = z
       ])
       .default("preparing"),
     publish_status: z.literal("draft").optional(),
+    publication_category: z
+      .enum(publicationCategoryValues)
+      .optional()
+      .default("report"),
     diet_session_id: z.string().uuid().nullable().optional(),
     submitted_date: nullableTrimmedStringSchema,
     status_label: nullableTrimmedStringSchema,
@@ -232,5 +241,6 @@ export const adminDraftBillApiSchema = z
       tag_ids: hasTagLabelInput ? [] : value.tag_ids,
       new_tags: Array.from(dedupedNewTags.values()),
       sources: value.sources,
+      publication_category: value.publication_category,
     } satisfies AdminBillSaveInput;
   });

@@ -10,7 +10,10 @@ import type {
 } from "@/features/bills/shared/types";
 import { getAdminTagMajorCategory } from "../shared/fixed-admin-tags";
 import { billFormSchema } from "./bill-admin-schemas";
-import type { NewTagInput } from "./bill-admin-shared";
+import {
+  type NewTagInput,
+  splitAdminPublicationStatus,
+} from "./bill-admin-shared";
 import { nullableString } from "./bill-admin-utils";
 
 export function redirectToAdminBillFormError(
@@ -89,13 +92,17 @@ function parseBillFormData(formData: FormData) {
   const majorCategory =
     (nullableString(formData.get("major_category")) as MajorCategoryLabel) ??
     "教育🏫";
+  const publicationStatus = splitAdminPublicationStatus(
+    nullableString(formData.get("publish_status"))
+  );
   return billFormSchema.parse({
     id,
     name: formData.get("name"),
     item_type: formData.get("item_type"),
     major_category: majorCategory,
     status: formData.get("status"),
-    publish_status: formData.get("publish_status"),
+    publish_status: publicationStatus.publish_status,
+    publication_category: publicationStatus.publication_category,
     diet_session_id: nullableString(formData.get("diet_session_id")),
     submitted_date: nullableString(formData.get("submitted_date")),
     status_label: nullableString(formData.get("status_label")),

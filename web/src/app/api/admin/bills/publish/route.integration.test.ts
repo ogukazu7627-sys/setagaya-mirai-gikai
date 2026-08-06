@@ -38,6 +38,7 @@ type PublishApiResponse = {
   billId?: string;
   previousPublishStatus?: "draft";
   publish_status?: "published";
+  publication_category?: "report" | "general_question" | "budget";
   is_review_completed?: boolean;
   publishedAt?: string;
   adminEditUrl?: string;
@@ -141,6 +142,7 @@ describe("/api/admin/bills/publish", () => {
       billId: bill.id,
       previousPublishStatus: "draft",
       publish_status: "published",
+      publication_category: "report",
       is_review_completed: true,
       unknownCouncilorNames: [],
     });
@@ -150,11 +152,14 @@ describe("/api/admin/bills/publish", () => {
 
     const { data: updatedBill } = await adminClient
       .from("bills")
-      .select("publish_status, is_review_completed, published_at")
+      .select(
+        "publish_status, publication_category, is_review_completed, published_at"
+      )
       .eq("id", bill.id)
       .single();
     expect(updatedBill).toMatchObject({
       publish_status: "published",
+      publication_category: "report",
       is_review_completed: true,
     });
     expect(updatedBill?.published_at).toBeTruthy();
@@ -170,6 +175,24 @@ describe("/api/admin/bills/publish", () => {
 
     expect(res.status, JSON.stringify(body)).toBe(200);
     expect(body.is_review_completed).toBe(false);
+  });
+
+  it("公開APIで公開カテゴリを指定できる", async () => {
+    const bill = await createDraftBillWithNormalContent();
+
+    const res = await postPublish({
+      id: bill.id,
+      publication_category: "budget",
+    });
+    const body = (await res.json()) as PublishApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    expect(body).toMatchObject({
+      success: true,
+      billId: bill.id,
+      publish_status: "published",
+      publication_category: "budget",
+    });
   });
 
   it("存在しないidは404を返す", async () => {

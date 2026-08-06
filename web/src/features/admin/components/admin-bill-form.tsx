@@ -18,13 +18,14 @@ import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import { saveAdminBillAction } from "../server/actions";
 import {
   type AdminBillFormData,
+  ADMIN_PUBLICATION_STATUS_OPTIONS,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
   BILL_STATUS_OPTIONS,
   getInitialAdminBillValues,
   getPreviewPath,
-  PUBLISH_STATUS_OPTIONS,
   SOURCE_TYPE_OPTIONS,
+  toAdminPublicationStatus,
 } from "../server/bill-admin";
 import { AdminDietSessionField } from "./admin-diet-session-field";
 import { AdminTagSelector } from "./admin-tag-selector";
@@ -219,10 +220,13 @@ export function AdminBillForm({
           <Field label="公開状態">
             <NativeSelect
               name="publish_status"
-              defaultValue={bill?.publish_status ?? "draft"}
+              defaultValue={toAdminPublicationStatus(
+                bill?.publish_status,
+                bill?.publication_category
+              )}
               required
             >
-              {PUBLISH_STATUS_OPTIONS.map((option) => (
+              {ADMIN_PUBLICATION_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

@@ -8,15 +8,16 @@ import { requireAdmin } from "@/features/admin/server/auth";
 import {
   ADMIN_BILL_SOURCE_FILTER_OPTIONS,
   ADMIN_BILLS_PER_PAGE,
+  ADMIN_PUBLICATION_STATUS_OPTIONS,
   type AdminBillSearchFilters,
   type AdminBillSort,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
+  adminPublicationStatusLabel,
   ensurePreviewToken,
   listAdminBills,
   normalizeAdminBillSearchFilters,
   normalizeAdminBillSort,
-  PUBLISH_STATUS_OPTIONS,
 } from "@/features/admin/server/bill-admin";
 import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
@@ -101,14 +102,7 @@ function hasDetailedFilters(filters: AdminBillSearchFilters) {
 }
 
 function bulkStatusLabel(status: string | undefined) {
-  switch (status) {
-    case "published":
-      return "公開";
-    case "draft":
-      return "下書き";
-    default:
-      return "指定した公開状態";
-  }
+  return adminPublicationStatusLabel(status);
 }
 
 function AdminBillSearchForm({
@@ -159,7 +153,7 @@ function AdminBillSearchForm({
               className={inputClassName}
             >
               <option value="">すべて</option>
-              {PUBLISH_STATUS_OPTIONS.map((option) => (
+              {ADMIN_PUBLICATION_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

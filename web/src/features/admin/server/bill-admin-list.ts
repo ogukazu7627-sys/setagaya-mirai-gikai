@@ -2,10 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { z } from "zod";
-import type {
-  BillItemType,
-  BillPublishStatus,
-} from "@/features/bills/shared/types";
+import type { BillItemType } from "@/features/bills/shared/types";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
 import {
   getAdminBillSourcePostgrestFilter,
@@ -17,13 +14,17 @@ import { mockBillToAdminListItem } from "./bill-admin-mock";
 import {
   ADMIN_BILLS_PER_PAGE,
   type AdminBillListItem,
+  type AdminPublicationStatus,
   type AdminBillSearchFilters,
   type AdminBillSort,
   type AdminBillSortDirection,
   type AdminBillSortKey,
   type AdminSupabaseClient,
+  adminPublicationStatusValues,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
+  splitAdminPublicationStatus,
+  toAdminPublicationStatus,
 } from "./bill-admin-shared";
 import { isMajorCategoryLabel, toDateInputValue } from "./bill-admin-utils";
 
@@ -58,7 +59,7 @@ type AdminBillSortParamInput = {
   sort_order?: string;
 };
 
-const publishStatusFilterValues = new Set(["draft", "published"]);
+const publishStatusFilterValues = new Set<string>(adminPublicationStatusValues);
 const itemTypeFilterValues = new Set<string>(
   BILL_ITEM_TYPE_OPTIONS.map((option) => option.value)
 );
@@ -96,7 +97,7 @@ export function normalizeAdminBillSearchFilters(
   const publishStatus = publishStatusFilterValues.has(
     input.publish_status ?? ""
   )
-    ? (input.publish_status as BillPublishStatus)
+    ? (input.publish_status as AdminPublicationStatus)
     : "";
   const itemType = itemTypeFilterValues.has(input.item_type ?? "")
     ? (input.item_type as BillItemType)
@@ -143,7 +144,11 @@ function adminBillMatchesSearchFilters(
   bill: AdminBillListItem,
   filters: AdminBillSearchFilters
 ) {
-  if (filters.publishStatus && bill.publish_status !== filters.publishStatus) {
+  if (
+    filters.publishStatus &&
+    toAdminPublicationStatus(bill.publish_status, bill.publication_category) !==
+      filters.publishStatus
+  ) {
     return false;
   }
   if (filters.itemType && bill.item_type !== filters.itemType) {
@@ -185,6 +190,7 @@ function adminBillMatchesSearchFilters(
     bill.status,
     bill.status_label,
     bill.status_note,
+    toAdminPublicationStatus(bill.publish_status, bill.publication_category),
     bill.knowledge_source,
     ...(bill.bill_contents ?? []).flatMap((content) => [
       content.title,
@@ -290,7 +296,10 @@ function getAdminBillSortValue(bill: AdminBillListItem, key: AdminBillSortKey) {
     case "major_category":
       return bill.major_category ?? "";
     case "publish_status":
-      return bill.publish_status;
+      return toAdminPublicationStatus(
+        bill.publish_status,
+        bill.publication_category
+      );
     case "updated_at":
       return bill.updated_at ?? "";
   }
@@ -368,7 +377,16 @@ export async function listAdminBills({
     query = query.in("id", keywordBillIds);
   }
   if (filters.publishStatus) {
-    query = query.eq("publish_status", filters.publishStatus);
+    const publicationStatus = splitAdminPublicationStatus(
+      filters.publishStatus
+    );
+    query = query.eq("publish_status", publicationStatus.publish_status);
+    if (publicationStatus.publish_status === "published") {
+      query = query.eq(
+        "publication_category",
+        publicationStatus.publication_category
+      );
+    }
   }
   if (filters.itemType) {
     query = query.eq("item_type", filters.itemType);

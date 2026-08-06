@@ -15,6 +15,7 @@ import {
   type AdminBillSort,
   type AdminBillSortDirection,
   type AdminBillSortKey,
+  billPublicationStatusLabel,
   formatAdminDateTime,
   getPreviewPath,
 } from "../server/bill-admin";
@@ -28,17 +29,6 @@ interface AdminBillListProps {
   perPage: number;
   sort: AdminBillSort;
   totalCount: number;
-}
-
-function publishStatusLabel(status: string) {
-  switch (status) {
-    case "published":
-      return "公開";
-    case "coming_soon":
-      return "近日公開";
-    default:
-      return "下書き";
-  }
 }
 
 function setSearchParamIfPresent(
@@ -184,12 +174,32 @@ export function AdminBillList({
           <Button
             type="submit"
             name="bulk_publish_status"
-            value="published"
+            value="published_general_question"
             variant="outline"
             size="sm"
             disabled={bills.length === 0}
           >
-            公開にする
+            公開（一般質問）にする
+          </Button>
+          <Button
+            type="submit"
+            name="bulk_publish_status"
+            value="published_budget"
+            variant="outline"
+            size="sm"
+            disabled={bills.length === 0}
+          >
+            公開（予算）にする
+          </Button>
+          <Button
+            type="submit"
+            name="bulk_publish_status"
+            value="published_report"
+            variant="outline"
+            size="sm"
+            disabled={bills.length === 0}
+          >
+            公開（報告事項）にする
           </Button>
           <Button
             type="submit"
@@ -297,7 +307,10 @@ export function AdminBillList({
                           : "outline"
                       }
                     >
-                      {publishStatusLabel(bill.publish_status)}
+                      {billPublicationStatusLabel(
+                        bill.publish_status,
+                        bill.publication_category
+                      )}
                     </Badge>
                   </td>
                   <td className="px-4 py-4">

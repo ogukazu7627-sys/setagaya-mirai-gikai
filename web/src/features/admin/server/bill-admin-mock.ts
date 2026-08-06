@@ -47,6 +47,7 @@ function mockBillToRow(bill: BillWithContent): BillRow {
     interview_enabled: bill.interview_enabled ?? true,
     is_review_completed: bill.is_review_completed ?? true,
     major_category: bill.major_category ?? null,
+    publication_category: bill.publication_category ?? "report",
     published_at: bill.published_at ?? null,
     publish_status_order: bill.publish_status_order ?? null,
     slug: bill.slug ?? null,

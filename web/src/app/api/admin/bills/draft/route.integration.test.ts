@@ -66,6 +66,7 @@ type DraftReadApiResponse = DraftApiResponse & {
     status_label: string | null;
     status_note: string | null;
     publish_status: "draft";
+    publication_category: "report" | "general_question" | "budget";
     is_review_completed: false;
     is_featured: boolean;
     interview_enabled: boolean;
@@ -101,6 +102,7 @@ type KnowledgeSourceExportApiResponse = {
     name: string;
     item_type: string;
     publish_status: string;
+    publication_category: "report" | "general_question" | "budget";
     submitted_date: string | null;
     major_category: string | null;
     status: string;
@@ -280,11 +282,12 @@ describe("/api/admin/bills/draft", () => {
     const { data: bill } = await adminClient
       .from("bills")
       .select(
-        "publish_status, is_review_completed, sources, submitted_date, interview_enabled"
+        "publish_status, publication_category, is_review_completed, sources, submitted_date, interview_enabled"
       )
       .eq("id", body.billId)
       .single();
     expect(bill?.publish_status).toBe("draft");
+    expect(bill?.publication_category).toBe("report");
     expect(bill?.is_review_completed).toBe(false);
     expect(bill?.interview_enabled).toBe(true);
     expect(bill?.submitted_date?.slice(0, 10)).toBe("2026-02-15");
@@ -596,6 +599,7 @@ describe("/api/admin/bills/draft", () => {
         status_label: "質問・答弁済み",
         status_note: "区から追加説明あり",
         publish_status: "draft",
+        publication_category: "report",
         is_review_completed: false,
         is_featured: true,
         interview_enabled: true,
@@ -703,6 +707,7 @@ describe("/api/admin/bills/draft", () => {
     ).toMatchObject({
       item_type: "report",
       publish_status: "draft",
+      publication_category: "report",
       knowledge_source: "draft報告事項のナレッジソースです。",
     });
     expect(
@@ -710,6 +715,7 @@ describe("/api/admin/bills/draft", () => {
     ).toMatchObject({
       item_type: "report",
       publish_status: "published",
+      publication_category: "report",
       knowledge_source: "published報告事項のナレッジソースです。",
     });
   });
