@@ -2,8 +2,8 @@ import "server-only";
 
 import { ArrowRight, MessageSquareText } from "lucide-react";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { routes } from "@/lib/routes";
 
 export type RecommendedCouncilor = {
@@ -28,11 +28,10 @@ export function RecommendedCouncilorCard({
       >
         <div className="flex flex-1 items-center gap-4 p-4">
           <span className="relative size-16 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white pc:size-18">
-            <Image
+            <CouncilorAvatarImage
               src={councilor.iconUrl}
               alt=""
-              width={72}
-              height={72}
+              size={72}
               className="size-full object-cover object-top"
             />
           </span>

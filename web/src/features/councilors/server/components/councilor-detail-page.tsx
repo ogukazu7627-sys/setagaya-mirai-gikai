@@ -8,9 +8,9 @@ import {
   Quote,
 } from "lucide-react";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { Container } from "@/components/layouts/container";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
@@ -44,11 +44,10 @@ export async function CouncilorDetailPage({
           <div className="bg-mirai-light-gradient px-5 py-6 sm:px-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <div className="relative size-24 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white p-1 sm:size-28">
-                <Image
+                <CouncilorAvatarImage
                   src={detail.councilor.iconUrl}
                   alt=""
-                  width={112}
-                  height={112}
+                  size={112}
                   priority
                   className="size-full rounded-full object-cover object-top"
                 />
@@ -134,11 +133,10 @@ export async function CouncilorDetailPage({
                         <div className="mt-5 rounded-md bg-mirai-surface-gray px-3 py-4">
                           <div className="flex items-start gap-2">
                             <span className="relative mt-0.5 size-9 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-white">
-                              <Image
+                              <CouncilorAvatarImage
                                 src={detail.councilor.iconUrl}
                                 alt=""
-                                width={36}
-                                height={36}
+                                size={36}
                                 className="size-full object-cover object-top"
                               />
                             </span>

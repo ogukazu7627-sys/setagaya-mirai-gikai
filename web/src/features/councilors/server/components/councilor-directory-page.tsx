@@ -5,8 +5,8 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { Container } from "@/components/layouts/container";
 import { routes } from "@/lib/routes";
 import { loadCouncilorDirectory } from "../loaders/load-councilor-directory";
@@ -87,11 +87,10 @@ export async function CouncilorDirectoryPage() {
                 >
                   <span className="relative size-20 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-mirai-gradient p-1">
                     <span className="relative block size-full overflow-hidden rounded-full bg-white">
-                      <Image
+                      <CouncilorAvatarImage
                         src={councilor.iconUrl}
                         alt=""
-                        width={72}
-                        height={72}
+                        size={72}
                         className="size-full object-cover object-top"
                       />
                     </span>
