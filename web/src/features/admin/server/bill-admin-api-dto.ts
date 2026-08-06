@@ -31,8 +31,8 @@ import {
   type GetAdminDraftBillApiResponse,
   type ListAdminBillKnowledgeSourcesApiResponse,
   type PublishAdminDraftBillApiResponse,
-  type SaveAdminDraftBillApiResponse,
   publicationCategoryValues,
+  type SaveAdminDraftBillApiResponse,
 } from "./bill-admin-shared";
 import {
   getFirstZodIssueMessage,
@@ -68,6 +68,17 @@ function assertDraftApiStateIsSafe(input: unknown) {
   }
 }
 
+function hasOwnDefinedField(input: unknown, field: string) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return false;
+  }
+
+  return (
+    Object.hasOwn(input, field) &&
+    (input as Record<string, unknown>)[field] !== undefined
+  );
+}
+
 function parseAdminDraftBillApiInput(input: unknown): AdminBillSaveInput {
   assertDraftApiStateIsSafe(input);
   const result = adminDraftBillApiSchema.safeParse(input);
@@ -98,6 +109,10 @@ export async function saveAdminDraftBillFromJson(
   const parsed = parseAdminDraftBillApiInput(input);
   const result = await saveAdminBillInput(parsed, {
     requireExistingDraft: true,
+    preserveExistingPublicationCategory: !hasOwnDefinedField(
+      input,
+      "publication_category"
+    ),
     previewCreatedBy: "admin-api",
   });
 
@@ -174,7 +189,7 @@ export async function publishAdminDraftBillFromJson(
   const [billResult, normalContentResult] = await Promise.all([
     supabase
       .from("bills")
-      .select("id, publish_status, is_review_completed")
+      .select("id, publish_status, publication_category, is_review_completed")
       .eq("id", parsed.id)
       .maybeSingle(),
     supabase
@@ -233,11 +248,14 @@ export async function publishAdminDraftBillFromJson(
   const now = new Date().toISOString();
   const isReviewCompleted =
     parsed.is_review_completed ?? billResult.data.is_review_completed;
+  const publicationCategory = hasOwnDefinedField(input, "publication_category")
+    ? parsed.publication_category
+    : billResult.data.publication_category;
   const { data: updatedBill, error: updateError } = await supabase
     .from("bills")
     .update({
       publish_status: "published",
-      publication_category: parsed.publication_category,
+      publication_category: publicationCategory,
       published_at: now,
       updated_at: now,
       is_review_completed: isReviewCompleted,

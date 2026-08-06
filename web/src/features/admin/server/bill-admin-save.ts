@@ -29,9 +29,9 @@ import {
   type AdminBillFormData,
   AdminBillSaveError,
   type AdminSupabaseClient,
+  adminPublicationStatusValues,
   type SaveAdminBillInputOptions,
   type SaveAdminBillInputResult,
-  adminPublicationStatusValues,
   splitAdminPublicationStatus,
 } from "./bill-admin-shared";
 import { resolveTagIds } from "./bill-admin-tags";
@@ -218,11 +218,12 @@ export async function saveAdminBillInput(
   const mode = input.id ? "updated" : "created";
   let billId = input.id;
   let thumbnailUrl = input.thumbnail_url;
+  let publicationCategory = input.publication_category;
 
   if (options.requireExistingDraft && billId) {
     const { data: existingBill, error: existingBillError } = await supabase
       .from("bills")
-      .select("id, publish_status")
+      .select("id, publish_status, publication_category")
       .eq("id", billId)
       .maybeSingle();
 
@@ -251,6 +252,10 @@ export async function saveAdminBillInput(
         "non_draft_update_not_allowed",
         billId
       );
+    }
+
+    if (options.preserveExistingPublicationCategory) {
+      publicationCategory = existingBill.publication_category;
     }
   }
 
@@ -281,7 +286,7 @@ export async function saveAdminBillInput(
     status_label: input.status_label,
     status_note: input.status_note,
     publish_status: input.publish_status,
-    publication_category: input.publication_category,
+    publication_category: publicationCategory,
     originating_house: "HR" as const,
     diet_session_id: input.diet_session_id,
     submitted_date: submittedDateToDbValue(input.submitted_date),

@@ -135,14 +135,17 @@ export function registerBillsTools(server: McpServer): void {
     {
       title: "議案の公開ステータスを変更",
       description:
-        "議案の publish_status を draft / published / coming_soon に変更する。",
+        "議案の publish_status を draft / published / coming_soon に変更する。publishedへする場合は publicationCategory で公開カテゴリも指定できる。",
       inputSchema: {
         billId: z.string().uuid(),
         publishStatus: z.enum(["draft", "published", "coming_soon"]),
+        publicationCategory: z
+          .enum(["report", "general_question", "budget"])
+          .optional(),
       },
     },
-    async ({ billId, publishStatus }) => {
-      await updateBillPublishStatus(billId, publishStatus);
+    async ({ billId, publishStatus, publicationCategory }) => {
+      await updateBillPublishStatus(billId, publishStatus, publicationCategory);
       await invalidateBillsCache();
       return jsonResult({ ok: true });
     }

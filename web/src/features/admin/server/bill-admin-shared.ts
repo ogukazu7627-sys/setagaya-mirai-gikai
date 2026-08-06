@@ -13,18 +13,19 @@ import type {
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import type { AdminBillSourceFilter } from "../shared/admin-bill-source-filter";
 import type { AdminPublicationStatus } from "../shared/admin-publication-status";
+
+export type { AdminPublicationStatus } from "../shared/admin-publication-status";
 export {
   ADMIN_PUBLICATION_STATUS_OPTIONS,
-  PUBLICATION_CATEGORY_OPTIONS,
   adminPublicationStatusLabel,
   adminPublicationStatusValues,
   billPublicationStatusLabel,
   normalizeBillPublicationCategory,
+  PUBLICATION_CATEGORY_OPTIONS,
   publicationCategoryValues,
   splitAdminPublicationStatus,
   toAdminPublicationStatus,
 } from "../shared/admin-publication-status";
-export type { AdminPublicationStatus } from "../shared/admin-publication-status";
 
 export type BillRow = Database["public"]["Tables"]["bills"]["Row"];
 export type BillContentRow =
@@ -172,6 +173,7 @@ export class AdminBillSaveError extends Error {
 export type SaveAdminBillInputOptions = {
   thumbnailFile?: File | null;
   requireExistingDraft?: boolean;
+  preserveExistingPublicationCategory?: boolean;
   previewCreatedBy?: string;
   now?: string;
 };
