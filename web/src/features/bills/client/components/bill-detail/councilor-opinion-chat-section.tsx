@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -27,6 +27,7 @@ type CouncilorOpinionChatSectionProps = {
 };
 
 const CHAT_BUBBLE_SELECTOR = "[data-councilor-chat-bubble]";
+type CouncilorAvatarLoading = "eager" | "lazy";
 type CarouselWatchDrag = Exclude<
   NonNullable<CarouselOptions>["watchDrag"],
   boolean | undefined
@@ -136,7 +137,11 @@ export function CouncilorOpinionChatSection({
           {currentGroup != null && (
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface-gray px-3 py-1 text-sm font-bold text-mirai-text">
-                <CouncilorAvatar group={currentGroup} size="sm" />
+                <CouncilorAvatar
+                  group={currentGroup}
+                  loading="eager"
+                  size="sm"
+                />
                 <span className="min-w-0 truncate">
                   {currentGroup.rawHeading}
                 </span>
@@ -181,10 +186,11 @@ export function CouncilorOpinionChatSection({
       {hasMultipleGroups ? (
         <Carousel opts={CAROUSEL_OPTIONS} setApi={setApi}>
           <CarouselContent>
-            {section.groups.map((group) => (
+            {section.groups.map((group, index) => (
               <CarouselItem key={`${group.groupIndex}-${group.rawHeading}`}>
                 <CouncilorOpinionChatGroupView
                   anchorId={getCouncilorStatementAnchorId(group.groupIndex)}
+                  avatarLoading={index === currentIndex ? "eager" : "lazy"}
                   group={group}
                   isScrollRegion
                 />
@@ -198,6 +204,7 @@ export function CouncilorOpinionChatSection({
             anchorId={getCouncilorStatementAnchorId(
               section.groups[0].groupIndex
             )}
+            avatarLoading="eager"
             group={section.groups[0]}
           />
         )
@@ -208,10 +215,12 @@ export function CouncilorOpinionChatSection({
 
 function CouncilorOpinionChatGroupView({
   anchorId,
+  avatarLoading = "lazy",
   group,
   isScrollRegion = false,
 }: {
   anchorId: string;
+  avatarLoading?: CouncilorAvatarLoading;
   group: CouncilorOpinionChatGroup;
   isScrollRegion?: boolean;
 }) {
@@ -229,6 +238,7 @@ function CouncilorOpinionChatGroupView({
       <div className="space-y-4">
         {group.messages.map((message) => (
           <CouncilorOpinionChatMessageView
+            avatarLoading={avatarLoading}
             group={group}
             key={`${message.messageIndex}-${message.rawSpeaker}`}
             message={message}
@@ -240,9 +250,11 @@ function CouncilorOpinionChatGroupView({
 }
 
 function CouncilorOpinionChatMessageView({
+  avatarLoading,
   group,
   message,
 }: {
+  avatarLoading: CouncilorAvatarLoading;
   group: CouncilorOpinionChatGroup;
   message: CouncilorOpinionChatMessage;
 }) {
@@ -256,7 +268,7 @@ function CouncilorOpinionChatMessageView({
       )}
     >
       {isQuestioner ? (
-        <CouncilorAvatar group={group} size="md" />
+        <CouncilorAvatar group={group} loading={avatarLoading} size="md" />
       ) : (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-mirai-border bg-white text-mirai-text-secondary">
           <Building2 className="size-5" />
@@ -289,9 +301,11 @@ function CouncilorOpinionChatMessageView({
 
 function CouncilorAvatar({
   group,
+  loading = "lazy",
   size,
 }: {
   group: CouncilorOpinionChatGroup;
+  loading?: CouncilorAvatarLoading;
   size: "sm" | "md";
 }) {
   const avatarSize = size === "sm" ? 32 : 44;
@@ -305,11 +319,11 @@ function CouncilorAvatar({
       )}
       data-councilor-avatar
     >
-      <Image
+      <CouncilorAvatarImage
         src={group.iconUrl}
         alt=""
-        width={avatarSize}
-        height={avatarSize}
+        loading={loading}
+        size={avatarSize}
         className="size-full object-cover object-top"
       />
     </span>
