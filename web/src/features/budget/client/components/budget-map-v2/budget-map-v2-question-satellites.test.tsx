@@ -69,6 +69,15 @@ describe("BudgetMapV2QuestionSatellites", () => {
     ).toBeInTheDocument();
   });
 
+  it("議員名は「議員」を添えて中央に置く", () => {
+    const { container } = renderSatellites();
+    const member = container.querySelector<HTMLElement>(
+      ".budget-map-v2-question-member"
+    );
+
+    expect(member?.textContent).toBe("世田谷太郎議員");
+  });
+
   it("顔写真を background-image で指定する", () => {
     const { container } = renderSatellites();
     const hit = container.querySelector<HTMLElement>(

@@ -1812,9 +1812,11 @@
     text-overflow: ellipsis;
   }
 
+  /* 議員名は質問文の下で中央に置く。 */
   .budget-map-v2-question-member {
     font-size: var(--budget-q-member-size);
     letter-spacing: 0.06em;
+    text-align: center;
     color: color-mix(in srgb, var(--budget-node-gold) 85%, transparent);
   }
 
