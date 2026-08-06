@@ -29,7 +29,7 @@ export const routes = {
   budgetMap: (
     variant?: "v1" | "v2",
     activeDatasetId?: string | null,
-    // 質問衛星の動作確認用データを出すかどうか。既定では出さない。
+    // 質問衛星の見本を出すかどうか。既定は表示で、止めるときだけ false。
     questionSample?: boolean
   ) => {
     const searchParams = new URLSearchParams({ embed: "1" });
@@ -39,8 +39,8 @@ export const routes = {
     if (activeDatasetId !== undefined) {
       searchParams.set("dataset", activeDatasetId ?? "none");
     }
-    if (questionSample) {
-      searchParams.set("questionSample", "1");
+    if (questionSample === false) {
+      searchParams.set("questionSample", "0");
     }
     return `/budget/map?${searchParams.toString()}` as const;
   },
