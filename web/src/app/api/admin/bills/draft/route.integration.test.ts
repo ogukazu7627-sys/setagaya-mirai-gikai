@@ -390,6 +390,32 @@ describe("/api/admin/bills/draft", () => {
     });
   });
 
+  it("publication_category省略時の既存draft更新では公開カテゴリを維持する", async () => {
+    const bill = await createTestBill({
+      publish_status: "draft",
+      publication_category: "budget",
+    });
+    billIds.push(bill.id);
+
+    const res = await postDraft(
+      validDraftBody({
+        id: bill.id,
+        name: "公開カテゴリ保持テスト",
+      })
+    );
+    const body = (await res.json()) as DraftApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    expect(body.mode).toBe("updated");
+
+    const { data: updatedBill } = await adminClient
+      .from("bills")
+      .select("publication_category")
+      .eq("id", bill.id)
+      .single();
+    expect(updatedBill?.publication_category).toBe("budget");
+  });
+
   it("期限切れpreview tokenがあるdraft更新ではtoken文字列を維持して期限だけ延長する", async () => {
     const bill = await createTestBill({ publish_status: "draft" });
     billIds.push(bill.id);

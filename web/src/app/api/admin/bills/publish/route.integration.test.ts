@@ -177,6 +177,30 @@ describe("/api/admin/bills/publish", () => {
     expect(body.is_review_completed).toBe(false);
   });
 
+  it("publication_category省略時は既存の公開カテゴリを維持して公開する", async () => {
+    const bill = await createDraftBillWithNormalContent({
+      publication_category: "budget",
+    });
+
+    const res = await postPublish({ id: bill.id });
+    const body = (await res.json()) as PublishApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    expect(body).toMatchObject({
+      success: true,
+      billId: bill.id,
+      publish_status: "published",
+      publication_category: "budget",
+    });
+
+    const { data: updatedBill } = await adminClient
+      .from("bills")
+      .select("publication_category")
+      .eq("id", bill.id)
+      .single();
+    expect(updatedBill?.publication_category).toBe("budget");
+  });
+
   it("公開APIで公開カテゴリを指定できる", async () => {
     const bill = await createDraftBillWithNormalContent();
 

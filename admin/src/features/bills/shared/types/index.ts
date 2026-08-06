@@ -7,6 +7,8 @@ export type BillUpdate = Database["public"]["Tables"]["bills"]["Update"];
 export type BillStatus = Database["public"]["Enums"]["bill_status_enum"];
 export type BillPublishStatus =
   Database["public"]["Enums"]["bill_publish_status"];
+export type BillPublicationCategory =
+  Database["public"]["Enums"]["bill_publication_category"];
 export type OriginatingHouse = Database["public"]["Enums"]["house_enum"];
 
 export type BillWithContent = Bill & {

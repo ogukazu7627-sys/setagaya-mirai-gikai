@@ -3,6 +3,7 @@ import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type {
   BillInsert,
+  BillPublicationCategory,
   BillPublishStatus,
   BillSortConfig,
 } from "../../shared/types";
@@ -73,12 +74,19 @@ export async function deleteBillById(id: string) {
 
 export async function updateBillPublishStatus(
   billId: string,
-  publishStatus: BillPublishStatus
+  publishStatus: BillPublishStatus,
+  publicationCategory?: BillPublicationCategory
 ) {
   const supabase = createAdminClient();
+  const updatePayload = {
+    publish_status: publishStatus,
+    ...(publicationCategory
+      ? { publication_category: publicationCategory }
+      : {}),
+  };
   const { error } = await supabase
     .from("bills")
-    .update({ publish_status: publishStatus })
+    .update(updatePayload)
     .eq("id", billId);
 
   if (error) {

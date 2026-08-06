@@ -387,22 +387,27 @@ describe("MCP bills tools", () => {
   });
 
   describe("update_bill_publish_status", () => {
-    it("publish_status を変更する", async () => {
+    it("publish_status と publication_category を変更する", async () => {
       const bill = await createTestBill({ publish_status: "draft" });
       billIds.push(bill.id);
 
       const result = await registry.callTool<{ ok: boolean }>(
         "update_bill_publish_status",
-        { billId: bill.id, publishStatus: "published" }
+        {
+          billId: bill.id,
+          publishStatus: "published",
+          publicationCategory: "general_question",
+        }
       );
       expect(result.ok).toBe(true);
 
       const { data } = await adminClient
         .from("bills")
-        .select("publish_status")
+        .select("publish_status, publication_category")
         .eq("id", bill.id)
         .single();
       expect(data?.publish_status).toBe("published");
+      expect(data?.publication_category).toBe("general_question");
     });
   });
 
