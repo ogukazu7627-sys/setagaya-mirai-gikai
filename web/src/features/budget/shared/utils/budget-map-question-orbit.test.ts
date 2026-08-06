@@ -4,6 +4,7 @@ import {
   BUDGET_MAP_QUESTION_Z_INDEX,
   type BudgetMapQuestion,
   createBudgetMapQuestionOrbits,
+  formatBudgetMapQuestionMember,
   getBudgetMapQuestionMarkOffset,
   getBudgetMapQuestionScale,
   selectBudgetMapQuestions,
@@ -24,6 +25,31 @@ describe("getBudgetMapQuestionScale", () => {
   it("モバイルでは縮める", () => {
     expect(getBudgetMapQuestionScale("desktop")).toBe(1);
     expect(getBudgetMapQuestionScale("mobile")).toBe(0.6);
+  });
+});
+
+describe("formatBudgetMapQuestionMember", () => {
+  it("必ず「議員」を添える", () => {
+    expect(formatBudgetMapQuestionMember("くろだあいこ")).toBe(
+      "くろだあいこ議員"
+    );
+  });
+
+  it("既に付いている場合は重ねない", () => {
+    expect(formatBudgetMapQuestionMember("くろだあいこ議員")).toBe(
+      "くろだあいこ議員"
+    );
+  });
+
+  it("前後の空白を落とす", () => {
+    expect(formatBudgetMapQuestionMember("  世田谷太郎  ")).toBe(
+      "世田谷太郎議員"
+    );
+  });
+
+  it("名前が空なら何も付けない", () => {
+    expect(formatBudgetMapQuestionMember("")).toBe("");
+    expect(formatBudgetMapQuestionMember("   ")).toBe("");
   });
 });
 

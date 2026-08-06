@@ -11,6 +11,7 @@ import {
   type BudgetMapQuestion,
   type BudgetMapQuestionOrbit,
   createBudgetMapQuestionOrbits,
+  formatBudgetMapQuestionMember,
 } from "../../../shared/utils/budget-map-question-orbit";
 import type { BudgetMapV2Style } from "./budget-map-v2-layers";
 
@@ -119,6 +120,7 @@ function BudgetMapV2QuestionSatellite({
   orbit: BudgetMapQuestionOrbit;
 }) {
   const { question } = orbit;
+  const memberLabel = formatBudgetMapQuestionMember(question.member);
 
   const handleClick = () => {
     if (disabled) {
@@ -189,7 +191,7 @@ function BudgetMapV2QuestionSatellite({
                   onOpenChange(null);
                 }
               }}
-              aria-label={`${question.member}議員の質問、${question.text}、質問の詳細を見る`}
+              aria-label={`${memberLabel}の質問、${question.text}、質問の詳細を見る`}
               aria-expanded={isOpen}
               className="budget-map-v2-question-hit h-auto hover:bg-transparent"
               style={
@@ -236,7 +238,7 @@ function BudgetMapV2QuestionSatellite({
                     {question.text}
                   </span>
                   <span className="budget-map-v2-question-member">
-                    {question.member}
+                    {memberLabel}
                   </span>
                 </span>
               </span>
