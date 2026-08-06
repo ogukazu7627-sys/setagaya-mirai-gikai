@@ -100,8 +100,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const mapVariant = parseBudgetMapVariant(
     searchParams.get(BUDGET_MAP_HOST_VARIANT_PARAM)
   );
-  // 質問衛星の動作確認用データ。実在の議員名と顔写真を使うため、
-  // ?questionSample=1 を付けたときだけ出す。
+  // 質問衛星の見本。既定で表示し、?questionSample=0 で止められる。
   const showSampleQuestions = shouldShowBudgetMapSampleQuestions(
     searchParams.get(BUDGET_MAP_SAMPLE_QUESTION_PARAM)
   );
@@ -163,15 +162,15 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // 動作確認用の質問を出している間は、分野や課題を移動しても
-  // 指定が外れないようURLへ持ち回る。
+  // 見本の表示指定は、分野や課題を移動しても外れないようURLへ持ち回る。
   const keepSampleQuestionParam = useCallback(
     (href: string) => {
-      if (!showSampleQuestions) {
+      // 既定は表示。止めている間だけ、移動しても指定が外れないよう持ち回る。
+      if (showSampleQuestions) {
         return href;
       }
       const separator = href.includes("?") ? "&" : "?";
-      return `${href}${separator}${BUDGET_MAP_SAMPLE_QUESTION_PARAM}=1`;
+      return `${href}${separator}${BUDGET_MAP_SAMPLE_QUESTION_PARAM}=0`;
     },
     [showSampleQuestions]
   );

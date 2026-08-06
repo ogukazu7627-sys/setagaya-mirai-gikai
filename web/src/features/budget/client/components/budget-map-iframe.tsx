@@ -43,7 +43,7 @@ type BudgetMapIframeProps = {
    * 未指定なら衛星を出さない。
    */
   questions?: readonly BudgetMapQuestion[];
-  /** 動作確認用データを iframe 側でも出すかどうか。 */
+  /** 見本の質問を iframe 側でも出すかどうか。既定は表示。 */
   questionSample?: boolean;
   onSelectQuestion?: (questionId: string) => void;
   onTutorialSeen?: () => void;
@@ -65,7 +65,7 @@ export function BudgetMapIframe({
   onSelectProgram,
   onSelectTopic,
   questions = [],
-  questionSample = false,
+  questionSample = true,
   onSelectQuestion,
   onTutorialSeen,
 }: BudgetMapIframeProps) {

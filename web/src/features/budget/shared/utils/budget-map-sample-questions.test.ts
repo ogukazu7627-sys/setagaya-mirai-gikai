@@ -7,25 +7,26 @@ import {
 } from "./budget-map-sample-questions";
 
 describe("shouldShowBudgetMapSampleQuestions", () => {
-  it("明示的に指定したときだけ出す", () => {
-    expect(shouldShowBudgetMapSampleQuestions("1")).toBe(true);
+  it("未指定なら表示する", () => {
+    expect(shouldShowBudgetMapSampleQuestions(undefined)).toBe(true);
+    expect(shouldShowBudgetMapSampleQuestions(null)).toBe(true);
+    expect(shouldShowBudgetMapSampleQuestions("")).toBe(true);
   });
 
-  it("未指定なら出さない", () => {
-    expect(shouldShowBudgetMapSampleQuestions(undefined)).toBe(false);
-    expect(shouldShowBudgetMapSampleQuestions(null)).toBe(false);
-    expect(shouldShowBudgetMapSampleQuestions("")).toBe(false);
-  });
-
-  it("未知の値では出さない", () => {
-    expect(shouldShowBudgetMapSampleQuestions("true")).toBe(false);
+  it("0 を指定したときだけ止める", () => {
     expect(shouldShowBudgetMapSampleQuestions("0")).toBe(false);
-    expect(shouldShowBudgetMapSampleQuestions("yes")).toBe(false);
+  });
+
+  it("0 以外の値では止めない", () => {
+    expect(shouldShowBudgetMapSampleQuestions("1")).toBe(true);
+    expect(shouldShowBudgetMapSampleQuestions("false")).toBe(true);
+    expect(shouldShowBudgetMapSampleQuestions("yes")).toBe(true);
   });
 
   it("配列で渡された場合は先頭を使う", () => {
+    expect(shouldShowBudgetMapSampleQuestions(["0"])).toBe(false);
     expect(shouldShowBudgetMapSampleQuestions(["1"])).toBe(true);
-    expect(shouldShowBudgetMapSampleQuestions([])).toBe(false);
+    expect(shouldShowBudgetMapSampleQuestions([])).toBe(true);
   });
 });
 
@@ -42,7 +43,7 @@ describe("getBudgetMapSampleQuestions", () => {
     });
   });
 
-  it("無効なら空にする。既定で本番へ出さないため", () => {
+  it("止めているときは空にする", () => {
     expect(getBudgetMapSampleQuestions(false)).toEqual([]);
   });
 });
