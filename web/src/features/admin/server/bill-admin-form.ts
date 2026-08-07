@@ -4,6 +4,10 @@ import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
+import {
+  BUDGET_OVERALL_MAJOR_CATEGORY,
+  buildBudgetContentMetadata,
+} from "@/features/admin/shared/admin-budget-form-values";
 import type {
   BillSource,
   MajorCategoryLabel,
@@ -12,9 +16,10 @@ import { getAdminTagMajorCategory } from "../shared/fixed-admin-tags";
 import { billFormSchema } from "./bill-admin-schemas";
 import {
   type NewTagInput,
+  normalizeBillPublicationCategory,
   splitAdminPublicationStatus,
 } from "./bill-admin-shared";
-import { nullableString } from "./bill-admin-utils";
+import { isMajorCategoryLabel, nullableString } from "./bill-admin-utils";
 
 export function redirectToAdminBillFormError(
   billId: string | undefined,
@@ -63,6 +68,10 @@ function splitTagLabelInput(value: string): string[] {
     .filter(Boolean);
 }
 
+function stringFromFormDataEntry(value: FormDataEntryValue | null): string {
+  return typeof value === "string" ? value : "";
+}
+
 function newTagsFromFormData(
   formData: FormData,
   fallbackCategory: MajorCategoryLabel
@@ -89,40 +98,76 @@ function newTagsFromFormData(
 
 function parseBillFormData(formData: FormData) {
   const id = nullableString(formData.get("id")) ?? undefined;
+  const publicationCategory = normalizeBillPublicationCategory(
+    nullableString(formData.get("publication_category"))
+  );
+  const isBudget = publicationCategory === "budget";
   const majorCategory =
-    (nullableString(formData.get("major_category")) as MajorCategoryLabel) ??
-    "教育🏫";
+    nullableString(formData.get("major_category")) ??
+    (isBudget ? BUDGET_OVERALL_MAJOR_CATEGORY : "教育🏫");
+  const fallbackTagMajorCategory = isMajorCategoryLabel(majorCategory)
+    ? majorCategory
+    : "教育🏫";
   const publicationStatus = splitAdminPublicationStatus(
     nullableString(formData.get("publish_status"))
   );
+  const name = stringFromFormDataEntry(formData.get("name"));
+  const normalContent = stringFromFormDataEntry(formData.get("normal_content"));
+  const hardContent = nullableString(formData.get("hard_content"));
+  const budgetContentMetadata = isBudget
+    ? buildBudgetContentMetadata({
+        hardContent,
+        name,
+        normalContent,
+      })
+    : null;
+
   return billFormSchema.parse({
     id,
-    name: formData.get("name"),
-    item_type: formData.get("item_type"),
+    name,
+    item_type: isBudget ? "report" : formData.get("item_type"),
     major_category: majorCategory,
-    status: formData.get("status"),
+    status: isBudget ? "introduced" : formData.get("status"),
     publish_status: publicationStatus.publish_status,
-    publication_category: publicationStatus.publication_category,
+    publication_category: publicationCategory,
     diet_session_id: nullableString(formData.get("diet_session_id")),
     submitted_date: nullableString(formData.get("submitted_date")),
-    status_label: nullableString(formData.get("status_label")),
-    status_note: nullableString(formData.get("status_note")),
-    thumbnail_url: nullableString(formData.get("thumbnail_url")),
-    share_thumbnail_url: nullableString(formData.get("share_thumbnail_url")),
-    knowledge_source: nullableString(formData.get("knowledge_source")),
-    is_review_completed: formData.get("is_review_completed") === "on",
-    is_featured: formData.get("is_featured") === "on",
+    status_label: isBudget
+      ? null
+      : nullableString(formData.get("status_label")),
+    status_note: isBudget ? null : nullableString(formData.get("status_note")),
+    thumbnail_url: isBudget
+      ? null
+      : nullableString(formData.get("thumbnail_url")),
+    share_thumbnail_url: isBudget
+      ? null
+      : nullableString(formData.get("share_thumbnail_url")),
+    knowledge_source: isBudget
+      ? null
+      : nullableString(formData.get("knowledge_source")),
+    is_review_completed: isBudget
+      ? false
+      : formData.get("is_review_completed") === "on",
+    is_featured: isBudget ? false : formData.get("is_featured") === "on",
     interview_enabled: true,
     use_knowledge_source_in_chat: true,
-    normal_title: formData.get("normal_title"),
-    normal_summary: formData.get("normal_summary"),
-    normal_content: formData.get("normal_content"),
-    hard_title: nullableString(formData.get("hard_title")),
-    hard_summary: nullableString(formData.get("hard_summary")),
-    hard_content: nullableString(formData.get("hard_content")),
-    tag_ids: formData.getAll("tag_ids"),
-    new_tags: newTagsFromFormData(formData, majorCategory),
-    sources: sourcesFromFormData(formData),
+    normal_title:
+      budgetContentMetadata?.normalTitle ?? formData.get("normal_title"),
+    normal_summary:
+      budgetContentMetadata?.normalSummary ?? formData.get("normal_summary"),
+    normal_content: normalContent,
+    hard_title:
+      budgetContentMetadata?.hardTitle ??
+      nullableString(formData.get("hard_title")),
+    hard_summary:
+      budgetContentMetadata?.hardSummary ??
+      nullableString(formData.get("hard_summary")),
+    hard_content: hardContent,
+    tag_ids: isBudget ? [] : formData.getAll("tag_ids"),
+    new_tags: isBudget
+      ? []
+      : newTagsFromFormData(formData, fallbackTagMajorCategory),
+    sources: isBudget ? [] : sourcesFromFormData(formData),
   });
 }
 

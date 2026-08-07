@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MajorCategoryLabel } from "@/features/bills/shared/types";
+import {
+  MAJOR_CATEGORY_OPTIONS,
+  type MajorCategoryLabel,
+} from "@/features/bills/shared/types";
 import {
   getAdminFixedTagGroups,
   isAllowedAdminTagLabel,
@@ -18,6 +21,16 @@ interface AdminTagSelectorProps {
   tags: TagOption[];
   selectedTagIds: string[];
   majorCategory: MajorCategoryLabel;
+}
+
+const majorCategoryOptionLabels = new Set<string>(
+  MAJOR_CATEGORY_OPTIONS.map((category) => category.label)
+);
+
+function normalizeTagMajorCategory(value: string): MajorCategoryLabel {
+  return majorCategoryOptionLabels.has(value)
+    ? (value as MajorCategoryLabel)
+    : "教育🏫";
 }
 
 export function AdminTagSelector({
@@ -56,7 +69,9 @@ export function AdminTagSelector({
     if (!majorCategorySelect) return;
 
     const syncMajorCategory = () => {
-      setCurrentMajorCategory(majorCategorySelect.value as MajorCategoryLabel);
+      setCurrentMajorCategory(
+        normalizeTagMajorCategory(majorCategorySelect.value)
+      );
     };
 
     syncMajorCategory();

@@ -11,15 +11,18 @@ import {
   ADMIN_PUBLICATION_STATUS_OPTIONS,
   type AdminBillSearchFilters,
   type AdminBillSort,
+  adminPublicationStatusLabel,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
-  adminPublicationStatusLabel,
   ensurePreviewToken,
   listAdminBills,
   normalizeAdminBillSearchFilters,
   normalizeAdminBillSort,
+  PUBLICATION_CATEGORY_OPTIONS,
+  publicationCategoryLabel,
 } from "@/features/admin/server/bill-admin";
 import { appendAdminBillsReturnPath } from "@/features/admin/shared/admin-bill-return-path";
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "@/features/admin/shared/admin-budget-form-values";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
 import { routes } from "@/lib/routes";
 
@@ -31,6 +34,7 @@ interface AdminBillsPageProps {
     error?: string;
     q?: string;
     publish_status?: string;
+    publication_category?: string;
     item_type?: string;
     major_category?: string;
     status_label?: string;
@@ -39,6 +43,7 @@ interface AdminBillsPageProps {
     date_from?: string;
     date_to?: string;
     bulk_status?: string;
+    bulk_category?: string;
     bulk_updated?: string;
     page?: string;
     sort_by?: string;
@@ -74,6 +79,11 @@ function adminBillsHref(
   params.set("sort_order", sort.direction);
   setSearchParamIfPresent(params, "q", filters.query);
   setSearchParamIfPresent(params, "publish_status", filters.publishStatus);
+  setSearchParamIfPresent(
+    params,
+    "publication_category",
+    filters.publicationCategory
+  );
   setSearchParamIfPresent(params, "item_type", filters.itemType);
   setSearchParamIfPresent(params, "major_category", filters.majorCategory);
   setSearchParamIfPresent(params, "status_label", filters.statusLabel);
@@ -91,6 +101,7 @@ function adminBillsHref(
 function hasDetailedFilters(filters: AdminBillSearchFilters) {
   return Boolean(
     filters.publishStatus ||
+      filters.publicationCategory ||
       filters.itemType ||
       filters.majorCategory ||
       filters.statusLabel ||
@@ -101,8 +112,18 @@ function hasDetailedFilters(filters: AdminBillSearchFilters) {
   );
 }
 
-function bulkStatusLabel(status: string | undefined) {
-  return adminPublicationStatusLabel(status);
+function bulkUpdateLabel({
+  category,
+  status,
+}: {
+  category?: string;
+  status?: string;
+}) {
+  if (category) {
+    return `公開種別を${publicationCategoryLabel(category)}`;
+  }
+
+  return `公開状態を${adminPublicationStatusLabel(status)}`;
 }
 
 function AdminBillSearchForm({
@@ -161,6 +182,21 @@ function AdminBillSearchForm({
             </select>
           </label>
           <label className="grid gap-1.5">
+            <span className="text-sm font-bold">公開種別</span>
+            <select
+              name="publication_category"
+              defaultValue={filters.publicationCategory}
+              className={inputClassName}
+            >
+              <option value="">すべて</option>
+              {PUBLICATION_CATEGORY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1.5">
             <span className="text-sm font-bold">案件タイプ</span>
             <select
               name="item_type"
@@ -188,6 +224,9 @@ function AdminBillSearchForm({
                   {category.label}
                 </option>
               ))}
+              <option value={BUDGET_OVERALL_MAJOR_CATEGORY}>
+                {BUDGET_OVERALL_MAJOR_CATEGORY}
+              </option>
             </select>
           </label>
           <label className="grid gap-1.5">
@@ -338,8 +377,11 @@ export default async function AdminBillsPage({
         )}
         {params?.bulk_updated && (
           <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
-            {params.bulk_updated}件を
-            {bulkStatusLabel(params.bulk_status)}
+            {params.bulk_updated}件の
+            {bulkUpdateLabel({
+              category: params.bulk_category,
+              status: params.bulk_status,
+            })}
             にしました。
           </div>
         )}

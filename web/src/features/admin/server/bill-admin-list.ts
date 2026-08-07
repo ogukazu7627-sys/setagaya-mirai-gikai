@@ -2,7 +2,11 @@ import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
 import { z } from "zod";
-import type { BillItemType } from "@/features/bills/shared/types";
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "@/features/admin/shared/admin-budget-form-values";
+import type {
+  BillItemType,
+  BillPublicationCategory,
+} from "@/features/bills/shared/types";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
 import {
   getAdminBillSourcePostgrestFilter,
@@ -14,15 +18,18 @@ import { mockBillToAdminListItem } from "./bill-admin-mock";
 import {
   ADMIN_BILLS_PER_PAGE,
   type AdminBillListItem,
-  type AdminPublicationStatus,
   type AdminBillSearchFilters,
   type AdminBillSort,
   type AdminBillSortDirection,
   type AdminBillSortKey,
+  type AdminPublicationStatus,
   type AdminSupabaseClient,
   adminPublicationStatusValues,
   BILL_ITEM_TYPE_OPTIONS,
   BILL_STATUS_LABEL_OPTIONS,
+  normalizeBillPublicationCategory,
+  publicationCategoryLabel,
+  publicationCategoryValues,
   splitAdminPublicationStatus,
   toAdminPublicationStatus,
 } from "./bill-admin-shared";
@@ -45,6 +52,7 @@ export interface AdminBillListPage {
 type AdminBillSearchParamInput = {
   q?: string;
   publish_status?: string;
+  publication_category?: string;
   item_type?: string;
   major_category?: string;
   status_label?: string;
@@ -60,6 +68,9 @@ type AdminBillSortParamInput = {
 };
 
 const publishStatusFilterValues = new Set<string>(adminPublicationStatusValues);
+const publicationCategoryFilterValues = new Set<string>(
+  publicationCategoryValues
+);
 const itemTypeFilterValues = new Set<string>(
   BILL_ITEM_TYPE_OPTIONS.map((option) => option.value)
 );
@@ -99,12 +110,19 @@ export function normalizeAdminBillSearchFilters(
   )
     ? (input.publish_status as AdminPublicationStatus)
     : "";
+  const publicationCategory = publicationCategoryFilterValues.has(
+    input.publication_category ?? ""
+  )
+    ? normalizeBillPublicationCategory(input.publication_category)
+    : "";
   const itemType = itemTypeFilterValues.has(input.item_type ?? "")
     ? (input.item_type as BillItemType)
     : "";
-  const majorCategory = isMajorCategoryLabel(inputMajorCategory)
-    ? inputMajorCategory
-    : "";
+  const majorCategory =
+    isMajorCategoryLabel(inputMajorCategory) ||
+    inputMajorCategory === BUDGET_OVERALL_MAJOR_CATEGORY
+      ? inputMajorCategory
+      : "";
   const statusLabel = statusLabelFilterValues.has(input.status_label ?? "")
     ? (input.status_label ?? "")
     : "";
@@ -115,6 +133,7 @@ export function normalizeAdminBillSearchFilters(
   return {
     query: normalizeShortSearchText(input.q),
     publishStatus,
+    publicationCategory,
     itemType,
     majorCategory,
     statusLabel,
@@ -146,8 +165,13 @@ function adminBillMatchesSearchFilters(
 ) {
   if (
     filters.publishStatus &&
-    toAdminPublicationStatus(bill.publish_status, bill.publication_category) !==
-      filters.publishStatus
+    toAdminPublicationStatus(bill.publish_status) !== filters.publishStatus
+  ) {
+    return false;
+  }
+  if (
+    filters.publicationCategory &&
+    bill.publication_category !== filters.publicationCategory
   ) {
     return false;
   }
@@ -190,7 +214,8 @@ function adminBillMatchesSearchFilters(
     bill.status,
     bill.status_label,
     bill.status_note,
-    toAdminPublicationStatus(bill.publish_status, bill.publication_category),
+    toAdminPublicationStatus(bill.publish_status),
+    publicationCategoryLabel(bill.publication_category),
     bill.knowledge_source,
     ...(bill.bill_contents ?? []).flatMap((content) => [
       content.title,
@@ -296,10 +321,7 @@ function getAdminBillSortValue(bill: AdminBillListItem, key: AdminBillSortKey) {
     case "major_category":
       return bill.major_category ?? "";
     case "publish_status":
-      return toAdminPublicationStatus(
-        bill.publish_status,
-        bill.publication_category
-      );
+      return toAdminPublicationStatus(bill.publish_status);
     case "updated_at":
       return bill.updated_at ?? "";
   }
@@ -381,12 +403,12 @@ export async function listAdminBills({
       filters.publishStatus
     );
     query = query.eq("publish_status", publicationStatus.publish_status);
-    if (publicationStatus.publish_status === "published") {
-      query = query.eq(
-        "publication_category",
-        publicationStatus.publication_category
-      );
-    }
+  }
+  if (filters.publicationCategory) {
+    query = query.eq(
+      "publication_category",
+      filters.publicationCategory as BillPublicationCategory
+    );
   }
   if (filters.itemType) {
     query = query.eq("item_type", filters.itemType);
