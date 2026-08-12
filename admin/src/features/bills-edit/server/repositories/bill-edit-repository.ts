@@ -1,8 +1,11 @@
 import "server-only";
 
+import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { BillInsert } from "../../shared/types";
 import type { DifficultyLevel } from "../../shared/types/bill-contents";
+
+type BillUpdate = Database["public"]["Tables"]["bills"]["Update"];
 
 export async function findBillById(id: string) {
   const supabase = createAdminClient();
@@ -78,10 +81,7 @@ export async function createBillRecord(insertData: BillInsert) {
   return data;
 }
 
-export async function updateBillRecord(
-  id: string,
-  updateData: Record<string, unknown>
-) {
+export async function updateBillRecord(id: string, updateData: BillUpdate) {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("bills")

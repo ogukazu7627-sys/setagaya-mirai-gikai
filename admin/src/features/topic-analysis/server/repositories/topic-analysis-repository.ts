@@ -1,7 +1,11 @@
 import "server-only";
 
+import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { IntermediateResults, PhaseData } from "../../shared/types";
+
+type TopicAnalysisVersionUpdate =
+  Database["public"]["Tables"]["topic_analysis_versions"]["Update"];
 
 /**
  * 新しいバージョンを作成する（version番号は自動インクリメント）
@@ -49,7 +53,7 @@ export async function updateVersionStatus(
 ) {
   const supabase = createAdminClient();
 
-  const updateData: Record<string, unknown> = {
+  const updateData: TopicAnalysisVersionUpdate = {
     status,
     error_message: errorMessage ?? null,
   };

@@ -1,4 +1,5 @@
 import { createAdminClient } from "@mirai-gikai/supabase";
+import type { Database } from "@mirai-gikai/supabase";
 import type {
   BillContext,
   ProgressData,
@@ -7,6 +8,8 @@ import type {
 } from "../shared/types";
 
 type VersionStatus = "pending" | "running" | "completed" | "failed";
+type TopicAnalysisVersionUpdate =
+  Database["public"]["Tables"]["topic_analysis_version"]["Update"];
 
 /**
  * §8 フィルタ後の分析対象意見を取得する。
@@ -226,7 +229,7 @@ export async function updateVersionStatus(
   errorMessage?: string
 ): Promise<void> {
   const supabase = createAdminClient();
-  const patch: Record<string, unknown> = { status };
+  const patch: TopicAnalysisVersionUpdate = { status };
   if (status === "running") patch.started_at = new Date().toISOString();
   if (errorMessage !== undefined) patch.error_message = errorMessage;
   const { error } = await supabase
