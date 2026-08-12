@@ -10,7 +10,7 @@ export function createAdminClient() {
   );
 }
 
-const TABLES_TO_CLEAR = [
+const TABLES_WITH_ID_TO_CLEAR = [
   "interview_report",
   "interview_messages",
   "interview_sessions",
@@ -19,20 +19,28 @@ const TABLES_TO_CLEAR = [
   "mirai_stances",
   "chats",
   "bill_contents",
-  "bills_tags",
   "bills",
   "tags",
   "diet_sessions",
 ] as const;
 
+const TABLES_WITHOUT_ID_TO_CLEAR = ["bills_tags"] as const;
+
 export async function clearAllData(supabase: AdminClient) {
   console.log("🧹 Clearing existing data...");
 
-  for (const table of TABLES_TO_CLEAR) {
+  for (const table of TABLES_WITH_ID_TO_CLEAR) {
     await supabase
       .from(table)
       .delete()
       .neq("id", "00000000-0000-0000-0000-000000000000");
+  }
+
+  for (const table of TABLES_WITHOUT_ID_TO_CLEAR) {
+    await supabase
+      .from(table)
+      .delete()
+      .neq("created_at", "0001-01-01T00:00:00.000Z");
   }
 
   console.log("✅ Cleared existing data");
