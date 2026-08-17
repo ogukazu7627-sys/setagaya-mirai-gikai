@@ -20,6 +20,12 @@ const questions: BudgetMapQuestion[] = [
     member: "世田谷花子",
     photo: "/icons/councilors/setagaya-hanako.jpg",
   },
+  {
+    questionId: "question-3",
+    text: "防災備蓄の充実について",
+    member: "世田谷次郎",
+    photo: "/icons/councilors/setagaya-jiro.jpg",
+  },
 ];
 
 function renderSatellites(
@@ -65,6 +71,11 @@ describe("BudgetMapV2QuestionSatellites", () => {
     expect(
       screen.getByRole("button", {
         name: "世田谷花子議員の質問、給食費の負担軽減について、質問の詳細を見る",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "世田谷次郎議員の質問、防災備蓄の充実について、質問の詳細を見る",
       })
     ).toBeInTheDocument();
   });

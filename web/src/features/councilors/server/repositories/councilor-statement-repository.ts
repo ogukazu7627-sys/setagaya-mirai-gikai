@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient, type Database } from "@mirai-gikai/supabase";
+import { NORMAL_PUBLICATION_CATEGORIES } from "@/features/bills/shared/constants/publication-categories";
 import { extractCouncilorStatementsFromMarkdown } from "@/lib/markdown/extract-councilor-statements";
 import { buildCouncilorStatementRows } from "../../shared/utils/build-councilor-statement-rows";
 
@@ -189,7 +190,8 @@ export async function findPublishedCouncilorStatementCounts(): Promise<
     `
     )
     .eq("difficulty_level", "normal")
-    .eq("bills.publish_status", "published");
+    .eq("bills.publish_status", "published")
+    .in("bills.publication_category", NORMAL_PUBLICATION_CATEGORIES);
 
   if (error) {
     throw new Error(
@@ -244,7 +246,8 @@ export async function findPublishedCouncilorStatementCountsByCouncilorIds(
         )
         .eq("councilor_id", councilorId)
         .eq("difficulty_level", "normal")
-        .eq("bills.publish_status", "published");
+        .eq("bills.publish_status", "published")
+        .in("bills.publication_category", NORMAL_PUBLICATION_CATEGORIES);
 
       if (error) {
         throw new Error(
@@ -288,6 +291,7 @@ export async function findPublishedCouncilorStatementDetails({
     )
     .eq("difficulty_level", "normal")
     .eq("bills.publish_status", "published")
+    .in("bills.publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .order("statement_index", { ascending: true });
 
   query = councilorId

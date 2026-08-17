@@ -43,8 +43,6 @@ type BudgetMapIframeProps = {
    * 未指定なら衛星を出さない。
    */
   questions?: readonly BudgetMapQuestion[];
-  /** 見本の質問を iframe 側でも出すかどうか。既定は表示。 */
-  questionSample?: boolean;
   onSelectQuestion?: (questionId: string) => void;
   onTutorialSeen?: () => void;
 };
@@ -65,7 +63,6 @@ export function BudgetMapIframe({
   onSelectProgram,
   onSelectTopic,
   questions = [],
-  questionSample = true,
   onSelectQuestion,
   onTutorialSeen,
 }: BudgetMapIframeProps) {
@@ -89,10 +86,10 @@ export function BudgetMapIframe({
 
   const syncView = useCallback(() => {
     iframeRef.current?.contentWindow?.postMessage(
-      createBudgetMapHostMessage(view, activeDatasetId),
+      createBudgetMapHostMessage(view, activeDatasetId, questions),
       window.location.origin
     );
-  }, [activeDatasetId, view]);
+  }, [activeDatasetId, questions, view]);
 
   useEffect(() => {
     syncView();
@@ -254,7 +251,7 @@ export function BudgetMapIframe({
       <iframe
         key={`${activeDatasetId ?? "none"}:${frameAttempt}`}
         ref={iframeRef}
-        src={routes.budgetMap(variant, activeDatasetId, questionSample)}
+        src={routes.budgetMap(variant, activeDatasetId)}
         title="触れる予算マップ"
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="same-origin"

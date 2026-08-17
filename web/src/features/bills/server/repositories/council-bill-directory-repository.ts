@@ -1,8 +1,9 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import { extractCommitteeName } from "@/features/committees/shared/committee-matching";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import { extractCommitteeName } from "@/features/committees/shared/committee-matching";
+import { NORMAL_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
 import type { Bill, BillContent, BillItemType } from "../../shared/types";
 import type { CouncilBillDirectoryEntry } from "../../shared/types/council-bill-directory";
 
@@ -60,6 +61,7 @@ export async function findPublishedCouncilBillDirectoryEntries(
     )
     .in("diet_session_id", dietSessionIds)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
   if (error) {
@@ -111,6 +113,7 @@ export async function findPublishedCouncilBillCardRowsByIds(
     .in("id", billIds)
     .in("diet_session_id", dietSessionIds)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
   if (error) {

@@ -13,6 +13,7 @@ export function pickRandomPublishedBills(
     if (
       bill.id === currentBillId ||
       bill.publish_status !== "published" ||
+      bill.publication_category === "budget" ||
       seenBillIds.has(bill.id)
     ) {
       return false;

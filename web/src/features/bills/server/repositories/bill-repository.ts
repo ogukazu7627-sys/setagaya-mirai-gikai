@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import { NORMAL_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
 import type { Bill, BillDietSession } from "../../shared/types";
 
 type BillWithDietSession = Bill & {
@@ -36,6 +37,7 @@ export async function findPublishedBillsWithContents(
     `
     )
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("submitted_date", { ascending: false, nullsFirst: false });
 
@@ -75,6 +77,7 @@ export async function findPublishedBillsByCommitteeSearchTerm(
     `
     )
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .in("diet_session_id", dietSessionIds)
     .ilike("status_note", `%${searchTerm}%`)
@@ -107,6 +110,7 @@ export async function findPublishedBillById(id: string) {
     )
     .eq("id", id)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .single();
 
   if (error) {
@@ -270,6 +274,7 @@ export async function findPublishedBillsByDietSession(
     )
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("status_order", { ascending: true })
     .order("submitted_date", { ascending: false, nullsFirst: false });
@@ -312,6 +317,7 @@ export async function findPublishedBillsByDietSessionIds(
     )
     .in("diet_session_id", dietSessionIds)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("submitted_date", { ascending: false, nullsFirst: false });
 
@@ -352,6 +358,7 @@ export async function findPreviousSessionBills(
     )
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("status_order", { ascending: true })
     .order("submitted_date", { ascending: false, nullsFirst: false })
@@ -381,6 +388,7 @@ export async function countPublishedBillsByDietSession(
     })
     .eq("diet_session_id", dietSessionId)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
   if (error) {
@@ -452,6 +460,7 @@ export async function findPublishedBillsByTag(
     )
     .eq("tag_id", tagId)
     .eq("bills.publish_status", "published")
+    .in("bills.publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bills.bill_contents.difficulty_level", difficultyLevel);
 
   if (dietSessionId) {
@@ -502,6 +511,7 @@ export async function findFeaturedBillsWithContents(
     )
     .eq("is_featured", true)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("submitted_date", { ascending: false, nullsFirst: false });
 
@@ -558,6 +568,7 @@ export async function findFeaturedBillsByDietSessionIds(
     .in("diet_session_id", dietSessionIds)
     .eq("is_featured", true)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel)
     .order("submitted_date", { ascending: false, nullsFirst: false });
 
@@ -593,6 +604,7 @@ export async function findComingSoonBills(dietSessionId: string | null) {
     `
     )
     .eq("publish_status", "coming_soon")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .order("created_at", { ascending: false });
 
   if (dietSessionId) {

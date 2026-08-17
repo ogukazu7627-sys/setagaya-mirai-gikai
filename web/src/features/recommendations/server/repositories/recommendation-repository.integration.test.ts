@@ -25,10 +25,15 @@ describe("recommendation repository", () => {
     const published = await createTestBill({ publish_status: "published" });
     const draft = await createTestBill({ publish_status: "draft" });
     const hardOnly = await createTestBill({ publish_status: "published" });
-    billIds.push(published.id, draft.id, hardOnly.id);
+    const budget = await createTestBill({
+      publish_status: "published",
+      publication_category: "budget",
+    });
+    billIds.push(published.id, draft.id, hardOnly.id, budget.id);
     await createTestBillContent(published.id, { difficulty_level: "normal" });
     await createTestBillContent(draft.id, { difficulty_level: "normal" });
     await createTestBillContent(hardOnly.id, { difficulty_level: "hard" });
+    await createTestBillContent(budget.id, { difficulty_level: "normal" });
     const { data: tag } = await adminClient
       .from("tags")
       .select("id")
@@ -39,6 +44,7 @@ describe("recommendation repository", () => {
       createTestBillTag(published.id, tag.id),
       createTestBillTag(draft.id, tag.id),
       createTestBillTag(hardOnly.id, tag.id),
+      createTestBillTag(budget.id, tag.id),
     ]);
 
     const candidates = await findRecommendationCandidates();
@@ -46,9 +52,10 @@ describe("recommendation repository", () => {
     expect(candidateIds.has(published.id)).toBe(true);
     expect(candidateIds.has(draft.id)).toBe(false);
     expect(candidateIds.has(hardOnly.id)).toBe(false);
+    expect(candidateIds.has(budget.id)).toBe(false);
 
     const hydrated = await findRecommendationBillsByIds(
-      [published.id, draft.id],
+      [published.id, draft.id, budget.id],
       "normal"
     );
     expect(hydrated.map((bill) => bill.id)).toEqual([published.id]);

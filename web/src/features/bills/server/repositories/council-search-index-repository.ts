@@ -21,6 +21,7 @@ export type ExistingCouncilSearchChunk = {
 
 export type CouncilSearchIndexSourceResult = {
   source: CouncilSearchIndexSource | null;
+  publicationCategory: string | null;
   publishStatus: string | null;
   sessionStartDate: string | null;
 };
@@ -35,6 +36,7 @@ type BillSourceRow = {
   status_note: string | null;
   submitted_date: string | null;
   publish_status: string;
+  publication_category: string;
   diet_session:
     | { id: string; start_date: string }
     | Array<{ id: string; start_date: string }>
@@ -93,6 +95,7 @@ export async function findCouncilSearchIndexSource(
             status_note,
             submitted_date,
             publish_status,
+            publication_category,
             diet_session:diet_sessions (
               id,
               start_date
@@ -139,6 +142,7 @@ export async function findCouncilSearchIndexSource(
   if (!bill || !contentResult.data || !bill.diet_session_id) {
     return {
       source: null,
+      publicationCategory: bill?.publication_category ?? null,
       publishStatus: bill?.publish_status ?? null,
       sessionStartDate: session?.start_date ?? null,
     };
@@ -168,6 +172,7 @@ export async function findCouncilSearchIndexSource(
         contentText: statement.content_text,
       })),
     },
+    publicationCategory: bill.publication_category,
     publishStatus: bill.publish_status,
     sessionStartDate: session?.start_date ?? null,
   };

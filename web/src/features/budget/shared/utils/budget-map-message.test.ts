@@ -117,12 +117,28 @@ describe("budget map message", () => {
         current: { kind: "category", category },
         target: { kind: "topic", category, topic },
       },
-      TEST_ACTIVE_BUDGET_DATASET.id
+      TEST_ACTIVE_BUDGET_DATASET.id,
+      [
+        {
+          questionId: "11111111-1111-4111-8111-111111111111",
+          text: "教育予算についての質問",
+          member: "世田谷太郎",
+          photo: "/icons/councilors/member.jpg",
+        },
+      ]
     );
     const parsed = parseBudgetMapHostMessage(message);
 
     expect(parsed).toEqual({
       activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+      questions: [
+        {
+          questionId: "11111111-1111-4111-8111-111111111111",
+          text: "教育予算についての質問",
+          member: "世田谷太郎",
+          photo: "/icons/councilors/member.jpg",
+        },
+      ],
       view: {
         kind: "transitioning",
         current: { kind: "category", categorySlug: "education" },
@@ -146,18 +162,20 @@ describe("budget map message", () => {
     expect(
       parseBudgetMapHostMessage({
         source: "another-host",
-        version: 2,
+        version: 3,
         action: "sync-view",
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        questions: [],
         view: { kind: "overview" },
       })
     ).toBeNull();
     expect(
       parseBudgetMapHostMessage({
         source: "mirai-gikai-budget-host",
-        version: 2,
+        version: 3,
         action: "sync-view",
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        questions: [],
         view: {
           kind: "category",
           categorySlug: "https://example.com",
@@ -167,9 +185,10 @@ describe("budget map message", () => {
 
     const unknownReference = parseBudgetMapHostMessage({
       source: "mirai-gikai-budget-host",
-      version: 2,
+      version: 3,
       action: "sync-view",
       activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+      questions: [],
       view: {
         kind: "topic",
         categorySlug: "education",
@@ -181,6 +200,26 @@ describe("budget map message", () => {
       unknownReference
         ? resolveBudgetMapViewReference(exploration, unknownReference.view)
         : null
+    ).toBeNull();
+  });
+
+  it("親から渡す質問はUUIDと安全な表示値を検証する", () => {
+    expect(
+      parseBudgetMapHostMessage({
+        source: "mirai-gikai-budget-host",
+        version: 3,
+        action: "sync-view",
+        activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+        questions: [
+          {
+            questionId: "../admin",
+            text: "不正な質問",
+            member: "世田谷太郎",
+            photo: "https://example.com/member.jpg",
+          },
+        ],
+        view: { kind: "overview" },
+      })
     ).toBeNull();
   });
 });

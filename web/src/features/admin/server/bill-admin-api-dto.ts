@@ -8,6 +8,8 @@ import type {
   BillItemType,
   BillPublicationCategory,
 } from "@/features/bills/shared/types";
+import { validateBudgetQuestionPublication } from "@/features/budget/server/services/budget-question-publication";
+import { getBudgetQuestionCategoryByMajorCategory } from "@/features/budget/shared/constants/budget-question-categories";
 import { findUnknownCouncilorNamesByBillId } from "@/features/councilors/server/repositories/councilor-statement-repository";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { env } from "@/lib/env";
@@ -190,7 +192,9 @@ export async function publishAdminDraftBillFromJson(
   const [billResult, normalContentResult] = await Promise.all([
     supabase
       .from("bills")
-      .select("id, publish_status, publication_category, is_review_completed")
+      .select(
+        "id, major_category, publish_status, publication_category, is_review_completed"
+      )
       .eq("id", parsed.id)
       .maybeSingle(),
     supabase
@@ -252,6 +256,21 @@ export async function publishAdminDraftBillFromJson(
   const publicationCategory = hasOwnDefinedField(input, "publication_category")
     ? parsed.publication_category
     : billResult.data.publication_category;
+  if (publicationCategory === "budget") {
+    const validation = await validateBudgetQuestionPublication({
+      majorCategory: billResult.data.major_category,
+      normalContent: normalContentResult.data?.content ?? "",
+      supabase,
+    });
+    if (!validation.ok) {
+      throw new AdminBillSaveError(
+        validation.message,
+        409,
+        validation.code,
+        parsed.id
+      );
+    }
+  }
   const { data: updatedBill, error: updateError } = await supabase
     .from("bills")
     .update({
@@ -304,7 +323,14 @@ export async function publishAdminDraftBillFromJson(
       env.webUrl
     ).toString(),
     publicUrl: new URL(
-      routes.billDetail(updatedBill.id),
+      updatedBill.publication_category === "budget"
+        ? routes.budgetQuestionCategory(
+            getBudgetQuestionCategoryByMajorCategory(
+              billResult.data.major_category
+            )?.slug ?? "all",
+            updatedBill.id
+          )
+        : routes.billDetail(updatedBill.id),
       env.webUrl
     ).toString(),
     unknownCouncilorNames,

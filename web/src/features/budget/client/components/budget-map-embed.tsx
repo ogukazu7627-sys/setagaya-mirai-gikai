@@ -54,6 +54,8 @@ export function BudgetMapEmbed({
   tutorialSeen = false,
 }: BudgetMapEmbedProps) {
   const [view, setView] = useState<BudgetExplorerView>(initialView);
+  const [syncedQuestions, setSyncedQuestions] =
+    useState<readonly BudgetMapQuestion[]>(questions);
   const [selectedProgramReference, setSelectedProgramReference] =
     useState<SelectedProgramReference | null>(null);
   const stableView = getBudgetMapStableView(view);
@@ -104,6 +106,7 @@ export function BudgetMapEmbed({
       const nextView = resolveBudgetMapViewReference(exploration, message.view);
       if (nextView) {
         setView(nextView);
+        setSyncedQuestions(message.questions);
       }
     };
     window.addEventListener("message", handleMessage);
@@ -204,12 +207,14 @@ export function BudgetMapEmbed({
       if (view.kind === "transitioning") {
         return;
       }
-      if (!questions.some((question) => question.questionId === questionId)) {
+      if (
+        !syncedQuestions.some((question) => question.questionId === questionId)
+      ) {
         return;
       }
       postAction({ action: "select-question", questionId });
     },
-    [postAction, questions, view.kind]
+    [postAction, syncedQuestions, view.kind]
   );
 
   const networkProps = {
@@ -223,7 +228,7 @@ export function BudgetMapEmbed({
     onSelectProgram: selectProgram,
     onSelectTopic: selectTopic,
     selectedProgramIdentityId,
-    questions,
+    questions: syncedQuestions,
     onSelectQuestion: selectQuestion,
     signedIn,
     tutorialSeen,

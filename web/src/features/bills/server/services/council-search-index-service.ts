@@ -9,6 +9,7 @@ import {
 } from "../../shared/constants/council-ai-search";
 import { buildCouncilSearchChunks } from "../../shared/utils/build-council-search-chunks";
 import {
+  type ClaimedCouncilSearchIndexJob,
   claimCouncilSearchIndexJobs,
   completeCouncilSearchIndexJob,
   deleteCouncilSearchChunksByBillId,
@@ -16,7 +17,6 @@ import {
   failCouncilSearchIndexJob,
   findCouncilSearchIndexSource,
   findExistingCouncilSearchChunks,
-  type ClaimedCouncilSearchIndexJob,
   upsertCouncilSearchChunks,
 } from "../repositories/council-search-index-repository";
 import {
@@ -70,6 +70,7 @@ export async function syncCouncilSearchIndexForBill(
       getCalendarYearFromDate(now);
   if (
     sourceResult.publishStatus !== "published" ||
+    sourceResult.publicationCategory === "budget" ||
     !sourceResult.source ||
     !isCurrentYear
   ) {

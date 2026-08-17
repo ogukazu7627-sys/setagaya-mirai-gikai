@@ -109,7 +109,7 @@ describe("selectBudgetMapQuestions", () => {
 });
 
 describe("createBudgetMapQuestionOrbits", () => {
-  const questions = [0, 1].map(createQuestion);
+  const questions = [0, 1, 2].map(createQuestion);
 
   it("質問が0件なら衛星を作らない", () => {
     expect(
@@ -133,7 +133,7 @@ describe("createBudgetMapQuestionOrbits", () => {
     expect(orbits).toHaveLength(BUDGET_MAP_QUESTION_LIMIT);
   });
 
-  it("左右の側面へ振り分け、中心の真上・真下を通らせない", () => {
+  it("3件を左右上部と中央下部の別々の軌道へ振り分ける", () => {
     const orbits = createBudgetMapQuestionOrbits({
       center,
       questions,
@@ -141,11 +141,9 @@ describe("createBudgetMapQuestionOrbits", () => {
       mode: "desktop",
     });
 
-    expect(orbits[0]?.originX).toBe(304);
-    expect(orbits[1]?.originX).toBe(696);
-    for (const orbit of orbits) {
-      expect(Math.abs(orbit.originX - center.x)).toBeGreaterThan(150);
-    }
+    expect(orbits[0]).toMatchObject({ originX: 295, originY: 270 });
+    expect(orbits[1]).toMatchObject({ originX: 705, originY: 270 });
+    expect(orbits[2]).toMatchObject({ originX: 500, originY: 495 });
   });
 
   it("seed 固定で同じ軌道になる", () => {
@@ -174,11 +172,18 @@ describe("createBudgetMapQuestionOrbits", () => {
       mode: "desktop",
     });
 
-    for (const orbit of orbits) {
-      expect(orbit.amplitudeXPx).toBeGreaterThanOrEqual(66);
-      expect(orbit.amplitudeXPx).toBeLessThanOrEqual(82);
-      expect(orbit.amplitudeYPx).toBeGreaterThanOrEqual(74);
-      expect(orbit.amplitudeYPx).toBeLessThanOrEqual(92);
+    for (const [index, orbit] of orbits.entries()) {
+      if (index === 2) {
+        expect(orbit.amplitudeXPx).toBeGreaterThanOrEqual(58);
+        expect(orbit.amplitudeXPx).toBeLessThanOrEqual(70);
+        expect(orbit.amplitudeYPx).toBeGreaterThanOrEqual(28);
+        expect(orbit.amplitudeYPx).toBeLessThanOrEqual(38);
+      } else {
+        expect(orbit.amplitudeXPx).toBeGreaterThanOrEqual(44);
+        expect(orbit.amplitudeXPx).toBeLessThanOrEqual(56);
+        expect(orbit.amplitudeYPx).toBeGreaterThanOrEqual(48);
+        expect(orbit.amplitudeYPx).toBeLessThanOrEqual(60);
+      }
       expect(orbit.durationXSeconds).toBeGreaterThanOrEqual(27);
       expect(orbit.durationXSeconds).toBeLessThanOrEqual(35);
       expect(orbit.bobDurationSeconds).toBeGreaterThanOrEqual(3.6);

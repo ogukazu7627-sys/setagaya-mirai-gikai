@@ -4,14 +4,16 @@ import type {
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../types/budget-exploration";
+import type { BudgetMapQuestion } from "./budget-map-question-orbit";
 
 const BUDGET_MAP_MESSAGE_SOURCE = "mirai-gikai-budget-map";
 const BUDGET_MAP_HOST_MESSAGE_SOURCE = "mirai-gikai-budget-host";
-const BUDGET_MAP_MESSAGE_VERSION = 2;
+const BUDGET_MAP_MESSAGE_VERSION = 3;
 const slugPattern = /^[a-z0-9-]{1,80}$/;
 const identityIdPattern = /^[A-Za-z0-9_-]{1,200}$/;
 // 質問案件のIDはUUID。親側で遷移先を組み立てる前にここで形を絞る。
-const questionIdPattern = /^[A-Za-z0-9_-]{1,200}$/;
+const questionIdPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const datasetIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -70,12 +72,13 @@ export type BudgetMapHostMessage = {
   version: typeof BUDGET_MAP_MESSAGE_VERSION;
   action: "sync-view";
   activeDatasetId: string | null;
+  questions: BudgetMapQuestion[];
   view: BudgetMapViewReference;
 };
 
 export type ParsedBudgetMapHostMessage = Pick<
   BudgetMapHostMessage,
-  "activeDatasetId" | "view"
+  "activeDatasetId" | "questions" | "view"
 >;
 
 export function createBudgetMapMessage(
@@ -92,13 +95,15 @@ export function createBudgetMapMessage(
 
 export function createBudgetMapHostMessage(
   view: BudgetExplorerView,
-  activeDatasetId: string | null
+  activeDatasetId: string | null,
+  questions: readonly BudgetMapQuestion[] = []
 ): BudgetMapHostMessage {
   return {
     source: BUDGET_MAP_HOST_MESSAGE_SOURCE,
     version: BUDGET_MAP_MESSAGE_VERSION,
     action: "sync-view",
     activeDatasetId,
+    questions: questions.slice(0, 3),
     view:
       view.kind === "transitioning"
         ? {
@@ -184,9 +189,11 @@ export function parseBudgetMapHostMessage(
     return null;
   }
   const view = parseViewReference(value.view);
-  return view
+  const questions = parseQuestions(value.questions);
+  return view && questions
     ? {
         activeDatasetId: value.activeDatasetId,
+        questions,
         view,
       }
     : null;
@@ -363,4 +370,55 @@ function isDatasetId(value: unknown): value is string | null {
     value === null ||
     (typeof value === "string" && datasetIdPattern.test(value))
   );
+}
+
+function parseQuestions(value: unknown): BudgetMapQuestion[] | null {
+  if (!Array.isArray(value) || value.length > 3) {
+    return null;
+  }
+  const questions = value.map(parseQuestion);
+  return questions.every(
+    (question): question is BudgetMapQuestion => question !== null
+  )
+    ? questions
+    : null;
+}
+
+function parseQuestion(value: unknown): BudgetMapQuestion | null {
+  if (
+    !isRecord(value) ||
+    typeof value.questionId !== "string" ||
+    !questionIdPattern.test(value.questionId) ||
+    !isDisplayText(value.text, 300) ||
+    !isDisplayText(value.member, 100) ||
+    typeof value.photo !== "string" ||
+    !isSafePhotoUrl(value.photo)
+  ) {
+    return null;
+  }
+  return {
+    questionId: value.questionId,
+    text: value.text.trim(),
+    member: value.member.trim(),
+    photo: value.photo,
+  };
+}
+
+function isDisplayText(value: unknown, maxLength: number): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim().length > 0 &&
+    value.length <= maxLength
+  );
+}
+
+function isSafePhotoUrl(value: string): boolean {
+  if (value.startsWith("/") && !value.startsWith("//")) {
+    return true;
+  }
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
 }

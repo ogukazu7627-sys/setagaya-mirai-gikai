@@ -127,6 +127,7 @@ export async function createTestBill(
       | "preparing";
     publish_status: "draft" | "published" | "coming_soon";
     publication_category: "report" | "general_question" | "budget";
+    major_category: string;
     diet_session_id: string;
     is_featured: boolean;
     submitted_date: string;
