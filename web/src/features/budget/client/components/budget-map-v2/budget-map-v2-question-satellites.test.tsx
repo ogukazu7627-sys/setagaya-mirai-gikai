@@ -157,11 +157,14 @@ describe("BudgetMapV2QuestionSatellites", () => {
     expect(openHit?.style.getPropertyValue("--budget-q-open-gap")).toBe("9px");
   });
 
-  it("静止時はラベルの背面、開いたら最前面へ置く", () => {
+  it("通常時から課題・事業ノードより手前に置く", () => {
     const { container, rerender } = renderSatellites();
-    const orbit = container.querySelector(".budget-map-v2-question-orbit");
+    const orbit = container.querySelector<HTMLElement>(
+      ".budget-map-v2-question-orbit"
+    );
 
     expect(orbit).toHaveAttribute("data-open", "false");
+    expect(orbit?.style.getPropertyValue("--budget-q-layer")).toBe("25");
 
     rerender(
       <BudgetMapV2QuestionSatellites
@@ -176,9 +179,11 @@ describe("BudgetMapV2QuestionSatellites", () => {
       />
     );
 
-    expect(
-      container.querySelector(".budget-map-v2-question-orbit")
-    ).toHaveAttribute("data-open", "true");
+    const openOrbit = container.querySelector<HTMLElement>(
+      ".budget-map-v2-question-orbit"
+    );
+    expect(openOrbit).toHaveAttribute("data-open", "true");
+    expect(openOrbit?.style.getPropertyValue("--budget-q-layer")).toBe("30");
   });
 
   it("マウスは hover で開き、クリックで遷移する", async () => {
