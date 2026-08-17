@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { CouncilorOpinionChatSection } from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
 import { normalizeSetagayaHeadings } from "@/features/bills/server/components/bill-detail/bill-content";
 import { BudgetQuestionNavigator } from "@/features/budget/client/components/budget-question-navigator";
+import {
+  groupBudgetQuestionsByCouncilor,
+  prioritizeFocusedBudgetQuestion,
+} from "@/features/budget/shared/utils/budget-question-groups";
 import { buildBudgetQuestionOverview } from "@/features/budget/shared/utils/budget-question-overview";
 import {
   parseMarkdown,
@@ -89,11 +93,20 @@ export function BudgetQuestionPage({
     category.slug === "all"
       ? routes.budget()
       : routes.budgetCategory(category.slug);
-  const activeQuestion =
+  const focusedQuestion =
     questions.find((question) => question.id === focusBillId) ?? questions[0];
-  const activeQuestionMetaText = activeQuestion
-    ? getBudgetQuestionMetaText(activeQuestion)
+  const councilorGroups = groupBudgetQuestionsByCouncilor(questions);
+  const activeCouncilorGroup = focusedQuestion
+    ? councilorGroups.find(
+        (group) => group.councilor.id === focusedQuestion.councilor.id
+      )
     : null;
+  const activeQuestions = activeCouncilorGroup
+    ? prioritizeFocusedBudgetQuestion(
+        activeCouncilorGroup.questions,
+        focusBillId
+      )
+    : [];
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -123,7 +136,7 @@ export function BudgetQuestionPage({
           </p>
         </header>
 
-        {!activeQuestion ? (
+        {!activeCouncilorGroup ? (
           <div className="mt-8 rounded-md border border-mirai-border bg-white px-6 py-12 text-center">
             <p className="font-bold text-mirai-text">
               この分野で公開中の議員質問はまだありません
@@ -135,47 +148,65 @@ export function BudgetQuestionPage({
         ) : (
           <>
             <BudgetQuestionNavigator
-              activeQuestionId={activeQuestion.id}
+              activeCouncilorId={activeCouncilorGroup.councilor.id}
               categorySlug={category.slug}
-              items={questions.map((question) => ({
-                id: question.id,
-                councilorDisplayName: question.councilor.displayName,
-                councilorIconUrl: question.councilor.iconUrl,
-                questionName: question.name,
+              items={councilorGroups.map((group) => ({
+                councilorId: group.councilor.id,
+                councilorDisplayName: group.councilor.displayName,
+                councilorIconUrl: group.councilor.iconUrl,
+                firstQuestionId: group.questions[0].id,
+                questionCount: group.questions.length,
               }))}
             />
 
-            <article
-              className="mt-8 scroll-mt-28"
-              id={`budget-question-${activeQuestion.id}`}
-            >
-              <header className="border-mirai-border border-b pb-6">
-                {activeQuestionMetaText ? (
-                  <p className="text-xs font-bold text-mirai-text-secondary">
-                    {activeQuestionMetaText}
-                  </p>
-                ) : null}
-                <h2 className="mt-2 text-xl font-bold leading-8 text-mirai-text sm:text-2xl">
-                  {activeQuestion.name}
-                </h2>
-                <p
-                  className="mt-4 rounded-md bg-primary-light px-4 py-3 leading-7 text-mirai-text"
-                  data-budget-question-overview
-                >
-                  {buildBudgetQuestionOverview({
-                    councilorDisplayName: activeQuestion.councilor.displayName,
-                    partyOrGroup: activeQuestion.partyOrGroup,
-                    questionName: activeQuestion.name,
-                  })}
-                </p>
-              </header>
+            <div className="mt-8 space-y-12" data-budget-councilor-questions>
+              {activeQuestions.map((question, index) => {
+                const metaText = getBudgetQuestionMetaText(question);
 
-              <div className="mt-6">
-                <BudgetQuestionMarkdown
-                  content={activeQuestion.selectedContent.content}
-                />
-              </div>
-            </article>
+                return (
+                  <article
+                    className="scroll-mt-28"
+                    data-focused-budget-question={
+                      question.id === focusBillId ? "true" : undefined
+                    }
+                    id={`budget-question-${question.id}`}
+                    key={question.id}
+                  >
+                    <header className="border-mirai-border border-b pb-6">
+                      {index > 0 ? (
+                        <p className="mb-3 text-xs font-bold text-primary-strong">
+                          同じ議員の別の質問
+                        </p>
+                      ) : null}
+                      {metaText ? (
+                        <p className="text-xs font-bold text-mirai-text-secondary">
+                          {metaText}
+                        </p>
+                      ) : null}
+                      <h2 className="mt-2 text-xl font-bold leading-8 text-mirai-text sm:text-2xl">
+                        {question.name}
+                      </h2>
+                      <p
+                        className="mt-4 rounded-md bg-primary-light px-4 py-3 leading-7 text-mirai-text"
+                        data-budget-question-overview
+                      >
+                        {buildBudgetQuestionOverview({
+                          councilorDisplayName: question.councilor.displayName,
+                          partyOrGroup: question.partyOrGroup,
+                          questionName: question.name,
+                        })}
+                      </p>
+                    </header>
+
+                    <div className="mt-6">
+                      <BudgetQuestionMarkdown
+                        content={question.selectedContent.content}
+                      />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </>
         )}
       </div>
