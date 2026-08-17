@@ -11,10 +11,21 @@ vi.mock(
   "@/features/budget/client/components/budget-question-navigator",
   () => ({
     BudgetQuestionNavigator: ({
-      activeQuestionId,
+      activeCouncilorId,
+      items,
     }: {
-      activeQuestionId: string;
-    }) => <div data-active-question-id={activeQuestionId} />,
+      activeCouncilorId: string;
+      items: Array<{ councilorId: string; questionCount: number }>;
+    }) => (
+      <div
+        data-active-councilor-id={activeCouncilorId}
+        data-active-question-count={
+          items.find((item) => item.councilorId === activeCouncilorId)
+            ?.questionCount
+        }
+        data-councilor-count={items.length}
+      />
+    ),
   })
 );
 
@@ -77,8 +88,14 @@ describe("BudgetQuestionMarkdown", () => {
 });
 
 describe("BudgetQuestionPage", () => {
-  it("選択した質問だけを表示する", async () => {
-    const createQuestion = (id: string, name: string, body: string) => ({
+  it("選択した議員の質問を縦に並べる", async () => {
+    const createQuestion = (
+      id: string,
+      name: string,
+      body: string,
+      councilorId: string,
+      councilorDisplayName: string
+    ) => ({
       id,
       name,
       categorySlug: "education" as const,
@@ -89,8 +106,8 @@ describe("BudgetQuestionPage", () => {
       dietSession: { id: "session", name: "予算特別委員会", slug: null },
       partyOrGroup: "会派名",
       councilor: {
-        id: `councilor-${id}`,
-        displayName: id === "first" ? "甲" : "乙",
+        id: councilorId,
+        displayName: councilorDisplayName,
         iconUrl: "/icons/councilor-default.svg",
       },
       contents: {
@@ -108,11 +125,26 @@ describe("BudgetQuestionPage", () => {
         content: `# 概要\n\n${body}`,
       },
     });
-    const first = createQuestion("first", "最初の質問", "最初の本文");
+    const first = createQuestion(
+      "first",
+      "同じ議員の最初の質問",
+      "同じ議員の最初の本文",
+      "councilor-a",
+      "甲"
+    );
     const focused = createQuestion(
       "focused",
       "学校施設の改修について",
-      "選択した本文"
+      "選択した本文",
+      "councilor-a",
+      "甲"
+    );
+    const otherCouncilor = createQuestion(
+      "other",
+      "別の議員の質問",
+      "別の議員の本文",
+      "councilor-b",
+      "乙"
     );
 
     const element = BudgetQuestionPage({
@@ -122,15 +154,21 @@ describe("BudgetQuestionPage", () => {
         majorCategory: "教育🏫",
       },
       focusBillId: focused.id,
-      questions: [first, focused],
+      questions: [first, otherCouncilor, focused],
     });
     const html = await renderSuspenseToHtml(element);
 
-    expect(html).toContain('data-active-question-id="focused"');
+    expect(html).toContain('data-active-councilor-id="councilor-a"');
+    expect(html).toContain('data-active-question-count="2"');
+    expect(html).toContain('data-councilor-count="2"');
     expect(html).toContain("選択した本文");
-    expect(html).not.toContain("最初の本文");
+    expect(html).toContain("同じ議員の最初の本文");
+    expect(html).not.toContain("別の議員の本文");
+    expect(html.indexOf("選択した本文")).toBeLessThan(
+      html.indexOf("同じ議員の最初の本文")
+    );
     expect(html).toContain(
-      "会派名の意見として、乙議員が「学校施設の改修」について質問しました。"
+      "会派名の意見として、甲議員が「学校施設の改修」について質問しました。"
     );
     expect(html).not.toContain("旧概要-focused");
   });

@@ -8,28 +8,29 @@ import { Button } from "@/components/ui/button";
 import { formatBudgetQuestionCouncilorLabel } from "@/features/budget/shared/utils/budget-question-overview";
 import { routes } from "@/lib/routes";
 
-export type BudgetQuestionNavigationItem = {
-  id: string;
+export type BudgetQuestionCouncilorNavigationItem = {
+  councilorId: string;
   councilorDisplayName: string;
   councilorIconUrl: string;
-  questionName: string;
+  firstQuestionId: string;
+  questionCount: number;
 };
 
 type BudgetQuestionNavigatorProps = {
-  activeQuestionId: string;
+  activeCouncilorId: string;
   categorySlug: string;
-  items: BudgetQuestionNavigationItem[];
+  items: BudgetQuestionCouncilorNavigationItem[];
 };
 
 export function BudgetQuestionNavigator({
-  activeQuestionId,
+  activeCouncilorId,
   categorySlug,
   items,
 }: BudgetQuestionNavigatorProps) {
   const router = useRouter();
   const activeIndex = Math.max(
     0,
-    items.findIndex((item) => item.id === activeQuestionId)
+    items.findIndex((item) => item.councilorId === activeCouncilorId)
   );
   const activeItem = items[activeIndex] ?? items[0];
   const previousItem = activeIndex > 0 ? items[activeIndex - 1] : null;
@@ -40,19 +41,22 @@ export function BudgetQuestionNavigator({
     return null;
   }
 
-  const navigateTo = (questionId: string) => {
-    if (questionId === activeQuestionId) {
+  const navigateTo = (item: BudgetQuestionCouncilorNavigationItem) => {
+    if (item.councilorId === activeCouncilorId) {
       return;
     }
     router.push(
-      routes.budgetQuestionCategory(categorySlug, questionId) as Route,
+      routes.budgetQuestionCategory(
+        categorySlug,
+        item.firstQuestionId
+      ) as Route,
       { scroll: false }
     );
   };
 
   return (
     <nav
-      aria-label="表示する議員の質問"
+      aria-label="表示する議員"
       className="mt-8 rounded-md border border-mirai-border bg-white p-4 sm:p-5"
       data-budget-question-navigator
     >
@@ -72,6 +76,9 @@ export function BudgetQuestionNavigator({
               )}
             </span>
           </span>
+          <span className="text-xs font-bold text-mirai-text-secondary">
+            質問 {activeItem.questionCount}件
+          </span>
           {items.length > 1 ? (
             <span
               aria-live="polite"
@@ -85,10 +92,10 @@ export function BudgetQuestionNavigator({
         {items.length > 1 ? (
           <div className="flex shrink-0 items-center gap-2">
             <Button
-              aria-label="前の議員の質問を見る"
+              aria-label="前の議員を見る"
               className="size-10 rounded-full"
               disabled={!previousItem}
-              onClick={() => previousItem && navigateTo(previousItem.id)}
+              onClick={() => previousItem && navigateTo(previousItem)}
               size="icon"
               type="button"
               variant="outline"
@@ -96,10 +103,10 @@ export function BudgetQuestionNavigator({
               <ArrowLeft aria-hidden="true" className="size-4" />
             </Button>
             <Button
-              aria-label="次の議員の質問を見る"
+              aria-label="次の議員を見る"
               className="size-10 rounded-full"
               disabled={!nextItem}
-              onClick={() => nextItem && navigateTo(nextItem.id)}
+              onClick={() => nextItem && navigateTo(nextItem)}
               size="icon"
               type="button"
               variant="outline"
@@ -111,20 +118,27 @@ export function BudgetQuestionNavigator({
       </div>
 
       {items.length > 1 ? (
-        <label className="mt-4 block" htmlFor="budget-question-selector">
+        <label className="mt-4 block" htmlFor="budget-councilor-selector">
           <span className="mb-2 block text-xs font-bold text-mirai-text-secondary">
-            議員・質問を選ぶ
+            議員を選ぶ
           </span>
           <select
             className="min-h-11 w-full rounded-md border border-mirai-border bg-white px-3 py-2 text-sm text-mirai-text outline-none focus-visible:border-primary-strong focus-visible:ring-2 focus-visible:ring-primary/30"
-            id="budget-question-selector"
-            onChange={(event) => navigateTo(event.target.value)}
-            value={activeQuestionId}
+            id="budget-councilor-selector"
+            onChange={(event) => {
+              const selectedItem = items.find(
+                (item) => item.councilorId === event.target.value
+              );
+              if (selectedItem) {
+                navigateTo(selectedItem);
+              }
+            }}
+            value={activeCouncilorId}
           >
             {items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {formatBudgetQuestionCouncilorLabel(item.councilorDisplayName)}{" "}
-                / {item.questionName}
+              <option key={item.councilorId} value={item.councilorId}>
+                {formatBudgetQuestionCouncilorLabel(item.councilorDisplayName)}
+                （{item.questionCount}件）
               </option>
             ))}
           </select>
