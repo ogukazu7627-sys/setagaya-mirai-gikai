@@ -29,7 +29,6 @@ export async function loadBudgetQuestionMapGroups(
 export async function loadBudgetQuestionCategoryPage(input: {
   categorySlug: string;
   difficultyLevel: DifficultyLevelEnum;
-  focusBillId?: string | null;
 }): Promise<{
   category: BudgetQuestionCategory;
   questions: Array<
@@ -60,18 +59,12 @@ export async function loadBudgetQuestionCategoryPage(input: {
         >;
       } => Boolean(question.selectedContent)
     )
-    .sort((left, right) => {
-      const leftFocused = left.id === input.focusBillId ? 1 : 0;
-      const rightFocused = right.id === input.focusBillId ? 1 : 0;
-      if (leftFocused !== rightFocused) {
-        return rightFocused - leftFocused;
-      }
-      return (
+    .sort(
+      (left, right) =>
         (right.submittedDate ?? right.updatedAt).localeCompare(
           left.submittedDate ?? left.updatedAt
         ) || left.name.localeCompare(right.name, "ja")
-      );
-    });
+    );
 
   return { category, questions };
 }

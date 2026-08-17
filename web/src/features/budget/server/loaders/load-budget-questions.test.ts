@@ -24,6 +24,7 @@ function createQuestion(
     publishedAt: "2026-08-02T00:00:00.000Z",
     updatedAt: "2026-08-03T00:00:00.000Z",
     dietSession: null,
+    partyOrGroup: "会派名",
     councilor: {
       id: `councilor-${id}`,
       displayName: `議員 ${id}`,
@@ -62,7 +63,7 @@ describe("loadBudgetQuestionCategoryPage", () => {
     expect(repositoryMock.findPublishedBudgetQuestions).not.toHaveBeenCalled();
   });
 
-  it("対象大分類だけを取得し、focus案件を先頭で強調できる順にする", async () => {
+  it("対象大分類だけを新しい順で取得する", async () => {
     repositoryMock.findPublishedBudgetQuestions.mockResolvedValue([
       createQuestion("older", { submittedDate: "2026-07-01" }),
       createQuestion("focused", { submittedDate: "2026-06-01" }),
@@ -75,14 +76,13 @@ describe("loadBudgetQuestionCategoryPage", () => {
     const result = await loadBudgetQuestionCategoryPage({
       categorySlug: "education",
       difficultyLevel: "normal",
-      focusBillId: "focused",
     });
 
     expect(result?.questions.map((question) => question.id)).toEqual([
-      "focused",
       "older",
+      "focused",
     ]);
-    expect(result?.questions[0]?.selectedContent.title).toBe("normal focused");
+    expect(result?.questions[1]?.selectedContent.title).toBe("normal focused");
   });
 
   it("hard版がない案件はnormal版を表示する", async () => {

@@ -28,6 +28,7 @@ export type PublishedBudgetQuestion = {
     name: string;
     slug: string | null;
   } | null;
+  partyOrGroup: string | null;
   councilor: BudgetQuestionCouncilor;
   contents: Partial<Record<DifficultyLevelEnum, BudgetQuestionContent>>;
 };

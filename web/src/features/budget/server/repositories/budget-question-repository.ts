@@ -22,6 +22,7 @@ type BudgetBillRow = {
 type BudgetStatementRow = {
   bill_id: string;
   councilor_id: string | null;
+  party_or_group: string | null;
   councilor:
     | {
         id: string;
@@ -90,6 +91,7 @@ export async function findPublishedBudgetQuestions(): Promise<
         `
           bill_id,
           councilor_id,
+          party_or_group,
           statement_index,
           councilor:councilors(id, display_name, icon_url, is_active)
         `
@@ -169,6 +171,7 @@ export async function findPublishedBudgetQuestions(): Promise<
         publishedAt: bill.published_at,
         updatedAt: bill.updated_at,
         dietSession,
+        partyOrGroup: statement.party_or_group,
         councilor: {
           id: councilor.id,
           displayName: councilor.display_name,
