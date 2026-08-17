@@ -23,6 +23,7 @@ import type {
 import { cn } from "@/lib/utils";
 
 type CouncilorOpinionChatSectionProps = {
+  scrollSingleGroup?: boolean;
   section: CouncilorOpinionChatSectionData;
 };
 
@@ -52,6 +53,7 @@ const CAROUSEL_OPTIONS: CarouselOptions = {
 };
 
 export function CouncilorOpinionChatSection({
+  scrollSingleGroup = false,
   section,
 }: CouncilorOpinionChatSectionProps) {
   const [api, setApi] = useState<CarouselApi>();
@@ -192,6 +194,7 @@ export function CouncilorOpinionChatSection({
                   anchorId={getCouncilorStatementAnchorId(group.groupIndex)}
                   avatarLoading={index === currentIndex ? "eager" : "lazy"}
                   group={group}
+                  isFixedHeightScrollRegion
                   isScrollRegion
                 />
               </CarouselItem>
@@ -206,6 +209,7 @@ export function CouncilorOpinionChatSection({
             )}
             avatarLoading="eager"
             group={section.groups[0]}
+            isScrollRegion={scrollSingleGroup}
           />
         )
       )}
@@ -217,11 +221,13 @@ function CouncilorOpinionChatGroupView({
   anchorId,
   avatarLoading = "lazy",
   group,
+  isFixedHeightScrollRegion = false,
   isScrollRegion = false,
 }: {
   anchorId: string;
   avatarLoading?: CouncilorAvatarLoading;
   group: CouncilorOpinionChatGroup;
+  isFixedHeightScrollRegion?: boolean;
   isScrollRegion?: boolean;
 }) {
   return (
@@ -230,7 +236,10 @@ function CouncilorOpinionChatGroupView({
       className={cn(
         "scroll-mt-24 rounded-md bg-mirai-surface-gray target:ring-2 target:ring-primary-accent target:ring-offset-2 target:ring-offset-white",
         isScrollRegion
-          ? "h-[560px] max-h-[72vh] overflow-y-auto overscroll-contain px-3 py-4 touch-pan-y [scrollbar-gutter:stable] md:h-[620px] md:px-4"
+          ? cn(
+              "max-h-[72vh] overflow-y-auto overscroll-contain px-3 py-4 touch-pan-y [scrollbar-gutter:stable] md:px-4",
+              isFixedHeightScrollRegion && "h-[560px] md:h-[620px]"
+            )
           : "px-3 py-4 md:px-4"
       )}
       data-councilor-chat-scroll-region={isScrollRegion ? "true" : undefined}

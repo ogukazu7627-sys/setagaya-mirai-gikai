@@ -27,6 +27,7 @@ function createQuestion(
     publishedAt: "2026-08-02T00:00:00Z",
     updatedAt: "2026-08-02T00:00:00Z",
     dietSession: null,
+    partyOrGroup: null,
     councilor: {
       id: councilorId,
       displayName: `議員${councilorId}`,

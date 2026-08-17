@@ -67,7 +67,6 @@ export default async function BudgetQuestionCategoryRoutePage({
   const pageData = await loadBudgetQuestionCategoryPage({
     categorySlug,
     difficultyLevel,
-    focusBillId,
   });
 
   if (!pageData) {

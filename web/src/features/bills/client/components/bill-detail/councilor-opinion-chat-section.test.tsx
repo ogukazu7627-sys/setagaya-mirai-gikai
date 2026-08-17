@@ -106,6 +106,22 @@ describe("CouncilorOpinionChatSection", () => {
     expect(container.querySelector("#councilor-opinion-0")).toBeInTheDocument();
   });
 
+  it("can contain a single councilor group in the existing scroll region", () => {
+    const { container } = render(
+      <CouncilorOpinionChatSection scrollSingleGroup section={baseSection} />
+    );
+
+    expect(
+      container.querySelector("[data-councilor-chat-scroll-region='true']")
+    ).toHaveClass("max-h-[72vh]", "overflow-y-auto");
+    expect(
+      container.querySelector("[data-councilor-chat-scroll-region='true']")
+    ).not.toHaveClass("h-[560px]");
+    expect(
+      screen.queryByRole("button", { name: "次の議員・会派を見る" })
+    ).not.toBeInTheDocument();
+  });
+
   it("renders carousel controls for multiple councilor groups", () => {
     const { container } = render(
       <CouncilorOpinionChatSection
