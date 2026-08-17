@@ -545,29 +545,27 @@ export async function saveAdminBill(formData: FormData) {
           );
         }
       })();
-  const knowledgeSource = isBudgetPublication
-    ? null
-    : await (async () => {
-        const file = formData.get("knowledge_source_file");
-        if (!isFormFile(file) || file.size === 0) {
-          return parsed.knowledge_source;
-        }
+  const knowledgeSource = await (async () => {
+    const file = formData.get("knowledge_source_file");
+    if (!isFormFile(file) || file.size === 0) {
+      return parsed.knowledge_source;
+    }
 
-        try {
-          return mergeKnowledgeSourceText(
-            parsed.knowledge_source,
-            await extractKnowledgeSourceFile(file)
-          );
-        } catch (error) {
-          redirectToAdminBillFormError(
-            parsed.id,
-            error instanceof Error
-              ? error.message
-              : "ナレッジソースファイルを読み取れませんでした。",
-            returnPath
-          );
-        }
-      })();
+    try {
+      return mergeKnowledgeSourceText(
+        parsed.knowledge_source,
+        await extractKnowledgeSourceFile(file)
+      );
+    } catch (error) {
+      redirectToAdminBillFormError(
+        parsed.id,
+        error instanceof Error
+          ? error.message
+          : "ナレッジソースファイルを読み取れませんでした。",
+        returnPath
+      );
+    }
+  })();
 
   let result: SaveAdminBillInputResult;
   try {
