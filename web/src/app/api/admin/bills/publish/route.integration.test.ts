@@ -49,6 +49,11 @@ type PublishApiResponse = {
 };
 
 const billIds: string[] = [];
+const VALID_BUDGET_CONTENT = `# 議員、会派の意見
+
+## 平塚けいじ議員
+
+予算の使い方について質問しました。`;
 
 async function postPublish(
   body: unknown,
@@ -178,9 +183,13 @@ describe("/api/admin/bills/publish", () => {
   });
 
   it("publication_category省略時は既存の公開カテゴリを維持して公開する", async () => {
-    const bill = await createDraftBillWithNormalContent({
-      publication_category: "budget",
-    });
+    const bill = await createDraftBillWithNormalContent(
+      {
+        major_category: "教育🏫",
+        publication_category: "budget",
+      },
+      { content: VALID_BUDGET_CONTENT }
+    );
 
     const res = await postPublish({ id: bill.id });
     const body = (await res.json()) as PublishApiResponse;
@@ -202,7 +211,10 @@ describe("/api/admin/bills/publish", () => {
   });
 
   it("公開APIで公開カテゴリを指定できる", async () => {
-    const bill = await createDraftBillWithNormalContent();
+    const bill = await createDraftBillWithNormalContent(
+      { major_category: "教育🏫" },
+      { content: VALID_BUDGET_CONTENT }
+    );
 
     const res = await postPublish({
       id: bill.id,

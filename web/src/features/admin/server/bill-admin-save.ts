@@ -12,6 +12,10 @@ import {
   normalizeAdminBillsReturnPath,
 } from "@/features/admin/shared/admin-bill-return-path";
 import {
+  validateBudgetQuestionPublication,
+  validateBudgetQuestionPublications,
+} from "@/features/budget/server/services/budget-question-publication";
+import {
   findUnknownCouncilorNamesByBillId,
   syncCouncilorBillStatements,
 } from "@/features/councilors/server/repositories/councilor-statement-repository";
@@ -258,6 +262,22 @@ export async function saveAdminBillInput(
 
     if (options.preserveExistingPublicationCategory) {
       publicationCategory = existingBill.publication_category;
+    }
+  }
+
+  if (isPublishing && publicationCategory === "budget") {
+    const validation = await validateBudgetQuestionPublication({
+      majorCategory: input.major_category,
+      normalContent: input.normal_content,
+      supabase,
+    });
+    if (!validation.ok) {
+      throw new AdminBillSaveError(
+        validation.message,
+        409,
+        validation.code,
+        billId
+      );
     }
   }
 
@@ -673,6 +693,60 @@ export async function bulkUpdateAdminBillPublishStatus(formData: FormData) {
 
   const now = new Date().toISOString();
   const supabase = createAdminClient();
+  const { data: selectedBills, error: selectedBillsError } = await supabase
+    .from("bills")
+    .select("id, name, major_category, publish_status, publication_category")
+    .in("id", billIdsResult.data);
+  if (selectedBillsError) {
+    redirectToAdminBillsWithParams(returnPath, {
+      error: `一斉編集対象の確認に失敗しました: ${selectedBillsError.message}`,
+    });
+  }
+
+  const budgetBillIds = (selectedBills ?? [])
+    .filter((bill) => {
+      const nextStatus = targetStatus?.publish_status ?? bill.publish_status;
+      const nextCategory = targetCategory ?? bill.publication_category;
+      return nextStatus === "published" && nextCategory === "budget";
+    })
+    .map((bill) => bill.id);
+  if (budgetBillIds.length > 0) {
+    const { data: contentRows, error: contentRowsError } = await supabase
+      .from("bill_contents")
+      .select("bill_id, content")
+      .in("bill_id", budgetBillIds)
+      .eq("difficulty_level", "normal");
+    if (contentRowsError) {
+      redirectToAdminBillsWithParams(returnPath, {
+        error: `予算案件本文の確認に失敗しました: ${contentRowsError.message}`,
+      });
+    }
+    const contentByBillId = new Map(
+      (contentRows ?? []).map((row) => [row.bill_id, row.content])
+    );
+    const validations = await validateBudgetQuestionPublications({
+      inputs: budgetBillIds.map((id) => ({
+        key: id,
+        majorCategory:
+          selectedBills?.find((bill) => bill.id === id)?.major_category ?? null,
+        normalContent: contentByBillId.get(id) ?? "",
+      })),
+      supabase,
+    });
+    const invalidBillId = budgetBillIds.find(
+      (id) => validations.get(id)?.ok === false
+    );
+    if (invalidBillId) {
+      const billName = selectedBills?.find(
+        (bill) => bill.id === invalidBillId
+      )?.name;
+      const validation = validations.get(invalidBillId);
+      redirectToAdminBillsWithParams(returnPath, {
+        error: `${billName ? `「${billName}」: ` : ""}${validation?.ok === false ? validation.message : "予算案件の議員情報を確認してください。"}`,
+      });
+    }
+  }
+
   const updatePayload = targetStatus
     ? {
         publish_status: targetStatus.publish_status,

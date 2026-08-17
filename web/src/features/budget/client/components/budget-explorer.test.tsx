@@ -4,9 +4,12 @@ import "@testing-library/jest-dom/vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { BUDGET_QUESTION_CATEGORIES } from "../../shared/constants/budget-question-categories";
 import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
 import type { BudgetProgramSearchResult } from "../../shared/types/budget";
 import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
+import type { BudgetQuestionMapGroups } from "../../shared/types/budget-question";
+import type { BudgetMapQuestion } from "../../shared/utils/budget-map-question-orbit";
 import { BudgetExplorer } from "./budget-explorer";
 
 const mocks = vi.hoisted(() => ({
@@ -32,13 +35,17 @@ vi.mock("./budget-map-iframe", () => ({
     onOpenOfficialHierarchy,
     onSelectCategory,
     onSelectProgram,
+    onSelectQuestion,
     onSelectTopic,
+    questions = [],
   }: {
     onBack: () => void;
     onOpenOfficialHierarchy: () => void;
     onSelectCategory: (slug: string) => void;
     onSelectProgram: (identityId: string) => void;
+    onSelectQuestion?: (questionId: string) => void;
     onSelectTopic: (categorySlug: string, topicSlug: string) => void;
+    questions?: readonly BudgetMapQuestion[];
   }) {
     return (
       <div>
@@ -60,6 +67,15 @@ vi.mock("./budget-map-iframe", () => ({
         <button type="button" onClick={onOpenOfficialHierarchy}>
           公式分類を見る
         </button>
+        {questions.map((question) => (
+          <button
+            key={question.questionId}
+            type="button"
+            onClick={() => onSelectQuestion?.(question.questionId)}
+          >
+            {question.text}
+          </button>
+        ))}
       </div>
     );
   },
@@ -138,6 +154,26 @@ const schoolSearchItem: BudgetProgramSearchResult["items"][number] = {
   score: 116,
   matchedField: "topic_name",
 };
+
+const overviewQuestion: BudgetMapQuestion = {
+  questionId: "11111111-1111-4111-8111-111111111111",
+  text: "予算全体の質問",
+  member: "世田谷太郎",
+  photo: "/icons/councilors/setagaya-taro.jpg",
+};
+const educationQuestion: BudgetMapQuestion = {
+  questionId: "22222222-2222-4222-8222-222222222222",
+  text: "教育予算の質問",
+  member: "世田谷花子",
+  photo: "/icons/councilors/setagaya-hanako.jpg",
+};
+const questionGroups = {
+  ...Object.fromEntries(
+    BUDGET_QUESTION_CATEGORIES.map((category) => [category.slug, []])
+  ),
+  all: [overviewQuestion],
+  education: [educationQuestion],
+} as BudgetQuestionMapGroups;
 
 function createSearchResult(
   items: BudgetProgramSearchResult["items"] = [schoolSearchItem]
@@ -326,6 +362,80 @@ describe("BudgetExplorer", () => {
         { scroll: true }
       )
     );
+  });
+
+  it("全体画面は全体の質問衛星から全体別ページへ移動する", async () => {
+    const user = userEvent.setup();
+    render(
+      <BudgetExplorer
+        exploration={exploration}
+        questionGroups={questionGroups}
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "予算全体の質問" })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "教育予算の質問" })
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "予算全体の質問" }));
+
+    expect(mocks.push).toHaveBeenCalledWith(
+      `/budget/questions/all?focus=${overviewQuestion.questionId}`
+    );
+  });
+
+  it("大分類画面は同じ大分類の質問衛星だけを表示する", async () => {
+    mocks.getSearchParam.mockImplementation((key: string) =>
+      key === "category" ? "education" : null
+    );
+    const user = userEvent.setup();
+    render(
+      <BudgetExplorer
+        exploration={exploration}
+        questionGroups={questionGroups}
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "教育予算の質問" })
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "予算全体の質問" })
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "教育予算の質問" }));
+
+    expect(mocks.push).toHaveBeenCalledWith(
+      `/budget/questions/education?focus=${educationQuestion.questionId}`
+    );
+  });
+
+  it("個別topic画面では質問衛星を表示しない", () => {
+    mocks.getSearchParam.mockImplementation((key: string) => {
+      if (key === "category") {
+        return "education";
+      }
+      if (key === "topic") {
+        return "school-facility-aging";
+      }
+      return null;
+    });
+    render(
+      <BudgetExplorer
+        exploration={exploration}
+        questionGroups={questionGroups}
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "教育予算の質問" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "予算全体の質問" })
+    ).not.toBeInTheDocument();
   });
 
   it("画面内の戻るは履歴へ逆向きの状態を積まずreplaceする", async () => {

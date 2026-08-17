@@ -87,6 +87,22 @@ describe("bill-repository 統合テスト", () => {
       expect(found).toBeUndefined();
     });
 
+    it("公開中でも予算案件は通常一覧に含まれない", async () => {
+      const bill = await createTestBill({
+        publish_status: "published",
+        publication_category: "budget",
+        submitted_date: new Date().toISOString(),
+      });
+      billIds.push(bill.id);
+      await createTestBillContent(bill.id, { difficulty_level: "normal" });
+
+      const result = await findPublishedBillsWithContents("normal");
+
+      expect(
+        result.find((candidate) => candidate.id === bill.id)
+      ).toBeUndefined();
+    });
+
     it("指定した難易度のコンテンツがない議案は含まれない", async () => {
       const bill = await createTestBill({
         publish_status: "published",
@@ -122,6 +138,18 @@ describe("bill-repository 統合テスト", () => {
 
     it("下書き議案は取得できない", async () => {
       const bill = await createTestBill({ publish_status: "draft" });
+      billIds.push(bill.id);
+
+      const result = await findPublishedBillById(bill.id);
+
+      expect(result).toBeNull();
+    });
+
+    it("公開中でも予算案件は通常詳細として取得できない", async () => {
+      const bill = await createTestBill({
+        publish_status: "published",
+        publication_category: "budget",
+      });
       billIds.push(bill.id);
 
       const result = await findPublishedBillById(bill.id);

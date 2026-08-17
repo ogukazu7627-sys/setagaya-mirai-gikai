@@ -12,7 +12,7 @@ import { createSeededRandom } from "./budget-map-v2-particles";
  */
 
 /** 中心の周りに置く最大数。増やすと中心付近が混雑して可読性が落ちる。 */
-export const BUDGET_MAP_QUESTION_LIMIT = 2;
+export const BUDGET_MAP_QUESTION_LIMIT = 3;
 
 /** カメラスケール。モバイルでは全体を縮める。 */
 export const BUDGET_MAP_QUESTION_SCALE: Readonly<
@@ -28,8 +28,11 @@ export const BUDGET_MAP_QUESTION_Z_INDEX = { idle: 6, open: 30 } as const;
 const AVATAR_BASE_PX = 34;
 const MARK_BASE_PX = 15;
 const MARK_ANGLE_DEGREES = 20;
-const ORBIT_OFFSET_X_PX = 196;
-const ORBIT_OFFSET_Y_PX = 22;
+const ORBIT_ORIGINS = [
+  { x: -205, y: -55 },
+  { x: 205, y: -55 },
+  { x: 0, y: 170 },
+] as const;
 
 export type BudgetMapQuestion = {
   /** 遷移に使う唯一のキー。URLは渡さない。 */
@@ -128,17 +131,22 @@ export function createBudgetMapQuestionOrbits(input: {
   const markOffset = getBudgetMapQuestionMarkOffset(avatarPx, markPx);
 
   return visible.map((question, index) => {
-    const side = index === 0 ? -1 : 1;
-    const amplitudeXPx = (66 + random() * 16) * scale;
-    const amplitudeYPx = (74 + random() * 18) * scale;
+    const origin = ORBIT_ORIGINS[index] ?? ORBIT_ORIGINS[0];
+    const isLowerOrbit = index === 2;
+    const amplitudeXPx =
+      (isLowerOrbit ? 58 + random() * 12 : 44 + random() * 12) * scale;
+    const amplitudeYPx =
+      (isLowerOrbit ? 28 + random() * 10 : 48 + random() * 12) * scale;
     const durationXSeconds = 27 + random() * 8;
-    // 負の遅延で位相をずらし、2つが同じ動きに見えないようにする。
-    const delaySeconds = -(durationXSeconds * (index === 0 ? 0.05 : 0.53));
+    // 負の遅延で位相をずらし、3つが同じ動きに見えないようにする。
+    const delaySeconds = -(
+      durationXSeconds * ([0.05, 0.53, 0.29][index] ?? 0.05)
+    );
     return {
       id: `${input.seed}-${index}`,
       question,
-      originX: round(input.center.x + side * ORBIT_OFFSET_X_PX * scale),
-      originY: round(input.center.y - ORBIT_OFFSET_Y_PX * scale),
+      originX: round(input.center.x + origin.x * scale),
+      originY: round(input.center.y + origin.y * scale),
       amplitudeXPx: Math.round(amplitudeXPx),
       amplitudeYPx: Math.round(amplitudeYPx),
       durationXSeconds: round(durationXSeconds),

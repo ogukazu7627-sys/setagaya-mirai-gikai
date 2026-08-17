@@ -6,6 +6,7 @@ import {
   findBillIdsWithPublicInterview,
   findTagsByBillIds,
 } from "@/features/bills/server/repositories/bill-repository";
+import { NORMAL_PUBLICATION_CATEGORIES } from "@/features/bills/shared/constants/publication-categories";
 import type {
   Bill,
   BillCardData,
@@ -207,6 +208,7 @@ export async function findRecommendationCandidates(): Promise<
     `
     )
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", "normal");
 
   if (error) {
@@ -279,7 +281,8 @@ export async function findPublishedBillIds(
     .from("bills")
     .select("id")
     .in("id", billIds)
-    .eq("publish_status", "published");
+    .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
 
   if (error) {
     throw new Error(`Failed to validate published bills: ${error.message}`);
@@ -323,6 +326,7 @@ export async function findRecommendationBillsByIds(
     )
     .in("id", billIds)
     .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
     .in("bill_contents.difficulty_level", difficulties);
 
   if (error) {

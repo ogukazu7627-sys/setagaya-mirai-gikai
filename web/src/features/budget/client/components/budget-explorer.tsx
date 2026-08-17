@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { routes } from "@/lib/routes";
+import { isBudgetQuestionCategorySlug } from "../../shared/constants/budget-question-categories";
 import type {
   BudgetProgramSearchItem,
   BudgetProgramSearchResult,
@@ -16,17 +17,13 @@ import type {
   BudgetExplorerTransitionTarget,
   BudgetExplorerView,
 } from "../../shared/types/budget-exploration";
+import type { BudgetQuestionMapGroups } from "../../shared/types/budget-question";
 import {
   getBudgetExplorerAnnouncement,
   getBudgetTopicKindLabel,
   resolveBudgetExplorerView,
 } from "../../shared/utils/budget-explorer-view";
 import { getBudgetMapTransitionDuration } from "../../shared/utils/budget-map-motion";
-import {
-  BUDGET_MAP_SAMPLE_QUESTION_PARAM,
-  getBudgetMapSampleQuestions,
-  shouldShowBudgetMapSampleQuestions,
-} from "../../shared/utils/budget-map-sample-questions";
 import {
   BUDGET_MAP_HOST_VARIANT_PARAM,
   parseBudgetMapVariant,
@@ -43,6 +40,7 @@ import {
 
 type BudgetExplorerProps = {
   exploration: BudgetExplorationData;
+  questionGroups?: BudgetQuestionMapGroups;
 };
 
 type BudgetExplorerRouteState = {
@@ -72,7 +70,10 @@ function getBudgetExplorerRouteState(
   };
 }
 
-export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
+export function BudgetExplorer({
+  exploration,
+  questionGroups,
+}: BudgetExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -100,14 +101,6 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   const mapVariant = parseBudgetMapVariant(
     searchParams.get(BUDGET_MAP_HOST_VARIANT_PARAM)
   );
-  // 質問衛星の見本。既定で表示し、?questionSample=0 で止められる。
-  const showSampleQuestions = shouldShowBudgetMapSampleQuestions(
-    searchParams.get(BUDGET_MAP_SAMPLE_QUESTION_PARAM)
-  );
-  const mapQuestions = useMemo(
-    () => getBudgetMapSampleQuestions(showSampleQuestions),
-    [showSampleQuestions]
-  );
   const stableView = useMemo(
     () =>
       resolveBudgetExplorerView(exploration, {
@@ -116,6 +109,14 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       }),
     [categorySlug, exploration, topicSlug]
   );
+  const mapQuestions =
+    stableView.kind === "overview"
+      ? (questionGroups?.all ?? [])
+      : stableView.kind === "category"
+        ? isBudgetQuestionCategorySlug(stableView.category.slug)
+          ? (questionGroups?.[stableView.category.slug] ?? [])
+          : []
+        : [];
   const mapView: BudgetExplorerView = transitionTarget
     ? {
         kind: "transitioning",
@@ -162,26 +163,13 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // 見本の表示指定は、分野や課題を移動しても外れないようURLへ持ち回る。
-  const keepSampleQuestionParam = useCallback(
-    (href: string) => {
-      // 既定は表示。止めている間だけ、移動しても指定が外れないよう持ち回る。
-      if (showSampleQuestions) {
-        return href;
-      }
-      const separator = href.includes("?") ? "&" : "?";
-      return `${href}${separator}${BUDGET_MAP_SAMPLE_QUESTION_PARAM}=0`;
-    },
-    [showSampleQuestions]
-  );
-
   const navigateWithTransition = useCallback(
     (
       target: BudgetExplorerTransitionTarget,
       rawHref: string,
       options: { replace?: boolean; scroll: boolean } = { scroll: false }
     ) => {
-      const href = keepSampleQuestionParam(rawHref);
+      const href = rawHref;
       if (transitionTarget) {
         return;
       }
@@ -204,7 +192,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
         reduceMotion ? 0 : getBudgetMapTransitionDuration(target)
       );
     },
-    [keepSampleQuestionParam, router, transitionTarget]
+    [router, transitionTarget]
   );
 
   // 探索データは親に全件あるため、同一ページの状態変更では
@@ -215,7 +203,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
       rawHref: string,
       options: { replace?: boolean } = {}
     ) => {
-      const href = keepSampleQuestionParam(rawHref);
+      const href = rawHref;
       if (transitionTarget) {
         return;
       }
@@ -241,7 +229,7 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
         reduceMotion ? 0 : getBudgetMapTransitionDuration(target)
       );
     },
-    [keepSampleQuestionParam, transitionTarget]
+    [transitionTarget]
   );
 
   const handleSelectCategory = useCallback(
@@ -302,9 +290,17 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
   // iframe からは questionId だけを受け取り、遷移先はここで組み立てる。
   const handleSelectQuestion = useCallback(
     (questionId: string) => {
-      router.push(routes.budgetQuestionDetail(questionId) as Route);
+      if (stableView.kind === "topic") {
+        return;
+      }
+      router.push(
+        routes.budgetQuestionCategory(
+          stableView.kind === "overview" ? "all" : stableView.category.slug,
+          questionId
+        ) as Route
+      );
     },
-    [router]
+    [router, stableView]
   );
 
   const handleBack = useCallback(() => {
@@ -466,7 +462,6 @@ export function BudgetExplorer({ exploration }: BudgetExplorerProps) {
             onSelectQuestion={handleSelectQuestion}
             onSelectTopic={handleSelectTopic}
             questions={mapQuestions}
-            questionSample={showSampleQuestions}
           />
           <div
             className="sr-only"

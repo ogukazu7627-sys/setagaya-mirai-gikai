@@ -183,9 +183,10 @@ describe("BudgetMapEmbed", () => {
           source: window.parent,
           data: {
             source: "mirai-gikai-budget-host",
-            version: 2,
+            version: 3,
             action: "sync-view",
             activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
+            questions: [],
             view: {
               kind: "category",
               categorySlug: "unknown-category",
@@ -235,7 +236,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "dataset-mismatch",
       },
@@ -354,7 +355,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-category",
         categorySlug: "education",
@@ -407,7 +408,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "back",
       },
@@ -436,7 +437,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-topic",
         categorySlug: "education",
@@ -472,7 +473,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "open-official-hierarchy",
       },
@@ -534,7 +535,7 @@ describe("BudgetMapEmbed", () => {
     expect(postMessage).toHaveBeenCalledWith(
       {
         source: "mirai-gikai-budget-map",
-        version: 2,
+        version: 3,
         activeDatasetId: TEST_ACTIVE_BUDGET_DATASET.id,
         action: "select-program",
         budgetProgramIdentityId: "bpi_school",

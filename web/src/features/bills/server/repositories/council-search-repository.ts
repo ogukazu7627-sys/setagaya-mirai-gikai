@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { NORMAL_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
 import type { BillItemType } from "../../shared/types";
 import type { CouncilSearchCouncilor } from "../../shared/types/council-ai-search";
 
@@ -57,10 +58,29 @@ export async function findRankedCouncilSearchBills(input: {
   if (error) {
     throw new Error("Failed to search council bills");
   }
-  return (data ?? []).map((row) => ({
-    billId: row.bill_id,
-    score: row.score,
-    semanticSimilarity: row.semantic_similarity,
-    keywordScore: row.keyword_score,
-  }));
+  const rankedRows = data ?? [];
+  if (rankedRows.length === 0) {
+    return [];
+  }
+  const { data: normalBills, error: normalBillsError } = await supabase
+    .from("bills")
+    .select("id")
+    .in(
+      "id",
+      rankedRows.map((row) => row.bill_id)
+    )
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
+  if (normalBillsError) {
+    throw new Error("Failed to validate council search results");
+  }
+  const normalBillIds = new Set((normalBills ?? []).map((bill) => bill.id));
+
+  return rankedRows
+    .filter((row) => normalBillIds.has(row.bill_id))
+    .map((row) => ({
+      billId: row.bill_id,
+      score: row.score,
+      semanticSimilarity: row.semantic_similarity,
+      keywordScore: row.keyword_score,
+    }));
 }

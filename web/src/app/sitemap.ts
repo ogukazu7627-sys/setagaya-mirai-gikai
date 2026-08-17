@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getBills } from "@/features/bills/server/loaders/get-bills";
+import { BUDGET_QUESTION_CATEGORIES } from "@/features/budget/shared/constants/budget-question-categories";
 import { LEARN_LESSONS } from "@/features/learn/shared/learn-lessons";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
@@ -33,6 +34,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
+  const budgetQuestionCategoryUrls = BUDGET_QUESTION_CATEGORIES.map(
+    (category) => ({
+      url: `${baseUrl}${routes.budgetQuestionCategory(category.slug)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })
+  );
 
   return [
     {
@@ -43,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...navigationUrls,
     ...learnLessonUrls,
+    ...budgetQuestionCategoryUrls,
     ...billUrls,
   ];
 }

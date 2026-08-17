@@ -3,12 +3,13 @@
 import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
 import { TEST_ACTIVE_BUDGET_DATASET } from "../../shared/test-data/education-school-aging-exploration";
+import type { BudgetExplorationData } from "../../shared/types/budget-exploration";
 import {
   createBudgetMapHostMessage,
   createBudgetMapMessage,
 } from "../../shared/utils/budget-map-message";
+import type { BudgetMapQuestion } from "../../shared/utils/budget-map-question-orbit";
 import {
   BUDGET_MAP_LOAD_TIMEOUT_MS,
   BudgetMapIframe,
@@ -62,9 +63,16 @@ const callbacks = {
   onRefreshDataset: vi.fn(),
   onSelectCategory: vi.fn(),
   onSelectProgram: vi.fn(),
+  onSelectQuestion: vi.fn(),
   onSelectTopic: vi.fn(),
 };
 const OTHER_DATASET_ID = "22222222-2222-4222-8222-222222222222";
+const KNOWN_QUESTION: BudgetMapQuestion = {
+  questionId: "11111111-1111-4111-8111-111111111111",
+  text: "教育予算の質問",
+  member: "世田谷太郎",
+  photo: "/icons/councilors/setagaya-taro.jpg",
+};
 
 describe("BudgetMapIframe", () => {
   beforeEach(() => {
@@ -437,6 +445,75 @@ describe("BudgetMapIframe", () => {
       "school-facility-aging"
     );
     expect(callbacks.onSelectProgram).toHaveBeenCalledWith("bpi_school");
+  });
+
+  it("親が選んだ質問衛星を同期し、検証済み案件IDだけを返す", () => {
+    render(
+      <BudgetMapIframe
+        {...callbacks}
+        exploration={exploration}
+        questions={[KNOWN_QUESTION]}
+        view={{ kind: "overview" }}
+      />
+    );
+    const iframe = screen.getByTitle("触れる予算マップ") as HTMLIFrameElement;
+    const postMessage = vi
+      .spyOn(iframe.contentWindow as Window, "postMessage")
+      .mockImplementation(() => undefined);
+
+    fireEvent.load(iframe);
+    expect(postMessage).toHaveBeenLastCalledWith(
+      createBudgetMapHostMessage(
+        { kind: "overview" },
+        TEST_ACTIVE_BUDGET_DATASET.id,
+        [KNOWN_QUESTION]
+      ),
+      window.location.origin
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: window.location.origin,
+          source: iframe.contentWindow,
+          data: createBudgetMapMessage(
+            { action: "ready" },
+            TEST_ACTIVE_BUDGET_DATASET.id
+          ),
+        })
+      );
+    });
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        source: iframe.contentWindow,
+        data: createBudgetMapMessage(
+          {
+            action: "select-question",
+            questionId: "33333333-3333-4333-8333-333333333333",
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
+      })
+    );
+    window.dispatchEvent(
+      new MessageEvent("message", {
+        origin: window.location.origin,
+        source: iframe.contentWindow,
+        data: createBudgetMapMessage(
+          {
+            action: "select-question",
+            questionId: KNOWN_QUESTION.questionId,
+          },
+          TEST_ACTIVE_BUDGET_DATASET.id
+        ),
+      })
+    );
+
+    expect(callbacks.onSelectQuestion).toHaveBeenCalledOnce();
+    expect(callbacks.onSelectQuestion).toHaveBeenCalledWith(
+      KNOWN_QUESTION.questionId
+    );
   });
 
   it("unmount後はiframeからのmessageを処理しない", () => {

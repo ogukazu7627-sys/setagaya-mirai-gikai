@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import type { Metadata, Route } from "next";
+import { notFound, redirect } from "next/navigation";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
@@ -8,6 +8,8 @@ import {
   BILL_SEO_SITE_NAME,
   buildBillSeoMetadata,
 } from "@/features/bills/shared/utils/bill-seo-metadata";
+import { findPublishedBudgetQuestionReferenceByBillId } from "@/features/budget/server/repositories/budget-question-repository";
+import { getBudgetQuestionCategoryBySlug } from "@/features/budget/shared/constants/budget-question-categories";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -21,7 +23,40 @@ export async function generateMetadata({
   params,
 }: BillDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const bill = await getBillById(id);
+  const [bill, budgetQuestionReference] = await Promise.all([
+    getBillById(id),
+    findPublishedBudgetQuestionReferenceByBillId(id),
+  ]);
+
+  if (budgetQuestionReference) {
+    const category = getBudgetQuestionCategoryBySlug(
+      budgetQuestionReference.categorySlug
+    );
+    const categoryName = category?.name ?? "予算";
+    const title = `${categoryName}に関する議員の発言 | 触れる予算`;
+    const description = `世田谷区議会で行われた${categoryName}分野の予算質問を、議員ごとに確認できます。`;
+    const canonical = routes.budgetQuestionCategory(
+      budgetQuestionReference.categorySlug
+    );
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        url: canonical,
+        images: ["/ogp.jpg"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: ["/ogp.jpg"],
+      },
+    };
+  }
 
   if (!bill) {
     return {
@@ -70,12 +105,26 @@ export async function generateMetadata({
 
 export default async function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = await params;
-  const [billWithContent, currentDifficulty, recommendedBills] =
-    await Promise.all([
-      getBillById(id),
-      getDifficultyLevel(),
-      getRandomBillRecommendations(id),
-    ]);
+  const [
+    billWithContent,
+    currentDifficulty,
+    recommendedBills,
+    budgetQuestionReference,
+  ] = await Promise.all([
+    getBillById(id),
+    getDifficultyLevel(),
+    getRandomBillRecommendations(id),
+    findPublishedBudgetQuestionReferenceByBillId(id),
+  ]);
+
+  if (budgetQuestionReference) {
+    redirect(
+      routes.budgetQuestionCategory(
+        budgetQuestionReference.categorySlug,
+        id
+      ) as Route
+    );
+  }
 
   if (!billWithContent) {
     notFound();
