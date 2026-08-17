@@ -1661,11 +1661,8 @@
     top: var(--budget-q-y);
     width: 0;
     height: 0;
-    z-index: 6;
-  }
-
-  .budget-map-v2-question-orbit[data-open="true"] {
-    z-index: 30;
+    /* 課題・事業ノード（20、選択中24）より手前で質問を操作できるようにする。 */
+    z-index: var(--budget-q-layer);
   }
 
   .budget-map-v2-question-ax,

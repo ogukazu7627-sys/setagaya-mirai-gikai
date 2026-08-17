@@ -142,6 +142,7 @@ function BudgetMapV2QuestionSatellite({
         {
           "--budget-q-x": `${orbit.originX}px`,
           "--budget-q-y": `${orbit.originY}px`,
+          "--budget-q-layer": isOpen ? "30" : "25",
         } as BudgetMapV2Style
       }
     >
