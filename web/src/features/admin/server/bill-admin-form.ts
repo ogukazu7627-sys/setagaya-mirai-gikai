@@ -142,9 +142,7 @@ function parseBillFormData(formData: FormData) {
     share_thumbnail_url: isBudget
       ? null
       : nullableString(formData.get("share_thumbnail_url")),
-    knowledge_source: isBudget
-      ? null
-      : nullableString(formData.get("knowledge_source")),
+    knowledge_source: nullableString(formData.get("knowledge_source")),
     is_review_completed: isBudget
       ? false
       : formData.get("is_review_completed") === "on",

@@ -282,7 +282,7 @@ export const adminDraftBillApiSchema = z
         status_note: null,
         thumbnail_url: null,
         share_thumbnail_url: null,
-        knowledge_source: null,
+        knowledge_source: value.knowledge_source,
         is_review_completed: false,
         is_featured: false,
         interview_enabled: true,
