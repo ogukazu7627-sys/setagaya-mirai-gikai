@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "../constants/budget-major-category";
 import type { BudgetQuestionCategorySlug } from "../constants/budget-question-categories";
 import type { PublishedBudgetQuestion } from "../types/budget-question";
 import {
@@ -20,7 +21,8 @@ function createQuestion(
     id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
     name: `予算質問${index}`,
     categorySlug,
-    majorCategory: categorySlug === "all" ? "全体" : "教育🏫",
+    majorCategory:
+      categorySlug === "all" ? BUDGET_OVERALL_MAJOR_CATEGORY : "教育🏫",
     submittedDate: "2026-08-01",
     publishedAt: "2026-08-02T00:00:00Z",
     updatedAt: "2026-08-02T00:00:00Z",

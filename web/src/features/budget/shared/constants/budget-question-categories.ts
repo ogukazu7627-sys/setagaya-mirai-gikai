@@ -1,5 +1,11 @@
+import { BUDGET_OVERALL_MAJOR_CATEGORY } from "./budget-major-category";
+
 export const BUDGET_QUESTION_CATEGORIES = [
-  { slug: "all", name: "全体", majorCategory: "全体" },
+  {
+    slug: "all",
+    name: BUDGET_OVERALL_MAJOR_CATEGORY,
+    majorCategory: BUDGET_OVERALL_MAJOR_CATEGORY,
+  },
   { slug: "education", name: "教育", majorCategory: "教育🏫" },
   {
     slug: "child-rearing",

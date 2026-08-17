@@ -92,7 +92,7 @@ export const billFormSchema = z
       if (!isBudgetMajorCategoryLabel(value.major_category)) {
         addInvalidMajorCategoryIssue(
           ctx,
-          "予算の大分類は既存の10分類または全体を選んでください"
+          "予算の大分類は既存の10分類または予算全体を選んでください"
         );
       }
       return;
@@ -207,7 +207,7 @@ export const adminDraftBillApiSchema = z
       if (!isBudgetMajorCategoryLabel(value.major_category)) {
         addInvalidMajorCategoryIssue(
           ctx,
-          "予算の大分類は既存の10分類または全体を指定してください"
+          "予算の大分類は既存の10分類または予算全体を指定してください"
         );
       }
       return;

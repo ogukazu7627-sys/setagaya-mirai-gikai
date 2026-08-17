@@ -7,7 +7,7 @@ import {
 
 describe("admin budget form values", () => {
   it("予算専用の大分類ラベルを定義する", () => {
-    expect(BUDGET_OVERALL_MAJOR_CATEGORY).toBe("全体");
+    expect(BUDGET_OVERALL_MAJOR_CATEGORY).toBe("予算全体");
   });
 
   it("Markdown本文から概要を作る", () => {

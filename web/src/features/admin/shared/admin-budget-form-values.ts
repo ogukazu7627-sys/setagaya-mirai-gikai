@@ -1,4 +1,4 @@
-export const BUDGET_OVERALL_MAJOR_CATEGORY = "全体";
+export { BUDGET_OVERALL_MAJOR_CATEGORY } from "@/features/budget/shared/constants/budget-major-category";
 
 const SUMMARY_MAX_LENGTH = 180;
 

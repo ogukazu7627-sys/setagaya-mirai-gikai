@@ -357,7 +357,7 @@ describe("/api/admin/bills/draft", () => {
         name: "令和8年度当初予算",
         publication_category: "budget",
         item_type: "question",
-        major_category: "全体",
+        major_category: "予算全体",
         status: "enacted",
         status_label: "入力しても保存しない",
         status_note: "入力しても保存しない",
@@ -397,7 +397,7 @@ describe("/api/admin/bills/draft", () => {
       .single();
     expect(bill).toMatchObject({
       item_type: "report",
-      major_category: "全体",
+      major_category: "予算全体",
       status: "introduced",
       status_label: null,
       status_note: null,
