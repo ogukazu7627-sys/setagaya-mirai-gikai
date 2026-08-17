@@ -13,6 +13,7 @@ import type {
   BudgetExplorationData,
 } from "../../shared/types/budget-exploration";
 import { createBudgetMapHostMessage } from "../../shared/utils/budget-map-message";
+import { BUDGET_MAP_TUTORIAL_STORAGE_KEY } from "../../shared/utils/budget-map-tutorial";
 import { BudgetMapEmbed } from "./budget-map-embed";
 
 const education: BudgetExplorationCategory = {
@@ -59,6 +60,7 @@ const OTHER_DATASET_ID = "22222222-2222-4222-8222-222222222222";
 
 describe("BudgetMapEmbed", () => {
   beforeEach(() => {
+    window.localStorage.setItem(BUDGET_MAP_TUTORIAL_STORAGE_KEY, "done");
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: vi.fn().mockImplementation((query: string) => ({
