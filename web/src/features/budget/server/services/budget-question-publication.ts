@@ -128,7 +128,7 @@ function validateParsedBudgetQuestionStatements(
       ok: false,
       code: "budget_major_category_invalid",
       message:
-        "予算案件を公開するには、公開対象の大分類（全体または10分類）を選択してください。",
+        "予算案件を公開するには、公開対象の大分類（予算全体または10分類）を選択してください。",
     };
   }
 

@@ -118,7 +118,7 @@ describe("validateBudgetQuestionPublication", () => {
     });
   });
 
-  it("全体または10分類に含まれない大分類を拒否する", async () => {
+  it("予算全体または10分類に含まれない大分類を拒否する", async () => {
     await expect(
       validateBudgetQuestionPublication({
         majorCategory: "未分類",
