@@ -77,6 +77,56 @@ describe("searchCouncilBills", () => {
     expect(result.mode).toBe("keyword-fallback");
   });
 
+  it("ベクトル検索が落ちてもキーワードのみで引き直す", async () => {
+    const card = createCard("33333333-3333-4333-8333-333333333333");
+    const search = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("vector index unavailable"))
+      .mockResolvedValueOnce([
+        {
+          billId: card.id,
+          score: 1,
+          semanticSimilarity: null,
+          keywordScore: 10,
+        },
+      ]);
+
+    const result = await searchCouncilBills(input, {
+      findSessions: async () => [session],
+      findCouncilors: async () => [],
+      embedQuery: async () => Array.from({ length: 512 }, () => 0),
+      search,
+      getDifficulty: async () => "normal",
+      loadCards: async () => [card],
+    });
+
+    expect(search).toHaveBeenCalledTimes(2);
+    expect(search.mock.calls[0][0].queryEmbedding).not.toBeNull();
+    expect(search.mock.calls[1][0].queryEmbedding).toBeNull();
+    expect(result.mode).toBe("keyword-fallback");
+    expect(result.bills).toEqual([card]);
+  });
+
+  it("キーワード検索まで落ちた場合はエラーを伝播する", async () => {
+    const failure = new Error("database unavailable");
+    const search = vi.fn().mockRejectedValue(failure);
+
+    await expect(
+      searchCouncilBills(input, {
+        findSessions: async () => [session],
+        findCouncilors: async () => [],
+        embedQuery: async () => {
+          throw new Error("gateway unavailable");
+        },
+        search,
+        getDifficulty: async () => "normal",
+        loadCards: async () => [],
+      })
+    ).rejects.toBe(failure);
+    // Embedding が無い状態での失敗は縮退できないため、1回で諦める。
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+
   it("解決できない議員名を意味検索へ流さない", async () => {
     const search = vi.fn();
     const embedQuery = vi.fn();

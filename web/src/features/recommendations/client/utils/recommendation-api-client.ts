@@ -42,6 +42,15 @@ export async function fetchTodayRecommendations(
   );
 }
 
+export async function fetchRandomRecommendations(): Promise<{
+  bills: TodayRecommendationsResponse["bills"];
+}> {
+  return requestJson<{ bills: TodayRecommendationsResponse["bills"] }>(
+    "/api/recommendations/random",
+    { method: "GET" }
+  );
+}
+
 export function fetchRecommendationAvailability() {
   return requestJson<RecommendationAvailability>(
     "/api/recommendations/availability",

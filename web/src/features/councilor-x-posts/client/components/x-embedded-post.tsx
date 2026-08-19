@@ -159,8 +159,10 @@ export function XEmbeddedPost({
         )}
       </div>
 
+      {/* 埋め込みに失敗したときは中身の分だけの高さにする。
+          固定の高さを残すと、大きな空白カードに見えてしまう。 */}
       {embedStatus === "failed" && (
-        <article className="min-h-[260px] border border-mirai-border bg-white p-6">
+        <article className="border border-mirai-border bg-white p-6">
           <p className="text-base font-bold text-mirai-text">
             {post.councilorName}
           </p>
@@ -174,7 +176,7 @@ export function XEmbeddedPost({
             href={post.postUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-primary underline decoration-1 underline-offset-4"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-primary underline decoration-1 underline-offset-4"
           >
             この投稿をXで見る
             <ExternalLink aria-hidden="true" className="size-4" />

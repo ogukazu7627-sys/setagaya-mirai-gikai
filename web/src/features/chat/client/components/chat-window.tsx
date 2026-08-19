@@ -161,7 +161,8 @@ function ChatMessages({
                 key={question}
                 type="button"
                 disabled={isResponding || previewOnly || isChatLocked}
-                className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                // 未ログイン時は押しても反応しないため、無効であることを色でも示す。
+                className="px-3 py-1 text-xs leading-[2] text-primary-accent border border-primary rounded-2xl hover:bg-gray-50 disabled:cursor-not-allowed disabled:border-mirai-border disabled:bg-mirai-surface disabled:text-mirai-text-muted disabled:hover:bg-mirai-surface"
                 onClick={() => {
                   if (previewOnly || isChatLocked) return;
                   sendMessage({

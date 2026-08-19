@@ -225,6 +225,25 @@ export async function findRecommendationCandidates(): Promise<
     .filter((candidate) => candidate.tags.length > 0);
 }
 
+/**
+ * 興味分野を設定していない利用者へランダム表示するための母集団。
+ * タグの有無で絞り込まず、公開中の通常案件をすべて対象にする。
+ */
+export async function findAllPublishedBillIds(): Promise<string[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("bills")
+    .select("id, bill_contents!inner(difficulty_level)")
+    .eq("publish_status", "published")
+    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
+    .eq("bill_contents.difficulty_level", "normal");
+
+  if (error) {
+    throw new Error(`Failed to fetch published bills: ${error.message}`);
+  }
+  return (data ?? []).map((row) => row.id);
+}
+
 export async function findImpressedBillIds(
   profileId: string
 ): Promise<Set<string>> {

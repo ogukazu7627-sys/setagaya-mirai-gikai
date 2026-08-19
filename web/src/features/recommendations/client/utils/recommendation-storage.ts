@@ -7,6 +7,8 @@ import type { StoredRecommendationProfile } from "../../shared/types/recommendat
 
 export const RECOMMENDATION_PROFILE_STORAGE_KEY =
   "mirai-gikai:recommendation-profile:v1";
+export const RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY =
+  "mirai-gikai:recommendation-onboarding-dismissed:v1";
 export const RECOMMENDATION_PROFILE_UPDATED_EVENT =
   "mirai-gikai:recommendation-profile-updated";
 
@@ -66,6 +68,40 @@ export function removeRecommendationProfile(
 ): boolean {
   try {
     storage.removeItem(RECOMMENDATION_PROFILE_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function readRecommendationOnboardingDismissed(
+  storage: Pick<Storage, "getItem">
+): boolean {
+  try {
+    return (
+      storage.getItem(RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY) === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function writeRecommendationOnboardingDismissed(
+  storage: Pick<Storage, "setItem">
+): boolean {
+  try {
+    storage.setItem(RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY, "1");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function removeRecommendationOnboardingDismissed(
+  storage: Pick<Storage, "removeItem">
+): boolean {
+  try {
+    storage.removeItem(RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY);
     return true;
   } catch {
     return false;

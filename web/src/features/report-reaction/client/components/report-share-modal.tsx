@@ -1,6 +1,8 @@
 "use client";
 
-import type { MouseEvent, KeyboardEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { useRef } from "react";
+import { useEscapeToClose } from "@/hooks/use-escape-to-close";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +32,9 @@ export function ReportShareModal({
   ogImageUrl,
   shareMessage: shareMessageProp,
 }: ReportShareModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEscapeToClose(isOpen, onClose, dialogRef);
+
   if (!isOpen) return null;
 
   const shareMessage = shareMessageProp
@@ -65,19 +70,25 @@ export function ReportShareModal({
     }
   };
 
-  const handleBackgroundKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
+  // 背景クリックのキーボード等価。Escapeは useEscapeToClose が担当する。
+  const handleBackdropKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
       onClose();
     }
   };
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-3"
       onClick={handleBackgroundClick}
-      onKeyDown={handleBackgroundKeyDown}
+      onKeyDown={handleBackdropKeyDown}
       tabIndex={-1}
     >
       <div className="flex w-[500px] max-w-full flex-col items-center gap-6 rounded-2xl bg-white px-3 py-9">

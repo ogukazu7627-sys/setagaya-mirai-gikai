@@ -20,7 +20,13 @@ export function councilAiSearchErrorResponse(error: unknown): Response {
       error.status
     );
   }
-  console.error("Council search API request failed");
+  // 検索語は残さず、原因追跡に必要な種別・メッセージ・スタックだけを記録する。
+  console.error(
+    "[council-search] request failed:",
+    error instanceof Error
+      ? `${error.name}: ${error.message}\n${error.stack ?? ""}`
+      : String(error)
+  );
   return councilAiSearchJsonResponse(
     {
       error: "議会内検索を一時的に利用できません",

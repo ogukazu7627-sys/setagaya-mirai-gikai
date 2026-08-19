@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import { getCouncilorStatementPreviewText } from "../../shared/utils/get-councilor-statement-preview-text";
 import { selectDailyCouncilors } from "../../shared/utils/select-daily-councilors";
@@ -50,7 +51,11 @@ export async function loadRecommendedCouncilors(currentDate: Date) {
   }));
 }
 
-export async function loadCouncilorDetail(councilorId: string) {
+/**
+ * 詳細ページ本体と generateMetadata の双方から呼ばれるため、
+ * 同一リクエスト内では 1 回だけ問い合わせる。
+ */
+export const loadCouncilorDetail = cache(async (councilorId: string) => {
   const councilor = await findActivePublicCouncilorById(councilorId);
   if (!councilor) {
     return null;
@@ -74,4 +79,4 @@ export async function loadCouncilorDetail(councilorId: string) {
     councilor,
     statements,
   };
-}
+});

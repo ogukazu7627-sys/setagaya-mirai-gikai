@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, ChevronRight } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,8 @@ import type {
   StoredRecommendationProfile,
 } from "../../shared/types/recommendation";
 
+export const REQUIRED_SMALL_TAG_COUNT = 3;
+
 type RecommendationOnboardingDialogProps = {
   open: boolean;
   required: boolean;
@@ -28,6 +30,8 @@ type RecommendationOnboardingDialogProps = {
   profile: StoredRecommendationProfile | null;
   onOpenChange: (open: boolean) => void;
   onComplete: (tags: RecommendationSmallTag[]) => Promise<void>;
+  /** 興味分野を設定せずに閉じたとき（初回のみ）に呼ばれる。 */
+  onDismiss: () => void;
 };
 
 export function RecommendationOnboardingDialog({
@@ -37,9 +41,9 @@ export function RecommendationOnboardingDialog({
   profile,
   onOpenChange,
   onComplete,
+  onDismiss,
 }: RecommendationOnboardingDialogProps) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<
     RecommendationCategoryId[]
   >([]);
   const [selectedTags, setSelectedTags] = useState<RecommendationSmallTag[]>(
@@ -52,39 +56,30 @@ export function RecommendationOnboardingDialog({
     if (!open) {
       return;
     }
-    setStep(1);
-    setSelectedCategoryIds(profile?.selectedParentCategoryIds ?? []);
+    setExpandedCategoryIds(profile?.selectedParentCategoryIds ?? []);
     setSelectedTags(profile?.selectedSmallTags ?? []);
     setError(null);
   }, [open, profile]);
 
-  const availableSelectedTags = useMemo(
+  const availableTagCountByCategory = useMemo(
     () =>
-      RECOMMENDATION_CATEGORY_OPTIONS.filter((category) =>
-        selectedCategoryIds.includes(category.id)
-      ).flatMap((category) =>
-        category.smallTags.filter((tag) => availability[tag] > 0)
+      new Map(
+        RECOMMENDATION_CATEGORY_OPTIONS.map((category) => [
+          category.id,
+          category.smallTags.filter((tag) => availability[tag] > 0).length,
+        ])
       ),
-    [availability, selectedCategoryIds]
+    [availability]
   );
-  const canContinue =
-    selectedCategoryIds.length > 0 && new Set(availableSelectedTags).size >= 3;
+
+  const canComplete = selectedTags.length === REQUIRED_SMALL_TAG_COUNT;
 
   function toggleCategory(categoryId: RecommendationCategoryId) {
-    setSelectedCategoryIds((current) =>
+    setExpandedCategoryIds((current) =>
       current.includes(categoryId)
         ? current.filter((id) => id !== categoryId)
         : [...current, categoryId]
     );
-  }
-
-  function goToTags() {
-    if (!canContinue) {
-      return;
-    }
-    const allowed = new Set(availableSelectedTags);
-    setSelectedTags((current) => current.filter((tag) => allowed.has(tag)));
-    setStep(2);
   }
 
   function toggleTag(tag: RecommendationSmallTag) {
@@ -92,15 +87,22 @@ export function RecommendationOnboardingDialog({
       if (current.includes(tag)) {
         return current.filter((item) => item !== tag);
       }
-      if (current.length >= 3) {
+      if (current.length >= REQUIRED_SMALL_TAG_COUNT) {
         return current;
       }
       return [...current, tag];
     });
   }
 
+  function requestClose() {
+    onOpenChange(false);
+    if (required) {
+      onDismiss();
+    }
+  }
+
   async function complete() {
-    if (selectedTags.length !== 3) {
+    if (!canComplete) {
       return;
     }
     setSaving(true);
@@ -122,120 +124,126 @@ export function RecommendationOnboardingDialog({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!required || nextOpen) {
-          onOpenChange(nextOpen);
+        if (nextOpen) {
+          onOpenChange(true);
+          return;
         }
+        requestClose();
       }}
     >
       <DialogContent
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg sm:max-w-2xl"
-        showCloseButton={!required}
-        onEscapeKeyDown={(event) => {
-          if (required) event.preventDefault();
-        }}
-        onPointerDownOutside={(event) => {
-          if (required) event.preventDefault();
-        }}
+        showCloseButton
       >
         <DialogHeader>
           <DialogTitle className="text-xl">
             {profile ? "興味分野を変更" : "興味のある分野を選ぶ"}
           </DialogTitle>
           <DialogDescription>
-            {step === 1
-              ? "まず、気になる大分類を選んでください。複数選べます。"
-              : `小分類を3つ選んでください（${selectedTags.length}/3）`}
+            気になる大分類を押すと小分類が開きます。小分類を
+            {REQUIRED_SMALL_TAG_COUNT}つ選んでください（{selectedTags.length}/
+            {REQUIRED_SMALL_TAG_COUNT}）
           </DialogDescription>
         </DialogHeader>
 
-        {step === 1 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {RECOMMENDATION_CATEGORY_OPTIONS.map((category) => {
-              const availableTagCount = category.smallTags.filter(
-                (tag) => availability[tag] > 0
-              ).length;
-              const selected = selectedCategoryIds.includes(category.id);
-              return (
-                <Button
-                  key={category.id}
+        <p className="sr-only" aria-live="polite">
+          小分類を{selectedTags.length}件選択中です
+        </p>
+
+        <div className="space-y-2">
+          {RECOMMENDATION_CATEGORY_OPTIONS.map((category) => {
+            const availableTagCount =
+              availableTagCountByCategory.get(category.id) ?? 0;
+            const expanded = expandedCategoryIds.includes(category.id);
+            const selectedCount = category.smallTags.filter((tag) =>
+              selectedTags.includes(tag)
+            ).length;
+            const panelId = `recommendation-category-${category.id}`;
+            return (
+              <div
+                key={category.id}
+                className="overflow-hidden rounded-lg border border-mirai-border"
+              >
+                <button
                   type="button"
-                  variant="outline"
-                  aria-pressed={selected}
+                  aria-controls={panelId}
+                  aria-expanded={expanded}
                   disabled={availableTagCount === 0}
                   onClick={() => toggleCategory(category.id)}
-                  className={`h-auto min-h-24 whitespace-normal rounded-lg px-3 py-4 ${
-                    selected
-                      ? "border-primary bg-mirai-info-blue"
-                      : "border-mirai-border"
-                  }`}
+                  className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left font-bold text-mirai-text disabled:text-mirai-text-muted"
                 >
-                  <span className="flex flex-col items-center gap-1">
-                    <span aria-hidden="true" className="text-2xl">
-                      {category.emoji}
-                    </span>
-                    <span>{category.name}</span>
-                    <span className="text-xs font-normal text-mirai-text-secondary">
-                      {availableTagCount > 0
-                        ? `${availableTagCount}分野`
-                        : "対象案件なし"}
-                    </span>
+                  <span aria-hidden="true" className="text-xl">
+                    {category.emoji}
                   </span>
-                </Button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <p className="sr-only" aria-live="polite">
-              小分類を{selectedTags.length}件選択中です
-            </p>
-            {RECOMMENDATION_CATEGORY_OPTIONS.filter((category) =>
-              selectedCategoryIds.includes(category.id)
-            ).map((category) => (
-              <section key={category.id} className="space-y-3">
-                <h3 className="text-sm font-bold">
-                  <span aria-hidden="true">{category.emoji}</span>{" "}
-                  {category.name}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {category.smallTags.map((tag) => {
-                    const selected = selectedTags.includes(tag);
-                    const noCandidates = availability[tag] === 0;
-                    const selectionFull = selectedTags.length >= 3 && !selected;
-                    return (
-                      <Button
-                        key={tag}
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        aria-pressed={selected}
-                        disabled={noCandidates || selectionFull}
-                        onClick={() => toggleTag(tag)}
-                        className={`h-auto min-h-10 whitespace-normal rounded-full ${
-                          selected
-                            ? "border-primary bg-mirai-info-blue"
-                            : "border-mirai-border"
-                        }`}
-                      >
-                        {selected && <Check aria-hidden="true" />}
-                        {tag}
-                        {noCandidates && (
-                          <span className="text-xs font-normal">
-                            （対象案件なし）
-                          </span>
-                        )}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
+                  <span className="flex-1">{category.name}</span>
+                  {selectedCount > 0 && (
+                    <span className="rounded-full bg-mirai-info-blue px-2 py-0.5 text-xs font-bold text-primary">
+                      {selectedCount}件選択中
+                    </span>
+                  )}
+                  <span className="text-xs font-normal text-mirai-text-secondary">
+                    {availableTagCount > 0
+                      ? `${availableTagCount}分野`
+                      : "対象案件なし"}
+                  </span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`size-4 shrink-0 transition-transform ${
+                      expanded ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {expanded && availableTagCount > 0 && (
+                  <div
+                    id={panelId}
+                    className="flex flex-wrap gap-2 border-t border-mirai-border px-4 py-3"
+                  >
+                    {category.smallTags.map((tag) => {
+                      const selected = selectedTags.includes(tag);
+                      const noCandidates = availability[tag] === 0;
+                      const selectionFull =
+                        selectedTags.length >= REQUIRED_SMALL_TAG_COUNT &&
+                        !selected;
+                      return (
+                        <Button
+                          key={tag}
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          aria-pressed={selected}
+                          disabled={noCandidates || selectionFull}
+                          onClick={() => toggleTag(tag)}
+                          className={`h-auto min-h-10 whitespace-normal rounded-full ${
+                            selected
+                              ? "border-primary bg-mirai-info-blue"
+                              : "border-mirai-border"
+                          }`}
+                        >
+                          {selected && <Check aria-hidden="true" />}
+                          {tag}
+                          {noCandidates && (
+                            <span className="text-xs font-normal">
+                              （対象案件なし）
+                            </span>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         <p className="text-xs leading-relaxed text-mirai-text-secondary">
           選んだ興味分野とおすすめ履歴は、このブラウザを識別する匿名IDにひも付けて保存します。氏名やGoogleアカウントは使用せず、別の端末やブラウザには引き継がれません。
         </p>
+        {required && (
+          <p className="text-xs leading-relaxed text-mirai-text-secondary">
+            閉じると、興味分野を使わないおすすめをランダムに表示します。設定はあとからでも変更できます。
+          </p>
+        )}
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}
@@ -243,31 +251,23 @@ export function RecommendationOnboardingDialog({
         )}
 
         <DialogFooter>
-          {step === 2 && (
+          {required && (
             <Button
               type="button"
               variant="outline"
-              onClick={() => setStep(1)}
+              onClick={requestClose}
               disabled={saving}
             >
-              <ArrowLeft />
-              大分類に戻る
+              今は選ばない
             </Button>
           )}
-          {step === 1 ? (
-            <Button type="button" onClick={goToTags} disabled={!canContinue}>
-              次へ
-              <ChevronRight />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={complete}
-              disabled={selectedTags.length !== 3 || saving}
-            >
-              {saving ? "保存中..." : "この3つで始める"}
-            </Button>
-          )}
+          <Button
+            type="button"
+            onClick={complete}
+            disabled={!canComplete || saving}
+          >
+            {saving ? "保存中..." : `この${REQUIRED_SMALL_TAG_COUNT}つで始める`}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

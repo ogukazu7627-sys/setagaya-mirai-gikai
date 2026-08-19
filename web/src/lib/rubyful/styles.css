@@ -12,6 +12,18 @@ rt {
   -moz-user-select: none;
 }
 
+/* 読みが親文字より広いと「条 例」のように字間が開いて読みにくくなる。
+   ルビを中央寄せしつつ小さめにして、親文字の引き伸ばしを抑える。 */
+ruby {
+  ruby-align: center;
+}
+
+.rubyful-rt {
+  font-size: 0.55em;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
 /* ボタン内のルビを非表示（固定高さのボタンレイアウトが崩れるため） */
 button .rubyful-rt,
 [data-slot="button"] .rubyful-rt {

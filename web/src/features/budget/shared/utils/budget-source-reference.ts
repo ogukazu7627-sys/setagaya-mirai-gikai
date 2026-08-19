@@ -1,5 +1,25 @@
 import type { Json } from "@mirai-gikai/supabase";
 
+/**
+ * 同じ元行が複数の関係経由で入ることがあるため、表示前に重複を落とす。
+ * 元の並び順は維持する。
+ */
+export function listBudgetSourceReferenceLabels(
+  sources: readonly Json[]
+): string[] {
+  const seen = new Set<string>();
+  const labels: string[] = [];
+  for (const source of sources) {
+    const label = describeBudgetSourceReference(source);
+    if (seen.has(label)) {
+      continue;
+    }
+    seen.add(label);
+    labels.push(label);
+  }
+  return labels;
+}
+
 export function describeBudgetSourceReference(source: Json): string {
   const sourceObject = readJsonObject(source);
   if (!sourceObject) {

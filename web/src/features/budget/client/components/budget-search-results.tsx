@@ -299,10 +299,13 @@ function SearchResultsHeader({
         <p className="text-xs font-bold text-budget-space-eyebrow">
           予算事業の候補
         </p>
-        <h2 className="mt-1 break-words text-xl font-bold text-white sm:text-2xl">
-          「{query}」
+        <h2 className="mt-1 flex items-baseline gap-2 text-xl font-bold text-white sm:text-2xl">
+          {/* 長い検索語で見出しが伸びると結果一覧の高さを奪うため2行で省略する。 */}
+          <span className="min-w-0 break-words line-clamp-2" title={query}>
+            「{query}」
+          </span>
           {total !== null && (
-            <span className="ml-2 text-base font-medium text-budget-space-copy">
+            <span className="shrink-0 text-base font-medium text-budget-space-copy">
               {total}件
             </span>
           )}

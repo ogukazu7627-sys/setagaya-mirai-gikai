@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillCardData } from "@/features/bills/shared/types";
@@ -10,7 +10,10 @@ import {
 } from "../../shared/constants/recommendation-taxonomy";
 import type { RecommendationAvailability } from "../../shared/types/recommendation";
 import { getJstDateKey } from "../../shared/utils/jst-date";
-import { RECOMMENDATION_PROFILE_STORAGE_KEY } from "../utils/recommendation-storage";
+import {
+  RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY,
+  RECOMMENDATION_PROFILE_STORAGE_KEY,
+} from "../utils/recommendation-storage";
 import {
   TODAY_RECOMMENDATIONS_CACHE_KEY,
   writeTodayRecommendationsCache,
@@ -19,6 +22,7 @@ import {
 const mocks = vi.hoisted(() => ({
   fetchRecommendationAvailability: vi.fn(),
   fetchTodayRecommendations: vi.fn(),
+  fetchRandomRecommendations: vi.fn(),
   recordRecommendationImpressions: vi.fn(),
   savePreferences: vi.fn(),
   resetRecommendationHistory: vi.fn(),
@@ -33,6 +37,7 @@ vi.mock("../utils/recommendation-api-client", async () => {
     ...actual,
     fetchRecommendationAvailability: mocks.fetchRecommendationAvailability,
     fetchTodayRecommendations: mocks.fetchTodayRecommendations,
+    fetchRandomRecommendations: mocks.fetchRandomRecommendations,
     recordRecommendationImpressions: mocks.recordRecommendationImpressions,
     savePreferences: mocks.savePreferences,
     resetRecommendationHistory: mocks.resetRecommendationHistory,
@@ -95,6 +100,65 @@ describe("TodayRecommendationsSection", () => {
     ).toBeVisible();
     expect(mocks.fetchRecommendationAvailability).toHaveBeenCalledTimes(1);
     expect(mocks.fetchTodayRecommendations).not.toHaveBeenCalled();
+  });
+
+  it("興味分野を選ばずに閉じたときはランダムなおすすめを表示する", async () => {
+    const user = userEvent.setup();
+    mocks.fetchRandomRecommendations.mockResolvedValue({
+      bills: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "ランダム案件",
+          bill_content: { title: "ランダム案件タイトル" },
+          tags: [],
+        } as unknown as BillCardData,
+      ],
+    });
+
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "興味のある分野を選ぶ",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "今は選ばない" })
+    );
+
+    expect(
+      await screen.findByText("案件カード: ランダム案件タイトル")
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "興味分野が未設定のため、公開中の案件からランダムに表示しています。"
+      )
+    ).toBeVisible();
+    expect(mocks.fetchTodayRecommendations).not.toHaveBeenCalled();
+    expect(mocks.savePreferences).not.toHaveBeenCalled();
+  });
+
+  it("一度閉じた利用者には再訪時もモーダルを出さない", async () => {
+    window.localStorage.setItem(
+      RECOMMENDATION_ONBOARDING_DISMISSED_STORAGE_KEY,
+      "1"
+    );
+    mocks.fetchRandomRecommendations.mockResolvedValue({
+      bills: [
+        {
+          id: "44444444-4444-4444-8444-444444444444",
+          name: "再訪ランダム案件",
+          bill_content: { title: "再訪ランダム案件タイトル" },
+          tags: [],
+        } as unknown as BillCardData,
+      ],
+    });
+
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    expect(
+      await screen.findByText("案件カード: 再訪ランダム案件タイトル")
+    ).toBeVisible();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(mocks.fetchRecommendationAvailability).not.toHaveBeenCalled();
   });
 
   it("loads saved recommendations and keeps notification-unsupported browsers usable", async () => {

@@ -10,6 +10,17 @@ import {
 import type { RecommendationAvailability } from "../../shared/types/recommendation";
 import { RecommendationOnboardingDialog } from "./recommendation-onboarding-dialog";
 
+/** 大分類の見出しボタンは小分類名（例「教育DX」）と紛れるため aria-controls で特定する。 */
+function categoryHeader(categoryId: string): HTMLButtonElement {
+  const header = document.querySelector<HTMLButtonElement>(
+    `[aria-controls="recommendation-category-${categoryId}"]`
+  );
+  if (!header) {
+    throw new Error(`category header not found: ${categoryId}`);
+  }
+  return header;
+}
+
 function availabilityWith(
   availableTags: RecommendationSmallTag[]
 ): RecommendationAvailability {
@@ -22,7 +33,7 @@ function availabilityWith(
 }
 
 describe("RecommendationOnboardingDialog", () => {
-  it("requires a category with at least three available tags and exactly three selections", async () => {
+  it("expands small tags in place and completes with exactly three selections", async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn().mockResolvedValue(undefined);
     render(
@@ -38,24 +49,29 @@ describe("RecommendationOnboardingDialog", () => {
         profile={null}
         onOpenChange={vi.fn()}
         onComplete={onComplete}
+        onDismiss={vi.fn()}
       />
     );
 
-    const next = screen.getByRole("button", { name: "次へ" });
-    expect(next).toBeDisabled();
-    expect(screen.getByRole("button", { name: /産業/ })).toBeDisabled();
+    const complete = screen.getByRole("button", { name: "この3つで始める" });
+    expect(complete).toBeDisabled();
+    expect(categoryHeader("industry")).toBeDisabled();
+    // 大分類を開くまで小分類は出さない。
+    expect(screen.queryByRole("button", { name: "不登校支援" })).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: /教育/ }));
-    expect(next).toBeEnabled();
-    await user.click(next);
+    const educationHeader = categoryHeader("education");
+    await user.click(educationHeader);
+    // 同じ画面のまま小分類が開く（別ステップへ遷移しない）。
+    expect(educationHeader).toHaveAttribute("aria-expanded", "true");
 
-    expect(screen.getByText("小分類を3つ選んでください（0/3）")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "不登校支援" }));
     await user.click(screen.getByRole("button", { name: "学校改築" }));
+    expect(complete).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "教育DX" }));
     expect(screen.getByRole("button", { name: "特別支援教育" })).toBeDisabled();
+    expect(complete).toBeEnabled();
 
-    await user.click(screen.getByRole("button", { name: "この3つで始める" }));
+    await user.click(complete);
     expect(onComplete).toHaveBeenCalledWith([
       "不登校支援",
       "学校改築",
@@ -63,8 +79,10 @@ describe("RecommendationOnboardingDialog", () => {
     ]);
   });
 
-  it("keeps the required initial dialog open when dismissal is requested", () => {
+  it("lets the first-time visitor dismiss the dialog without choosing interests", async () => {
+    const user = userEvent.setup();
     const onOpenChange = vi.fn();
+    const onDismiss = vi.fn();
     render(
       <RecommendationOnboardingDialog
         open
@@ -73,10 +91,36 @@ describe("RecommendationOnboardingDialog", () => {
         profile={null}
         onOpenChange={onOpenChange}
         onComplete={vi.fn()}
+        onDismiss={onDismiss}
       />
     );
 
-    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
-    expect(screen.getByRole("dialog")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "閉じる" }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report a dismissal when the dialog is reopened from settings", async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    const onDismiss = vi.fn();
+    render(
+      <RecommendationOnboardingDialog
+        open
+        required={false}
+        availability={availabilityWith(["不登校支援"])}
+        profile={null}
+        onOpenChange={onOpenChange}
+        onComplete={vi.fn()}
+        onDismiss={onDismiss}
+      />
+    );
+
+    expect(screen.queryByRole("button", { name: "今は選ばない" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "閉じる" }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onDismiss).not.toHaveBeenCalled();
   });
 });
