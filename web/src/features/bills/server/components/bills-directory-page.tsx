@@ -16,11 +16,13 @@ import { loadBillsDirectoryData } from "../loaders/load-bills-directory-data";
 
 type BillsDirectoryPageProps = {
   initialSearch?: CouncilSearchInitialFilters;
+  initialPage?: number;
   archiveYear?: string | string[];
 };
 
 export async function BillsDirectoryPage({
   initialSearch,
+  initialPage = 1,
   archiveYear,
 }: BillsDirectoryPageProps) {
   const now = getJapanTime();
@@ -55,6 +57,7 @@ export async function BillsDirectoryPage({
           <CouncilSearchSection
             committeeNames={committees.map((committee) => committee.name)}
             initialFilters={initialSearch}
+            initialPage={initialPage}
           />
 
           <section aria-labelledby="committee-entry-title">

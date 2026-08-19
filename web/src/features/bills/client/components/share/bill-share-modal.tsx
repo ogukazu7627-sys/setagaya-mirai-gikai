@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import type { KeyboardEvent, MouseEvent } from "react";
+import { useRef } from "react";
+import { useEscapeToClose } from "@/hooks/use-escape-to-close";
 import {
   shareNative,
   shareOnFacebook,
@@ -25,6 +27,9 @@ export function BillShareModal({
   shareUrl,
   thumbnailUrl,
 }: BillShareModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEscapeToClose(isOpen, onClose, dialogRef);
+
   if (!isOpen) return null;
 
   // 共有ボタンの設定
@@ -66,20 +71,25 @@ export function BillShareModal({
     }
   };
 
-  const handleBackgroundKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    // Escapeキーでモーダルを閉じる
-    if (e.key === "Escape") {
+  // 背景クリックのキーボード等価。Escapeは useEscapeToClose が担当する。
+  const handleBackdropKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
       onClose();
     }
   };
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-3"
       onClick={handleBackgroundClick}
-      onKeyDown={handleBackgroundKeyDown}
+      onKeyDown={handleBackdropKeyDown}
       tabIndex={-1}
     >
       <div className="bg-white rounded-2xl p-7 w-[370px] max-w-full flex flex-col items-center gap-9">

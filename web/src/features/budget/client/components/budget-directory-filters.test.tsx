@@ -42,6 +42,37 @@ const selection: BudgetDirectorySelection = {
 };
 
 describe("BudgetDirectoryFilters", () => {
+  it("会計は内部コードを見せず、款・項・目は公式の番号を前置する", async () => {
+    const user = userEvent.setup();
+    render(
+      <BudgetDirectoryFilters
+        hierarchy={hierarchy}
+        kind="expenditure"
+        selection={selection}
+      />
+    );
+
+    const account = screen.getByLabelText("会計");
+    const accountLabels = [...account.querySelectorAll("option")].map(
+      (option) => option.textContent
+    );
+    expect(accountLabels).toEqual([
+      "すべて",
+      "一般会計",
+      "国民健康保険事業会計",
+    ]);
+    for (const label of accountLabels) {
+      expect(label).not.toMatch(/general|national_health_insurance/);
+    }
+
+    await user.selectOptions(account, "general");
+    expect(
+      [...screen.getByLabelText("款").querySelectorAll("option")].map(
+        (option) => option.textContent
+      )
+    ).toEqual(["すべて", "08 教育費"]);
+  });
+
   it("会計から目まで段階的に絞り込み、親条件の変更時に子条件をリセットする", async () => {
     const user = userEvent.setup();
     render(

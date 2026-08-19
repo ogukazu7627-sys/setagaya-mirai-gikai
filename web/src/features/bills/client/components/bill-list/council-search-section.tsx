@@ -38,6 +38,7 @@ import {
   createCouncilSearchFilters,
   hasActiveCouncilSearch,
 } from "../../../shared/utils/council-search";
+import { applyCouncilSearchPageParam } from "../../../shared/utils/council-search-page-param";
 import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
 import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
 import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
@@ -78,11 +79,13 @@ type SearchResult =
 type CouncilSearchSectionProps = {
   committeeNames: string[];
   initialFilters?: CouncilSearchInitialFilters;
+  initialPage?: number;
 };
 
 export function CouncilSearchSection({
   committeeNames,
   initialFilters = {},
+  initialPage = 1,
 }: CouncilSearchSectionProps) {
   const themeIds = RECOMMENDATION_CATEGORY_OPTIONS.map(
     (category) => category.id
@@ -94,9 +97,10 @@ export function CouncilSearchSection({
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [result, setResult] = useState<SearchResult | null>(null);
   const [status, setStatus] = useState<SearchStatus>("idle");
-  const [requestedPage, setRequestedPage] = useState(1);
+  const [requestedPage, setRequestedPage] = useState(initialPage);
   const requestControllerRef = useRef<AbortController | null>(null);
   const initialFiltersRef = useRef(filters);
+  const initialPageRef = useRef(initialPage);
 
   const executeSearch = useCallback(
     async (query: string, searchFilters: CouncilSearchFilters, page = 1) => {
@@ -175,22 +179,9 @@ export function CouncilSearchSection({
   useEffect(() => {
     const initialFilters = initialFiltersRef.current;
     if (hasActiveCouncilSearch(initialFilters)) {
-      void executeSearch("", initialFilters);
+      void executeSearch("", initialFilters, initialPageRef.current);
     }
   }, [executeSearch]);
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("q");
-    syncSearchParam(
-      url.searchParams,
-      "type",
-      filters.contentType === "all" ? "" : filters.contentType
-    );
-    syncSearchParam(url.searchParams, "theme", filters.themeId);
-    syncSearchParam(url.searchParams, "committee", filters.committeeName);
-    window.history.replaceState(window.history.state, "", url);
-  }, [filters]);
 
   useEffect(
     () => () => {
@@ -220,6 +211,21 @@ export function CouncilSearchSection({
     result?.kind === "filters" ? result.page.total : (result?.total ?? 0);
   const isSearchActive =
     submittedQuery.length > 0 || hasActiveCouncilSearch(filters);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("q");
+    syncSearchParam(
+      url.searchParams,
+      "type",
+      filters.contentType === "all" ? "" : filters.contentType
+    );
+    syncSearchParam(url.searchParams, "theme", filters.themeId);
+    syncSearchParam(url.searchParams, "committee", filters.committeeName);
+    // リロードや戻る操作でページ番号を失わないようURLへ残す。
+    applyCouncilSearchPageParam(url.searchParams, currentPage);
+    window.history.replaceState(window.history.state, "", url);
+  }, [currentPage, filters]);
 
   function updateFilters(
     update: (current: CouncilSearchFilters) => CouncilSearchFilters

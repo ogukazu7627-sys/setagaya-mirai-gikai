@@ -26,7 +26,7 @@ import {
 } from "../../shared/utils/budget-page-view";
 import { buildBudgetProgramGeneralDescription } from "../../shared/utils/budget-program-general-description";
 import { resolveBudgetProgramReturnDestination } from "../../shared/utils/budget-program-return-context";
-import { describeBudgetSourceReference } from "../../shared/utils/budget-source-reference";
+import { listBudgetSourceReferenceLabels } from "../../shared/utils/budget-source-reference";
 import {
   HierarchyItem,
   ProgramNameRow,
@@ -50,6 +50,9 @@ export function BudgetProgramDetailPage({
   const returnDestination = resolveBudgetProgramReturnDestination(
     returnContext,
     detail.publishedTopics
+  );
+  const sourceReferenceLabels = listBudgetSourceReferenceLabels(
+    detail.sourceReferences
   );
 
   return (
@@ -348,12 +351,10 @@ export function BudgetProgramDetailPage({
             description={`${fiscalYearLabel}当初予算の公式CSV・公式PDFをもとにしています。`}
             kind="official"
           />
-          {detail.sourceReferences.length > 0 ? (
+          {sourceReferenceLabels.length > 0 ? (
             <ul className="mt-4 space-y-2 text-sm text-mirai-text-secondary">
-              {detail.sourceReferences.map((source, index) => (
-                <li key={`${describeBudgetSourceReference(source)}-${index}`}>
-                  {describeBudgetSourceReference(source)}
-                </li>
+              {sourceReferenceLabels.map((label) => (
+                <li key={label}>{label}</li>
               ))}
             </ul>
           ) : (

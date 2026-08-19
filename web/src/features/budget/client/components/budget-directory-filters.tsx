@@ -57,6 +57,8 @@ export function BudgetDirectoryFilters({
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <FilterSelect
+          // 会計の code は内部識別子（general など）なので表示しない。
+          showCode={false}
           label="会計"
           name="account"
           value={accountCode}
@@ -154,6 +156,7 @@ function FilterSelect({
   name,
   onChange,
   options,
+  showCode = true,
   value,
 }: {
   disabled?: boolean;
@@ -161,6 +164,8 @@ function FilterSelect({
   name: string;
   onChange: (value: string) => void;
   options: Array<{ code: string; name: string }>;
+  /** 款・項・目は公式の番号を前置する。会計だけは内部コードなので隠す。 */
+  showCode?: boolean;
   value: string;
 }) {
   return (
@@ -176,7 +181,7 @@ function FilterSelect({
         <option value="">すべて</option>
         {options.map((option) => (
           <option key={`${option.code}-${option.name}`} value={option.code}>
-            {option.code} {option.name}
+            {showCode ? `${option.code} ${option.name}` : option.name}
           </option>
         ))}
       </select>

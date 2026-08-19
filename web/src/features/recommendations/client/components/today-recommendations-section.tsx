@@ -33,6 +33,7 @@ import { getJstDateKey } from "../../shared/utils/jst-date";
 import { getAvailableTags } from "../../shared/utils/recommendation-availability";
 import {
   deleteRecommendationData,
+  fetchRandomRecommendations,
   fetchRecommendationAvailability,
   fetchTodayRecommendations,
   RecommendationClientError,
@@ -46,8 +47,11 @@ import {
   createAnonymousInstallationId,
   getBrowserRecommendationStorage,
   notifyRecommendationProfileUpdated,
+  readRecommendationOnboardingDismissed,
   readRecommendationProfile,
+  removeRecommendationOnboardingDismissed,
   removeRecommendationProfile,
+  writeRecommendationOnboardingDismissed,
   writeRecommendationProfile,
 } from "../utils/recommendation-storage";
 import {
@@ -71,6 +75,7 @@ type TodayRecommendationsSectionProps = {
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type AvailabilityStatus = "idle" | "loading" | "ready" | "error";
+type RandomStatus = "idle" | "loading" | "ready" | "error";
 
 export function TodayRecommendationsSection({
   currentDifficulty,
@@ -89,6 +94,11 @@ export function TodayRecommendationsSection({
   const [status, setStatus] = useState<LoadStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [randomBills, setRandomBills] = useState<
+    TodayRecommendationsResponse["bills"] | null
+  >(null);
+  const [randomStatus, setRandomStatus] = useState<RandomStatus>("idle");
   const [storageUnavailable, setStorageUnavailable] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -161,6 +171,25 @@ export function TodayRecommendationsSection({
       availabilityRequestRef.current = null;
     }
   }, []);
+
+  const loadRandom = useCallback(async () => {
+    setRandomStatus("loading");
+    try {
+      const result = await fetchRandomRecommendations();
+      setRandomBills(result.bills);
+      setRandomStatus("ready");
+    } catch {
+      setRandomStatus("error");
+    }
+  }, []);
+
+  const dismissOnboarding = useCallback(() => {
+    setOnboardingDismissed(true);
+    if (storageRef.current) {
+      writeRecommendationOnboardingDismissed(storageRef.current);
+    }
+    void loadRandom();
+  }, [loadRandom]);
 
   const prepareOnboarding = useCallback(async () => {
     try {
@@ -275,8 +304,14 @@ export function TodayRecommendationsSection({
       void loadToday(stored.profile);
       return;
     }
+    // 一度「今は選ばない」を選んだ利用者へは、毎回モーダルを出さずランダム表示にする。
+    if (readRecommendationOnboardingDismissed(storage)) {
+      setOnboardingDismissed(true);
+      void loadRandom();
+      return;
+    }
     void prepareOnboarding();
-  }, [loadToday, prepareOnboarding]);
+  }, [loadRandom, loadToday, prepareOnboarding]);
 
   useEffect(() => {
     const flushImpressions = () => {
@@ -342,7 +377,11 @@ export function TodayRecommendationsSection({
     }
 
     removeTodayRecommendationsCache(storage);
+    removeRecommendationOnboardingDismissed(storage);
     notifyRecommendationProfileUpdated();
+    setOnboardingDismissed(false);
+    setRandomBills(null);
+    setRandomStatus("idle");
     setProfile(nextProfile);
     setOnboardingOpen(false);
     await loadToday(nextProfile);
@@ -447,11 +486,15 @@ export function TodayRecommendationsSection({
       if (storageRef.current) {
         removeRecommendationProfile(storageRef.current);
         removeTodayRecommendationsCache(storageRef.current);
+        removeRecommendationOnboardingDismissed(storageRef.current);
       }
       notifyRecommendationProfileUpdated();
       setProfile(null);
       setData(null);
       setStatus("idle");
+      setOnboardingDismissed(false);
+      setRandomBills(null);
+      setRandomStatus("idle");
       setDeleteOpen(false);
       setSettingsOpen(false);
       await prepareOnboarding();
@@ -473,18 +516,34 @@ export function TodayRecommendationsSection({
       <Container>
         <div className="flex flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
-            <h2 className="text-[22px] font-bold leading-[1.48] text-black">
-              今日のあなたへのおすすめ
+            <h2 className="min-w-0 text-balance text-[22px] font-bold leading-[1.48] text-black">
+              {onboardingDismissed && !profile
+                ? "今日のおすすめ"
+                : "今日のあなたへのおすすめ"}
             </h2>
             {profile && (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
+                className="shrink-0"
                 onClick={() => setSettingsOpen(true)}
               >
                 <Settings />
                 設定
+              </Button>
+            )}
+            {!profile && onboardingDismissed && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="shrink-0"
+                onClick={() => void prepareOnboarding()}
+                disabled={availabilityStatus === "loading"}
+              >
+                <SlidersHorizontal />
+                興味分野を選ぶ
               </Button>
             )}
           </div>
@@ -559,6 +618,45 @@ export function TodayRecommendationsSection({
             </div>
           )}
 
+          {!profile && onboardingDismissed && randomStatus === "loading" && (
+            <p className="text-sm text-mirai-text-secondary" aria-live="polite">
+              おすすめを読み込んでいます...
+            </p>
+          )}
+
+          {!profile &&
+            onboardingDismissed &&
+            randomStatus === "ready" &&
+            randomBills != null && (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm leading-relaxed text-mirai-text-secondary">
+                  興味分野が未設定のため、公開中の案件からランダムに表示しています。
+                </p>
+                {randomBills.length > 0 ? (
+                  <RecommendationBillsCarousel bills={randomBills} />
+                ) : (
+                  <p className="text-sm text-mirai-text-secondary">
+                    表示できる案件がありません。
+                  </p>
+                )}
+              </div>
+            )}
+
+          {!profile && onboardingDismissed && randomStatus === "error" && (
+            <div className="space-y-4">
+              <p role="alert" className="text-sm text-mirai-text-secondary">
+                おすすめを読み込めませんでした。
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void loadRandom()}
+              >
+                もう一度試す
+              </Button>
+            </div>
+          )}
+
           {profile &&
             status === "ready" &&
             !data?.pushEnabled &&
@@ -588,6 +686,7 @@ export function TodayRecommendationsSection({
           profile={profile}
           onOpenChange={setOnboardingOpen}
           onComplete={completeOnboarding}
+          onDismiss={dismissOnboarding}
         />
       )}
 

@@ -12,6 +12,7 @@ import { getJapanTime } from "@/lib/utils/date";
 import {
   COUNCIL_SEARCH_EMBEDDING_DIMENSIONS,
   COUNCIL_SEARCH_EMBEDDING_MODEL,
+  COUNCIL_SEARCH_EMBEDDING_TIMEOUT_MS,
   COUNCIL_SEARCH_MAX_RESULTS,
   COUNCIL_SEARCH_SIMILARITY_THRESHOLD,
 } from "../../shared/constants/council-ai-search";
@@ -77,15 +78,20 @@ export async function searchCouncilBills(
       intent.embeddingText
     );
     queryEmbedding = formatPostgresVector(vector);
-  } catch {
+  } catch (error) {
+    // 検索語は残さず、縮退した事実と理由だけを記録する。
+    console.error(
+      "[council-search] embedding unavailable, falling back to keyword search:",
+      describeError(error)
+    );
     mode = "keyword-fallback";
   }
 
   const theme = input.themeId
     ? getRecommendationCategoryById(input.themeId)
     : null;
-  const results = await (dependencies.search ?? findRankedCouncilSearchBills)({
-    queryEmbedding,
+  const search = dependencies.search ?? findRankedCouncilSearchBills;
+  const searchInput = {
     queryTerms: intent.terms,
     dietSessionIds: sessions.map((session) => session.id),
     contentType: input.contentType === "all" ? null : input.contentType,
@@ -95,7 +101,22 @@ export async function searchCouncilBills(
     councilorNames: intent.councilorNames,
     similarityThreshold: COUNCIL_SEARCH_SIMILARITY_THRESHOLD,
     limit: COUNCIL_SEARCH_MAX_RESULTS,
-  });
+  };
+  let results: Awaited<ReturnType<typeof search>>;
+  try {
+    results = await search({ ...searchInput, queryEmbedding });
+  } catch (error) {
+    // ベクトル検索だけが落ちている場合があるため、キーワードのみで一度だけ引き直す。
+    if (queryEmbedding == null) {
+      throw error;
+    }
+    console.error(
+      "[council-search] vector search failed, retrying with keywords only:",
+      describeError(error)
+    );
+    results = await search({ ...searchInput, queryEmbedding: null });
+    mode = "keyword-fallback";
+  }
   const billIds = results.map((result) => result.billId);
   const difficultyLevel = await (
     dependencies.getDifficulty ?? getDifficultyLevel
@@ -114,6 +135,14 @@ export async function searchCouncilBills(
   };
 }
 
+/** 検索語やユーザー情報を残さず、原因追跡に必要な情報だけを取り出す。 */
+function describeError(error: unknown): string {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+  return String(error);
+}
+
 async function embedCouncilSearchQuery(value: string): Promise<number[]> {
   const result = await embed({
     model: COUNCIL_SEARCH_EMBEDDING_MODEL,
@@ -121,8 +150,9 @@ async function embedCouncilSearchQuery(value: string): Promise<number[]> {
     providerOptions: {
       openai: { dimensions: COUNCIL_SEARCH_EMBEDDING_DIMENSIONS },
     },
-    maxRetries: 1,
-    abortSignal: AbortSignal.timeout(10_000),
+    // 再試行すると待ち時間が倍になり、縮退が遅れるだけなので1回で見切る。
+    maxRetries: 0,
+    abortSignal: AbortSignal.timeout(COUNCIL_SEARCH_EMBEDDING_TIMEOUT_MS),
   });
   return result.embedding;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BillsDirectoryPage } from "@/features/bills/server/components/bills-directory-page";
+import { parseCouncilSearchPage } from "@/features/bills/shared/utils/council-search-page-param";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 type BillsPageProps = {
   searchParams?: Promise<
     Partial<
-      Record<"type" | "theme" | "committee" | "archive_year", string | string[]>
+      Record<
+        "type" | "theme" | "committee" | "archive_year" | "page",
+        string | string[]
+      >
     >
   >;
 };
@@ -27,6 +31,7 @@ export default async function BillsPage({ searchParams }: BillsPageProps) {
         theme: firstValue(params?.theme),
         committee: firstValue(params?.committee),
       }}
+      initialPage={parseCouncilSearchPage(firstValue(params?.page))}
       archiveYear={params?.archive_year}
     />
   );

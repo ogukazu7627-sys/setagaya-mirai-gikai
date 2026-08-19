@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { RUBYFUL_CUSTOM_READINGS } from "./custom-readings";
 import { rubyfulClient } from "./index";
 import "./styles.css";
 
@@ -12,6 +13,7 @@ declare global {
         defaultDisplay: boolean;
         observeChanges?: boolean;
         styles?: object;
+        customReadings?: Record<string, string>;
       }) => void;
     };
   }
@@ -32,6 +34,8 @@ export function RubyfulInitializer() {
               "main p, main h1, main h2, main h3, main h4, main h5, main h6, main li, main td, main th, main span, main a",
             defaultDisplay: true,
             observeChanges: true,
+            // 日付の「月」が「つき」と振られるなど、既定で誤る読みを上書きする。
+            customReadings: RUBYFUL_CUSTOM_READINGS,
             styles: {
               toggleButtonClass: "ruby-button",
             },

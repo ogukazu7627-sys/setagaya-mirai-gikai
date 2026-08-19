@@ -74,7 +74,9 @@
   /* Text */
   --color-mirai-text: #1f2937;
   --color-mirai-text-secondary: #404040;
-  --color-mirai-text-muted: #8e8e93;
+  /* 白背景でコントラスト比 5.3:1（WCAG AA の 4.5:1 を満たす）。
+     予算の金額など小さい文字にも使うため #8e8e93 から引き下げた。 */
+  --color-mirai-text-muted: #6b6b70;
   --color-mirai-text-placeholder: #aeaeb2;
   --color-mirai-text-note: #4c4c4c;
   --color-mirai-text-subtle: #666666;
@@ -427,11 +429,13 @@
   }
 
   .budget-map-frame-category {
-    height: clamp(36rem, 72svh, 42rem);
+    height: clamp(28rem, 72svh, 42rem);
   }
 
   .budget-map-frame-topic {
-    height: clamp(44rem, 86svh, 50rem);
+    /* 最小値を 44rem にすると縦 780px 未満の画面で事業ノードが折り返し外へ
+       出てしまうため、小さい画面では svh に追従させる。 */
+    height: clamp(32rem, 86svh, 50rem);
   }
 
   .budget-network-space {
