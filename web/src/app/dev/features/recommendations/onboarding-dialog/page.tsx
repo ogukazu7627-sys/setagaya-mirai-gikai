@@ -28,7 +28,7 @@ export default function RecommendationOnboardingDialogPreview() {
 
       <ComponentShowcase
         title="初回訪問（required）"
-        description="1画面で大分類を開いて小分類を3つ選ぶ。×と「今は選ばない」で閉じられる。"
+        description="1画面で大分類を開いて小分類を3つ以上選ぶ。×と「今は選ばない」で閉じられる。"
       >
         <PreviewSection label="required=true">
           <Button onClick={() => setRequiredOpen(true)}>モーダルを開く</Button>

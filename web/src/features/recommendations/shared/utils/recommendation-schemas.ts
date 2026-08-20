@@ -2,6 +2,8 @@ import { z } from "zod";
 import {
   getParentCategoryIdsForTags,
   isRecommendationSmallTag,
+  MAX_SELECTED_SMALL_TAGS,
+  MIN_SELECTED_SMALL_TAGS,
   type RecommendationSmallTag,
 } from "../constants/recommendation-taxonomy";
 import { isAllowedWebPushEndpoint } from "./push-endpoint";
@@ -13,9 +15,12 @@ const recommendationTagSchema = z.string().refine(isRecommendationSmallTag, {
 
 const selectedSmallTagsSchema = z
   .array(recommendationTagSchema)
-  .length(3)
+  .min(MIN_SELECTED_SMALL_TAGS, {
+    message: `興味分野は${MIN_SELECTED_SMALL_TAGS}件以上選んでください`,
+  })
+  .max(MAX_SELECTED_SMALL_TAGS)
   .refine((tags) => new Set(tags).size === tags.length, {
-    message: "興味分野は重複しない3件を選んでください",
+    message: "興味分野が重複しています",
   })
   .transform((tags) => tags as RecommendationSmallTag[]);
 

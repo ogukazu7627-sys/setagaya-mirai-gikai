@@ -102,6 +102,15 @@ describe("TodayRecommendationsSection", () => {
     expect(mocks.fetchTodayRecommendations).not.toHaveBeenCalled();
   });
 
+  it("おすすめ欄から議会ページへ進める", async () => {
+    mocks.fetchRandomRecommendations.mockResolvedValue({ bills: [] });
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    expect(
+      await screen.findByRole("link", { name: /もっと議会を見る/ })
+    ).toHaveAttribute("href", "/bills");
+  });
+
   it("興味分野を選ばずに閉じたときはランダムなおすすめを表示する", async () => {
     const user = userEvent.setup();
     mocks.fetchRandomRecommendations.mockResolvedValue({

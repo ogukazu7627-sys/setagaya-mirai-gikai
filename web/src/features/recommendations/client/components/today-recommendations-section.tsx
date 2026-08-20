@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   Bell,
   BellOff,
   History,
@@ -675,6 +676,14 @@ export function TodayRecommendationsSection({
               {availabilityMessage}
             </p>
           )}
+
+          {/* おすすめだけで終わらせず、議会の一覧へ進めるようにする。 */}
+          <Button asChild variant="outline" className="w-fit">
+            <Link href={routes.bills() as Route}>
+              もっと議会を見る
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
       </Container>
 

@@ -4,6 +4,7 @@ import type { Database } from "@mirai-gikai/supabase";
 import {
   isRecommendationCategoryId,
   isRecommendationSmallTag,
+  MIN_SELECTED_SMALL_TAGS,
   type RecommendationCategoryId,
   type RecommendationSmallTag,
 } from "../../shared/constants/recommendation-taxonomy";
@@ -45,7 +46,7 @@ export async function getOrCreateDailyRecommendations(
     isRecommendationCategoryId
   ) as RecommendationCategoryId[];
   if (
-    selectedSmallTags.length !== 3 ||
+    selectedSmallTags.length < MIN_SELECTED_SMALL_TAGS ||
     selectedParentCategoryIds.length === 0
   ) {
     throw new Error("Recommendation profile contains invalid preferences");

@@ -2,6 +2,7 @@ import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/type
 import {
   isRecommendationCategoryId,
   isRecommendationSmallTag,
+  MIN_SELECTED_SMALL_TAGS,
 } from "../../shared/constants/recommendation-taxonomy";
 import type { TodayRecommendationsResponse } from "../../shared/types/recommendation";
 
@@ -124,7 +125,7 @@ function isTodayRecommendationsResponse(
         Array.isArray(bill.tags)
     ) &&
     Array.isArray(value.selectedSmallTags) &&
-    value.selectedSmallTags.length === 3 &&
+    value.selectedSmallTags.length >= MIN_SELECTED_SMALL_TAGS &&
     value.selectedSmallTags.every(
       (tag) => typeof tag === "string" && isRecommendationSmallTag(tag)
     ) &&
