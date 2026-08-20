@@ -33,9 +33,9 @@ function availabilityWith(
 }
 
 describe("RecommendationOnboardingDialog", () => {
-  it("expands small tags in place and requires at least three selections", async () => {
-    const user = userEvent.setup();
-    const onComplete = vi.fn().mockResolvedValue(undefined);
+  function renderEducationDialog(
+    onComplete = vi.fn().mockResolvedValue(undefined)
+  ) {
     render(
       <RecommendationOnboardingDialog
         open
@@ -52,19 +52,34 @@ describe("RecommendationOnboardingDialog", () => {
         onDismiss={vi.fn()}
       />
     );
+    return onComplete;
+  }
 
-    expect(
-      screen.getByRole("button", { name: "この0つで始める" })
-    ).toBeDisabled();
+  it("expands small tags in place without leaving the screen", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderEducationDialog();
+
     expect(categoryHeader("industry")).toBeDisabled();
     // 大分類を開くまで小分類は出さない。
     expect(screen.queryByRole("button", { name: "不登校支援" })).toBeNull();
 
     const educationHeader = categoryHeader("education");
     await user.click(educationHeader);
+
     // 同じ画面のまま小分類が開く（別ステップへ遷移しない）。
     expect(educationHeader).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "不登校支援" })).toBeVisible();
+  });
 
+  it("requires at least three small tags before starting", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderEducationDialog();
+
+    expect(
+      screen.getByRole("button", { name: "この0つで始める" })
+    ).toBeDisabled();
+
+    await user.click(categoryHeader("education"));
     await user.click(screen.getByRole("button", { name: "不登校支援" }));
     await user.click(screen.getByRole("button", { name: "学校改築" }));
     expect(
@@ -75,9 +90,18 @@ describe("RecommendationOnboardingDialog", () => {
     expect(
       screen.getByRole("button", { name: "この3つで始める" })
     ).toBeEnabled();
+  });
 
-    // 3件を超えても選べる（上限で無効化しない）。
-    await user.click(screen.getByRole("button", { name: "特別支援教育" }));
+  it("accepts more than three small tags", async () => {
+    const user = userEvent.setup({ delay: null });
+    const onComplete = renderEducationDialog();
+
+    await user.click(categoryHeader("education"));
+    for (const tag of ["不登校支援", "学校改築", "教育DX", "特別支援教育"]) {
+      await user.click(screen.getByRole("button", { name: tag }));
+    }
+
+    // 4件目も無効化されない。
     const complete = screen.getByRole("button", { name: "この4つで始める" });
     expect(complete).toBeEnabled();
 
@@ -91,7 +115,7 @@ describe("RecommendationOnboardingDialog", () => {
   });
 
   it("shows the chosen small tags on the collapsed category header", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(
       <RecommendationOnboardingDialog
         open
