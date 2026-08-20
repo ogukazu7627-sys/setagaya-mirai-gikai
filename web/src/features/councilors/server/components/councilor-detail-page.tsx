@@ -14,6 +14,7 @@ import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { Container } from "@/components/layouts/container";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
+import { buildCouncilorStatementLink } from "../../shared/utils/build-councilor-statement-link";
 import { loadCouncilorDetail } from "../loaders/load-councilor-directory";
 
 type CouncilorDetailPageProps = {
@@ -73,7 +74,7 @@ export async function CouncilorDetailPage({
           </div>
           <div className="px-5 py-4 sm:px-7">
             <p className="text-sm leading-relaxed text-mirai-text-secondary">
-              掲載案件での発言を、案件本文の「議員、会派の意見」の該当箇所へ直接たどれます。
+              掲載案件での発言と、予算特別委員会での質問をまとめています。それぞれの該当箇所へ直接たどれます。
             </p>
           </div>
         </section>
@@ -123,7 +124,9 @@ export async function CouncilorDetailPage({
                             )}
                           </div>
                           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary-accent bg-white px-3 py-1 text-xs font-bold text-primary-strong">
-                            該当箇所へ
+                            {bill.publication_category === "budget"
+                              ? "予算の質問へ"
+                              : "該当箇所へ"}
                             <ArrowRight
                               aria-hidden="true"
                               className="size-3.5"
@@ -159,10 +162,12 @@ export async function CouncilorDetailPage({
                   <li key={statement.id}>
                     <Link
                       href={
-                        routes.billDetailCouncilorStatement(
-                          bill.id,
-                          statement.statement_index
-                        ) as Route
+                        buildCouncilorStatementLink({
+                          billId: bill.id,
+                          publicationCategory: bill.publication_category,
+                          majorCategory: bill.major_category,
+                          statementIndex: statement.statement_index,
+                        }).href as Route
                       }
                       className="group block rounded-lg border border-mirai-border bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-accent hover:shadow-md"
                     >
