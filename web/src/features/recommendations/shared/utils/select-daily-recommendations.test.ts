@@ -184,4 +184,88 @@ describe("selectDailyRecommendations", () => {
       },
     ]);
   });
+  it("covers only limit-many tags per day when more than five are selected", () => {
+    const selectedSmallTags = [
+      "不登校支援",
+      "学校改築",
+      "教育DX",
+      "特別支援教育",
+      "小学校",
+      "中学校",
+      "高校",
+      "いじめ対策",
+    ] as const;
+    const candidates = selectedSmallTags.map((tag, index) =>
+      candidate(`bill-${index}`, [tag])
+    );
+
+    const result = selectDailyRecommendations({
+      ...baseInput,
+      selectedSmallTags: [...selectedSmallTags],
+      selectedParentCategoryIds: ["education"],
+      candidates,
+    });
+
+    expect(result).toHaveLength(5);
+    expect(new Set(result.map((pick) => pick.billId)).size).toBe(5);
+    for (const pick of result) {
+      expect(pick.source).toBe("selected-subcategory");
+    }
+  });
+
+  it("rotates which of the extra tags appear as the day changes", () => {
+    const selectedSmallTags = [
+      "不登校支援",
+      "学校改築",
+      "教育DX",
+      "特別支援教育",
+      "小学校",
+      "中学校",
+      "高校",
+      "いじめ対策",
+    ] as const;
+    const candidates = selectedSmallTags.map((tag, index) =>
+      candidate(`bill-${index}`, [tag])
+    );
+    const shared = {
+      ...baseInput,
+      selectedSmallTags: [...selectedSmallTags],
+      selectedParentCategoryIds: ["education"] as string[],
+      candidates,
+    };
+
+    const days = ["2026-07-25", "2026-07-26", "2026-07-27", "2026-07-28"].map(
+      (date) =>
+        new Set(
+          selectDailyRecommendations({
+            ...shared,
+            selectedParentCategoryIds: ["education"],
+            seed: `profile:${date}:1`,
+          }).map((pick) => pick.billId)
+        )
+    );
+
+    // 日が変われば選ばれる分野の組み合わせも変わる。
+    const signatures = new Set(days.map((day) => [...day].sort().join(",")));
+    expect(signatures.size).toBeGreaterThan(1);
+
+    // 何日か回せば、後ろの分野にも出番が来る。
+    const covered = new Set(days.flatMap((day) => [...day]));
+    expect(covered.size).toBeGreaterThan(5);
+  });
+
+  it("still works with the minimum of three selected tags", () => {
+    const result = selectDailyRecommendations({
+      ...baseInput,
+      selectedSmallTags: [...baseInput.selectedSmallTags],
+      selectedParentCategoryIds: [...baseInput.selectedParentCategoryIds],
+      candidates: [
+        candidate("a", ["不登校支援"]),
+        candidate("b", ["学校改築"]),
+        candidate("c", ["防災情報"]),
+      ],
+    });
+
+    expect(result.map((pick) => pick.billId).sort()).toEqual(["a", "b", "c"]);
+  });
 });

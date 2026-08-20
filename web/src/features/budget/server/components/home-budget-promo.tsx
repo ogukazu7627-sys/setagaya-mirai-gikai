@@ -59,16 +59,23 @@ export function HomeBudgetPromo() {
                 </Button>
               </div>
 
-              <div className="border-t border-mirai-border bg-[#06283a] min-[768px]:border-t-0 min-[768px]:border-l">
+              {/* 画像も予算ページへの入口にする。
+                  ボタンと同じ遷移先なので、読み上げでは重複させない。 */}
+              <Link
+                href={routes.budget() as Route}
+                aria-hidden="true"
+                tabIndex={-1}
+                className="block border-t border-mirai-border bg-budget-space-deep transition-opacity hover:opacity-90 min-[768px]:border-t-0 min-[768px]:border-l"
+              >
                 <Image
                   src="/images/budget-home-map.jpg"
                   width={1179}
                   height={1402}
-                  alt="令和8年度当初予算 世田谷区の予算マップ"
+                  alt=""
                   className="h-auto w-full"
                   sizes="(min-width: 768px) 360px, 100vw"
                 />
-              </div>
+              </Link>
             </div>
           </div>
         </div>

@@ -194,6 +194,11 @@ export const RECOMMENDATION_SMALL_TAGS = RECOMMENDATION_CATEGORIES.flatMap(
   (category) => category.smallTags
 ) as readonly RecommendationSmallTag[];
 
+/** 興味分野として選んでもらう最小件数。これ未満では推薦の幅が出ない。 */
+export const MIN_SELECTED_SMALL_TAGS = 3;
+/** 上限は小分類の総数。これを超える指定は不正入力として弾く。 */
+export const MAX_SELECTED_SMALL_TAGS = RECOMMENDATION_SMALL_TAGS.length;
+
 const SMALL_TAG_SET = new Set<string>(RECOMMENDATION_SMALL_TAGS);
 const CATEGORY_ID_SET = new Set<string>(
   RECOMMENDATION_CATEGORIES.map((category) => category.id)

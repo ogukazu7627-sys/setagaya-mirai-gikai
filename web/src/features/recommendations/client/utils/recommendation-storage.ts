@@ -2,6 +2,7 @@ import {
   getParentCategoryIdsForTags,
   isRecommendationCategoryId,
   isRecommendationSmallTag,
+  MIN_SELECTED_SMALL_TAGS,
 } from "../../shared/constants/recommendation-taxonomy";
 import type { StoredRecommendationProfile } from "../../shared/types/recommendation";
 
@@ -163,11 +164,11 @@ function isStoredProfile(
     typeof value.installationId !== "string" ||
     !isUuid(value.installationId) ||
     !Array.isArray(selectedSmallTags) ||
-    selectedSmallTags.length !== 3 ||
+    selectedSmallTags.length < MIN_SELECTED_SMALL_TAGS ||
     !selectedSmallTags.every(
       (tag) => typeof tag === "string" && isRecommendationSmallTag(tag)
     ) ||
-    new Set(selectedSmallTags).size !== 3 ||
+    new Set(selectedSmallTags).size !== selectedSmallTags.length ||
     !Array.isArray(selectedParentCategoryIds) ||
     !selectedParentCategoryIds.every(
       (id) => typeof id === "string" && isRecommendationCategoryId(id)

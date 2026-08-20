@@ -26,11 +26,13 @@ describe("HomeBudgetPromo", () => {
     expect(
       screen.getByRole("link", { name: /予算マップを開く/ })
     ).toHaveAttribute("href", "/budget");
-    expect(
-      screen.getByRole("img", {
-        name: "令和8年度当初予算 世田谷区の予算マップ",
-      })
-    ).toBeVisible();
+    // 画像もリンクにするが、ボタンと同じ遷移先なので読み上げ対象からは外す。
+    const imageLink = document.querySelector<HTMLAnchorElement>(
+      'a[aria-hidden="true"][href="/budget"]'
+    );
+    expect(imageLink).not.toBeNull();
+    expect(imageLink?.tabIndex).toBe(-1);
+    expect(imageLink?.querySelector("img")).not.toBeNull();
     expect(
       screen.queryByRole("link", { name: /公式分類で見る/ })
     ).not.toBeInTheDocument();

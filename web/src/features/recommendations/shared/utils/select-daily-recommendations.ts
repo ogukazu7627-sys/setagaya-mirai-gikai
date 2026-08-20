@@ -35,9 +35,18 @@ export function selectDailyRecommendations({
   );
   const chosen = new Map<string, RecommendationPick>();
 
+  // 興味分野が limit より多い場合、常に同じ並び順で先頭から詰めると
+  // 後ろの分野が一度も出なくなる。seed には日付が入るので、
+  // 日ごとに優先順を入れ替えて全ての分野に出番を回す。
+  const prioritizedTags = orderDeterministically(
+    selectedSmallTags,
+    `${seed}:tag-priority`,
+    (tag) => tag
+  );
+
   for (const candidate of pickMaximumSelectedTagCoverage(
     eligible,
-    selectedSmallTags,
+    prioritizedTags,
     seed
   )) {
     chosen.set(candidate.id, {

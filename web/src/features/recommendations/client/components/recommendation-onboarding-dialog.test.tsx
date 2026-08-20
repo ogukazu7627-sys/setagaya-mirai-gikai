@@ -33,7 +33,7 @@ function availabilityWith(
 }
 
 describe("RecommendationOnboardingDialog", () => {
-  it("expands small tags in place and completes with exactly three selections", async () => {
+  it("expands small tags in place and requires at least three selections", async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn().mockResolvedValue(undefined);
     render(
@@ -53,8 +53,9 @@ describe("RecommendationOnboardingDialog", () => {
       />
     );
 
-    const complete = screen.getByRole("button", { name: "この3つで始める" });
-    expect(complete).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "この0つで始める" })
+    ).toBeDisabled();
     expect(categoryHeader("industry")).toBeDisabled();
     // 大分類を開くまで小分類は出さない。
     expect(screen.queryByRole("button", { name: "不登校支援" })).toBeNull();
@@ -66,9 +67,18 @@ describe("RecommendationOnboardingDialog", () => {
 
     await user.click(screen.getByRole("button", { name: "不登校支援" }));
     await user.click(screen.getByRole("button", { name: "学校改築" }));
-    expect(complete).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "この2つで始める" })
+    ).toBeDisabled();
+
     await user.click(screen.getByRole("button", { name: "教育DX" }));
-    expect(screen.getByRole("button", { name: "特別支援教育" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "この3つで始める" })
+    ).toBeEnabled();
+
+    // 3件を超えても選べる（上限で無効化しない）。
+    await user.click(screen.getByRole("button", { name: "特別支援教育" }));
+    const complete = screen.getByRole("button", { name: "この4つで始める" });
     expect(complete).toBeEnabled();
 
     await user.click(complete);
@@ -76,7 +86,38 @@ describe("RecommendationOnboardingDialog", () => {
       "不登校支援",
       "学校改築",
       "教育DX",
+      "特別支援教育",
     ]);
+  });
+
+  it("shows the chosen small tags on the collapsed category header", async () => {
+    const user = userEvent.setup();
+    render(
+      <RecommendationOnboardingDialog
+        open
+        required
+        availability={availabilityWith(["不登校支援", "学校改築", "教育DX"])}
+        profile={null}
+        onOpenChange={vi.fn()}
+        onComplete={vi.fn()}
+        onDismiss={vi.fn()}
+      />
+    );
+
+    const educationHeader = categoryHeader("education");
+    await user.click(educationHeader);
+    await user.click(screen.getByRole("button", { name: "不登校支援" }));
+    await user.click(screen.getByRole("button", { name: "教育DX" }));
+
+    // 件数ではなく、選んだ分野名そのものを見出しに出す。
+    expect(educationHeader).toHaveTextContent("不登校支援");
+    expect(educationHeader).toHaveTextContent("教育DX");
+    expect(educationHeader).not.toHaveTextContent("件選択中");
+
+    // 閉じても見出しに残るので、開かずに選択内容が分かる。
+    await user.click(educationHeader);
+    expect(educationHeader).toHaveAttribute("aria-expanded", "false");
+    expect(educationHeader).toHaveTextContent("不登校支援");
   });
 
   it("lets the first-time visitor dismiss the dialog without choosing interests", async () => {

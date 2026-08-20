@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  MIN_SELECTED_SMALL_TAGS,
   RECOMMENDATION_CATEGORY_OPTIONS,
   type RecommendationCategoryId,
   type RecommendationSmallTag,
@@ -20,8 +21,6 @@ import type {
   RecommendationAvailability,
   StoredRecommendationProfile,
 } from "../../shared/types/recommendation";
-
-export const REQUIRED_SMALL_TAG_COUNT = 3;
 
 type RecommendationOnboardingDialogProps = {
   open: boolean;
@@ -72,7 +71,7 @@ export function RecommendationOnboardingDialog({
     [availability]
   );
 
-  const canComplete = selectedTags.length === REQUIRED_SMALL_TAG_COUNT;
+  const canComplete = selectedTags.length >= MIN_SELECTED_SMALL_TAGS;
 
   function toggleCategory(categoryId: RecommendationCategoryId) {
     setExpandedCategoryIds((current) =>
@@ -83,15 +82,11 @@ export function RecommendationOnboardingDialog({
   }
 
   function toggleTag(tag: RecommendationSmallTag) {
-    setSelectedTags((current) => {
-      if (current.includes(tag)) {
-        return current.filter((item) => item !== tag);
-      }
-      if (current.length >= REQUIRED_SMALL_TAG_COUNT) {
-        return current;
-      }
-      return [...current, tag];
-    });
+    setSelectedTags((current) =>
+      current.includes(tag)
+        ? current.filter((item) => item !== tag)
+        : [...current, tag]
+    );
   }
 
   function requestClose() {
@@ -141,8 +136,8 @@ export function RecommendationOnboardingDialog({
           </DialogTitle>
           <DialogDescription>
             気になる大分類を押すと小分類が開きます。小分類を
-            {REQUIRED_SMALL_TAG_COUNT}つ選んでください（{selectedTags.length}/
-            {REQUIRED_SMALL_TAG_COUNT}）
+            {MIN_SELECTED_SMALL_TAGS}つ以上選んでください（選択中
+            {selectedTags.length}件）
           </DialogDescription>
         </DialogHeader>
 
@@ -155,9 +150,9 @@ export function RecommendationOnboardingDialog({
             const availableTagCount =
               availableTagCountByCategory.get(category.id) ?? 0;
             const expanded = expandedCategoryIds.includes(category.id);
-            const selectedCount = category.smallTags.filter((tag) =>
+            const selectedInCategory = category.smallTags.filter((tag) =>
               selectedTags.includes(tag)
-            ).length;
+            );
             const panelId = `recommendation-category-${category.id}`;
             return (
               <div
@@ -175,13 +170,19 @@ export function RecommendationOnboardingDialog({
                   <span aria-hidden="true" className="text-xl">
                     {category.emoji}
                   </span>
-                  <span className="flex-1">{category.name}</span>
-                  {selectedCount > 0 && (
-                    <span className="rounded-full bg-mirai-info-blue px-2 py-0.5 text-xs font-bold text-primary">
-                      {selectedCount}件選択中
-                    </span>
-                  )}
-                  <span className="text-xs font-normal text-mirai-text-secondary">
+                  <span className="shrink-0">{category.name}</span>
+                  {/* 開かなくても何を選んだか分かるよう、件数ではなく分野名を出す。 */}
+                  <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+                    {selectedInCategory.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-mirai-info-blue px-2 py-0.5 text-xs font-bold text-primary"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="shrink-0 text-xs font-normal text-mirai-text-secondary">
                     {availableTagCount > 0
                       ? `${availableTagCount}分野`
                       : "対象案件なし"}
@@ -201,9 +202,6 @@ export function RecommendationOnboardingDialog({
                     {category.smallTags.map((tag) => {
                       const selected = selectedTags.includes(tag);
                       const noCandidates = availability[tag] === 0;
-                      const selectionFull =
-                        selectedTags.length >= REQUIRED_SMALL_TAG_COUNT &&
-                        !selected;
                       return (
                         <Button
                           key={tag}
@@ -211,7 +209,7 @@ export function RecommendationOnboardingDialog({
                           size="sm"
                           variant="outline"
                           aria-pressed={selected}
-                          disabled={noCandidates || selectionFull}
+                          disabled={noCandidates}
                           onClick={() => toggleTag(tag)}
                           className={`h-auto min-h-10 whitespace-normal rounded-full ${
                             selected
@@ -266,7 +264,7 @@ export function RecommendationOnboardingDialog({
             onClick={complete}
             disabled={!canComplete || saving}
           >
-            {saving ? "保存中..." : `この${REQUIRED_SMALL_TAG_COUNT}つで始める`}
+            {saving ? "保存中..." : `この${selectedTags.length}つで始める`}
           </Button>
         </DialogFooter>
       </DialogContent>

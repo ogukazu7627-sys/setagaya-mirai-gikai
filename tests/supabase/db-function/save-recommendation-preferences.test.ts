@@ -45,13 +45,53 @@ describe("save_recommendation_preferences()", () => {
     expect(changed.data?.preference_version).toBe(2);
   });
 
-  it("rejects duplicate or non-three-item selections at the DB boundary", async () => {
+  it("accepts more than three interests across more than three categories", async () => {
+    const installationId = crypto.randomUUID();
+    installationIds.push(installationId);
+
+    const result = await adminClient.rpc("save_recommendation_preferences", {
+      p_installation_id: installationId,
+      p_selected_small_tags: [
+        "不登校支援",
+        "学校改築",
+        "防災情報",
+        "保育所",
+        "介護福祉",
+        "公園整備",
+      ],
+      p_selected_parent_category_ids: [
+        "education",
+        "disaster-prevention",
+        "child-rearing",
+        "welfare",
+        "urban-development",
+      ],
+      p_timezone: "Asia/Tokyo",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.data?.selected_small_tags).toHaveLength(6);
+  });
+
+  it("rejects duplicate selections at the DB boundary", async () => {
     const installationId = crypto.randomUUID();
     installationIds.push(installationId);
     const result = await adminClient.rpc("save_recommendation_preferences", {
       p_installation_id: installationId,
       p_selected_small_tags: ["不登校支援", "不登校支援", "防災情報"],
       p_selected_parent_category_ids: ["education", "disaster-prevention"],
+      p_timezone: "Asia/Tokyo",
+    });
+    expect(result.error).not.toBeNull();
+  });
+
+  it("still rejects fewer than three interests at the DB boundary", async () => {
+    const installationId = crypto.randomUUID();
+    installationIds.push(installationId);
+    const result = await adminClient.rpc("save_recommendation_preferences", {
+      p_installation_id: installationId,
+      p_selected_small_tags: ["不登校支援", "学校改築"],
+      p_selected_parent_category_ids: ["education"],
       p_timezone: "Asia/Tokyo",
     });
     expect(result.error).not.toBeNull();
