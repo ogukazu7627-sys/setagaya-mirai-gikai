@@ -264,6 +264,35 @@ describe("ChatWindow auth gate", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("予算質問では質問・答弁向けの案内だけを表示し、AIインタビューを出さない", () => {
+    render(
+      <ChatWindow
+        authStatus="authenticated"
+        billContext={createBillContext({ interview_enabled: false })}
+        chatState={createChatState()}
+        difficultyLevel="normal"
+        hasInterviewConfig={false}
+        isOpen
+        onClose={vi.fn()}
+        onSignInWithGoogle={vi.fn()}
+        pageContext={{ type: "budget-question" }}
+        sessionId="session-1"
+      />
+    );
+
+    expect(
+      screen.getByText(
+        "この議員質問と区の答弁について、気になることをAIに質問してください。"
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("本文中のテキストを選択すると簡単にAIに質問できます")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: "AIインタビュー" })
+    ).not.toBeInTheDocument();
+  });
+
   it("スマホ幅では公開インタビュー設定があってもAIインタビュータブを表示しない", () => {
     const onActiveModeChange = vi.fn();
     mediaQueryMock.matches = false;

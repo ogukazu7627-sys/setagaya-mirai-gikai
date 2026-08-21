@@ -94,9 +94,12 @@ export async function findPublishedBillsByCommitteeSearchTerm(
 /**
  * 公開済み議案を1件取得
  */
-export async function findPublishedBillById(id: string) {
+export async function findPublishedBillById(
+  id: string,
+  publicationScope: "standard" | "budget-question" = "standard"
+) {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("bills")
     .select(
       `
@@ -109,9 +112,14 @@ export async function findPublishedBillById(id: string) {
     `
     )
     .eq("id", id)
-    .eq("publish_status", "published")
-    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
-    .single();
+    .eq("publish_status", "published");
+
+  query =
+    publicationScope === "budget-question"
+      ? query.eq("publication_category", "budget")
+      : query.in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
+
+  const { data, error } = await query.single();
 
   if (error) {
     return null;

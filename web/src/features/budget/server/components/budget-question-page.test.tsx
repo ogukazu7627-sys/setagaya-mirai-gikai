@@ -1,11 +1,24 @@
 import { Writable } from "node:stream";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import {
   BudgetQuestionMarkdown,
   BudgetQuestionPage,
 } from "./budget-question-page";
+
+vi.mock("@/features/budget/client/components/budget-question-ai-chat", () => ({
+  BudgetQuestionAiChatProvider: ({
+    children,
+    difficultyLevel,
+  }: {
+    children: ReactNode;
+    difficultyLevel: string;
+  }) => <div data-chat-difficulty={difficultyLevel}>{children}</div>,
+  BudgetQuestionAiAskButton: ({ questionId }: { questionId: string }) => (
+    <div data-ai-question-id={questionId} />
+  ),
+}));
 
 vi.mock(
   "@/features/budget/client/components/budget-question-navigator",
@@ -153,6 +166,7 @@ describe("BudgetQuestionPage", () => {
         name: "教育",
         majorCategory: "教育🏫",
       },
+      difficultyLevel: "normal",
       focusBillId: focused.id,
       questions: [first, otherCouncilor, focused],
     });
@@ -161,6 +175,10 @@ describe("BudgetQuestionPage", () => {
     expect(html).toContain('data-active-councilor-id="councilor-a"');
     expect(html).toContain('data-active-question-count="2"');
     expect(html).toContain('data-councilor-count="2"');
+    expect(html).toContain('data-chat-difficulty="normal"');
+    expect(html).toContain('data-ai-question-id="focused"');
+    expect(html).toContain('data-ai-question-id="first"');
+    expect(html).not.toContain('data-ai-question-id="other"');
     expect(html).toContain("選択した本文");
     expect(html).toContain("同じ議員の最初の本文");
     expect(html).not.toContain("別の議員の本文");

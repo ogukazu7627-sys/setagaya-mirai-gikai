@@ -30,7 +30,10 @@ export async function recordUserChatMessageEvent({
       user_id: userId,
       session_id: context.sessionId || null,
       page_type:
-        context.pageContext?.type ?? (context.billContext ? "bill" : "unknown"),
+        context.pageContext?.type === "budget-question"
+          ? "bill"
+          : (context.pageContext?.type ??
+            (context.billContext ? "bill" : "unknown")),
       bill_id: context.billContext?.id ?? null,
       difficulty_level: context.difficultyLevel,
       message,

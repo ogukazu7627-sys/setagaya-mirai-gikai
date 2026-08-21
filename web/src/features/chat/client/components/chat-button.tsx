@@ -10,8 +10,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { BillWithContent } from "@/features/bills/shared/types";
-import type { ChatPageContext } from "../../shared/types/page-context";
+import type {
+  ChatBillContext,
+  ChatPageContext,
+} from "../../shared/types/page-context";
 import { useChatAuth } from "../hooks/use-chat-auth";
 import { ChatWindow, type ChatWindowMode } from "./chat-window";
 
@@ -37,18 +39,29 @@ function createSessionId(): string {
 }
 
 interface ChatButtonProps {
-  billContext?: BillWithContent;
+  billContext?: ChatBillContext;
   hasInterviewConfig?: boolean;
   difficultyLevel: string;
   pageContext?: ChatPageContext;
+  showLauncher?: boolean;
 }
 
 export interface ChatButtonRef {
+  open: () => void;
   openWithText: (selectedText: string) => void;
 }
 
 export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
-  ({ billContext, hasInterviewConfig, difficultyLevel, pageContext }, ref) => {
+  (
+    {
+      billContext,
+      hasInterviewConfig,
+      difficultyLevel,
+      pageContext,
+      showLauncher = true,
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isCompact, setIsCompact] = useState(false);
     const [showText, setShowText] = useState(true);
@@ -66,6 +79,11 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     const sessionId = useMemo(() => createSessionId(), [pathname]);
 
     useImperativeHandle(ref, () => ({
+      open: () => {
+        setActiveMode("question");
+        setOpenedWithText(false);
+        setIsOpen(true);
+      },
       openWithText: (selectedText: string) => {
         if (isSetagayaChatPreview) {
           setActiveMode("question");
@@ -107,6 +125,10 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
     }));
 
     useEffect(() => {
+      if (!showLauncher) {
+        return;
+      }
+
       let lastScrollY = window.scrollY;
 
       const handleScroll = () => {
@@ -131,69 +153,71 @@ export const ChatButton = forwardRef<ChatButtonRef, ChatButtonProps>(
       return () => {
         window.removeEventListener("scroll", handleScroll);
       };
-    }, [isCompact]);
+    }, [isCompact, showLauncher]);
 
     return (
       <>
-        <div className="fixed bottom-[calc(var(--mobile-primary-navigation-layout-offset)+0.5rem)] left-6 right-6 z-50 mx-auto flex max-w-[460px] justify-center pc:hidden">
-          <div
-            className="relative rounded-[50px] bg-gradient-to-tr from-mirai-gradient-start to-mirai-gradient-end p-[2px] shadow-[2px_2px_2px_0px_rgba(0,0,0,0.25)] origin-center flex transition-[flex-basis] ease-in-out"
-            style={{
-              flexBasis: isCompact ? "120px" : "100%",
-              transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                setActiveMode("question");
-                setIsOpen(true);
-              }}
-              className={`relative bg-white rounded-[50px] hover:opacity-90 flex items-center w-full py-2 transition-all ease-in-out ${
-                isCompact
-                  ? "h-[35px] px-4 justify-center gap-2.5"
-                  : "h-14 justify-end pr-4 pl-6 gap-2.5"
-              }`}
+        {showLauncher ? (
+          <div className="fixed bottom-[calc(var(--mobile-primary-navigation-layout-offset)+0.5rem)] left-6 right-6 z-50 mx-auto flex max-w-[460px] justify-center pc:hidden">
+            <div
+              className="relative rounded-[50px] bg-gradient-to-tr from-mirai-gradient-start to-mirai-gradient-end p-[2px] shadow-[2px_2px_2px_0px_rgba(0,0,0,0.25)] origin-center flex transition-[flex-basis] ease-in-out"
               style={{
+                flexBasis: isCompact ? "120px" : "100%",
                 transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
               }}
-              aria-label="案件について質問する"
-              aria-controls="ask-ai-dialog"
-              aria-expanded={isOpen}
-              aria-haspopup="dialog"
             >
-              <span
-                className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
-                  isCompact ? "text-center" : "flex-1 text-left"
-                } ${
-                  showText
-                    ? "opacity-100 transition-opacity ease-in-out"
-                    : "opacity-0"
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMode("question");
+                  setIsOpen(true);
+                }}
+                className={`relative bg-white rounded-[50px] hover:opacity-90 flex items-center w-full py-2 transition-all ease-in-out ${
+                  isCompact
+                    ? "h-[35px] px-4 justify-center gap-2.5"
+                    : "h-14 justify-end pr-4 pl-6 gap-2.5"
                 }`}
-                style={
-                  showText
-                    ? {
-                        transitionDuration: `${ANIMATION_DURATION.TEXT_FADE_IN}ms`,
-                      }
-                    : undefined
-                }
+                style={{
+                  transitionDuration: `${ANIMATION_DURATION.SIZE_TRANSITION}ms`,
+                }}
+                aria-label="案件について質問する"
+                aria-controls="ask-ai-dialog"
+                aria-expanded={isOpen}
+                aria-haspopup="dialog"
               >
-                {isCompact ? "AIに質問" : "わからないことをAIに質問する"}
-              </span>
-              {!isCompact && (
-                <div className="relative w-10 h-10 rounded-[20px] bg-mirai-gradient flex items-center justify-center flex-shrink-0">
-                  <Image
-                    src="/icons/chat-button-icon.svg"
-                    alt="チャット"
-                    width={40}
-                    height={40}
-                    className="pointer-events-none"
-                  />
-                </div>
-              )}
-            </button>
+                <span
+                  className={`text-mirai-text-placeholder text-sm font-medium leading-[1.5em] tracking-[0.01em] ${
+                    isCompact ? "text-center" : "flex-1 text-left"
+                  } ${
+                    showText
+                      ? "opacity-100 transition-opacity ease-in-out"
+                      : "opacity-0"
+                  }`}
+                  style={
+                    showText
+                      ? {
+                          transitionDuration: `${ANIMATION_DURATION.TEXT_FADE_IN}ms`,
+                        }
+                      : undefined
+                  }
+                >
+                  {isCompact ? "AIに質問" : "わからないことをAIに質問する"}
+                </span>
+                {!isCompact && (
+                  <div className="relative w-10 h-10 rounded-[20px] bg-mirai-gradient flex items-center justify-center flex-shrink-0">
+                    <Image
+                      src="/icons/chat-button-icon.svg"
+                      alt="チャット"
+                      width={40}
+                      height={40}
+                      className="pointer-events-none"
+                    />
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <ChatWindow
           billContext={billContext}

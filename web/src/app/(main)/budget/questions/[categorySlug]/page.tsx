@@ -73,5 +73,11 @@ export default async function BudgetQuestionCategoryRoutePage({
     notFound();
   }
 
-  return <BudgetQuestionPage {...pageData} focusBillId={focusBillId} />;
+  return (
+    <BudgetQuestionPage
+      {...pageData}
+      difficultyLevel={difficultyLevel}
+      focusBillId={focusBillId}
+    />
+  );
 }

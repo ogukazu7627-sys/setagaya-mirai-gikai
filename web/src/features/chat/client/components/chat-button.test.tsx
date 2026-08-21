@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { act, createRef } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BillWithContent } from "@/features/bills/shared/types";
+import type { ChatBillContext } from "@/features/chat/shared/types/page-context";
 import { ChatButton, type ChatButtonRef } from "./chat-button";
 
 const mocks = vi.hoisted(() => ({
@@ -86,8 +86,7 @@ describe("ChatButton", () => {
     const billContext = {
       id: "bill-1",
       name: "テスト案件",
-      tags: [],
-    } as unknown as BillWithContent;
+    } as ChatBillContext;
     const pageContext = { type: "bill" as const };
 
     render(
@@ -114,5 +113,22 @@ describe("ChatButton", () => {
         sessionId: expect.any(String),
       },
     });
+  });
+
+  it("外部導線用ではランチャーを隠し、refから質問画面を開ける", () => {
+    const ref = createRef<ChatButtonRef>();
+    render(
+      <ChatButton ref={ref} difficultyLevel="normal" showLauncher={false} />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "案件について質問する" })
+    ).not.toBeInTheDocument();
+
+    act(() => {
+      ref.current?.open();
+    });
+
+    expect(screen.getByRole("dialog", { name: "AIに質問する" })).toBeVisible();
   });
 });
