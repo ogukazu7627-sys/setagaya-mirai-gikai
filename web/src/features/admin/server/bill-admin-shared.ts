@@ -294,6 +294,12 @@ export type ListAdminBillKnowledgeSourcesApiResponse = {
   success: true;
   item_type: BillItemType;
   count: number;
+  offset: number;
+  limit: number;
+  returned_count: number;
+  next_offset: number | null;
+  has_more: boolean;
+  truncated_by_response_size: boolean;
   records: AdminBillKnowledgeSourceExportItem[];
 };
 

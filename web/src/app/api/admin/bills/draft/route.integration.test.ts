@@ -97,6 +97,12 @@ type KnowledgeSourceExportApiResponse = {
   success: boolean;
   item_type?: string;
   count?: number;
+  offset?: number;
+  limit?: number;
+  returned_count?: number;
+  next_offset?: number | null;
+  has_more?: boolean;
+  truncated_by_response_size?: boolean;
   records?: Array<{
     id: string;
     name: string;
@@ -194,13 +200,20 @@ async function getDraft(
 
 async function getKnowledgeSourcesExport(
   itemType = "report",
-  token: string | null = ADMIN_API_TOKEN
+  token: string | null = ADMIN_API_TOKEN,
+  pagination: { offset?: number; limit?: number } = { offset: 0, limit: 100 }
 ): Promise<Response> {
   const headers = new Headers();
   if (token) headers.set("authorization", `Bearer ${token}`);
   const url = new URL("http://localhost/api/admin/bills/draft");
   url.searchParams.set("export", "knowledge_sources");
   url.searchParams.set("item_type", itemType);
+  if (pagination.offset !== undefined) {
+    url.searchParams.set("offset", String(pagination.offset));
+  }
+  if (pagination.limit !== undefined) {
+    url.searchParams.set("limit", String(pagination.limit));
+  }
   return GET(
     new Request(url, {
       method: "GET",
@@ -803,9 +816,12 @@ describe("/api/admin/bills/draft", () => {
       (await exportRes.json()) as KnowledgeSourceExportApiResponse;
 
     expect(exportRes.status, JSON.stringify(exportBody)).toBe(200);
+    expect(exportRes.headers.get("cache-control")).toBe("private, no-store");
     expect(exportBody).toMatchObject({
       success: true,
       item_type: "report",
+      offset: 0,
+      limit: 100,
     });
     const records = exportBody.records ?? [];
     const ids = new Set(records.map((record) => record.id));
@@ -835,9 +851,129 @@ describe("/api/admin/bills/draft", () => {
     const res = await getKnowledgeSourcesExport("invalid");
 
     expect(res.status).toBe(400);
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
     await expect(res.json()).resolves.toMatchObject({
       success: false,
       code: "invalid_item_type",
+    });
+  });
+
+  it("GETのナレッジソース一覧はoffsetとlimitの両方を必須にする", async () => {
+    const responses = await Promise.all([
+      getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, {}),
+      getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, { offset: 0 }),
+      getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, { limit: 100 }),
+    ]);
+
+    for (const response of responses) {
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({
+        success: false,
+        code: "pagination_required",
+      });
+    }
+  });
+
+  it("GETのナレッジソース一覧はページングで応答量を制限できる", async () => {
+    const res = await getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, {
+      offset: 0,
+      limit: 1,
+    });
+    const body = (await res.json()) as KnowledgeSourceExportApiResponse;
+
+    expect(res.status, JSON.stringify(body)).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(body).toMatchObject({
+      success: true,
+      item_type: "report",
+      offset: 0,
+      limit: 1,
+      returned_count: 1,
+    });
+    expect(body.records).toHaveLength(1);
+    expect(body.has_more).toBe((body.count ?? 0) > 1);
+    expect(body.next_offset).toBe((body.count ?? 0) > 1 ? 1 : null);
+  });
+
+  it("GETのナレッジソース一覧は応答サイズ上限で次ページへ分割する", async () => {
+    const largeKnowledgeSource = "予".repeat(200_000);
+    const largeBills = await Promise.all(
+      Array.from({ length: 7 }, async (_, index) => {
+        const bill = await createTestBill({
+          name: `応答量監査 ${String(index).padStart(2, "0")}`,
+          submitted_date: "2099-12-31",
+        });
+        billIds.push(bill.id);
+        const { error } = await adminClient
+          .from("bills")
+          .update({
+            item_type: "report",
+            knowledge_source: largeKnowledgeSource,
+          })
+          .eq("id", bill.id);
+        if (error) {
+          throw new Error(`大容量テストデータ作成失敗: ${error.message}`);
+        }
+        return bill;
+      })
+    );
+    expect(largeBills).toHaveLength(7);
+
+    const res = await getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, {
+      offset: 0,
+      limit: 100,
+    });
+    const responseText = await res.text();
+    const body = JSON.parse(responseText) as KnowledgeSourceExportApiResponse;
+
+    expect(res.status, responseText.slice(0, 500)).toBe(200);
+    expect(Buffer.byteLength(responseText, "utf8")).toBeLessThan(3_600_000);
+    expect(body.truncated_by_response_size).toBe(true);
+    expect(body.has_more).toBe(true);
+    expect(body.next_offset).toBe(body.returned_count);
+    expect(body.returned_count).toBeLessThan(7);
+  });
+
+  it("単一recordがexport応答サイズ上限を超える場合は明示的に拒否する", async () => {
+    const bill = await createTestBill({
+      name: "単一巨大record応答量監査",
+      submitted_date: "9999-12-31",
+    });
+    billIds.push(bill.id);
+    const { error } = await adminClient
+      .from("bills")
+      .update({
+        item_type: "report",
+        knowledge_source: "a".repeat(3_500_000),
+      })
+      .eq("id", bill.id);
+    if (error) {
+      throw new Error(`大容量テストデータ作成失敗: ${error.message}`);
+    }
+
+    const response = await getKnowledgeSourcesExport(
+      "report",
+      ADMIN_API_TOKEN,
+      { offset: 0, limit: 100 }
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      success: false,
+      code: "knowledge_source_record_too_large",
+    });
+  });
+
+  it("GETのナレッジソース一覧で不正なページングは400を返す", async () => {
+    const res = await getKnowledgeSourcesExport("report", ADMIN_API_TOKEN, {
+      offset: -1,
+      limit: 101,
+    });
+
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      code: "invalid_pagination",
     });
   });
 

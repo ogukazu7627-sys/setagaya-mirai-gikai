@@ -543,8 +543,19 @@ function normalizeKnowledgeSourceExportRow(
 }
 
 export async function listAdminBillKnowledgeSourcesForApi(
-  itemTypeInput: string | null = "report"
+  itemTypeInput: string | null = "report",
+  paginationInput: {
+    offset?: string | null;
+    limit?: string | null;
+  } = {}
 ): Promise<ListAdminBillKnowledgeSourcesApiResponse> {
+  if (paginationInput.offset == null || paginationInput.limit == null) {
+    throw new AdminBillSaveError(
+      "knowledge_sources exportではoffsetとlimitの両方が必要です。",
+      400,
+      "pagination_required"
+    );
+  }
   const itemTypeResult = billItemTypeSchema.safeParse(
     itemTypeInput ?? "report"
   );
@@ -553,6 +564,23 @@ export async function listAdminBillKnowledgeSourcesForApi(
       "item_typeはbill, report, petition, questionのいずれかを指定してください。",
       400,
       "invalid_item_type"
+    );
+  }
+
+  const paginationResult = z
+    .object({
+      offset: z.coerce.number().int().min(0).default(0),
+      limit: z.coerce.number().int().min(1).max(100).default(100),
+    })
+    .safeParse({
+      offset: paginationInput.offset ?? undefined,
+      limit: paginationInput.limit ?? undefined,
+    });
+  if (!paginationResult.success) {
+    throw new AdminBillSaveError(
+      "offsetは0以上、limitは1〜100の整数で指定してください。",
+      400,
+      "invalid_pagination"
     );
   }
 
@@ -565,16 +593,11 @@ export async function listAdminBillKnowledgeSourcesForApi(
   }
 
   const supabase = createAdminClient();
-  const pageSize = 1000;
-  let from = 0;
-  let totalCount: number | null = null;
-  const rows: AdminBillKnowledgeSourceExportRow[] = [];
-
-  while (totalCount === null || rows.length < totalCount) {
-    const { data, error, count } = await supabase
-      .from("bills")
-      .select(
-        `
+  const { offset, limit } = paginationResult.data;
+  const { data, error, count } = await supabase
+    .from("bills")
+    .select(
+      `
         id,
         name,
         item_type,
@@ -592,34 +615,61 @@ export async function listAdminBillKnowledgeSourcesForApi(
         diet_session_id,
         diet_sessions(id, name, slug, start_date, end_date)
       `,
-        { count: "exact" }
-      )
-      .eq("item_type", itemTypeResult.data)
-      .order("submitted_date", { ascending: false, nullsFirst: false })
-      .order("name", { ascending: true })
-      .range(from, from + pageSize - 1);
+      { count: "exact" }
+    )
+    .eq("item_type", itemTypeResult.data)
+    .order("submitted_date", { ascending: false, nullsFirst: false })
+    .order("name", { ascending: true })
+    .order("id", { ascending: true })
+    .range(offset, offset + limit - 1);
 
-    if (error) {
+  if (error) {
+    throw new AdminBillSaveError(
+      `ナレッジソース一覧の読み取りに失敗しました: ${error.message}`,
+      500,
+      "knowledge_sources_lookup_failed"
+    );
+  }
+
+  const candidateRecords = (
+    (data ?? []) as AdminBillKnowledgeSourceExportRow[]
+  ).map(normalizeKnowledgeSourceExportRow);
+  const records: AdminBillKnowledgeSourceExportItem[] = [];
+  const responseByteBudget = 3_500_000;
+  let recordsBytes = 2;
+  for (const record of candidateRecords) {
+    const separatorBytes = records.length === 0 ? 0 : 1;
+    const recordBytes = new TextEncoder().encode(JSON.stringify(record)).length;
+    if (recordBytes + 2 > responseByteBudget) {
       throw new AdminBillSaveError(
-        `ナレッジソース一覧の読み取りに失敗しました: ${error.message}`,
-        500,
-        "knowledge_sources_lookup_failed"
+        "ナレッジソース1件のexport応答サイズが上限を超えています。",
+        413,
+        "knowledge_source_record_too_large"
       );
     }
-
-    totalCount = count ?? rows.length + (data?.length ?? 0);
-    rows.push(...((data ?? []) as AdminBillKnowledgeSourceExportRow[]));
-
-    if (!data || data.length < pageSize) {
+    if (
+      records.length > 0 &&
+      recordsBytes + separatorBytes + recordBytes > responseByteBudget
+    ) {
       break;
     }
-    from += pageSize;
+    records.push(record);
+    recordsBytes += separatorBytes + recordBytes;
   }
+
+  const totalCount = count ?? offset + candidateRecords.length;
+  const nextOffset = offset + records.length;
 
   return {
     success: true,
     item_type: itemTypeResult.data,
-    count: totalCount ?? rows.length,
-    records: rows.map(normalizeKnowledgeSourceExportRow),
+    count: totalCount,
+    offset,
+    limit,
+    returned_count: records.length,
+    next_offset: nextOffset < totalCount ? nextOffset : null,
+    has_more: nextOffset < totalCount,
+    truncated_by_response_size: records.length < candidateRecords.length,
+    records,
   };
 }

@@ -4,6 +4,7 @@ export * from "../shared/admin-bill-source-filter";
 export * from "./bill-admin-api-dto";
 export * from "./bill-admin-form";
 export * from "./bill-admin-form-data";
+export * from "./bill-admin-knowledge-source";
 export * from "./bill-admin-list";
 export * from "./bill-admin-preview";
 export * from "./bill-admin-save";
