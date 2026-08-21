@@ -431,7 +431,9 @@ export function sanitizeSnapshotRows(
       publication_category: row.publication_category,
       publish_status: row.publish_status,
       submitted_date: row.submitted_date,
-      major_category: row.major_category,
+      // 予算全体だけは、既存記事に現行表示名「予算全体」と旧API値「全体」が
+      // 混在し得るため、manifest内部では旧API値へ統一して厳格照合する。
+      major_category: normalizeCategory(row.major_category),
       published_at: row.published_at,
       updated_at: row.updated_at,
       knowledge_source_sha256: sourceHash,
