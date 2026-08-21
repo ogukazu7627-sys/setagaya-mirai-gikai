@@ -15,7 +15,10 @@ import {
   PUBLICATION_CATEGORY,
   SESSION_ID,
 } from "./constants.mjs";
-import { validateKnowledgeSourceMetrics } from "./manifest.mjs";
+import {
+  sanitizeSnapshotRows,
+  validateKnowledgeSourceMetrics,
+} from "./manifest.mjs";
 import {
   createClient,
   executeManifest,
@@ -363,6 +366,33 @@ describe("budget knowledge_source backfill runner", { concurrency: false }, () =
         ),
       "invalid_knowledge_source_length"
     );
+  });
+
+  test("snapshotの予算全体表記をmanifest内部の全体へ正規化する", () => {
+    const rows = Array.from({ length: 441 }, (_, index) => ({
+      id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      name: `予算質問${index + 1}ですか`,
+      diet_session_id: SESSION_ID,
+      publication_category: PUBLICATION_CATEGORY,
+      publish_status: "published",
+      submitted_date: "2026-03-05",
+      major_category: index < 12 ? "予算全体" : "教育🏫",
+      published_at: "2026-08-17T00:00:00.000Z",
+      updated_at: "2026-08-17T00:00:01.000Z",
+      knowledge_source: null,
+    }));
+
+    const snapshot = sanitizeSnapshotRows(
+      rows,
+      "2026-08-21T00:00:00.000Z"
+    );
+
+    assert.equal(snapshot.record_count, 441);
+    assert.deepEqual(
+      snapshot.records.slice(0, 12).map((row) => row.major_category),
+      Array(12).fill("全体")
+    );
+    assert.equal(snapshot.records[12].major_category, "教育🏫");
   });
 
   test("rollout ordinal範囲は10〜25件、最終441終端のみ10件未満を許可する", () => {
