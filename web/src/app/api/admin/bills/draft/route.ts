@@ -9,24 +9,41 @@ import {
   handleAdminBillsApiError,
 } from "../_shared";
 
-export async function GET(request: Request) {
-  const authError = authenticateAdminBillsApiRequest(request);
-  if (authError) return authError;
+const PRIVATE_NO_STORE = "private, no-store";
 
+function asPrivateNoStore(response: Response): Response {
+  response.headers.set("Cache-Control", PRIVATE_NO_STORE);
+  return response;
+}
+
+export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams;
   const billId = searchParams.get("id");
   const exportType = searchParams.get("export");
+  const authError = authenticateAdminBillsApiRequest(request);
+  if (authError) {
+    return exportType === "knowledge_sources"
+      ? asPrivateNoStore(authError)
+      : authError;
+  }
+
   if (exportType === "knowledge_sources") {
     try {
       const result = await listAdminBillKnowledgeSourcesForApi(
-        searchParams.get("item_type") ?? "report"
+        searchParams.get("item_type") ?? "report",
+        {
+          offset: searchParams.get("offset"),
+          limit: searchParams.get("limit"),
+        }
       );
-      return jsonResponse(result, 200);
+      return asPrivateNoStore(jsonResponse(result, 200));
     } catch (error) {
-      return handleAdminBillsApiError(
-        error,
-        "Failed to read bill knowledge sources",
-        "Admin draft bill API error"
+      return asPrivateNoStore(
+        handleAdminBillsApiError(
+          error,
+          "Failed to read bill knowledge sources",
+          "Admin draft bill API error"
+        )
       );
     }
   }
