@@ -13,7 +13,6 @@ import {
   findBillContentByDifficulty,
   findPublishedBillById,
 } from "@/features/bills/server/repositories/bill-repository";
-import type { BillWithContent } from "@/features/bills/shared/types";
 import {
   SUGGEST_INTERVIEW_TOOL_NAME,
   SUGGEST_INTERVIEW_TOOL_TYPE,
@@ -23,7 +22,10 @@ import {
   OFF_TOPIC_RESPONSE_TEXT,
 } from "@/features/chat/shared/off-topic-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
-import type { ChatPageContext } from "@/features/chat/shared/types/page-context";
+import type {
+  ChatBillContext,
+  ChatPageContext,
+} from "@/features/chat/shared/types/page-context";
 import { pickChatKnowledgeSource } from "@/features/chat/shared/utils/pick-chat-knowledge-source";
 import { findPublicInterviewConfigByBillId } from "@/features/interview-config/server/repositories/interview-config-repository";
 import { AI_MODELS } from "@/lib/ai/models";
@@ -42,7 +44,7 @@ import {
 } from "./system-cost-guard";
 
 export type ChatMessageMetadata = {
-  billContext?: BillWithContent;
+  billContext?: ChatBillContext;
   hasInterviewConfig?: boolean;
   pageContext?: ChatPageContext;
   difficultyLevel: DifficultyLevelEnum;
@@ -249,12 +251,18 @@ async function buildPrompt(
     };
   } else {
     const billId = context.billContext?.id;
-    const [serverBill, serverContent] = billId
+    const [serverBill, candidateContent] = billId
       ? await Promise.all([
-          findPublishedBillById(billId),
+          findPublishedBillById(
+            billId,
+            context.pageContext?.type === "budget-question"
+              ? "budget-question"
+              : "standard"
+          ),
           findBillContentByDifficulty(billId, context.difficultyLevel),
         ])
       : [null, null];
+    const serverContent = serverBill ? candidateContent : null;
     variables = {
       billName: serverBill?.name ?? "",
       billTitle: serverContent?.title ?? "",
@@ -381,6 +389,10 @@ async function determineShouldSuggestInterview(
   context: ChatMessageMetadata,
   messages: UIMessage<ChatMessageMetadata>[]
 ): Promise<boolean> {
+  if (context.pageContext?.type === "budget-question") {
+    return false;
+  }
+
   if (!context.billContext) {
     return false;
   }
@@ -420,6 +432,10 @@ function buildSystemPromptWithInterviewInstructions(
   shouldSuggestInterview: boolean,
   pageType: ChatPageContext["type"] | undefined
 ): string {
+  if (pageType === "budget-question") {
+    return basePrompt;
+  }
+
   if (pageType === "home" || pageType === "council") {
     return basePrompt + INTERVIEW_AWARENESS_PROMPT_HOME;
   }

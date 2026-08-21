@@ -206,6 +206,84 @@ describe("handleChatRequest 統合テスト", () => {
       }
     });
 
+    it("公開済み予算質問の knowledge_source を質問・答弁のAI回答に使う", async () => {
+      const bill = await createTestBill({
+        name: "学校改修についての質問",
+        publication_category: "budget",
+        publish_status: "published",
+      });
+      await createTestBillContent(bill.id, {
+        content: "公開画面に表示する質問・答弁",
+        difficulty_level: "normal",
+        summary: "予算質問の要約",
+        title: "学校改修について",
+      });
+      await adminClient
+        .from("bills")
+        .update({
+          interview_enabled: true,
+          knowledge_source: "予算質問に紐づく質問・答弁の原文ナレッジ",
+          use_knowledge_source_in_chat: true,
+        })
+        .eq("id", bill.id);
+
+      try {
+        const receivedPromptNames: string[] = [];
+        const receivedVariables: Array<Record<string, string> | undefined> = [];
+        const trackingPromptProvider = {
+          getPrompt: async (
+            name: string,
+            variables?: Record<string, string>
+          ) => {
+            receivedPromptNames.push(name);
+            receivedVariables.push(variables);
+            return { content: "予算質問用テストプロンプト", metadata: "{}" };
+          },
+        };
+        const messages = createTestMessages({
+          billContext: {
+            id: bill.id,
+            interview_enabled: false,
+            item_type: "question",
+            name: bill.name,
+          },
+          pageContext: { type: "budget-question" },
+        });
+
+        const response = await handleChatRequest({
+          deps: {
+            model: createStreamMock(["ナレッジに基づく応答"]),
+            promptProvider: trackingPromptProvider,
+          },
+          messages,
+          userId: testUser.id,
+        });
+        await consumeResponseStream(response);
+
+        expect(receivedPromptNames).toEqual(["bill-chat-system-normal"]);
+        expect(receivedVariables[0]).toMatchObject({
+          billContent: "公開画面に表示する質問・答弁",
+          billName: "学校改修についての質問",
+          knowledgeSource: "予算質問に紐づく質問・答弁の原文ナレッジ",
+        });
+
+        const { data: messageEvent, error: messageEventError } =
+          await adminClient
+            .from("chat_message_events")
+            .select("bill_id, page_type")
+            .eq("user_id", testUser.id)
+            .eq("bill_id", bill.id)
+            .single();
+        expect(messageEventError).toBeNull();
+        expect(messageEvent).toMatchObject({
+          bill_id: bill.id,
+          page_type: "bill",
+        });
+      } finally {
+        await cleanupTestBill(bill.id);
+      }
+    });
+
     it("公開済みbillでナレッジ本文があれば旧DB値がfalseでも knowledgeSource に渡る", async () => {
       const bill = await createTestBill({ publish_status: "published" });
       await createTestBillContent(bill.id);
