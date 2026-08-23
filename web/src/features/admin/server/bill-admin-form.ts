@@ -39,22 +39,27 @@ export function redirectToAdminBillsError(message: string): never {
   redirect(`/admin/bills?error=${encodeURIComponent(message)}` as Route);
 }
 
-function sourcesFromFormData(formData: FormData): BillSource[] {
+function sourcesFromFormData(
+  formData: FormData,
+  prefix = "source"
+): BillSource[] {
   const sources: BillSource[] = [];
 
   for (let index = 0; index < 8; index++) {
-    const title = nullableString(formData.get(`source_${index}_title`));
+    const title = nullableString(formData.get(`${prefix}_${index}_title`));
     if (!title) continue;
     sources.push({
       title,
-      url: nullableString(formData.get(`source_${index}_url`)),
+      url: nullableString(formData.get(`${prefix}_${index}_url`)),
       source_type:
-        nullableString(formData.get(`source_${index}_source_type`)) ??
+        nullableString(formData.get(`${prefix}_${index}_source_type`)) ??
         "official_page",
       published_at: nullableString(
-        formData.get(`source_${index}_published_at`)
+        formData.get(`${prefix}_${index}_published_at`)
       ),
-      accessed_at: nullableString(formData.get(`source_${index}_accessed_at`)),
+      accessed_at: nullableString(
+        formData.get(`${prefix}_${index}_accessed_at`)
+      ),
     });
   }
 
@@ -96,12 +101,14 @@ function newTagsFromFormData(
   return tags;
 }
 
-function parseBillFormData(formData: FormData) {
+export function parseBillFormData(formData: FormData) {
   const id = nullableString(formData.get("id")) ?? undefined;
   const publicationCategory = normalizeBillPublicationCategory(
     nullableString(formData.get("publication_category"))
   );
   const isBudget = publicationCategory === "budget";
+  const isGeneralQuestion = publicationCategory === "general_question";
+  const isSimplifiedPublication = isBudget || isGeneralQuestion;
   const majorCategory =
     nullableString(formData.get("major_category")) ??
     (isBudget ? BUDGET_OVERALL_MAJOR_CATEGORY : "教育🏫");
@@ -113,8 +120,10 @@ function parseBillFormData(formData: FormData) {
   );
   const name = stringFromFormDataEntry(formData.get("name"));
   const normalContent = stringFromFormDataEntry(formData.get("normal_content"));
-  const hardContent = nullableString(formData.get("hard_content"));
-  const budgetContentMetadata = isBudget
+  const hardContent = isGeneralQuestion
+    ? null
+    : nullableString(formData.get("hard_content"));
+  const automaticContentMetadata = isSimplifiedPublication
     ? buildBudgetContentMetadata({
         hardContent,
         name,
@@ -125,47 +134,75 @@ function parseBillFormData(formData: FormData) {
   return billFormSchema.parse({
     id,
     name,
-    item_type: isBudget ? "report" : formData.get("item_type"),
+    item_type: isBudget
+      ? "report"
+      : isGeneralQuestion
+        ? "question"
+        : formData.get("item_type"),
     major_category: majorCategory,
-    status: isBudget ? "introduced" : formData.get("status"),
+    status: isSimplifiedPublication ? "introduced" : formData.get("status"),
     publish_status: publicationStatus.publish_status,
     publication_category: publicationCategory,
     diet_session_id: nullableString(formData.get("diet_session_id")),
     submitted_date: nullableString(formData.get("submitted_date")),
     status_label: isBudget
       ? null
-      : nullableString(formData.get("status_label")),
-    status_note: isBudget ? null : nullableString(formData.get("status_note")),
+      : isGeneralQuestion
+        ? "質問・答弁済み"
+        : nullableString(formData.get("status_label")),
+    status_note: isBudget
+      ? null
+      : isGeneralQuestion
+        ? nullableString(formData.get("preserved_status_note"))
+        : nullableString(formData.get("status_note")),
     thumbnail_url: isBudget
       ? null
-      : nullableString(formData.get("thumbnail_url")),
+      : isGeneralQuestion
+        ? nullableString(formData.get("preserved_thumbnail_url"))
+        : nullableString(formData.get("thumbnail_url")),
     share_thumbnail_url: isBudget
       ? null
-      : nullableString(formData.get("share_thumbnail_url")),
+      : isGeneralQuestion
+        ? nullableString(formData.get("preserved_share_thumbnail_url"))
+        : nullableString(formData.get("share_thumbnail_url")),
     knowledge_source: nullableString(formData.get("knowledge_source")),
     is_review_completed: isBudget
       ? false
-      : formData.get("is_review_completed") === "on",
-    is_featured: isBudget ? false : formData.get("is_featured") === "on",
+      : isGeneralQuestion
+        ? formData.get("preserved_is_review_completed") === "true"
+        : formData.get("is_review_completed") === "on",
+    is_featured: isBudget
+      ? false
+      : isGeneralQuestion
+        ? formData.get("preserved_is_featured") === "true"
+        : formData.get("is_featured") === "on",
     interview_enabled: true,
     use_knowledge_source_in_chat: true,
     normal_title:
-      budgetContentMetadata?.normalTitle ?? formData.get("normal_title"),
+      automaticContentMetadata?.normalTitle ?? formData.get("normal_title"),
     normal_summary:
-      budgetContentMetadata?.normalSummary ?? formData.get("normal_summary"),
+      automaticContentMetadata?.normalSummary ?? formData.get("normal_summary"),
     normal_content: normalContent,
     hard_title:
-      budgetContentMetadata?.hardTitle ??
+      automaticContentMetadata?.hardTitle ??
       nullableString(formData.get("hard_title")),
     hard_summary:
-      budgetContentMetadata?.hardSummary ??
+      automaticContentMetadata?.hardSummary ??
       nullableString(formData.get("hard_summary")),
     hard_content: hardContent,
-    tag_ids: isBudget ? [] : formData.getAll("tag_ids"),
-    new_tags: isBudget
+    tag_ids: isBudget
+      ? []
+      : isGeneralQuestion
+        ? formData.getAll("preserved_tag_ids")
+        : formData.getAll("tag_ids"),
+    new_tags: isSimplifiedPublication
       ? []
       : newTagsFromFormData(formData, fallbackTagMajorCategory),
-    sources: isBudget ? [] : sourcesFromFormData(formData),
+    sources: isBudget
+      ? []
+      : isGeneralQuestion
+        ? sourcesFromFormData(formData, "preserved_source")
+        : sourcesFromFormData(formData),
   });
 }
 

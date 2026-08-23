@@ -107,16 +107,18 @@ function ToggleField({
   );
 }
 
-function BudgetHidden({
+function PublicationCategoryHidden({
   children,
+  hiddenFor,
   initiallyHidden,
 }: {
   children: React.ReactNode;
+  hiddenFor: BillPublicationCategory[];
   initiallyHidden: boolean;
 }) {
   return (
     <fieldset
-      data-admin-bill-budget-hidden=""
+      data-admin-bill-hidden-for={hiddenFor.join(" ")}
       disabled={initiallyHidden}
       style={{ display: initiallyHidden ? "none" : "contents" }}
     >
@@ -208,6 +210,10 @@ export function AdminBillForm({
       (category) => category.label === initialMajorCategory
     )?.label ?? "教育🏫";
   const isInitialBudget = initialPublicationCategory === "budget";
+  const isInitialGeneralQuestion =
+    initialPublicationCategory === "general_question";
+  const isInitialSimplifiedPublication =
+    isInitialBudget || isInitialGeneralQuestion;
   const sources = normalizeSources(bill?.sources);
   const sourceRows = Array.from({
     length: Math.max(5, sources.length + 1),
@@ -244,6 +250,70 @@ export function AdminBillForm({
     >
       {bill?.id && <input type="hidden" name="id" value={bill.id} />}
       <input type="hidden" name="return_path" value={returnPath} />
+      <div hidden>
+        <input
+          type="hidden"
+          name="preserved_status_note"
+          value={bill?.status_note ?? ""}
+        />
+        <input
+          type="hidden"
+          name="preserved_thumbnail_url"
+          value={bill?.thumbnail_url ?? ""}
+        />
+        <input
+          type="hidden"
+          name="preserved_share_thumbnail_url"
+          value={bill?.share_thumbnail_url ?? ""}
+        />
+        <input
+          type="hidden"
+          name="preserved_is_review_completed"
+          value={bill?.is_review_completed ? "true" : "false"}
+        />
+        <input
+          type="hidden"
+          name="preserved_is_featured"
+          value={bill?.is_featured ? "true" : "false"}
+        />
+        {data.selectedTagIds.map((tagId) => (
+          <input
+            key={tagId}
+            type="hidden"
+            name="preserved_tag_ids"
+            value={tagId}
+          />
+        ))}
+        {sources.map((source, index) => (
+          <div key={`${source.title}-${index}`}>
+            <input
+              type="hidden"
+              name={`preserved_source_${index}_title`}
+              value={source.title}
+            />
+            <input
+              type="hidden"
+              name={`preserved_source_${index}_url`}
+              value={source.url ?? ""}
+            />
+            <input
+              type="hidden"
+              name={`preserved_source_${index}_source_type`}
+              value={source.source_type}
+            />
+            <input
+              type="hidden"
+              name={`preserved_source_${index}_published_at`}
+              value={source.published_at ?? ""}
+            />
+            <input
+              type="hidden"
+              name={`preserved_source_${index}_accessed_at`}
+              value={source.accessed_at ?? ""}
+            />
+          </div>
+        ))}
+      </div>
       <AdminBillPublicationKindController
         budgetMajorCategory={BUDGET_OVERALL_MAJOR_CATEGORY}
         defaultMajorCategory="教育🏫"
@@ -330,7 +400,10 @@ export function AdminBillForm({
               <Input name="name" defaultValue={bill?.name ?? ""} required />
             </Field>
           </div>
-          <BudgetHidden initiallyHidden={isInitialBudget}>
+          <PublicationCategoryHidden
+            hiddenFor={["budget", "general_question"]}
+            initiallyHidden={isInitialSimplifiedPublication}
+          >
             <Field label="案件タイプ">
               <NativeSelect
                 name="item_type"
@@ -362,7 +435,7 @@ export function AdminBillForm({
                 ))}
               </NativeSelect>
             </Field>
-          </BudgetHidden>
+          </PublicationCategoryHidden>
           <Field label="大分類">
             <NativeSelect
               name="major_category"
@@ -392,7 +465,10 @@ export function AdminBillForm({
               defaultValue={values.submittedDate}
             />
           </Field>
-          <BudgetHidden initiallyHidden={isInitialBudget}>
+          <PublicationCategoryHidden
+            hiddenFor={["budget", "general_question"]}
+            initiallyHidden={isInitialSimplifiedPublication}
+          >
             <Field label="進行ステータス">
               <NativeSelect
                 name="status"
@@ -448,7 +524,7 @@ export function AdminBillForm({
                 defaultValue={bill?.share_thumbnail_url ?? ""}
               />
             </Field>
-          </BudgetHidden>
+          </PublicationCategoryHidden>
         </CardContent>
       </Card>
 
@@ -456,13 +532,21 @@ export function AdminBillForm({
         <CardHeader>
           <CardTitle>本文</CardTitle>
           <CardDescription>
-            normalは必須です。hardが空の場合はnormalをコピーして保存します。
+            本文は必須です。hardが空の場合はnormalと同じ内容を保存します。
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <div className="grid gap-4">
-            <h2 className="text-lg font-bold">normal</h2>
-            <BudgetHidden initiallyHidden={isInitialBudget}>
+            <PublicationCategoryHidden
+              hiddenFor={["general_question"]}
+              initiallyHidden={isInitialGeneralQuestion}
+            >
+              <h2 className="text-lg font-bold">normal</h2>
+            </PublicationCategoryHidden>
+            <PublicationCategoryHidden
+              hiddenFor={["budget", "general_question"]}
+              initiallyHidden={isInitialSimplifiedPublication}
+            >
               <Field label="表示タイトル">
                 <Input
                   name="normal_title"
@@ -478,8 +562,8 @@ export function AdminBillForm({
                   required
                 />
               </Field>
-            </BudgetHidden>
-            <Field label="Markdown本文">
+            </PublicationCategoryHidden>
+            <Field label="本文（Markdown）">
               <Textarea
                 name="normal_content"
                 defaultValue={values.normalContent}
@@ -489,29 +573,37 @@ export function AdminBillForm({
               />
             </Field>
           </div>
-          <div className="grid gap-4 border-t pt-6">
-            <h2 className="text-lg font-bold">hard</h2>
-            <BudgetHidden initiallyHidden={isInitialBudget}>
-              <Field label="表示タイトル">
-                <Input name="hard_title" defaultValue={values.hardTitle} />
-              </Field>
-              <Field label="概要">
+          <PublicationCategoryHidden
+            hiddenFor={["general_question"]}
+            initiallyHidden={isInitialGeneralQuestion}
+          >
+            <div className="grid gap-4 border-t pt-6">
+              <h2 className="text-lg font-bold">hard</h2>
+              <PublicationCategoryHidden
+                hiddenFor={["budget"]}
+                initiallyHidden={isInitialBudget}
+              >
+                <Field label="表示タイトル">
+                  <Input name="hard_title" defaultValue={values.hardTitle} />
+                </Field>
+                <Field label="概要">
+                  <Textarea
+                    name="hard_summary"
+                    defaultValue={values.hardSummary}
+                    rows={3}
+                  />
+                </Field>
+              </PublicationCategoryHidden>
+              <Field label="本文（Markdown）">
                 <Textarea
-                  name="hard_summary"
-                  defaultValue={values.hardSummary}
-                  rows={3}
+                  name="hard_content"
+                  defaultValue={values.hardContent}
+                  rows={16}
+                  className="font-mono text-sm"
                 />
               </Field>
-            </BudgetHidden>
-            <Field label="Markdown本文">
-              <Textarea
-                name="hard_content"
-                defaultValue={values.hardContent}
-                rows={16}
-                className="font-mono text-sm"
-              />
-            </Field>
-          </div>
+            </div>
+          </PublicationCategoryHidden>
         </CardContent>
       </Card>
 
@@ -527,7 +619,10 @@ export function AdminBillForm({
         </CardContent>
       </Card>
 
-      <BudgetHidden initiallyHidden={isInitialBudget}>
+      <PublicationCategoryHidden
+        hiddenFor={["budget", "general_question"]}
+        initiallyHidden={isInitialSimplifiedPublication}
+      >
         <Card>
           <CardHeader>
             <CardTitle>タグ・出典</CardTitle>
@@ -583,9 +678,12 @@ export function AdminBillForm({
             </div>
           </CardContent>
         </Card>
-      </BudgetHidden>
+      </PublicationCategoryHidden>
 
-      <BudgetHidden initiallyHidden={isInitialBudget}>
+      <PublicationCategoryHidden
+        hiddenFor={["budget", "general_question"]}
+        initiallyHidden={isInitialSimplifiedPublication}
+      >
         <Card>
           <CardHeader>
             <CardTitle>公開設定</CardTitle>
@@ -603,7 +701,7 @@ export function AdminBillForm({
             />
           </CardContent>
         </Card>
-      </BudgetHidden>
+      </PublicationCategoryHidden>
 
       <div className="sticky bottom-4 flex justify-end">
         <Button type="submit" className="shadow-lg">
