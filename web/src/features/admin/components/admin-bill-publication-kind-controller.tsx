@@ -29,10 +29,8 @@ export function AdminBillPublicationKindController({
     );
     if (!publicationCategorySelect || !majorCategorySelect) return;
 
-    const budgetHiddenFieldsets = Array.from(
-      form.querySelectorAll<HTMLFieldSetElement>(
-        "[data-admin-bill-budget-hidden]"
-      )
+    const categoryHiddenFieldsets = Array.from(
+      form.querySelectorAll<HTMLFieldSetElement>("[data-admin-bill-hidden-for]")
     );
 
     const ensureBudgetMajorCategoryOption = () => {
@@ -56,9 +54,11 @@ export function AdminBillPublicationKindController({
     const syncPublicationCategory = () => {
       const isBudget = publicationCategorySelect.value === "budget";
 
-      for (const fieldset of budgetHiddenFieldsets) {
-        fieldset.disabled = isBudget;
-        fieldset.style.display = isBudget ? "none" : "contents";
+      for (const fieldset of categoryHiddenFieldsets) {
+        const hiddenFor = fieldset.dataset.adminBillHiddenFor?.split(" ") ?? [];
+        const isHidden = hiddenFor.includes(publicationCategorySelect.value);
+        fieldset.disabled = isHidden;
+        fieldset.style.display = isHidden ? "none" : "contents";
       }
 
       if (isBudget) {
