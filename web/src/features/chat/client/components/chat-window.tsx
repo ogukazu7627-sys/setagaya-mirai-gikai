@@ -19,8 +19,10 @@ import {
   type PromptInputMessage,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
-import type { BillWithContent } from "@/features/bills/shared/types";
-import type { ChatPageContext } from "@/features/chat/shared/types/page-context";
+import type {
+  ChatBillContext,
+  ChatPageContext,
+} from "@/features/chat/shared/types/page-context";
 import { InterviewSidePanel } from "@/features/interview-session/client/components/interview-side-panel";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -36,7 +38,7 @@ type MobileChatPhase = "preview" | "composing";
 const COMPOSITION_END_GUARD_MS = 100;
 
 interface ChatWindowProps {
-  billContext?: BillWithContent;
+  billContext?: ChatBillContext;
   hasInterviewConfig?: boolean;
   difficultyLevel: string;
   chatState: ReturnType<typeof import("@ai-sdk/react").useChat>;
@@ -75,9 +77,9 @@ const DIRECTORY_QUESTIONS = {
   ],
 } as const;
 
-function getBillSampleQuestions(bill: BillWithContent): string[] {
+function getBillSampleQuestions(bill: ChatBillContext): string[] {
   const itemTypeQuestions: Partial<
-    Record<NonNullable<BillWithContent["item_type"]>, string[]>
+    Record<NonNullable<ChatBillContext["item_type"]>, string[]>
   > = {
     bill: ["この議案で何が変わる？", "なぜこの条例改正が必要？"],
     report: ["この報告は今後どう進む？", "これは将来、議案になる？"],
@@ -107,7 +109,7 @@ function ChatMessages({
   previewOnly,
   authStatus,
 }: {
-  billContext?: BillWithContent;
+  billContext?: ChatBillContext;
   hasInterviewConfig?: boolean;
   difficultyLevel: string;
   messages: ChatWindowProps["chatState"]["messages"];
@@ -139,9 +141,11 @@ function ChatMessages({
         {/* 初期メッセージ */}
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold leading-[1.8] text-mirai-text">
-            世田谷区議会の案件について、気になることをAIに質問してください。
+            {pageContext?.type === "budget-question"
+              ? "この議員質問と区の答弁について、気になることをAIに質問してください。"
+              : "世田谷区議会の案件について、気になることをAIに質問してください。"}
           </p>
-          {billContext && (
+          {billContext && pageContext?.type !== "budget-question" && (
             <p className="text-sm font-bold leading-[1.8] text-mirai-text">
               本文中のテキストを選択すると簡単にAIに質問できます
             </p>

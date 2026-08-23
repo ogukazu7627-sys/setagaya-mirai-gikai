@@ -3,8 +3,13 @@ import "server-only";
 import { ArrowLeft, MessageCircleQuestion } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { CouncilorOpinionChatSection } from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
 import { normalizeSetagayaHeadings } from "@/features/bills/server/components/bill-detail/bill-content";
+import {
+  BudgetQuestionAiAskButton,
+  BudgetQuestionAiChatProvider,
+} from "@/features/budget/client/components/budget-question-ai-chat";
 import { BudgetQuestionNavigator } from "@/features/budget/client/components/budget-question-navigator";
 import {
   groupBudgetQuestionsByCouncilor,
@@ -25,6 +30,7 @@ type BudgetQuestionCategoryPageData = NonNullable<
 >;
 
 type BudgetQuestionPageProps = BudgetQuestionCategoryPageData & {
+  difficultyLevel: DifficultyLevelEnum;
   focusBillId?: string | null;
 };
 
@@ -86,6 +92,7 @@ export async function BudgetQuestionMarkdown({ content }: { content: string }) {
 
 export function BudgetQuestionPage({
   category,
+  difficultyLevel,
   focusBillId,
   questions,
 }: BudgetQuestionPageProps) {
@@ -146,7 +153,7 @@ export function BudgetQuestionPage({
             </p>
           </div>
         ) : (
-          <>
+          <BudgetQuestionAiChatProvider difficultyLevel={difficultyLevel}>
             <BudgetQuestionNavigator
               activeCouncilorId={activeCouncilorGroup.councilor.id}
               categorySlug={category.slug}
@@ -196,6 +203,12 @@ export function BudgetQuestionPage({
                           questionName: question.name,
                         })}
                       </p>
+                      <div className="mt-4 flex justify-end">
+                        <BudgetQuestionAiAskButton
+                          questionId={question.id}
+                          questionName={question.name}
+                        />
+                      </div>
                     </header>
 
                     <div className="mt-6">
@@ -207,7 +220,7 @@ export function BudgetQuestionPage({
                 );
               })}
             </div>
-          </>
+          </BudgetQuestionAiChatProvider>
         )}
       </div>
     </div>

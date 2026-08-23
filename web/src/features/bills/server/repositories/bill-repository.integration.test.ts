@@ -157,6 +157,33 @@ describe("bill-repository 統合テスト", () => {
       expect(result).toBeNull();
     });
 
+    it("公開中の予算案件は予算質問スコープで取得できる", async () => {
+      const bill = await createTestBill({
+        publish_status: "published",
+        publication_category: "budget",
+        name: "公開予算質問",
+      });
+      billIds.push(bill.id);
+
+      const result = await findPublishedBillById(bill.id, "budget-question");
+
+      expect(result?.id).toBe(bill.id);
+      expect(result?.name).toBe("公開予算質問");
+      expect(result?.publication_category).toBe("budget");
+    });
+
+    it("通常記事は予算質問スコープで取得できない", async () => {
+      const bill = await createTestBill({
+        publish_status: "published",
+        publication_category: "report",
+      });
+      billIds.push(bill.id);
+
+      const result = await findPublishedBillById(bill.id, "budget-question");
+
+      expect(result).toBeNull();
+    });
+
     it("存在しないIDではnullを返す", async () => {
       const result = await findPublishedBillById(
         "00000000-0000-0000-0000-000000000000"
