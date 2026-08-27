@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildUtmShortLinkRedirectUrl,
   isHtmlAcceptHeader,
+  isNextRouterPrefetch,
   isValidDifficultyLevel,
   shouldSkipSupabaseSessionUpdate,
 } from "./middleware";
@@ -62,6 +63,32 @@ describe("shouldSkipSupabaseSessionUpdate", () => {
   it("should not skip Supabase session refresh on other pages", () => {
     expect(shouldSkipSupabaseSessionUpdate("/")).toBe(false);
     expect(shouldSkipSupabaseSessionUpdate("/admin/bills")).toBe(false);
+  });
+
+  it("should skip Supabase session refresh for the service worker", () => {
+    expect(shouldSkipSupabaseSessionUpdate("/sw.js")).toBe(true);
+  });
+
+  it.each([
+    ["next-router-prefetch", "1"],
+    ["x-middleware-prefetch", "1"],
+    ["purpose", "prefetch"],
+    ["sec-purpose", "prefetch;prerender"],
+  ])("should skip session refresh for %s requests", (name, value) => {
+    expect(
+      shouldSkipSupabaseSessionUpdate(
+        "/admin/bills",
+        new Headers([[name, value]])
+      )
+    ).toBe(true);
+  });
+});
+
+describe("isNextRouterPrefetch", () => {
+  it("does not classify a normal navigation as a prefetch", () => {
+    expect(isNextRouterPrefetch(new Headers({ accept: "text/html" }))).toBe(
+      false
+    );
   });
 });
 
