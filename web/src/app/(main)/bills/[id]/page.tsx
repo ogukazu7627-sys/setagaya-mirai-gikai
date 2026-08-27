@@ -10,6 +10,8 @@ import {
 } from "@/features/bills/shared/utils/bill-seo-metadata";
 import { findPublishedBudgetQuestionReferenceByBillId } from "@/features/budget/server/repositories/budget-question-repository";
 import { getBudgetQuestionCategoryBySlug } from "@/features/budget/shared/constants/budget-question-categories";
+import { findPublishedGeneralQuestionReferenceByBillId } from "@/features/general-questions/server/repositories/general-question-repository";
+import { getGeneralQuestionCategoryById } from "@/features/general-questions/shared/utils/general-question-categories";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -23,10 +25,12 @@ export async function generateMetadata({
   params,
 }: BillDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const [bill, budgetQuestionReference] = await Promise.all([
-    getBillById(id),
-    findPublishedBudgetQuestionReferenceByBillId(id),
-  ]);
+  const [budgetQuestionReference, generalQuestionReference] = await Promise.all(
+    [
+      findPublishedBudgetQuestionReferenceByBillId(id),
+      findPublishedGeneralQuestionReferenceByBillId(id),
+    ]
+  );
 
   if (budgetQuestionReference) {
     const category = getBudgetQuestionCategoryBySlug(
@@ -57,6 +61,39 @@ export async function generateMetadata({
       },
     };
   }
+
+  if (generalQuestionReference) {
+    const category = getGeneralQuestionCategoryById(
+      generalQuestionReference.categoryId
+    );
+    const categoryName = category?.name ?? "一般質問";
+    const title = `${categoryName}に関する議員の質問 | 世田谷区議会`;
+    const description = `${generalQuestionReference.year}年の世田谷区議会で行われた${categoryName}分野の一般質問を、議員ごとに確認できます。`;
+    const canonical = routes.generalQuestionCategory(
+      generalQuestionReference.year,
+      generalQuestionReference.categoryId
+    );
+    return {
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        url: canonical,
+        images: ["/ogp.jpg"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: ["/ogp.jpg"],
+      },
+    };
+  }
+
+  const bill = await getBillById(id);
 
   if (!bill) {
     return {
@@ -105,17 +142,12 @@ export async function generateMetadata({
 
 export default async function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = await params;
-  const [
-    billWithContent,
-    currentDifficulty,
-    recommendedBills,
-    budgetQuestionReference,
-  ] = await Promise.all([
-    getBillById(id),
-    getDifficultyLevel(),
-    getRandomBillRecommendations(id),
-    findPublishedBudgetQuestionReferenceByBillId(id),
-  ]);
+  const [budgetQuestionReference, generalQuestionReference] = await Promise.all(
+    [
+      findPublishedBudgetQuestionReferenceByBillId(id),
+      findPublishedGeneralQuestionReferenceByBillId(id),
+    ]
+  );
 
   if (budgetQuestionReference) {
     redirect(
@@ -125,6 +157,23 @@ export default async function BillDetailPage({ params }: BillDetailPageProps) {
       ) as Route
     );
   }
+
+  if (generalQuestionReference) {
+    redirect(
+      routes.generalQuestionCategory(
+        generalQuestionReference.year,
+        generalQuestionReference.categoryId,
+        id
+      ) as Route
+    );
+  }
+
+  const [billWithContent, currentDifficulty, recommendedBills] =
+    await Promise.all([
+      getBillById(id),
+      getDifficultyLevel(),
+      getRandomBillRecommendations(id),
+    ]);
 
   if (!billWithContent) {
     notFound();

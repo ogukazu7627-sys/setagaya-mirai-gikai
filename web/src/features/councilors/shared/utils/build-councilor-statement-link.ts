@@ -1,18 +1,20 @@
 import type { BillPublicationCategory } from "@/features/bills/shared/types";
 import { getBudgetQuestionCategoryByMajorCategory } from "@/features/budget/shared/constants/budget-question-categories";
+import { getGeneralQuestionCategoryByMajorCategory } from "@/features/general-questions/shared/utils/general-question-categories";
 import { routes } from "@/lib/routes";
 
 export type CouncilorStatementLinkInput = {
   billId: string;
   publicationCategory: BillPublicationCategory;
   majorCategory: string | null;
+  sessionStartDate?: string | null;
   statementIndex: number;
 };
 
 export type CouncilorStatementLink = {
   href: string;
   /** 予算委員会での質問は遷移先が異なるため、画面側で見分けられるようにする。 */
-  kind: "bill" | "budget-question";
+  kind: "bill" | "budget-question" | "general-question";
 };
 
 /**
@@ -25,6 +27,7 @@ export function buildCouncilorStatementLink({
   billId,
   publicationCategory,
   majorCategory,
+  sessionStartDate,
   statementIndex,
 }: CouncilorStatementLinkInput): CouncilorStatementLink {
   if (publicationCategory === "budget") {
@@ -32,6 +35,26 @@ export function buildCouncilorStatementLink({
     return {
       href: routes.budgetQuestionCategory(category?.slug ?? "all", billId),
       kind: "budget-question",
+    };
+  }
+
+  if (publicationCategory === "general_question") {
+    const category = getGeneralQuestionCategoryByMajorCategory(majorCategory);
+    const yearMatch = sessionStartDate?.match(/^(\d{4})/u);
+    if (category && yearMatch) {
+      return {
+        href: routes.generalQuestionCategory(
+          Number(yearMatch[1]),
+          category.id,
+          billId
+        ),
+        kind: "general-question",
+      };
+    }
+
+    return {
+      href: routes.billDetail(billId),
+      kind: "general-question",
     };
   }
 

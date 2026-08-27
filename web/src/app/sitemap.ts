@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getBills } from "@/features/bills/server/loaders/get-bills";
 import { BUDGET_QUESTION_CATEGORIES } from "@/features/budget/shared/constants/budget-question-categories";
+import { findPublishedGeneralQuestionCategoryReferences } from "@/features/general-questions/server/repositories/general-question-repository";
 import { LEARN_LESSONS } from "@/features/learn/shared/learn-lessons";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
@@ -8,7 +9,10 @@ import { routes } from "@/lib/routes";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = env.webUrl.replace(/\/+$/, "");
 
-  const bills = await getBills();
+  const [bills, generalQuestionCategories] = await Promise.all([
+    getBills(),
+    findPublishedGeneralQuestionCategoryReferences(),
+  ]);
 
   const billUrls = bills.map((bill) => ({
     url: `${baseUrl}${routes.billDetail(bill.id)}`,
@@ -42,6 +46,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     })
   );
+  const generalQuestionCategoryUrls = generalQuestionCategories.map(
+    (category) => ({
+      url: `${baseUrl}${routes.generalQuestionCategory(
+        category.year,
+        category.categoryId
+      )}`,
+      lastModified: new Date(category.updatedAt),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })
+  );
 
   return [
     {
@@ -53,6 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...navigationUrls,
     ...learnLessonUrls,
     ...budgetQuestionCategoryUrls,
+    ...generalQuestionCategoryUrls,
     ...billUrls,
   ];
 }

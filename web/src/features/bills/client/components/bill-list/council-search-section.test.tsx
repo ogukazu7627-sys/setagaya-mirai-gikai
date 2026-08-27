@@ -44,6 +44,7 @@ describe("CouncilSearchSection", () => {
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: [card.id],
       bills: [card],
+      items: [{ kind: "bill", bill: card }],
       total: 1,
       mode: "hybrid",
     });
@@ -75,6 +76,7 @@ describe("CouncilSearchSection", () => {
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: sixCards.map(({ id }) => id),
       bills: sixCards,
+      items: sixCards.map((bill) => ({ kind: "bill", bill })),
       total: 6,
       mode: "hybrid",
     });
@@ -96,6 +98,48 @@ describe("CouncilSearchSection", () => {
     expect(screen.getByText("2 / 2")).toBeInTheDocument();
   });
 
+  it("同じ大分類に一致した一般質問は個別カードではなく1枚で表示する", async () => {
+    const user = userEvent.setup();
+    mockedRequestCouncilAiSearch.mockResolvedValue({
+      billIds: ["question-1", "question-2"],
+      bills: [],
+      items: [
+        {
+          kind: "general-question-category",
+          category: {
+            categoryId: "education",
+            name: "教育",
+            majorCategory: "教育🏫",
+            description: "学校、教育環境、学びの支援",
+            year: 2026,
+            questionCount: 30,
+            latestSubmittedDate: "2026-02-20",
+            focusBillId: "11111111-1111-4111-8111-111111111111",
+          },
+        },
+      ],
+      total: 1,
+      mode: "hybrid",
+    });
+    render(<CouncilSearchSection committeeNames={committeeNames} />);
+
+    await user.type(
+      screen.getByRole("textbox", { name: "知りたいことを入力" }),
+      "学校{Enter}"
+    );
+
+    expect(
+      await screen.findByRole("link", { name: /教育に関する議員の質問/u })
+    ).toHaveAttribute(
+      "href",
+      "/bills/questions/2026/education?focus=11111111-1111-4111-8111-111111111111"
+    );
+    expect(screen.getByText("質問 30件")).toBeVisible();
+    expect(screen.getByText("1件")).toBeVisible();
+    expect(screen.queryByText("question-1")).not.toBeInTheDocument();
+    expect(screen.queryByText("question-2")).not.toBeInTheDocument();
+  });
+
   it("フィルターだけの検索は5件のページAPIを使う", async () => {
     const user = userEvent.setup();
     const cards = Array.from({ length: 5 }, (_, index) =>
@@ -103,6 +147,7 @@ describe("CouncilSearchSection", () => {
     );
     mockedRequestCouncilBillPage.mockResolvedValue({
       bills: cards,
+      items: cards.map((bill) => ({ kind: "bill", bill })),
       total: 7,
       currentPage: 1,
       totalPages: 2,
@@ -132,6 +177,7 @@ describe("CouncilSearchSection", () => {
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: [],
       bills: [],
+      items: [],
       total: 0,
       mode: "keyword-fallback",
     });
@@ -153,6 +199,7 @@ describe("CouncilSearchSection", () => {
     mockedRequestCouncilAiSearch.mockResolvedValue({
       billIds: [],
       bills: [],
+      items: [],
       total: 0,
       mode: "keyword-fallback",
     });
@@ -183,6 +230,7 @@ describe("CouncilSearchSection", () => {
       .mockResolvedValueOnce({
         billIds: [card.id],
         bills: [card],
+        items: [{ kind: "bill", bill: card }],
         total: 1,
         mode: "hybrid",
       });

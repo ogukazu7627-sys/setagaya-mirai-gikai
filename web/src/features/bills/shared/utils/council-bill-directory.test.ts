@@ -61,6 +61,7 @@ describe("council bill directory", () => {
     );
 
     expect(page).toEqual({
+      entries: [entries[3], entries[2], entries[1]],
       billIds: ["question-new", "question-old", "bill-old"],
       total: 4,
       currentPage: 1,
@@ -78,6 +79,7 @@ describe("council bill directory", () => {
         5
       )
     ).toEqual({
+      entries: [entries[0]],
       billIds: ["report"],
       total: 1,
       currentPage: 1,

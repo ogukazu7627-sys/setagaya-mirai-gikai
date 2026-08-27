@@ -6,23 +6,29 @@ import {
   getCalendarYearFromDate,
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
+import { findPublishedGeneralQuestionCategoryCards } from "@/features/general-questions/server/repositories/general-question-repository";
 import { getRecommendationCategoryById } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { getJapanTime } from "@/lib/utils/date";
-import { COUNCIL_SEARCH_PAGE_SIZE } from "../../shared/utils/council-search";
-import { THEME_BILLS_PAGE_SIZE } from "../../shared/utils/theme-bills";
 import type {
   CouncilBillCardPage,
   CouncilBillPageRequest,
 } from "../../shared/types/council-bill-directory";
-import { paginateCouncilBillDirectoryEntries } from "../../shared/utils/council-bill-directory";
-import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
+import {
+  buildCouncilDirectoryItems,
+  paginateCouncilBillDirectoryEntries,
+  toGeneralQuestionDirectoryEntries,
+} from "../../shared/utils/council-bill-directory";
+import { COUNCIL_SEARCH_PAGE_SIZE } from "../../shared/utils/council-search";
+import { THEME_BILLS_PAGE_SIZE } from "../../shared/utils/theme-bills";
 import { loadCouncilBillCardsByIds } from "../loaders/load-council-bill-cards";
+import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
 
 type CouncilBillPageDependencies = {
   now?: () => Date;
   getDifficulty?: typeof getDifficultyLevel;
   findSessions?: typeof findDietSessionsStartingBetween;
   findEntries?: typeof findPublishedCouncilBillDirectoryEntries;
+  findGeneralQuestionCategories?: typeof findPublishedGeneralQuestionCategoryCards;
   loadCards?: typeof loadCouncilBillCardsByIds;
 };
 
@@ -46,9 +52,20 @@ export async function loadCouncilBillPage(
     ),
   ]);
   const dietSessionIds = sessions.map(({ id }) => id);
-  const entries = await (
-    dependencies.findEntries ?? findPublishedCouncilBillDirectoryEntries
-  )(dietSessionIds, difficultyLevel);
+  const [billEntries, generalQuestionCategories] = await Promise.all([
+    (dependencies.findEntries ?? findPublishedCouncilBillDirectoryEntries)(
+      dietSessionIds,
+      difficultyLevel
+    ),
+    (
+      dependencies.findGeneralQuestionCategories ??
+      findPublishedGeneralQuestionCategoryCards
+    )(dietSessionIds, year),
+  ]);
+  const entries = [
+    ...billEntries,
+    ...toGeneralQuestionDirectoryEntries(generalQuestionCategories),
+  ];
   const theme = input.themeId
     ? getRecommendationCategoryById(input.themeId)
     : null;
@@ -73,6 +90,7 @@ export async function loadCouncilBillPage(
 
   return {
     bills,
+    items: buildCouncilDirectoryItems(page.entries, bills),
     total: page.total,
     currentPage: page.currentPage,
     totalPages: page.totalPages,
@@ -82,6 +100,7 @@ export async function loadCouncilBillPage(
 function emptyCouncilBillPage(): CouncilBillCardPage {
   return {
     bills: [],
+    items: [],
     total: 0,
     currentPage: 1,
     totalPages: 1,

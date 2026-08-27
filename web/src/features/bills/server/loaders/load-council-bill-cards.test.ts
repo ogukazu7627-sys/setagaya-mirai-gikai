@@ -44,6 +44,7 @@ function createRow(id: string): CouncilBillCardRow {
     id,
     name: `${id}の正式名称`,
     item_type: "bill",
+    publication_category: "report",
     major_category: "教育🏫",
     status: "introduced",
     status_label: null,

@@ -3,7 +3,10 @@ import "server-only";
 import { createAdminClient } from "@mirai-gikai/supabase";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import { extractCommitteeName } from "@/features/committees/shared/committee-matching";
-import { NORMAL_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
+import {
+  COUNCIL_SEARCH_PUBLICATION_CATEGORIES,
+  NORMAL_PUBLICATION_CATEGORIES,
+} from "../../shared/constants/publication-categories";
 import type { Bill, BillContent, BillItemType } from "../../shared/types";
 import type { CouncilBillDirectoryEntry } from "../../shared/types/council-bill-directory";
 
@@ -21,6 +24,7 @@ export type CouncilBillCardRow = Pick<
   | "is_featured"
   | "is_review_completed"
   | "interview_enabled"
+  | "publication_category"
 > & {
   bill_contents:
     | Array<Pick<BillContent, "title" | "summary">>
@@ -103,6 +107,7 @@ export async function findPublishedCouncilBillCardRowsByIds(
       is_featured,
       is_review_completed,
       interview_enabled,
+      publication_category,
       bill_contents!inner (
         title,
         summary,
@@ -113,7 +118,7 @@ export async function findPublishedCouncilBillCardRowsByIds(
     .in("id", billIds)
     .in("diet_session_id", dietSessionIds)
     .eq("publish_status", "published")
-    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES)
+    .in("publication_category", COUNCIL_SEARCH_PUBLICATION_CATEGORIES)
     .eq("bill_contents.difficulty_level", difficultyLevel);
 
   if (error) {

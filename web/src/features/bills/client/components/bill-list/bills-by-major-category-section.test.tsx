@@ -49,6 +49,7 @@ const data: CouncilThemeSectionData = {
   initialCategoryId: "education",
   initialPage: {
     bills: initialCards,
+    items: initialCards.map((bill) => ({ kind: "bill", bill })),
     total: 12,
     currentPage: 1,
     totalPages: 2,
@@ -81,10 +82,49 @@ describe("BillsByMajorCategorySection", () => {
     expect(mockedRequestCouncilBillPage).not.toHaveBeenCalled();
   });
 
+  it("大分類の一般質問を個別案件ではなく1枚の大きなカードで表示する", () => {
+    render(
+      <BillsByMajorCategorySection
+        data={{
+          ...data,
+          initialPage: {
+            bills: [],
+            items: [
+              {
+                kind: "general-question-category",
+                category: {
+                  categoryId: "education",
+                  name: "教育",
+                  majorCategory: "教育🏫",
+                  description: "学校、教育環境、学びの支援",
+                  year: 2026,
+                  questionCount: 30,
+                  latestSubmittedDate: "2026-02-20",
+                },
+              },
+            ],
+            total: 1,
+            currentPage: 1,
+            totalPages: 1,
+          },
+        }}
+      />
+    );
+
+    expect(
+      screen.getByRole("link", { name: /教育に関する議員の質問/u })
+    ).toHaveAttribute("href", "/bills/questions/2026/education");
+    expect(screen.getByText("質問 30件")).toBeVisible();
+    expect(screen.queryByTestId("bill-card")).not.toBeInTheDocument();
+  });
+
   it("次ページは10件単位のAPIから読み込む", async () => {
     const user = userEvent.setup();
     mockedRequestCouncilBillPage.mockResolvedValue({
       bills: [createCard("education-11"), createCard("education-12")],
+      items: [createCard("education-11"), createCard("education-12")].map(
+        (bill) => ({ kind: "bill" as const, bill })
+      ),
       total: 12,
       currentPage: 2,
       totalPages: 2,
@@ -112,6 +152,10 @@ describe("BillsByMajorCategorySection", () => {
         createCard("disaster-prevention-1"),
         createCard("disaster-prevention-2"),
       ],
+      items: [
+        createCard("disaster-prevention-1"),
+        createCard("disaster-prevention-2"),
+      ].map((bill) => ({ kind: "bill" as const, bill })),
       total: 2,
       currentPage: 1,
       totalPages: 1,

@@ -4,6 +4,7 @@ import { loadYearArchiveData } from "./load-year-archive-data";
 const mocks = vi.hoisted(() => ({
   findDietSessionsStartingBetween: vi.fn(),
   findEntries: vi.fn(),
+  findGeneralQuestionCategories: vi.fn(),
   loadCouncilThemeSectionData: vi.fn(),
 }));
 
@@ -16,6 +17,13 @@ vi.mock(
 vi.mock("../repositories/council-bill-directory-repository", () => ({
   findPublishedCouncilBillDirectoryEntries: mocks.findEntries,
 }));
+vi.mock(
+  "@/features/general-questions/server/repositories/general-question-repository",
+  () => ({
+    findPublishedGeneralQuestionCategoryCards:
+      mocks.findGeneralQuestionCategories,
+  })
+);
 vi.mock("./load-council-theme-section-data", () => ({
   loadCouncilThemeSectionData: mocks.loadCouncilThemeSectionData,
 }));
@@ -26,6 +34,7 @@ const themeData = {
   initialCategoryId: null,
   initialPage: {
     bills: [],
+    items: [],
     total: 0,
     currentPage: 1,
     totalPages: 1,
@@ -38,6 +47,17 @@ beforeEach(() => {
     { id: "session-2024" },
   ]);
   mocks.findEntries.mockResolvedValue([{ id: "archive-entry" }]);
+  mocks.findGeneralQuestionCategories.mockResolvedValue([
+    {
+      categoryId: "education",
+      name: "教育",
+      majorCategory: "教育🏫",
+      description: "教育に関する質問",
+      year: 2024,
+      questionCount: 12,
+      latestSubmittedDate: "2024-06-01",
+    },
+  ]);
   mocks.loadCouncilThemeSectionData.mockResolvedValue(themeData);
 });
 
@@ -60,9 +80,19 @@ describe("loadYearArchiveData", () => {
       "2024-12-31"
     );
     expect(mocks.findEntries).toHaveBeenCalledWith(["session-2024"], "normal");
+    expect(mocks.findGeneralQuestionCategories).toHaveBeenCalledWith(
+      ["session-2024"],
+      2024
+    );
     expect(mocks.loadCouncilThemeSectionData).toHaveBeenCalledWith({
       year: 2024,
-      entries: [{ id: "archive-entry" }],
+      entries: [
+        { id: "archive-entry" },
+        expect.objectContaining({
+          kind: "general-question-category",
+          id: "general-question:2024:education",
+        }),
+      ],
       dietSessionIds: ["session-2024"],
       difficultyLevel: "normal",
     });
@@ -85,6 +115,7 @@ describe("loadYearArchiveData", () => {
     });
     expect(mocks.findDietSessionsStartingBetween).not.toHaveBeenCalled();
     expect(mocks.findEntries).not.toHaveBeenCalled();
+    expect(mocks.findGeneralQuestionCategories).not.toHaveBeenCalled();
   });
 
   it("過年度がない場合は空の年一覧を返す", async () => {

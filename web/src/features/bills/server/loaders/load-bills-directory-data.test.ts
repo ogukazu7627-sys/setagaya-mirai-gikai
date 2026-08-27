@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   findDietSessionsStartingBetween: vi.fn(),
   findDietSessionsStartingBefore: vi.fn(),
   findEntries: vi.fn(),
+  findGeneralQuestionCategories: vi.fn(),
   loadCouncilThemeSectionData: vi.fn(),
   loadYearArchiveData: vi.fn(),
 }));
@@ -30,6 +31,13 @@ vi.mock("@/lib/setagaya-mock", () => ({
 vi.mock("../repositories/council-bill-directory-repository", () => ({
   findPublishedCouncilBillDirectoryEntries: mocks.findEntries,
 }));
+vi.mock(
+  "@/features/general-questions/server/repositories/general-question-repository",
+  () => ({
+    findPublishedGeneralQuestionCategoryCards:
+      mocks.findGeneralQuestionCategories,
+  })
+);
 vi.mock("./load-council-theme-section-data", () => ({
   loadCouncilThemeSectionData: mocks.loadCouncilThemeSectionData,
 }));
@@ -43,6 +51,7 @@ const themeData = {
   initialCategoryId: null,
   initialPage: {
     bills: [],
+    items: [],
     total: 0,
     currentPage: 1,
     totalPages: 1,
@@ -59,6 +68,17 @@ beforeEach(() => {
     { id: "session-2025", start_date: "2025-06-01" },
   ]);
   mocks.findEntries.mockResolvedValue([{ id: "current-bill" }]);
+  mocks.findGeneralQuestionCategories.mockResolvedValue([
+    {
+      categoryId: "education",
+      name: "教育",
+      majorCategory: "教育🏫",
+      description: "教育に関する質問",
+      year: 2026,
+      questionCount: 30,
+      latestSubmittedDate: "2026-02-20",
+    },
+  ]);
   mocks.loadCouncilThemeSectionData.mockResolvedValue(themeData);
   mocks.loadYearArchiveData.mockResolvedValue({
     years: [2025],
@@ -78,9 +98,21 @@ describe("loadBillsDirectoryData", () => {
       "2026-12-31"
     );
     expect(mocks.findEntries).toHaveBeenCalledWith(["session-2026"], "normal");
+    expect(mocks.findGeneralQuestionCategories).toHaveBeenCalledWith(
+      ["session-2026"],
+      2026
+    );
     expect(mocks.loadCouncilThemeSectionData).toHaveBeenCalledWith({
       year: 2026,
-      entries: [{ id: "current-bill" }],
+      entries: [
+        { id: "current-bill" },
+        expect.objectContaining({
+          kind: "general-question-category",
+          id: "general-question:2026:education",
+          itemType: "question",
+          majorCategory: "教育🏫",
+        }),
+      ],
       dietSessionIds: ["session-2026"],
       difficultyLevel: "normal",
     });

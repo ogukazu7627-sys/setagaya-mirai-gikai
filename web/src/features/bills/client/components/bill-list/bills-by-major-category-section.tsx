@@ -1,25 +1,25 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { RecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import {
   getBrowserRecommendationStorage,
   RECOMMENDATION_PROFILE_STORAGE_KEY,
   RECOMMENDATION_PROFILE_UPDATED_EVENT,
   readRecommendationProfile,
 } from "@/features/recommendations/client/utils/recommendation-storage";
-import { routes } from "@/lib/routes";
+import type { RecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import type {
   CouncilBillCardPage,
   CouncilThemeSectionData,
 } from "../../../shared/types/council-bill-directory";
-import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
 import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
-import { BillCard } from "./bill-card";
+import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import {
+  CouncilDirectoryItemCard,
+  getCouncilDirectoryItemKey,
+} from "./council-directory-item-card";
 
 interface BillsByMajorCategorySectionProps {
   data: CouncilThemeSectionData;
@@ -216,14 +216,11 @@ export function BillsByMajorCategorySection({
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {page.bills.map((bill) => (
-                <Link
-                  key={bill.id}
-                  href={routes.billDetail(bill.id) as Route}
-                  prefetch={false}
-                >
-                  <BillCard bill={bill} />
-                </Link>
+              {page.items.map((item) => (
+                <CouncilDirectoryItemCard
+                  key={getCouncilDirectoryItemKey(item)}
+                  item={item}
+                />
               ))}
             </div>
           )}

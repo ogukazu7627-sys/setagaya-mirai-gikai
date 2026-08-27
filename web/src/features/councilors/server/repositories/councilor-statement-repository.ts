@@ -37,6 +37,7 @@ export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
     publish_status: Database["public"]["Enums"]["bill_publish_status"];
     publication_category: Database["public"]["Enums"]["bill_publication_category"];
     major_category: string | null;
+    diet_session: { start_date: string } | null;
   } | null;
   billNormalContent: string | null;
 };
@@ -295,7 +296,10 @@ export async function findPublishedCouncilorStatementDetails({
         submitted_date,
         publish_status,
         publication_category,
-        major_category
+        major_category,
+        diet_session:diet_sessions (
+          start_date
+        )
       )
     `
     )

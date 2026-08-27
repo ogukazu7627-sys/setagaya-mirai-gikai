@@ -7,6 +7,8 @@ import {
   getCalendarYearFromDate,
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
+import { findPublishedGeneralQuestionCategoryCards } from "@/features/general-questions/server/repositories/general-question-repository";
+import { groupGeneralQuestionSearchResults } from "@/features/general-questions/shared/utils/group-general-question-search-results";
 import { getRecommendationCategoryById } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { getJapanTime } from "@/lib/utils/date";
 import {
@@ -22,11 +24,11 @@ import type {
   CouncilSearchCouncilor,
 } from "../../shared/types/council-ai-search";
 import { buildCouncilSearchIntent } from "../../shared/utils/council-search-intent";
+import { loadCouncilBillCardsByIds } from "../loaders/load-council-bill-cards";
 import {
   findCouncilSearchCouncilors,
   findRankedCouncilSearchBills,
 } from "../repositories/council-search-repository";
-import { loadCouncilBillCardsByIds } from "../loaders/load-council-bill-cards";
 import { formatPostgresVector } from "../utils/council-search-embedding";
 
 type CouncilAiSearchDependencies = {
@@ -37,6 +39,7 @@ type CouncilAiSearchDependencies = {
   embedQuery?: (value: string) => Promise<number[]>;
   getDifficulty?: typeof getDifficultyLevel;
   loadCards?: typeof loadCouncilBillCardsByIds;
+  findGeneralQuestionCategories?: typeof findPublishedGeneralQuestionCategoryCards;
 };
 
 export async function searchCouncilBills(
@@ -57,6 +60,7 @@ export async function searchCouncilBills(
     return {
       billIds: [],
       bills: [],
+      items: [],
       total: 0,
       mode: "keyword-fallback",
     };
@@ -67,6 +71,7 @@ export async function searchCouncilBills(
     return {
       billIds: [],
       bills: [],
+      items: [],
       total: 0,
       mode: "keyword-fallback",
     };
@@ -121,16 +126,38 @@ export async function searchCouncilBills(
   const difficultyLevel = await (
     dependencies.getDifficulty ?? getDifficultyLevel
   )();
-  const bills = await (dependencies.loadCards ?? loadCouncilBillCardsByIds)(
+  const matchedBills = await (
+    dependencies.loadCards ?? loadCouncilBillCardsByIds
+  )(
     billIds,
     sessions.map((session) => session.id),
     difficultyLevel
+  );
+  const generalQuestionCategories = matchedBills.some(
+    (bill) => bill.publication_category === "general_question"
+  )
+    ? await (
+        dependencies.findGeneralQuestionCategories ??
+        findPublishedGeneralQuestionCategoryCards
+      )(
+        sessions.map((session) => session.id),
+        currentYear
+      )
+    : [];
+  const items = groupGeneralQuestionSearchResults(
+    matchedBills,
+    generalQuestionCategories,
+    currentYear
+  );
+  const bills = items.flatMap((item) =>
+    item.kind === "bill" ? [item.bill] : []
   );
 
   return {
     billIds,
     bills,
-    total: bills.length,
+    items,
+    total: items.length,
     mode,
   };
 }

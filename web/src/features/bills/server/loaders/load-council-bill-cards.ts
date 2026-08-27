@@ -74,6 +74,7 @@ function toCouncilBillCard(
     is_featured: row.is_featured,
     is_review_completed: row.is_review_completed,
     interview_enabled: row.interview_enabled,
+    publication_category: row.publication_category,
     hasPublicInterview: metadata.hasPublicInterview,
     bill_content: billContent
       ? {

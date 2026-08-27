@@ -8,8 +8,6 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import {
   type FormEvent,
   type KeyboardEvent,
@@ -24,10 +22,11 @@ import {
   RECOMMENDATION_CATEGORY_OPTIONS,
   type RecommendationCategoryId,
 } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
-import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
-import type { BillCardData } from "../../../shared/types";
-import type { CouncilBillCardPage } from "../../../shared/types/council-bill-directory";
+import type {
+  CouncilBillCardPage,
+  CouncilDirectoryItem,
+} from "../../../shared/types/council-bill-directory";
 import type {
   CouncilSearchContentType,
   CouncilSearchFilters,
@@ -40,9 +39,12 @@ import {
 } from "../../../shared/utils/council-search";
 import { applyCouncilSearchPageParam } from "../../../shared/utils/council-search-page-param";
 import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
-import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
 import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
-import { BillCard } from "./bill-card";
+import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import {
+  CouncilDirectoryItemCard,
+  getCouncilDirectoryItemKey,
+} from "./council-directory-item-card";
 
 const CONTENT_TYPE_OPTIONS: Array<{
   value: CouncilSearchContentType;
@@ -68,7 +70,7 @@ type SearchStatus = "idle" | "loading" | "success" | "error";
 type SearchResult =
   | {
       kind: "ai";
-      bills: BillCardData[];
+      items: CouncilDirectoryItem[];
       total: number;
     }
   | {
@@ -138,7 +140,7 @@ export function CouncilSearchSection({
           if (!controller.signal.aborted) {
             setResult({
               kind: "ai",
-              bills: response.bills,
+              items: response.items,
               total: response.total,
             });
             setRequestedPage(1);
@@ -192,7 +194,7 @@ export function CouncilSearchSection({
 
   const aiTotalPages =
     result?.kind === "ai"
-      ? Math.max(1, Math.ceil(result.bills.length / COUNCIL_SEARCH_PAGE_SIZE))
+      ? Math.max(1, Math.ceil(result.items.length / COUNCIL_SEARCH_PAGE_SIZE))
       : 1;
   const currentPage =
     result?.kind === "filters"
@@ -200,10 +202,10 @@ export function CouncilSearchSection({
       : Math.min(requestedPage, aiTotalPages);
   const totalPages =
     result?.kind === "filters" ? result.page.totalPages : aiTotalPages;
-  const visibleBills =
+  const visibleItems =
     result?.kind === "filters"
-      ? result.page.bills
-      : (result?.bills.slice(
+      ? result.page.items
+      : (result?.items.slice(
           (currentPage - 1) * COUNCIL_SEARCH_PAGE_SIZE,
           currentPage * COUNCIL_SEARCH_PAGE_SIZE
         ) ?? []);
@@ -463,17 +465,11 @@ export function CouncilSearchSection({
                 もう一度試す
               </Button>
             </div>
-          ) : visibleBills.length > 0 ? (
+          ) : visibleItems.length > 0 ? (
             <ul className="mt-4 flex max-w-[634px] flex-col gap-4">
-              {visibleBills.map((bill) => (
-                <li key={bill.id}>
-                  <Link
-                    href={routes.billDetail(bill.id) as Route}
-                    prefetch={false}
-                    className="block w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong"
-                  >
-                    <BillCard bill={bill} />
-                  </Link>
+              {visibleItems.map((item) => (
+                <li key={getCouncilDirectoryItemKey(item)}>
+                  <CouncilDirectoryItemCard item={item} />
                 </li>
               ))}
             </ul>
