@@ -2,8 +2,14 @@ import "server-only";
 
 import { createAdminClient, type Database } from "@mirai-gikai/supabase";
 import { COUNCILOR_STATEMENT_PUBLICATION_CATEGORIES } from "@/features/bills/shared/constants/publication-categories";
+import type { BillPublicationCategory } from "@/features/bills/shared/types";
 import { extractCouncilorStatementsFromMarkdown } from "@/lib/markdown/extract-councilor-statements";
 import { buildCouncilorStatementRows } from "../../shared/utils/build-councilor-statement-rows";
+import {
+  addCouncilorQuestionCount,
+  createEmptyCouncilorQuestionCounts,
+  type CouncilorQuestionCounts,
+} from "../../shared/utils/councilor-question-counts";
 
 type AdminSupabaseClient = ReturnType<typeof createAdminClient>;
 type CouncilorRow = Database["public"]["Tables"]["councilors"]["Row"];
@@ -20,12 +26,21 @@ export type CouncilorStatementWithCouncilor = CouncilorStatementRow & {
 export type CouncilorStatementCount = {
   councilorId: string | null;
   councilorName: string;
-  statementCount: number;
+  questionCounts: CouncilorQuestionCounts;
 };
 
 export type CouncilorStatementCountById = {
   councilorId: string;
-  statementCount: number;
+  questionCounts: CouncilorQuestionCounts;
+};
+
+type PublishedCouncilorStatementCountRow = Pick<
+  CouncilorStatementRow,
+  "councilor_id" | "councilor_name"
+> & {
+  bills: {
+    publication_category: BillPublicationCategory;
+  } | null;
 };
 
 export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
@@ -46,6 +61,8 @@ export type SyncCouncilorBillStatementsResult = {
   statementCount: number;
   unknownCouncilorNames: string[];
 };
+
+const PUBLISHED_COUNCILOR_STATEMENT_COUNT_PAGE_SIZE = 1000;
 
 async function findCouncilorIdsByNames(
   supabase: AdminSupabaseClient,
@@ -181,49 +198,12 @@ export async function findPublishedCouncilorStatementCounts(): Promise<
   CouncilorStatementCount[]
 > {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("councilor_bill_statements")
-    .select(
-      `
-      councilor_id,
-      councilor_name,
-      bills!inner (
-        publish_status
-      )
-    `
-    )
-    .eq("difficulty_level", "normal")
-    .eq("bills.publish_status", "published")
-    .in(
-      "bills.publication_category",
-      COUNCILOR_STATEMENT_PUBLICATION_CATEGORIES
-    );
-
-  if (error) {
-    throw new Error(
-      `Failed to fetch councilor statement counts: ${error.message}`
-    );
-  }
-
-  const counts = new Map<string, CouncilorStatementCount>();
-  for (const row of data ?? []) {
-    const key = row.councilor_id ?? `name:${row.councilor_name}`;
-    const current = counts.get(key);
-    if (current) {
-      current.statementCount += 1;
-      continue;
-    }
-
-    counts.set(key, {
-      councilorId: row.councilor_id,
-      councilorName: row.councilor_name,
-      statementCount: 1,
-    });
-  }
+  const rows = await fetchPublishedCouncilorStatementCountRows({ supabase });
+  const counts = buildPublishedCouncilorStatementCounts(rows);
 
   return Array.from(counts.values()).sort(
     (a, b) =>
-      b.statementCount - a.statementCount ||
+      b.questionCounts.total - a.questionCounts.total ||
       a.councilorName.localeCompare(b.councilorName, "ja")
   );
 }
@@ -237,39 +217,18 @@ export async function findPublishedCouncilorStatementCountsByCouncilorIds(
   }
 
   const supabase = createAdminClient();
-  return Promise.all(
-    uniqueCouncilorIds.map(async (councilorId) => {
-      const { count, error } = await supabase
-        .from("councilor_bill_statements")
-        .select(
-          `
-          id,
-          bills!inner (
-            publish_status
-          )
-        `,
-          { count: "exact", head: true }
-        )
-        .eq("councilor_id", councilorId)
-        .eq("difficulty_level", "normal")
-        .eq("bills.publish_status", "published")
-        .in(
-          "bills.publication_category",
-          COUNCILOR_STATEMENT_PUBLICATION_CATEGORIES
-        );
+  const rows = await fetchPublishedCouncilorStatementCountRows({
+    supabase,
+    councilorIds: uniqueCouncilorIds,
+  });
+  const counts = buildPublishedCouncilorStatementCounts(rows);
 
-      if (error) {
-        throw new Error(
-          `Failed to count published councilor statements: ${error.message}`
-        );
-      }
-
-      return {
-        councilorId,
-        statementCount: count ?? 0,
-      };
-    })
-  );
+  return uniqueCouncilorIds.map((councilorId) => ({
+    councilorId,
+    questionCounts:
+      counts.get(councilorId)?.questionCounts ??
+      createEmptyCouncilorQuestionCounts(),
+  }));
 }
 
 export async function findPublishedCouncilorStatementDetails({
@@ -351,4 +310,82 @@ export async function findPublishedCouncilorStatementDetails({
     ...row,
     billNormalContent: normalContentByBillId.get(row.bill_id) ?? null,
   }));
+}
+
+async function fetchPublishedCouncilorStatementCountRows({
+  supabase,
+  councilorIds,
+}: {
+  supabase: AdminSupabaseClient;
+  councilorIds?: string[];
+}): Promise<PublishedCouncilorStatementCountRow[]> {
+  const rows: PublishedCouncilorStatementCountRow[] = [];
+
+  for (let from = 0; ; from += PUBLISHED_COUNCILOR_STATEMENT_COUNT_PAGE_SIZE) {
+    let query = supabase
+      .from("councilor_bill_statements")
+      .select(
+        `
+        councilor_id,
+        councilor_name,
+        bills!inner (
+          publication_category,
+          publish_status
+        )
+      `
+      )
+      .eq("difficulty_level", "normal")
+      .eq("bills.publish_status", "published")
+      .in(
+        "bills.publication_category",
+        COUNCILOR_STATEMENT_PUBLICATION_CATEGORIES
+      );
+
+    if (councilorIds) {
+      query = query.in("councilor_id", councilorIds);
+    }
+
+    const { data, error } = await query
+      .order("id", { ascending: true })
+      .range(from, from + PUBLISHED_COUNCILOR_STATEMENT_COUNT_PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(
+        `Failed to fetch councilor statement counts: ${error.message}`
+      );
+    }
+
+    const pageRows = (data ?? []) as PublishedCouncilorStatementCountRow[];
+    rows.push(...pageRows);
+
+    if (pageRows.length < PUBLISHED_COUNCILOR_STATEMENT_COUNT_PAGE_SIZE) {
+      return rows;
+    }
+  }
+}
+
+function buildPublishedCouncilorStatementCounts(
+  rows: PublishedCouncilorStatementCountRow[]
+): Map<string, CouncilorStatementCount> {
+  const counts = new Map<string, CouncilorStatementCount>();
+
+  for (const row of rows) {
+    const publicationCategory = row.bills?.publication_category;
+    if (!publicationCategory) {
+      continue;
+    }
+
+    const key = row.councilor_id ?? `name:${row.councilor_name}`;
+    const current = counts.get(key);
+    counts.set(key, {
+      councilorId: row.councilor_id,
+      councilorName: row.councilor_name,
+      questionCounts: addCouncilorQuestionCount(
+        current?.questionCounts ?? createEmptyCouncilorQuestionCounts(),
+        publicationCategory
+      ),
+    });
+  }
+
+  return counts;
 }

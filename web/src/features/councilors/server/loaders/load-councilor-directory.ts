@@ -2,6 +2,10 @@ import "server-only";
 
 import { cache } from "react";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import {
+  buildCouncilorQuestionCounts,
+  createEmptyCouncilorQuestionCounts,
+} from "../../shared/utils/councilor-question-counts";
 import { getCouncilorStatementPreviewText } from "../../shared/utils/get-councilor-statement-preview-text";
 import { selectDailyCouncilors } from "../../shared/utils/select-daily-councilors";
 import {
@@ -15,39 +19,46 @@ import {
 } from "../repositories/councilor-statement-repository";
 
 export async function loadCouncilorDirectory() {
-  const [councilors, statementCounts] = await Promise.all([
+  const [councilors, questionCountSummaries] = await Promise.all([
     findActivePublicCouncilors(),
     isSetagayaMockMode
       ? Promise.resolve([])
       : findPublishedCouncilorStatementCounts(),
   ]);
-  const statementCountByCouncilorId = new Map(
-    statementCounts.flatMap((count) =>
-      count.councilorId ? [[count.councilorId, count.statementCount]] : []
+  const questionCountsByCouncilorId = new Map(
+    questionCountSummaries.flatMap((count) =>
+      count.councilorId ? [[count.councilorId, count.questionCounts]] : []
     )
   );
 
   return councilors.map((councilor) => ({
     ...councilor,
-    statementCount: statementCountByCouncilorId.get(councilor.id) ?? 0,
+    questionCounts:
+      questionCountsByCouncilorId.get(councilor.id) ??
+      createEmptyCouncilorQuestionCounts(),
   }));
 }
 
 export async function loadRecommendedCouncilors(currentDate: Date) {
   const councilors = await findActivePublicCouncilors();
   const recommendedCouncilors = selectDailyCouncilors(councilors, currentDate);
-  const statementCounts = isSetagayaMockMode
+  const questionCountSummaries = isSetagayaMockMode
     ? []
     : await findPublishedCouncilorStatementCountsByCouncilorIds(
         recommendedCouncilors.map((councilor) => councilor.id)
       );
-  const statementCountByCouncilorId = new Map(
-    statementCounts.map((count) => [count.councilorId, count.statementCount])
+  const questionCountsByCouncilorId = new Map(
+    questionCountSummaries.map((count) => [
+      count.councilorId,
+      count.questionCounts,
+    ])
   );
 
   return recommendedCouncilors.map((councilor) => ({
     ...councilor,
-    statementCount: statementCountByCouncilorId.get(councilor.id) ?? 0,
+    questionCounts:
+      questionCountsByCouncilorId.get(councilor.id) ??
+      createEmptyCouncilorQuestionCounts(),
   }));
 }
 
@@ -78,5 +89,12 @@ export const loadCouncilorDetail = cache(async (councilorId: string) => {
   return {
     councilor,
     statements,
+    questionCounts: buildCouncilorQuestionCounts(
+      statementDetails.flatMap((statement) =>
+        statement.bills?.publication_category
+          ? [statement.bills.publication_category]
+          : []
+      )
+    ),
   };
 });

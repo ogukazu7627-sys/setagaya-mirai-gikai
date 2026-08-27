@@ -18,13 +18,13 @@ export async function generateMetadata({
   if (!detail) {
     return {
       title: "議員詳細 | みらい議会＠世田谷区",
-      description: "議員が公開案件で行った質問や発言を確認できます。",
+      description: "議員が公開案件で行った質問を確認できます。",
     };
   }
 
   const { title, description } = buildCouncilorMetadata({
     displayName: detail.councilor.displayName,
-    statementCount: detail.statements.length,
+    questionCount: detail.questionCounts.total,
   });
   return {
     title,
