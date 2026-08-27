@@ -1,147 +1,73 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  CouncilQuestionAiAskButton,
-  CouncilQuestionAiChatProvider,
-} from "@/features/bills/client/components/question-collection/council-question-ai-chat";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { CouncilQuestionAiChatProvider } from "@/features/bills/client/components/question-collection/council-question-ai-chat";
 import type { ChatBillContext } from "@/features/chat/shared/types/page-context";
-import {
-  BudgetQuestionAiAskButton,
-  BudgetQuestionAiChatProvider,
-} from "./budget-question-ai-chat";
+import { BudgetQuestionAiChatProvider } from "./budget-question-ai-chat";
 
-const chatMocks = vi.hoisted(() => ({
-  open: vi.fn(),
+vi.mock("@/features/chat/client/components/chat-button", () => ({
+  ChatButton: (props: {
+    billContext?: ChatBillContext;
+    hasInterviewConfig?: boolean;
+    pageContext?: { type: string };
+    showLauncher?: boolean;
+  }) => (
+    <div
+      data-bill-id={props.billContext?.id}
+      data-has-interview={String(props.hasInterviewConfig)}
+      data-page-type={props.pageContext?.type}
+      data-show-launcher={String(props.showLauncher)}
+      data-testid="mock-chat-button"
+    />
+  ),
 }));
 
-vi.mock("@/features/chat/client/components/chat-button", async () => {
-  const { forwardRef, useImperativeHandle } = await import("react");
-
-  return {
-    ChatButton: forwardRef<
-      { open: () => void },
-      {
-        billContext?: ChatBillContext;
-        hasInterviewConfig?: boolean;
-        pageContext?: { type: string };
-        showLauncher?: boolean;
-      }
-    >(function MockChatButton(props, ref) {
-      useImperativeHandle(ref, () => ({ open: chatMocks.open }));
-
-      return (
-        <div
-          data-bill-id={props.billContext?.id}
-          data-has-interview={String(props.hasInterviewConfig)}
-          data-page-type={props.pageContext?.type}
-          data-show-launcher={String(props.showLauncher)}
-          data-testid="mock-chat-button"
-        />
-      );
-    }),
-  };
-});
-
 describe("BudgetQuestionAiChatProvider", () => {
-  beforeEach(() => {
-    chatMocks.open.mockReset();
+  it("選択中の予算質問を対象に常設AI欄を表示する", () => {
+    render(
+      <BudgetQuestionAiChatProvider
+        defaultQuestion={{ id: "budget-a", name: "学校改修について" }}
+        difficultyLevel="normal"
+      >
+        <p>質問本文</p>
+      </BudgetQuestionAiChatProvider>
+    );
+
+    const chatButton = screen.getByTestId("mock-chat-button");
+    expect(chatButton).toHaveAttribute("data-bill-id", "budget-a");
+    expect(chatButton).toHaveAttribute("data-page-type", "budget-question");
+    expect(chatButton).toHaveAttribute("data-has-interview", "false");
+    expect(chatButton).toHaveAttribute("data-show-launcher", "true");
+    expect(
+      screen.queryByText("この質問についてAIに聞く")
+    ).not.toBeInTheDocument();
   });
 
-  it("押した予算質問だけを対象にAI質問を開き、インタビューを無効にする", async () => {
+  it("対象質問がない場合はAI欄を表示しない", () => {
     render(
       <BudgetQuestionAiChatProvider difficultyLevel="normal">
-        <BudgetQuestionAiAskButton
-          questionId="question-a"
-          questionName="学校改修について"
-        />
+        <p>空状態</p>
       </BudgetQuestionAiChatProvider>
     );
 
     expect(screen.queryByTestId("mock-chat-button")).not.toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "「学校改修について」についてAIに聞く",
-      })
-    );
-
-    const chatButton = await screen.findByTestId("mock-chat-button");
-    expect(chatButton).toHaveAttribute("data-bill-id", "question-a");
-    expect(chatButton).toHaveAttribute("data-page-type", "budget-question");
-    expect(chatButton).toHaveAttribute("data-has-interview", "false");
-    expect(chatButton).toHaveAttribute("data-show-launcher", "false");
-    await waitFor(() => expect(chatMocks.open).toHaveBeenCalledTimes(1));
   });
 
-  it("別の質問を押すとチャット対象をその質問へ切り替える", async () => {
-    render(
-      <BudgetQuestionAiChatProvider difficultyLevel="hard">
-        <BudgetQuestionAiAskButton
-          questionId="question-a"
-          questionName="学校改修について"
-        />
-        <BudgetQuestionAiAskButton
-          questionId="question-b"
-          questionName="給食について"
-        />
-      </BudgetQuestionAiChatProvider>
-    );
-
-    const buttons = screen.getAllByRole("button", {
-      name: /についてAIに聞く/,
-    });
-    fireEvent.click(buttons[0]);
-    expect(await screen.findByTestId("mock-chat-button")).toHaveAttribute(
-      "data-bill-id",
-      "question-a"
-    );
-
-    fireEvent.click(buttons[1]);
-    await waitFor(() =>
-      expect(screen.getByTestId("mock-chat-button")).toHaveAttribute(
-        "data-bill-id",
-        "question-b"
-      )
-    );
-    expect(chatMocks.open).toHaveBeenCalledTimes(2);
-  });
-
-  it("一般質問では選択中の質問を対象に常設AI欄を表示する", async () => {
+  it("一般質問でも選択中の質問を対象に常設AI欄を表示する", () => {
     render(
       <CouncilQuestionAiChatProvider
         defaultQuestion={{ id: "general-a", name: "若者支援について" }}
-        difficultyLevel="normal"
+        difficultyLevel="hard"
         kind="general"
       >
-        <CouncilQuestionAiAskButton
-          questionId="general-b"
-          questionName="学校施設について"
-        />
+        <p>一般質問本文</p>
       </CouncilQuestionAiChatProvider>
     );
 
-    const initialChatButton = screen.getByTestId("mock-chat-button");
-    expect(initialChatButton).toHaveAttribute("data-bill-id", "general-a");
-    expect(initialChatButton).toHaveAttribute(
-      "data-page-type",
-      "general-question"
-    );
-    expect(initialChatButton).toHaveAttribute("data-show-launcher", "true");
-    expect(chatMocks.open).not.toHaveBeenCalled();
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "「学校施設について」についてAIに聞く",
-      })
-    );
-
-    await waitFor(() =>
-      expect(screen.getByTestId("mock-chat-button")).toHaveAttribute(
-        "data-bill-id",
-        "general-b"
-      )
-    );
-    expect(chatMocks.open).toHaveBeenCalledTimes(1);
+    const chatButton = screen.getByTestId("mock-chat-button");
+    expect(chatButton).toHaveAttribute("data-bill-id", "general-a");
+    expect(chatButton).toHaveAttribute("data-page-type", "general-question");
+    expect(chatButton).toHaveAttribute("data-show-launcher", "true");
   });
 });

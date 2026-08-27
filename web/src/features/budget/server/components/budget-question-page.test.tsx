@@ -24,9 +24,6 @@ vi.mock("@/features/budget/client/components/budget-question-ai-chat", () => ({
       {children}
     </div>
   ),
-  BudgetQuestionAiAskButton: ({ questionId }: { questionId: string }) => (
-    <div data-ai-question-id={questionId} />
-  ),
 }));
 
 vi.mock(
@@ -35,9 +32,11 @@ vi.mock(
     BudgetQuestionNavigator: ({
       activeCouncilorId,
       items,
+      slides,
     }: {
       activeCouncilorId: string;
       items: Array<{ councilorId: string; questionCount: number }>;
+      slides: Array<{ content: ReactNode; councilorId: string }>;
     }) => (
       <div
         data-active-councilor-id={activeCouncilorId}
@@ -46,7 +45,17 @@ vi.mock(
             ?.questionCount
         }
         data-councilor-count={items.length}
-      />
+        data-rendered-slide-count={slides.length}
+      >
+        {slides.map((slide) => (
+          <div
+            data-carousel-slide-councilor={slide.councilorId}
+            key={slide.councilorId}
+          >
+            {slide.content}
+          </div>
+        ))}
+      </div>
     ),
   })
 );
@@ -107,10 +116,26 @@ describe("BudgetQuestionMarkdown", () => {
     expect(html).toContain("予算に関する説明です。");
     expect(html).not.toContain("data-councilor-opinion-chat");
   });
+
+  it("外側がカルーセルなら単独議員の縦スクロールを重ねない", async () => {
+    const element = await BudgetQuestionMarkdown({
+      content: `# 議員、会派の意見
+
+## くろだあいこ議員（会派名）
+
+### くろだあいこ議員
+予算について質問しました。`,
+      scrollSingleGroup: false,
+    });
+    const html = await renderSuspenseToHtml(element as ReactElement);
+
+    expect(html).toContain("data-councilor-opinion-chat");
+    expect(html).not.toContain('data-councilor-chat-scroll-region="true"');
+  });
 });
 
 describe("BudgetQuestionPage", () => {
-  it("選択した議員の質問を縦に並べる", async () => {
+  it("選択議員と隣接する議員の質問をカルーセルへ渡す", async () => {
     const createQuestion = (
       id: string,
       name: string,
@@ -186,12 +211,13 @@ describe("BudgetQuestionPage", () => {
     expect(html).toContain('data-councilor-count="2"');
     expect(html).toContain('data-chat-difficulty="normal"');
     expect(html).toContain('data-chat-default-question-id="focused"');
-    expect(html).toContain('data-ai-question-id="focused"');
-    expect(html).toContain('data-ai-question-id="first"');
-    expect(html).not.toContain('data-ai-question-id="other"');
+    expect(html).toContain('data-rendered-slide-count="2"');
+    expect(html).toContain('data-carousel-slide-councilor="councilor-a"');
+    expect(html).toContain('data-carousel-slide-councilor="councilor-b"');
+    expect(html).not.toContain("この質問についてAIに聞く");
     expect(html).toContain("選択した本文");
     expect(html).toContain("同じ議員の最初の本文");
-    expect(html).not.toContain("別の議員の本文");
+    expect(html).toContain("別の議員の本文");
     expect(html.indexOf("選択した本文")).toBeLessThan(
       html.indexOf("同じ議員の最初の本文")
     );
