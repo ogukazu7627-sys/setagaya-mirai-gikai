@@ -4,6 +4,10 @@ import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
+import {
   getBrowserRecommendationStorage,
   RECOMMENDATION_PROFILE_STORAGE_KEY,
   RECOMMENDATION_PROFILE_UPDATED_EVENT,
@@ -30,6 +34,25 @@ interface BillsByMajorCategorySectionProps {
 
 type ThemePageStatus = "idle" | "loading" | "error";
 
+type StoredThemePageState = {
+  categoryId: RecommendationCategoryId;
+  page: number;
+};
+
+function isStoredThemePageState(value: unknown): value is StoredThemePageState {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Partial<StoredThemePageState>;
+  return (
+    typeof candidate.categoryId === "string" &&
+    typeof candidate.page === "number" &&
+    Number.isInteger(candidate.page) &&
+    candidate.page > 0
+  );
+}
+
 export function BillsByMajorCategorySection({
   data,
   title = "テーマから探す",
@@ -41,9 +64,11 @@ export function BillsByMajorCategorySection({
   const [page, setPage] = useState<CouncilBillCardPage>(data.initialPage);
   const [status, setStatus] = useState<ThemePageStatus>("idle");
   const requestControllerRef = useRef<AbortController | null>(null);
+  const hasPersistedStateRef = useRef(false);
   const selectedCategoryIdRef = useRef<RecommendationCategoryId | null>(
     data.initialCategoryId
   );
+  const persistenceKey = `bills-by-category:${sectionId}:${data.year}`;
 
   const loadPage = useCallback(
     async (categoryId: RecommendationCategoryId, requestedPage: number) => {
@@ -68,6 +93,10 @@ export function BillsByMajorCategorySection({
         if (!controller.signal.aborted) {
           setPage(response);
           setStatus("idle");
+          writeComponentState(persistenceKey, {
+            categoryId,
+            page: response.currentPage,
+          } satisfies StoredThemePageState);
         }
       } catch (error) {
         if (
@@ -78,16 +107,45 @@ export function BillsByMajorCategorySection({
         }
       }
     },
-    [data.year]
+    [data.year, persistenceKey]
   );
 
   useEffect(() => {
     requestControllerRef.current?.abort();
+    hasPersistedStateRef.current = false;
     selectedCategoryIdRef.current = data.initialCategoryId;
     setSelectedCategoryId(data.initialCategoryId);
     setPage(data.initialPage);
     setStatus("idle");
   }, [data]);
+
+  useEffect(() => {
+    const storedState = readComponentState(
+      persistenceKey,
+      isStoredThemePageState
+    );
+    const categoryExists = data.categories.some(
+      ({ category }) => category.id === storedState?.categoryId
+    );
+
+    if (storedState && categoryExists) {
+      hasPersistedStateRef.current = true;
+      if (
+        storedState.categoryId !== data.initialCategoryId ||
+        storedState.page !== data.initialPage.currentPage
+      ) {
+        void loadPage(storedState.categoryId, storedState.page);
+      }
+      return;
+    }
+
+    if (data.initialCategoryId) {
+      writeComponentState(persistenceKey, {
+        categoryId: data.initialCategoryId,
+        page: data.initialPage.currentPage,
+      } satisfies StoredThemePageState);
+    }
+  }, [data, loadPage, persistenceKey]);
 
   useEffect(() => {
     function syncCategoryWithProfile() {
@@ -118,7 +176,9 @@ export function BillsByMajorCategorySection({
       }
     }
 
-    syncCategoryWithProfile();
+    if (!hasPersistedStateRef.current) {
+      syncCategoryWithProfile();
+    }
     window.addEventListener("storage", handleStorage);
     window.addEventListener(
       RECOMMENDATION_PROFILE_UPDATED_EVENT,

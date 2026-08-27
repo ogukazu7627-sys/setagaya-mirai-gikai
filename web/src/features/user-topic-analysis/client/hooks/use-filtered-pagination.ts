@@ -2,13 +2,34 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
+import {
   parseTopicFilter,
   type TopicFilter,
 } from "../../shared/utils/filter-topics";
 
-/** persistKey から、フィルタ保存用の sessionStorage キーを導出する。 */
-function filterStorageKey(persistKey: string): string {
-  return `${persistKey}:filter`;
+type StoredFilteredPaginationState = {
+  filter: TopicFilter;
+  visibleCount: number;
+};
+
+function isStoredFilteredPaginationState(
+  value: unknown
+): value is StoredFilteredPaginationState {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Partial<StoredFilteredPaginationState>;
+  return (
+    typeof candidate.filter === "string" &&
+    parseTopicFilter(candidate.filter) === candidate.filter &&
+    typeof candidate.visibleCount === "number" &&
+    Number.isInteger(candidate.visibleCount) &&
+    candidate.visibleCount > 0
+  );
 }
 
 /**
@@ -35,25 +56,24 @@ export function useFilteredPagination<T>(
   // ハイドレーション不整合を避けるため初期値はそのままにし、
   // マウント後の effect で sessionStorage の値を反映する。
   useEffect(() => {
-    if (!persistKey) return;
-    const stored = sessionStorage.getItem(persistKey);
-    const n = stored ? Number.parseInt(stored, 10) : Number.NaN;
-    if (Number.isFinite(n) && n > initialVisible) {
-      setVisibleCount(n);
+    if (!persistKey) {
+      return;
     }
-    const storedFilter = sessionStorage.getItem(filterStorageKey(persistKey));
-    if (storedFilter) {
-      setFilter(parseTopicFilter(storedFilter));
-    }
+
+    const stored = readComponentState(
+      persistKey,
+      isStoredFilteredPaginationState
+    );
+    setFilter(stored?.filter ?? "all");
+    setVisibleCount(stored?.visibleCount ?? initialVisible);
   }, [persistKey, initialVisible]);
 
-  const persist = (n: number) => {
-    if (persistKey) sessionStorage.setItem(persistKey, String(n));
-  };
-
-  const persistFilter = (next: TopicFilter) => {
+  const persist = (nextFilter: TopicFilter, nextVisibleCount: number) => {
     if (persistKey) {
-      sessionStorage.setItem(filterStorageKey(persistKey), next);
+      writeComponentState(persistKey, {
+        filter: nextFilter,
+        visibleCount: nextVisibleCount,
+      } satisfies StoredFilteredPaginationState);
     }
   };
 
@@ -67,14 +87,13 @@ export function useFilteredPagination<T>(
     const resolved = filter === next ? "all" : next;
     setFilter(resolved);
     setVisibleCount(initialVisible);
-    persist(initialVisible);
-    persistFilter(resolved);
+    persist(resolved, initialVisible);
   };
 
   const loadMore = () => {
     setVisibleCount((count) => {
       const next = count + loadStep;
-      persist(next);
+      persist(filter, next);
       return next;
     });
   };

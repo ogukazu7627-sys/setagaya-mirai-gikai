@@ -18,6 +18,7 @@ const INITIAL_VISIBLE = 20;
 const LOAD_STEP = 20;
 
 interface TopicOpinionListProps {
+  persistKey: string;
   opinions: PublicOpinion[];
   /** レポートリンクの表示判定に使う、議案の公開レポート件数。 */
   publicReportCount: number;
@@ -26,13 +27,20 @@ interface TopicOpinionListProps {
 }
 
 export function TopicOpinionList({
+  persistKey,
   opinions,
   publicReportCount,
   nowMs,
 }: TopicOpinionListProps) {
   const now = new Date(nowMs);
   const { filter, visible, remaining, selectFilter, loadMore } =
-    useFilteredPagination(opinions, filterOpinions, INITIAL_VISIBLE, LOAD_STEP);
+    useFilteredPagination(
+      opinions,
+      filterOpinions,
+      INITIAL_VISIBLE,
+      LOAD_STEP,
+      persistKey
+    );
 
   // 各フィルタchipに該当意見数を表示する
   const counts = useMemo(() => {

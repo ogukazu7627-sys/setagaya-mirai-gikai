@@ -1,5 +1,8 @@
+"use client";
+
 import type { Route } from "next";
 import Link from "next/link";
+import { usePrimaryNavigationDestinations } from "@/features/public-view-state/client/hooks/use-primary-navigation-destinations";
 import { cn } from "@/lib/utils";
 import {
   getActivePrimaryNavigationItem,
@@ -17,6 +20,9 @@ export function PrimaryNavigation({
 }: PrimaryNavigationProps) {
   const activeItem = getActivePrimaryNavigationItem(pathname);
   const isDesktop = variant === "desktop";
+  const destinations = usePrimaryNavigationDestinations(
+    PRIMARY_NAVIGATION_ITEMS
+  );
 
   return (
     <nav
@@ -38,7 +44,7 @@ export function PrimaryNavigation({
           return (
             <li key={item.id} className={isDesktop ? undefined : "min-w-0"}>
               <Link
-                href={item.href as Route}
+                href={(destinations[item.id] ?? item.href) as Route}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "relative flex min-h-11 items-center justify-center whitespace-nowrap font-bold motion-safe:transition-colors motion-safe:duration-150",

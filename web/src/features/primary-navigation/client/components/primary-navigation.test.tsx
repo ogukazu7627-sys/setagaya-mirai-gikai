@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { writePrimaryDestination } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import { routes } from "@/lib/routes";
 import { PrimaryNavigation } from "./primary-navigation";
 
@@ -22,6 +23,10 @@ vi.mock("next/link", () => ({
 }));
 
 describe("PrimaryNavigation", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+  });
+
   it.each([
     "desktop",
     "mobile",
@@ -106,6 +111,22 @@ describe("PrimaryNavigation", () => {
     );
     expect(screen.getByRole("navigation").parentElement).toHaveClass(
       "pc:hidden"
+    );
+  });
+
+  it("主要ページに戻ると直前の絞り込みURLを使う", async () => {
+    writePrimaryDestination(
+      "council",
+      routes.bills(),
+      "/bills?type=report&theme=education&page=2"
+    );
+    render(<PrimaryNavigation pathname="/budget" variant="desktop" />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("link", { name: "議会" })).toHaveAttribute(
+        "href",
+        "/bills?type=report&theme=education&page=2"
+      )
     );
   });
 });

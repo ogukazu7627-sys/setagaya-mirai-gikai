@@ -12,6 +12,10 @@ import {
   type CarouselOptions,
 } from "@/components/ui/carousel";
 import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
+import {
   getCouncilorStatementAnchorId,
   getCouncilorStatementIndexFromHash,
 } from "@/lib/councilor-statement-anchor";
@@ -23,9 +27,25 @@ import type {
 import { cn } from "@/lib/utils";
 
 type CouncilorOpinionChatSectionProps = {
+  persistenceKey?: string;
   scrollSingleGroup?: boolean;
   section: CouncilorOpinionChatSectionData;
 };
+
+type StoredCouncilorOpinionState = {
+  rawHeading: string;
+};
+
+function isStoredCouncilorOpinionState(
+  value: unknown
+): value is StoredCouncilorOpinionState {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Partial<StoredCouncilorOpinionState>).rawHeading ===
+      "string"
+  );
+}
 
 const CHAT_BUBBLE_SELECTOR = "[data-councilor-chat-bubble]";
 type CouncilorAvatarLoading = "eager" | "lazy";
@@ -53,6 +73,7 @@ const CAROUSEL_OPTIONS: CarouselOptions = {
 };
 
 export function CouncilorOpinionChatSection({
+  persistenceKey,
   scrollSingleGroup = false,
   section,
 }: CouncilorOpinionChatSectionProps) {
@@ -67,23 +88,40 @@ export function CouncilorOpinionChatSection({
     .join("|");
 
   useEffect(() => {
-    void groupSignature;
-    setCurrentIndex(0);
-    api?.scrollTo(0, true);
-  }, [api, groupSignature]);
-
-  useEffect(() => {
     if (!api) {
       return;
     }
 
+    void groupSignature;
+    const stored = persistenceKey
+      ? readComponentState(persistenceKey, isStoredCouncilorOpinionState)
+      : null;
+    const restoredIndex = stored
+      ? section.groups.findIndex(
+          (group) => group.rawHeading === stored.rawHeading
+        )
+      : -1;
+    const initialIndex = restoredIndex >= 0 ? restoredIndex : 0;
+
     const updateCarouselState = () => {
-      setCurrentIndex(api.selectedScrollSnap());
+      const nextIndex = api.selectedScrollSnap();
+      setCurrentIndex(nextIndex);
       setCanScrollPrev(api.canScrollPrev());
       setCanScrollNext(api.canScrollNext());
+      const selectedGroup = section.groups[nextIndex];
+      if (persistenceKey && selectedGroup) {
+        writeComponentState(persistenceKey, {
+          rawHeading: selectedGroup.rawHeading,
+        });
+      }
     };
 
-    updateCarouselState();
+    // Restore before subscribing so the carousel's initial index cannot
+    // overwrite the saved selection during setup.
+    api.scrollTo(initialIndex, true);
+    setCurrentIndex(initialIndex);
+    setCanScrollPrev(initialIndex > 0);
+    setCanScrollNext(initialIndex < section.groups.length - 1);
     api.on("select", updateCarouselState);
     api.on("reInit", updateCarouselState);
 
@@ -91,7 +129,7 @@ export function CouncilorOpinionChatSection({
       api.off("select", updateCarouselState);
       api.off("reInit", updateCarouselState);
     };
-  }, [api]);
+  }, [api, groupSignature, persistenceKey, section.groups]);
 
   useEffect(() => {
     const revealHashTarget = () => {

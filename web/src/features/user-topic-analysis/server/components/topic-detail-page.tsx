@@ -168,6 +168,7 @@ export async function TopicDetailPage({
               このトピックに含まれる{topic.opinion_count}件の意見
             </h3>
             <TopicOpinionList
+              persistKey={`topic-opinion-list-pagination:${billId}:${topic.id}`}
               opinions={topic.opinions}
               publicReportCount={publicReportCount}
               nowMs={nowMs}

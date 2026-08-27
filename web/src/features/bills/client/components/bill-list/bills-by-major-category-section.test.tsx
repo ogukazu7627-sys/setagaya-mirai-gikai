@@ -5,6 +5,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { writeComponentState } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import {
   RECOMMENDATION_PROFILE_STORAGE_KEY,
   RECOMMENDATION_PROFILE_UPDATED_EVENT,
@@ -67,6 +68,7 @@ const storedProfile = {
 describe("BillsByMajorCategorySection", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     mockedRequestCouncilBillPage.mockReset();
   });
 
@@ -140,6 +142,43 @@ describe("BillsByMajorCategorySection", () => {
         mode: "theme",
         year: 2026,
         themeId: "education",
+        page: 2,
+      }),
+      expect.any(AbortSignal)
+    );
+  });
+
+  it("別ページから戻ると保存済みのテーマとページを復元する", async () => {
+    const restoredPage = {
+      bills: [createCard("disaster-prevention-11")],
+      items: [createCard("disaster-prevention-11")].map((bill) => ({
+        kind: "bill" as const,
+        bill,
+      })),
+      total: 11,
+      currentPage: 2,
+      totalPages: 2,
+    };
+    writeComponentState("bills-by-category:theme-bills:2026", {
+      categoryId: "disaster-prevention",
+      page: 2,
+    });
+    mockedRequestCouncilBillPage.mockResolvedValue(restoredPage);
+
+    render(<BillsByMajorCategorySection data={data} />);
+
+    expect(
+      await screen.findByText("disaster-prevention-11")
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "防災☔" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(mockedRequestCouncilBillPage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "theme",
+        year: 2026,
+        themeId: "disaster-prevention",
         page: 2,
       }),
       expect.any(AbortSignal)

@@ -1,18 +1,36 @@
 "use client";
 
-import { useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { BillWithContent } from "@/features/bills/shared/types";
 import { CompactBillCard } from "@/features/bills/client/components/bill-list/compact-bill-card";
+import type { BillWithContent } from "@/features/bills/shared/types";
+import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
 import { routes } from "@/lib/routes";
 
 type FilterType = "all" | "enacted" | "rejected" | "other";
 
 type Props = {
   bills: BillWithContent[];
+  persistKey: string;
 };
+
+type StoredStatusFilter = {
+  activeFilter: FilterType;
+};
+
+function isStoredStatusFilter(value: unknown): value is StoredStatusFilter {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const activeFilter = (value as Partial<StoredStatusFilter>).activeFilter;
+  return ["all", "enacted", "rejected", "other"].includes(activeFilter ?? "");
+}
 
 function getFilterCounts(bills: BillWithContent[]) {
   const enacted = bills.filter((b) => b.status === "enacted").length;
@@ -40,7 +58,7 @@ function filterBills(
   }
 }
 
-export function BillListWithStatusFilter({ bills }: Props) {
+export function BillListWithStatusFilter({ bills, persistKey }: Props) {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const counts = getFilterCounts(bills);
   const filteredBills = filterBills(bills, activeFilter);
@@ -52,6 +70,16 @@ export function BillListWithStatusFilter({ bills }: Props) {
     { key: "other", label: "その他", count: counts.other },
   ];
 
+  useEffect(() => {
+    const stored = readComponentState(persistKey, isStoredStatusFilter);
+    setActiveFilter(stored?.activeFilter ?? "all");
+  }, [persistKey]);
+
+  const selectFilter = (filter: FilterType) => {
+    setActiveFilter(filter);
+    writeComponentState(persistKey, { activeFilter: filter });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {/* フィルターボタン */}
@@ -60,7 +88,7 @@ export function BillListWithStatusFilter({ bills }: Props) {
           <Button
             key={filter.key}
             variant="ghost"
-            onClick={() => setActiveFilter(filter.key)}
+            onClick={() => selectFilter(filter.key)}
             className={`h-[29px] px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
               activeFilter === filter.key
                 ? "bg-mirai-gradient text-black hover:bg-mirai-gradient"

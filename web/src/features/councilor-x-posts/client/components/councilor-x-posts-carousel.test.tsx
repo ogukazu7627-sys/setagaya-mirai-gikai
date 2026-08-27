@@ -4,6 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { writeComponentState } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import type { PublicCouncilorXPost } from "../../shared/types/councilor-x-post";
 import { CouncilorXPostsCarousel } from "./councilor-x-posts-carousel";
 
@@ -12,6 +13,9 @@ const carouselMock = vi.hoisted(() => {
   let selectedIndex = 0;
   const api = {
     selectedScrollSnap: vi.fn(() => selectedIndex),
+    scrollTo: vi.fn((index: number) => {
+      selectedIndex = Math.max(0, Math.min(9, index));
+    }),
     on: vi.fn((event: string, listener: () => void) => {
       const eventListeners = listeners.get(event) ?? new Set();
       eventListeners.add(listener);
@@ -153,6 +157,7 @@ const posts = Array.from({ length: 10 }, (_, index) => ({
 describe("CouncilorXPostsCarousel", () => {
   beforeEach(() => {
     carouselMock.reset();
+    window.sessionStorage.clear();
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -241,6 +246,23 @@ describe("CouncilorXPostsCarousel", () => {
       expect(screen.getByText("1 / 10")).toBeVisible();
     });
     expect(screen.getByTestId("post-1004")).toHaveAttribute(
+      "data-should-load",
+      "true"
+    );
+  });
+
+  it("ページへ戻ると直前に見ていた投稿を表示する", async () => {
+    writeComponentState("home-councilor-x-posts-carousel", {
+      postId: posts[6].postId,
+    });
+
+    render(<CouncilorXPostsCarousel posts={posts} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("7 / 10")).toBeVisible();
+    });
+    expect(carouselMock.api.scrollTo).toHaveBeenCalledWith(6, true);
+    expect(screen.getByTestId("post-1006")).toHaveAttribute(
       "data-should-load",
       "true"
     );
