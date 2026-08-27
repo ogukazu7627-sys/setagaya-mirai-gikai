@@ -30,7 +30,8 @@ export async function recordUserChatMessageEvent({
       user_id: userId,
       session_id: context.sessionId || null,
       page_type:
-        context.pageContext?.type === "budget-question"
+        context.pageContext?.type === "budget-question" ||
+        context.pageContext?.type === "general-question"
           ? "bill"
           : (context.pageContext?.type ??
             (context.billContext ? "bill" : "unknown")),

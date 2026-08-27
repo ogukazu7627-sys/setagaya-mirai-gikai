@@ -184,6 +184,26 @@ describe("bill-repository 統合テスト", () => {
       expect(result).toBeNull();
     });
 
+    it("公開中の一般質問は一般質問スコープでのみ取得できる", async () => {
+      const bill = await createTestBill({
+        publish_status: "published",
+        publication_category: "general_question",
+        name: "公開一般質問",
+      });
+      billIds.push(bill.id);
+
+      const [generalQuestion, standard, budgetQuestion] = await Promise.all([
+        findPublishedBillById(bill.id, "general-question"),
+        findPublishedBillById(bill.id),
+        findPublishedBillById(bill.id, "budget-question"),
+      ]);
+
+      expect(generalQuestion?.id).toBe(bill.id);
+      expect(generalQuestion?.publication_category).toBe("general_question");
+      expect(standard).toBeNull();
+      expect(budgetQuestion).toBeNull();
+    });
+
     it("存在しないIDではnullを返す", async () => {
       const result = await findPublishedBillById(
         "00000000-0000-0000-0000-000000000000"

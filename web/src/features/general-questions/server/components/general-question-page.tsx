@@ -4,6 +4,11 @@ import { ArrowLeft, MessageCircleQuestion } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
+import {
+  CouncilQuestionAiAskButton,
+  CouncilQuestionAiChatProvider,
+} from "@/features/bills/client/components/question-collection/council-question-ai-chat";
 import { CouncilQuestionNavigator } from "@/features/bills/client/components/question-collection/council-question-navigator";
 import { CouncilQuestionMarkdown } from "@/features/bills/server/components/question-collection/council-question-markdown";
 import {
@@ -21,6 +26,7 @@ type GeneralQuestionCategoryPageData = NonNullable<
 >;
 
 type GeneralQuestionPageProps = GeneralQuestionCategoryPageData & {
+  difficultyLevel: DifficultyLevelEnum;
   focusBillId?: string | null;
 };
 
@@ -39,6 +45,7 @@ function getQuestionMetaText(
 
 export function GeneralQuestionPage({
   category,
+  difficultyLevel,
   focusBillId,
   questions,
   year,
@@ -106,7 +113,14 @@ export function GeneralQuestionPage({
             </p>
           </div>
         ) : (
-          <>
+          <CouncilQuestionAiChatProvider
+            defaultQuestion={{
+              id: activeQuestions[0].id,
+              name: activeQuestions[0].name,
+            }}
+            difficultyLevel={difficultyLevel}
+            kind="general"
+          >
             <CouncilQuestionNavigator
               activeCouncilorId={activeCouncilorGroup.councilor.id}
               collection={{
@@ -157,6 +171,12 @@ export function GeneralQuestionPage({
                           questionName: question.name,
                         })}
                       </p>
+                      <div className="mt-4 flex justify-end">
+                        <CouncilQuestionAiAskButton
+                          questionId={question.id}
+                          questionName={question.name}
+                        />
+                      </div>
                     </header>
 
                     <div className="mt-6">
@@ -168,7 +188,7 @@ export function GeneralQuestionPage({
                 );
               })}
             </div>
-          </>
+          </CouncilQuestionAiChatProvider>
         )}
       </div>
     </div>

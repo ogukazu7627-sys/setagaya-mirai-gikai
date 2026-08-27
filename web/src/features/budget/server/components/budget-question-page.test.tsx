@@ -10,11 +10,20 @@ import {
 vi.mock("@/features/budget/client/components/budget-question-ai-chat", () => ({
   BudgetQuestionAiChatProvider: ({
     children,
+    defaultQuestion,
     difficultyLevel,
   }: {
     children: ReactNode;
+    defaultQuestion?: { id: string };
     difficultyLevel: string;
-  }) => <div data-chat-difficulty={difficultyLevel}>{children}</div>,
+  }) => (
+    <div
+      data-chat-default-question-id={defaultQuestion?.id}
+      data-chat-difficulty={difficultyLevel}
+    >
+      {children}
+    </div>
+  ),
   BudgetQuestionAiAskButton: ({ questionId }: { questionId: string }) => (
     <div data-ai-question-id={questionId} />
   ),
@@ -176,6 +185,7 @@ describe("BudgetQuestionPage", () => {
     expect(html).toContain('data-active-question-count="2"');
     expect(html).toContain('data-councilor-count="2"');
     expect(html).toContain('data-chat-difficulty="normal"');
+    expect(html).toContain('data-chat-default-question-id="focused"');
     expect(html).toContain('data-ai-question-id="focused"');
     expect(html).toContain('data-ai-question-id="first"');
     expect(html).not.toContain('data-ai-question-id="other"');

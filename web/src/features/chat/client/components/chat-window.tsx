@@ -77,6 +77,13 @@ const DIRECTORY_QUESTIONS = {
   ],
 } as const;
 
+function isQuestionPageContext(pageContext?: ChatPageContext): boolean {
+  return (
+    pageContext?.type === "budget-question" ||
+    pageContext?.type === "general-question"
+  );
+}
+
 function getBillSampleQuestions(bill: ChatBillContext): string[] {
   const itemTypeQuestions: Partial<
     Record<NonNullable<ChatBillContext["item_type"]>, string[]>
@@ -141,11 +148,11 @@ function ChatMessages({
         {/* 初期メッセージ */}
         <div className="flex flex-col gap-1">
           <p className="text-sm font-bold leading-[1.8] text-mirai-text">
-            {pageContext?.type === "budget-question"
+            {isQuestionPageContext(pageContext)
               ? "この議員質問と区の答弁について、気になることをAIに質問してください。"
               : "世田谷区議会の案件について、気になることをAIに質問してください。"}
           </p>
-          {billContext && pageContext?.type !== "budget-question" && (
+          {billContext && !isQuestionPageContext(pageContext) && (
             <p className="text-sm font-bold leading-[1.8] text-mirai-text">
               本文中のテキストを選択すると簡単にAIに質問できます
             </p>

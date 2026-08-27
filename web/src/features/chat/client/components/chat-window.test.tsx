@@ -264,7 +264,10 @@ describe("ChatWindow auth gate", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("予算質問では質問・答弁向けの案内だけを表示し、AIインタビューを出さない", () => {
+  it.each([
+    "budget-question",
+    "general-question",
+  ] as const)("%sでは質問・答弁向けの案内だけを表示し、AIインタビューを出さない", (pageType) => {
     render(
       <ChatWindow
         authStatus="authenticated"
@@ -275,7 +278,7 @@ describe("ChatWindow auth gate", () => {
         isOpen
         onClose={vi.fn()}
         onSignInWithGoogle={vi.fn()}
-        pageContext={{ type: "budget-question" }}
+        pageContext={{ type: pageType }}
         sessionId="session-1"
       />
     );
