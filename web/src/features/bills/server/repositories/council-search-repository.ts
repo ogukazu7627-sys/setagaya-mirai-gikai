@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import { NORMAL_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
+import { COUNCIL_SEARCH_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
 import type { BillItemType } from "../../shared/types";
 import type { CouncilSearchCouncilor } from "../../shared/types/council-ai-search";
 
@@ -69,7 +69,7 @@ export async function findRankedCouncilSearchBills(input: {
       "id",
       rankedRows.map((row) => row.bill_id)
     )
-    .in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
+    .in("publication_category", COUNCIL_SEARCH_PUBLICATION_CATEGORIES);
   if (normalBillsError) {
     throw new Error("Failed to validate council search results");
   }

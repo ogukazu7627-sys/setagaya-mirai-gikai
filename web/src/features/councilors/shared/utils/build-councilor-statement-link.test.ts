@@ -16,15 +16,19 @@ describe("buildCouncilorStatementLink", () => {
     });
   });
 
-  it("points a general question at the bill's opinion anchor", () => {
+  it("一般質問を年別の大分類ページにある元質問へ送る", () => {
     expect(
       buildCouncilorStatementLink({
         billId: "bill-2",
         publicationCategory: "general_question",
         majorCategory: "防災☔",
+        sessionStartDate: "2026-01-01",
         statementIndex: 0,
-      }).kind
-    ).toBe("bill");
+      })
+    ).toEqual({
+      href: "/bills/questions/2026/disaster-prevention?focus=bill-2",
+      kind: "general-question",
+    });
   });
 
   it("sends a budget question to its budget category page", () => {

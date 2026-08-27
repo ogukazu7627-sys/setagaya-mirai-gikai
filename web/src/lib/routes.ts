@@ -65,6 +65,16 @@ export const routes = {
       ? (`${pathname}?focus=${encodeURIComponent(focusBillId)}` as const)
       : (pathname as `/budget/questions/${string}`);
   },
+  generalQuestionCategory: (
+    year: number,
+    categoryId: string,
+    focusBillId?: string
+  ) => {
+    const pathname = `/bills/questions/${year}/${encodeURIComponent(categoryId)}`;
+    return focusBillId
+      ? (`${pathname}?focus=${encodeURIComponent(focusBillId)}` as const)
+      : (pathname as `/bills/questions/${number}/${string}`);
+  },
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,

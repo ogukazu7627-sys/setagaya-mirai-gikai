@@ -2,10 +2,11 @@ import "server-only";
 
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
 import type {
-  CouncilBillDirectoryEntry,
+  CouncilDirectoryEntry,
   CouncilThemeSectionData,
 } from "../../shared/types/council-bill-directory";
 import {
+  buildCouncilDirectoryItems,
   buildCouncilThemeCategorySummaries,
   paginateCouncilBillDirectoryEntries,
   resolveInitialCouncilThemeCategoryId,
@@ -15,7 +16,7 @@ import { loadCouncilBillCardsByIds } from "./load-council-bill-cards";
 
 type LoadCouncilThemeSectionDataOptions = {
   year: number;
-  entries: CouncilBillDirectoryEntry[];
+  entries: CouncilDirectoryEntry[];
   dietSessionIds: string[];
   difficultyLevel: DifficultyLevelEnum;
 };
@@ -55,6 +56,7 @@ export async function loadCouncilThemeSectionData(
     initialCategoryId,
     initialPage: {
       bills,
+      items: buildCouncilDirectoryItems(page.entries, bills),
       total: page.total,
       currentPage: page.currentPage,
       totalPages: page.totalPages,

@@ -8,8 +8,10 @@ import {
   getCalendarYearFromDate,
   getCalendarYearRange,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
+import { findPublishedGeneralQuestionCategoryCards } from "@/features/general-questions/server/repositories/general-question-repository";
 import { getSetagayaMockBills, isSetagayaMockMode } from "@/lib/setagaya-mock";
 import type { CouncilBillDirectoryEntry } from "../../shared/types/council-bill-directory";
+import { toGeneralQuestionDirectoryEntries } from "../../shared/utils/council-bill-directory";
 import { toBillCardData } from "../../shared/utils/to-bill-card-data";
 import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
 import { loadCouncilThemeSectionData } from "./load-council-theme-section-data";
@@ -65,20 +67,28 @@ export async function loadBillsDirectoryData(
   const currentDietSessionIds = currentYearSessions.map(
     (session) => session.id
   );
-  const [currentEntries, archiveData] = await Promise.all([
-    findPublishedCouncilBillDirectoryEntries(
-      currentDietSessionIds,
-      difficultyLevel
-    ),
-    loadYearArchiveData({
-      archiveYear,
-      difficultyLevel,
-      pastSessions,
-    }),
-  ]);
+  const [currentEntries, generalQuestionCategories, archiveData] =
+    await Promise.all([
+      findPublishedCouncilBillDirectoryEntries(
+        currentDietSessionIds,
+        difficultyLevel
+      ),
+      findPublishedGeneralQuestionCategoryCards(
+        currentDietSessionIds,
+        currentYear
+      ),
+      loadYearArchiveData({
+        archiveYear,
+        difficultyLevel,
+        pastSessions,
+      }),
+    ]);
   const themeData = await loadCouncilThemeSectionData({
     year: currentYear,
-    entries: currentEntries,
+    entries: [
+      ...currentEntries,
+      ...toGeneralQuestionDirectoryEntries(generalQuestionCategories),
+    ],
     dietSessionIds: currentDietSessionIds,
     difficultyLevel,
   });

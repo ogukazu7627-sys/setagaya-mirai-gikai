@@ -127,6 +127,78 @@ describe("searchCouncilBills", () => {
     expect(search).toHaveBeenCalledTimes(1);
   });
 
+  it("一般質問の検索一致を大分類カードへまとめて先頭の一致質問を保持する", async () => {
+    const educationFirst = {
+      ...createCard("education-first"),
+      item_type: "question" as const,
+      publication_category: "general_question" as const,
+      major_category: "教育🏫",
+    };
+    const educationSecond = {
+      ...createCard("education-second"),
+      item_type: "question" as const,
+      publication_category: "general_question" as const,
+      major_category: "教育🏫",
+    };
+    const report = {
+      ...createCard("report"),
+      item_type: "report" as const,
+      publication_category: "report" as const,
+    };
+    const matchedCards = [educationFirst, educationSecond, report];
+    const findGeneralQuestionCategories = vi.fn().mockResolvedValue([
+      {
+        categoryId: "education",
+        name: "教育",
+        majorCategory: "教育🏫",
+        description: "学校、教育環境、学びの支援",
+        year: 2026,
+        questionCount: 30,
+        latestSubmittedDate: "2026-02-20",
+      },
+    ]);
+
+    const result = await searchCouncilBills(input, {
+      now: () => new Date("2026-07-27T12:00:00+09:00"),
+      findSessions: async () => [session],
+      findCouncilors: async () => [],
+      embedQuery: async () => Array.from({ length: 512 }, () => 0),
+      search: async () =>
+        matchedCards.map((card, index) => ({
+          billId: card.id,
+          score: 1 - index / 10,
+          semanticSimilarity: 0.8,
+          keywordScore: 10,
+        })),
+      getDifficulty: async () => "normal",
+      loadCards: async () => matchedCards,
+      findGeneralQuestionCategories,
+    });
+
+    expect(findGeneralQuestionCategories).toHaveBeenCalledWith(
+      [session.id],
+      2026
+    );
+    expect(result.billIds).toEqual([
+      educationFirst.id,
+      educationSecond.id,
+      report.id,
+    ]);
+    expect(result.bills).toEqual([report]);
+    expect(result.items).toEqual([
+      expect.objectContaining({
+        kind: "general-question-category",
+        category: expect.objectContaining({
+          categoryId: "education",
+          questionCount: 30,
+          focusBillId: educationFirst.id,
+        }),
+      }),
+      { kind: "bill", bill: report },
+    ]);
+    expect(result.total).toBe(2);
+  });
+
   it("解決できない議員名を意味検索へ流さない", async () => {
     const search = vi.fn();
     const embedQuery = vi.fn();
@@ -144,6 +216,7 @@ describe("searchCouncilBills", () => {
     expect(result).toEqual({
       billIds: [],
       bills: [],
+      items: [],
       total: 0,
       mode: "keyword-fallback",
     });

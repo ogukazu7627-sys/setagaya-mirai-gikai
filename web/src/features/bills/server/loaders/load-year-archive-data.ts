@@ -5,7 +5,9 @@ import {
   getCalendarYearRange,
   parseCalendarYear,
 } from "@/features/diet-sessions/shared/utils/calendar-year";
+import { findPublishedGeneralQuestionCategoryCards } from "@/features/general-questions/server/repositories/general-question-repository";
 import type { CouncilThemeSectionData } from "../../shared/types/council-bill-directory";
+import { toGeneralQuestionDirectoryEntries } from "../../shared/utils/council-bill-directory";
 import { findPublishedCouncilBillDirectoryEntries } from "../repositories/council-bill-directory-repository";
 import { loadCouncilThemeSectionData } from "./load-council-theme-section-data";
 
@@ -47,13 +49,16 @@ export async function loadYearArchiveData({
     selectedYearRange.endDate
   );
   const dietSessionIds = sessions.map((session) => session.id);
-  const entries = await findPublishedCouncilBillDirectoryEntries(
-    dietSessionIds,
-    difficultyLevel
-  );
+  const [entries, generalQuestionCategories] = await Promise.all([
+    findPublishedCouncilBillDirectoryEntries(dietSessionIds, difficultyLevel),
+    findPublishedGeneralQuestionCategoryCards(dietSessionIds, selectedYear),
+  ]);
   const themeData = await loadCouncilThemeSectionData({
     year: selectedYear,
-    entries,
+    entries: [
+      ...entries,
+      ...toGeneralQuestionDirectoryEntries(generalQuestionCategories),
+    ],
     dietSessionIds,
     difficultyLevel,
   });

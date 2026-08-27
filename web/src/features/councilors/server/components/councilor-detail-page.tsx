@@ -126,7 +126,9 @@ export async function CouncilorDetailPage({
                           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary-accent bg-white px-3 py-1 text-xs font-bold text-primary-strong">
                             {bill.publication_category === "budget"
                               ? "予算の質問へ"
-                              : "該当箇所へ"}
+                              : bill.publication_category === "general_question"
+                                ? "一般質問へ"
+                                : "該当箇所へ"}
                             <ArrowRight
                               aria-hidden="true"
                               className="size-3.5"
@@ -166,6 +168,7 @@ export async function CouncilorDetailPage({
                           billId: bill.id,
                           publicationCategory: bill.publication_category,
                           majorCategory: bill.major_category,
+                          sessionStartDate: bill.diet_session?.start_date,
                           statementIndex: statement.statement_index,
                         }).href as Route
                       }

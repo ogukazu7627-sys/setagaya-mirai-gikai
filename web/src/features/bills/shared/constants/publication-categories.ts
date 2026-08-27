@@ -2,15 +2,20 @@ import type { BillPublicationCategory } from "../types";
 
 export const NORMAL_PUBLICATION_CATEGORIES = [
   "report",
+] as const satisfies readonly BillPublicationCategory[];
+
+export const COUNCIL_SEARCH_PUBLICATION_CATEGORIES = [
+  ...NORMAL_PUBLICATION_CATEGORIES,
   "general_question",
 ] as const satisfies readonly BillPublicationCategory[];
 
 /**
  * 議員の発言のように、通常案件と予算案件をまとめて扱う場面で使う。
- * 通常の一覧・検索は NORMAL_PUBLICATION_CATEGORIES のままにする。
+ * 通常の案件一覧は NORMAL_PUBLICATION_CATEGORIES のままにする。
  */
 export const COUNCILOR_STATEMENT_PUBLICATION_CATEGORIES = [
   ...NORMAL_PUBLICATION_CATEGORIES,
+  "general_question",
   "budget",
 ] as const satisfies readonly BillPublicationCategory[];
 

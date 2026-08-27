@@ -30,6 +30,7 @@ describe("loadCouncilBillPage", () => {
         getDifficulty: async () => "normal",
         findSessions,
         findEntries: async () => entries,
+        findGeneralQuestionCategories: async () => [],
         loadCards,
       }
     );
@@ -42,6 +43,10 @@ describe("loadCouncilBillPage", () => {
     );
     expect(result).toEqual({
       bills: [createCard("bill-2"), createCard("bill-1")],
+      items: [
+        { kind: "bill", bill: createCard("bill-2") },
+        { kind: "bill", bill: createCard("bill-1") },
+      ],
       total: 7,
       currentPage: 2,
       totalPages: 2,
@@ -69,6 +74,7 @@ describe("loadCouncilBillPage", () => {
         getDifficulty: async () => "normal",
         findSessions: async () => [{ id: "session-2025" } as DietSession],
         findEntries: async () => entries,
+        findGeneralQuestionCategories: async () => [],
         loadCards,
       }
     );
