@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { writeComponentState } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import type { CouncilorOpinionChatSection as CouncilorOpinionChatSectionData } from "@/lib/markdown/extract-councilor-opinion-chat-section";
 import {
   CouncilorOpinionChatSection,
@@ -51,6 +52,7 @@ const baseSection: CouncilorOpinionChatSectionData = {
 
 describe("CouncilorOpinionChatSection", () => {
   beforeEach(() => {
+    window.sessionStorage.clear();
     window.location.hash = "";
     Object.defineProperty(window, "matchMedia", {
       writable: true,
@@ -211,6 +213,34 @@ describe("CouncilorOpinionChatSection", () => {
     await waitFor(() => {
       expect(screen.getByText("2 / 2")).toBeInTheDocument();
       expect(scrollIntoView).toHaveBeenCalledWith({ block: "start" });
+    });
+  });
+
+  it("ページへ戻ると直前に見ていた議員の意見を表示する", async () => {
+    writeComponentState("bill-councilor-opinion:bill-id", {
+      rawHeading: "田中優子議員",
+    });
+
+    render(
+      <CouncilorOpinionChatSection
+        persistenceKey="bill-councilor-opinion:bill-id"
+        section={{
+          ...baseSection,
+          groups: [
+            baseSection.groups[0],
+            {
+              ...baseSection.groups[0],
+              groupIndex: 1,
+              rawHeading: "田中優子議員",
+              councilorName: "田中優子",
+            },
+          ],
+        }}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("2 / 2")).toBeInTheDocument();
     });
   });
 

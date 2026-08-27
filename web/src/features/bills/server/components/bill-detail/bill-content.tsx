@@ -55,7 +55,10 @@ export async function BillContent({ bill }: BillContentProps) {
           })
         : null}
       <LongPressSection />
-      <CouncilorOpinionChatSection section={chatSplit.chatSection} />
+      <CouncilorOpinionChatSection
+        persistenceKey={`bill-councilor-opinion:${bill.id}`}
+        section={chatSplit.chatSection}
+      />
       {chatSplit.afterMarkdown
         ? await parseMarkdown(chatSplit.afterMarkdown, {
             sectionHeadingTag,

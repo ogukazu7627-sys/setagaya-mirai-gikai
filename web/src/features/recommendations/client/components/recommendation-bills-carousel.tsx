@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/carousel";
 import { BillCard } from "@/features/bills/client/components/bill-list/bill-card";
 import type { BillCardData } from "@/features/bills/shared/types";
+import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
 import { routes } from "@/lib/routes";
 
 type RecommendationBillsCarouselProps = {
@@ -25,6 +29,23 @@ const CAROUSEL_OPTIONS: CarouselOptions = {
   align: "center",
   loop: true,
 };
+
+const PERSISTENCE_KEY = "home-recommendation-carousel";
+
+type StoredRecommendationCarouselState = {
+  billId: string;
+};
+
+function isStoredRecommendationCarouselState(
+  value: unknown
+): value is StoredRecommendationCarouselState {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Partial<StoredRecommendationCarouselState>).billId ===
+      "string"
+  );
+}
 
 export function RecommendationBillsCarousel({
   bills,
@@ -38,11 +59,23 @@ export function RecommendationBillsCarousel({
       return;
     }
 
+    const stored = readComponentState(
+      PERSISTENCE_KEY,
+      isStoredRecommendationCarouselState
+    );
+    const restoredIndex = stored
+      ? bills.findIndex((bill) => bill.id === stored.billId)
+      : -1;
+    if (restoredIndex > 0) {
+      api.scrollTo(restoredIndex, true);
+    }
+
     const updateSelection = () => {
       const nextIndex = api.selectedScrollSnap();
       setSelectedIndex(nextIndex);
       const selectedBill = bills[nextIndex];
       if (selectedBill) {
+        writeComponentState(PERSISTENCE_KEY, { billId: selectedBill.id });
         onBillViewed?.(selectedBill.id);
       }
     };

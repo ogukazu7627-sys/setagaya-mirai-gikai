@@ -11,6 +11,10 @@ import {
   type CarouselOptions,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  readComponentState,
+  writeComponentState,
+} from "@/features/public-view-state/client/utils/public-view-state-storage";
 import type { PublicCouncilorXPost } from "../../shared/types/councilor-x-post";
 import {
   getNextXEmbedCount,
@@ -27,6 +31,22 @@ const CAROUSEL_OPTIONS: CarouselOptions = {
   containScroll: "trimSnaps",
   loop: false,
 };
+
+const PERSISTENCE_KEY = "home-councilor-x-posts-carousel";
+
+type StoredXPostsCarouselState = {
+  postId: string;
+};
+
+function isStoredXPostsCarouselState(
+  value: unknown
+): value is StoredXPostsCarouselState {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Partial<StoredXPostsCarouselState>).postId === "string"
+  );
+}
 
 export function CouncilorXPostsCarousel({
   posts,
@@ -47,13 +67,39 @@ export function CouncilorXPostsCarousel({
       return;
     }
 
+    const stored = readComponentState(
+      PERSISTENCE_KEY,
+      isStoredXPostsCarouselState
+    );
+    const restoredIndex = stored
+      ? posts.findIndex((post) => post.postId === stored.postId)
+      : -1;
+    if (restoredIndex > 0) {
+      setEmbedCount((currentCount) =>
+        getNextXEmbedCount({
+          currentCount,
+          furthestVisibleIndex: restoredIndex,
+          totalCount: posts.length,
+        })
+      );
+      api.scrollTo(restoredIndex, true);
+    }
+
     const updateSelection = () => {
       const selected = api.selectedScrollSnap();
       setSelectedIndex(selected);
+      const selectedPost = posts[selected];
+      if (selectedPost) {
+        writeComponentState(PERSISTENCE_KEY, { postId: selectedPost.postId });
+      }
     };
     const loadAfterMovement = () => {
       const selected = api.selectedScrollSnap();
       setSelectedIndex(selected);
+      const selectedPost = posts[selected];
+      if (selectedPost) {
+        writeComponentState(PERSISTENCE_KEY, { postId: selectedPost.postId });
+      }
       setEmbedCount((currentCount) =>
         getNextXEmbedCount({
           currentCount,
@@ -71,7 +117,7 @@ export function CouncilorXPostsCarousel({
       api.off("select", loadAfterMovement);
       api.off("reInit", updateSelection);
     };
-  }, [api, posts.length]);
+  }, [api, posts]);
 
   useEffect(() => {
     if (widgetsStatus !== "loading") {

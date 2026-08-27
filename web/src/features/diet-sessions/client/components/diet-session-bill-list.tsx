@@ -49,7 +49,10 @@ export function DietSessionBillList({ session, bills }: Props) {
           この会期の議案はまだありません
         </p>
       ) : (
-        <BillListWithStatusFilter bills={bills} />
+        <BillListWithStatusFilter
+          bills={bills}
+          persistKey={`diet-session-status-filter:${session.id}`}
+        />
       )}
 
       {/* 衆議院リンク */}

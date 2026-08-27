@@ -18,19 +18,25 @@ const INITIAL_VISIBLE = 20;
 const LOAD_STEP = 40;
 
 interface RespondentListProps {
+  persistKey: string;
   respondents: PublicRespondent[];
   /** 相対日時の基準時刻（ms）。サーバー側で固定し、ハイドレーションずれを防ぐ。 */
   nowMs: number;
 }
 
-export function RespondentList({ respondents, nowMs }: RespondentListProps) {
+export function RespondentList({
+  persistKey,
+  respondents,
+  nowMs,
+}: RespondentListProps) {
   const now = new Date(nowMs);
   const { filter, filtered, visible, remaining, selectFilter, loadMore } =
     useFilteredPagination(
       respondents,
       filterByAttributes,
       INITIAL_VISIBLE,
-      LOAD_STEP
+      LOAD_STEP,
+      persistKey
     );
 
   // 各フィルタchipに該当回答数を表示する

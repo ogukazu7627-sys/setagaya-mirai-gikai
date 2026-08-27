@@ -4,6 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillCardData } from "@/features/bills/shared/types";
+import { writeComponentState } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import { RecommendationBillsCarousel } from "./recommendation-bills-carousel";
 
 vi.mock("@/features/bills/client/components/bill-list/bill-card", () => ({
@@ -24,6 +25,7 @@ const bills = Array.from({ length: 5 }, (_, index) => {
 
 describe("RecommendationBillsCarousel", () => {
   beforeEach(() => {
+    window.sessionStorage.clear();
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -84,5 +86,17 @@ describe("RecommendationBillsCarousel", () => {
         screen.getByRole("link", { name: `おすすめ案件${index + 1}` })
       ).toHaveAttribute("href", `/bills/${bill.id}`);
     }
+  });
+
+  it("ページへ戻ると直前に見ていたおすすめ案件を表示する", async () => {
+    writeComponentState("home-recommendation-carousel", {
+      billId: bills[2].id,
+    });
+
+    render(<RecommendationBillsCarousel bills={bills} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("3 / 5")).toBeVisible();
+    });
   });
 });
