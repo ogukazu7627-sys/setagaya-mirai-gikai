@@ -58,7 +58,10 @@ export async function middleware(request: NextRequest) {
 
   // OAuth callbackではPKCE code-verifier cookieが必要。
   // ここでgetUser()を走らせるとログイン前扱いでcode-verifierが消えるためスキップする。
-  const response = shouldSkipSupabaseSessionUpdate(request.nextUrl.pathname)
+  const response = shouldSkipSupabaseSessionUpdate(
+    request.nextUrl.pathname,
+    request.headers
+  )
     ? NextResponse.next({ request })
     : await updateSupabaseSession(request);
 
@@ -126,8 +129,28 @@ function _isHtmlRequest(request: NextRequest) {
   return isHtmlAcceptHeader(accept);
 }
 
-export function shouldSkipSupabaseSessionUpdate(pathname: string): boolean {
-  return pathname === CHAT_AUTH_CALLBACK_PATH;
+export function isNextRouterPrefetch(headers: Headers): boolean {
+  const purpose = [headers.get("purpose"), headers.get("sec-purpose")]
+    .filter(Boolean)
+    .join(",")
+    .toLowerCase();
+
+  return (
+    headers.has("next-router-prefetch") ||
+    headers.has("x-middleware-prefetch") ||
+    purpose.includes("prefetch")
+  );
+}
+
+export function shouldSkipSupabaseSessionUpdate(
+  pathname: string,
+  headers?: Headers
+): boolean {
+  return (
+    pathname === CHAT_AUTH_CALLBACK_PATH ||
+    pathname === "/sw.js" ||
+    (headers ? isNextRouterPrefetch(headers) : false)
+  );
 }
 
 export function buildUtmShortLinkRedirectUrl(
