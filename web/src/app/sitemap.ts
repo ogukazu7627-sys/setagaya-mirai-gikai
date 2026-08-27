@@ -6,6 +6,8 @@ import { LEARN_LESSONS } from "@/features/learn/shared/learn-lessons";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = env.webUrl.replace(/\/+$/, "");
 
