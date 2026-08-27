@@ -6,7 +6,7 @@ export type ChatBillContext = Pick<
 >;
 
 export type ChatPageContext = {
-  type: "home" | "council" | "bill" | "budget-question";
+  type: "home" | "council" | "bill" | "budget-question" | "general-question";
   bills?: Array<{
     id?: string;
     name: string;

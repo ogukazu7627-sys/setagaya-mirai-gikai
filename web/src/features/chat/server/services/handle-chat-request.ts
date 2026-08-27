@@ -253,12 +253,7 @@ async function buildPrompt(
     const billId = context.billContext?.id;
     const [serverBill, candidateContent] = billId
       ? await Promise.all([
-          findPublishedBillById(
-            billId,
-            context.pageContext?.type === "budget-question"
-              ? "budget-question"
-              : "standard"
-          ),
+          findPublishedBillById(billId, getBillPublicationScope(context)),
           findBillContentByDifficulty(billId, context.difficultyLevel),
         ])
       : [null, null];
@@ -283,6 +278,18 @@ async function buildPrompt(
       error instanceof Error ? error.message : String(error)
     );
   }
+}
+
+function getBillPublicationScope(
+  context: ChatMessageMetadata
+): "standard" | "budget-question" | "general-question" {
+  if (context.pageContext?.type === "budget-question") {
+    return "budget-question";
+  }
+  if (context.pageContext?.type === "general-question") {
+    return "general-question";
+  }
+  return "standard";
 }
 
 /**
@@ -389,7 +396,10 @@ async function determineShouldSuggestInterview(
   context: ChatMessageMetadata,
   messages: UIMessage<ChatMessageMetadata>[]
 ): Promise<boolean> {
-  if (context.pageContext?.type === "budget-question") {
+  if (
+    context.pageContext?.type === "budget-question" ||
+    context.pageContext?.type === "general-question"
+  ) {
     return false;
   }
 
@@ -432,7 +442,7 @@ function buildSystemPromptWithInterviewInstructions(
   shouldSuggestInterview: boolean,
   pageType: ChatPageContext["type"] | undefined
 ): string {
-  if (pageType === "budget-question") {
+  if (pageType === "budget-question" || pageType === "general-question") {
     return basePrompt;
   }
 

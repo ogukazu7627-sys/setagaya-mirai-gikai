@@ -1,9 +1,37 @@
 import { Writable } from "node:stream";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { getGeneralQuestionCategoryById } from "../../shared/utils/general-question-categories";
 import { GeneralQuestionPage } from "./general-question-page";
+
+vi.mock(
+  "@/features/bills/client/components/question-collection/council-question-ai-chat",
+  () => ({
+    CouncilQuestionAiChatProvider: ({
+      children,
+      defaultQuestion,
+      difficultyLevel,
+      kind,
+    }: {
+      children: ReactNode;
+      defaultQuestion?: { id: string };
+      difficultyLevel: string;
+      kind: string;
+    }) => (
+      <div
+        data-chat-default-question-id={defaultQuestion?.id}
+        data-chat-difficulty={difficultyLevel}
+        data-chat-kind={kind}
+      >
+        {children}
+      </div>
+    ),
+    CouncilQuestionAiAskButton: ({ questionId }: { questionId: string }) => (
+      <div data-ai-question-id={questionId} />
+    ),
+  })
+);
 
 vi.mock(
   "@/features/bills/client/components/question-collection/council-question-navigator",
@@ -58,6 +86,7 @@ describe("GeneralQuestionPage", () => {
     const html = await renderToHtml(
       GeneralQuestionPage({
         category,
+        difficultyLevel: "normal",
         focusBillId: focused.id,
         questions: [first, otherCouncilor, focused],
         year: 2026,
@@ -70,6 +99,12 @@ describe("GeneralQuestionPage", () => {
     expect(normalizedHtml).toContain('data-active-councilor-id="councilor-a"');
     expect(normalizedHtml).toContain('data-active-question-count="2"');
     expect(normalizedHtml).toContain('data-councilor-count="2"');
+    expect(normalizedHtml).toContain('data-chat-kind="general"');
+    expect(normalizedHtml).toContain('data-chat-difficulty="normal"');
+    expect(normalizedHtml).toContain('data-chat-default-question-id="focused"');
+    expect(normalizedHtml).toContain('data-ai-question-id="focused"');
+    expect(normalizedHtml).toContain('data-ai-question-id="first"');
+    expect(normalizedHtml).not.toContain('data-ai-question-id="other"');
     expect(normalizedHtml).toContain('data-focused-general-question="true"');
     expect(normalizedHtml).toContain("選択した質問と区の答弁");
     expect(normalizedHtml).toContain("同じ議員の最初の本文");

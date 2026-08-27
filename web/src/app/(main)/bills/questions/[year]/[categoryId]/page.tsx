@@ -78,6 +78,10 @@ export default async function GeneralQuestionCategoryRoutePage({
   }
 
   return (
-    <GeneralQuestionPage {...pageData} focusBillId={getFocusBillId(focus)} />
+    <GeneralQuestionPage
+      {...pageData}
+      difficultyLevel={difficultyLevel}
+      focusBillId={getFocusBillId(focus)}
+    />
   );
 }

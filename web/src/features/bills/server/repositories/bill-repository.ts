@@ -96,7 +96,10 @@ export async function findPublishedBillsByCommitteeSearchTerm(
  */
 export async function findPublishedBillById(
   id: string,
-  publicationScope: "standard" | "budget-question" = "standard"
+  publicationScope:
+    | "standard"
+    | "budget-question"
+    | "general-question" = "standard"
 ) {
   const supabase = createAdminClient();
   let query = supabase
@@ -114,10 +117,13 @@ export async function findPublishedBillById(
     .eq("id", id)
     .eq("publish_status", "published");
 
-  query =
-    publicationScope === "budget-question"
-      ? query.eq("publication_category", "budget")
-      : query.in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
+  if (publicationScope === "budget-question") {
+    query = query.eq("publication_category", "budget");
+  } else if (publicationScope === "general-question") {
+    query = query.eq("publication_category", "general_question");
+  } else {
+    query = query.in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
+  }
 
   const { data, error } = await query.single();
 

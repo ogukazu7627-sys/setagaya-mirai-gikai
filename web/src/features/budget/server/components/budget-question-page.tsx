@@ -106,7 +106,13 @@ export function BudgetQuestionPage({
             </p>
           </div>
         ) : (
-          <BudgetQuestionAiChatProvider difficultyLevel={difficultyLevel}>
+          <BudgetQuestionAiChatProvider
+            defaultQuestion={{
+              id: activeQuestions[0].id,
+              name: activeQuestions[0].name,
+            }}
+            difficultyLevel={difficultyLevel}
+          >
             <BudgetQuestionNavigator
               activeCouncilorId={activeCouncilorGroup.councilor.id}
               categorySlug={category.slug}

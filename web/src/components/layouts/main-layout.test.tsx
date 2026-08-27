@@ -35,6 +35,8 @@ describe("MainLayout", () => {
   it.each([
     "/bills/abc-123",
     "/preview/bills/abc-123",
+    "/bills/questions/2026/education",
+    "/budget/questions/education",
   ])("reserves desktop chat-panel space on %s", (pathname) => {
     navigationMock.pathname = pathname;
     const { container } = render(

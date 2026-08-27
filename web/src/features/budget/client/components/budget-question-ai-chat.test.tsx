@@ -2,6 +2,10 @@
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  CouncilQuestionAiAskButton,
+  CouncilQuestionAiChatProvider,
+} from "@/features/bills/client/components/question-collection/council-question-ai-chat";
 import type { ChatBillContext } from "@/features/chat/shared/types/page-context";
 import {
   BudgetQuestionAiAskButton,
@@ -101,5 +105,43 @@ describe("BudgetQuestionAiChatProvider", () => {
       )
     );
     expect(chatMocks.open).toHaveBeenCalledTimes(2);
+  });
+
+  it("一般質問では選択中の質問を対象に常設AI欄を表示する", async () => {
+    render(
+      <CouncilQuestionAiChatProvider
+        defaultQuestion={{ id: "general-a", name: "若者支援について" }}
+        difficultyLevel="normal"
+        kind="general"
+      >
+        <CouncilQuestionAiAskButton
+          questionId="general-b"
+          questionName="学校施設について"
+        />
+      </CouncilQuestionAiChatProvider>
+    );
+
+    const initialChatButton = screen.getByTestId("mock-chat-button");
+    expect(initialChatButton).toHaveAttribute("data-bill-id", "general-a");
+    expect(initialChatButton).toHaveAttribute(
+      "data-page-type",
+      "general-question"
+    );
+    expect(initialChatButton).toHaveAttribute("data-show-launcher", "true");
+    expect(chatMocks.open).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "「学校施設について」についてAIに聞く",
+      })
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("mock-chat-button")).toHaveAttribute(
+        "data-bill-id",
+        "general-b"
+      )
+    );
+    expect(chatMocks.open).toHaveBeenCalledTimes(1);
   });
 });
