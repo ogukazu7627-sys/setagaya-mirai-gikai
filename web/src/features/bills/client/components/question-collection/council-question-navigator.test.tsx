@@ -8,14 +8,32 @@ import { CouncilQuestionNavigator } from "./council-question-navigator";
 
 const navigationMocks = vi.hoisted(() => ({ push: vi.fn() }));
 const carouselMock = vi.hoisted(() => {
-  const listeners = new Set<() => void>();
+  const listeners = new Map<string, Set<() => void>>();
   let selectedIndex = 0;
+  let itemCount = 2;
+  const emit = (event: string) => {
+    for (const listener of listeners.get(event) ?? []) {
+      listener();
+    }
+  };
   const api = {
+    canScrollNext: vi.fn(() => selectedIndex < itemCount - 1),
+    canScrollPrev: vi.fn(() => selectedIndex > 0),
     off: vi.fn((_event: string, listener: () => void) => {
-      listeners.delete(listener);
+      listeners.get(_event)?.delete(listener);
     }),
-    on: vi.fn((_event: string, listener: () => void) => {
-      listeners.add(listener);
+    on: vi.fn((event: string, listener: () => void) => {
+      const eventListeners = listeners.get(event) ?? new Set();
+      eventListeners.add(listener);
+      listeners.set(event, eventListeners);
+    }),
+    scrollNext: vi.fn(() => {
+      selectedIndex = Math.min(selectedIndex + 1, itemCount - 1);
+      emit("select");
+    }),
+    scrollPrev: vi.fn(() => {
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      emit("select");
     }),
     scrollTo: vi.fn((index: number) => {
       selectedIndex = index;
@@ -25,16 +43,15 @@ const carouselMock = vi.hoisted(() => {
 
   return {
     api,
-    reset() {
+    reset(nextItemCount = 2) {
       selectedIndex = 0;
+      itemCount = nextItemCount;
       listeners.clear();
       vi.clearAllMocks();
     },
     select(index: number) {
       selectedIndex = index;
-      for (const listener of listeners) {
-        listener();
-      }
+      emit("select");
     },
   };
 });
@@ -99,6 +116,10 @@ const items = [
     questionCount: 1,
   },
 ];
+const slides = items.map((item) => ({
+  content: <p>{item.councilorDisplayName}の質問本文</p>,
+  councilorId: item.councilorId,
+}));
 
 describe("CouncilQuestionNavigator", () => {
   beforeEach(() => {
@@ -112,16 +133,21 @@ describe("CouncilQuestionNavigator", () => {
         activeCouncilorId={items[0].councilorId}
         collection={{ kind: "general", categoryId: "education", year: 2026 }}
         items={items}
+        slides={slides}
       />
     );
 
+    expect(screen.getByText("質問 2件")).toBeVisible();
+    expect(screen.getByText("甲の質問本文")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "次の議員を見る" }));
 
     expect(navigationMocks.push).toHaveBeenCalledWith(
       `/bills/questions/2026/education?focus=${items[1].firstQuestionId}`,
       { scroll: false }
     );
-    expect(screen.getByText("質問 2件")).toBeVisible();
+    expect(
+      screen.getByText("甲の質問本文").closest('[aria-roledescription="slide"]')
+    ).not.toBeNull();
   });
 
   it("横スワイプで選ばれた次の議員へ移動する", () => {
@@ -130,6 +156,7 @@ describe("CouncilQuestionNavigator", () => {
         activeCouncilorId={items[0].councilorId}
         collection={{ kind: "budget", categorySlug: "education" }}
         items={items}
+        slides={slides}
       />
     );
 

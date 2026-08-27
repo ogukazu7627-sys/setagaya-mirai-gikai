@@ -27,9 +27,6 @@ vi.mock(
         {children}
       </div>
     ),
-    CouncilQuestionAiAskButton: ({ questionId }: { questionId: string }) => (
-      <div data-ai-question-id={questionId} />
-    ),
   })
 );
 
@@ -39,9 +36,11 @@ vi.mock(
     CouncilQuestionNavigator: ({
       activeCouncilorId,
       items,
+      slides,
     }: {
       activeCouncilorId: string;
       items: Array<{ councilorId: string; questionCount: number }>;
+      slides: Array<{ content: ReactNode; councilorId: string }>;
     }) => (
       <div
         data-active-councilor-id={activeCouncilorId}
@@ -50,13 +49,23 @@ vi.mock(
             ?.questionCount
         }
         data-councilor-count={items.length}
-      />
+        data-rendered-slide-count={slides.length}
+      >
+        {slides.map((slide) => (
+          <div
+            data-carousel-slide-councilor={slide.councilorId}
+            key={slide.councilorId}
+          >
+            {slide.content}
+          </div>
+        ))}
+      </div>
     ),
   })
 );
 
 describe("GeneralQuestionPage", () => {
-  it("予算質問と同じ形式で選択議員の質問・答弁だけを縦に並べる", async () => {
+  it("選択議員と隣接する議員の質問・答弁をカルーセルへ渡す", async () => {
     const first = createQuestion(
       "first",
       "同じ議員の最初の質問",
@@ -102,13 +111,18 @@ describe("GeneralQuestionPage", () => {
     expect(normalizedHtml).toContain('data-chat-kind="general"');
     expect(normalizedHtml).toContain('data-chat-difficulty="normal"');
     expect(normalizedHtml).toContain('data-chat-default-question-id="focused"');
-    expect(normalizedHtml).toContain('data-ai-question-id="focused"');
-    expect(normalizedHtml).toContain('data-ai-question-id="first"');
-    expect(normalizedHtml).not.toContain('data-ai-question-id="other"');
+    expect(normalizedHtml).toContain('data-rendered-slide-count="2"');
+    expect(normalizedHtml).toContain(
+      'data-carousel-slide-councilor="councilor-a"'
+    );
+    expect(normalizedHtml).toContain(
+      'data-carousel-slide-councilor="councilor-b"'
+    );
+    expect(normalizedHtml).not.toContain("この質問についてAIに聞く");
     expect(normalizedHtml).toContain('data-focused-general-question="true"');
     expect(normalizedHtml).toContain("選択した質問と区の答弁");
     expect(normalizedHtml).toContain("同じ議員の最初の本文");
-    expect(normalizedHtml).not.toContain("別の議員の本文");
+    expect(normalizedHtml).toContain("別の議員の本文");
     expect(normalizedHtml.indexOf("選択した質問と区の答弁")).toBeLessThan(
       normalizedHtml.indexOf("同じ議員の最初の本文")
     );

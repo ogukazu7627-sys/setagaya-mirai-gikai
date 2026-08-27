@@ -28,6 +28,10 @@ const items = [
     questionCount: 1,
   },
 ];
+const slides = items.map((item) => ({
+  content: <p>{item.councilorDisplayName}の質問本文</p>,
+  councilorId: item.councilorId,
+}));
 
 describe("BudgetQuestionNavigator", () => {
   beforeEach(() => {
@@ -57,12 +61,13 @@ describe("BudgetQuestionNavigator", () => {
     }));
   });
 
-  it("現在の議員、件数、前後ボタンを表示する", () => {
-    render(
+  it("現在の議員と質問本文をカルーセル内に表示する", () => {
+    const { container } = render(
       <BudgetQuestionNavigator
         activeCouncilorId={items[0].councilorId}
         categorySlug="all"
         items={items}
+        slides={slides}
       />
     );
 
@@ -70,28 +75,20 @@ describe("BudgetQuestionNavigator", () => {
     expect(screen.getByText("質問 2件")).toBeVisible();
     expect(screen.getByText("1 / 2")).toBeVisible();
     expect(
+      screen.getByRole("region", {
+        name: "議員、会派の意見を切り替える",
+      })
+    ).toBeVisible();
+    expect(screen.getByText("くろだあいこの質問本文")).toBeVisible();
+    expect(
+      container.querySelectorAll('[data-council-question-scroll-region="true"]')
+    ).toHaveLength(2);
+    expect(
       screen.getByRole("button", { name: "前の議員を見る" })
-    ).toBeDisabled();
+    ).toBeVisible();
     expect(
       screen.getByRole("button", { name: "次の議員を見る" })
-    ).toBeEnabled();
-  });
-
-  it("前後ボタンで別の議員へ移動する", () => {
-    render(
-      <BudgetQuestionNavigator
-        activeCouncilorId={items[0].councilorId}
-        categorySlug="education"
-        items={items}
-      />
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "次の議員を見る" }));
-
-    expect(navigationMocks.push).toHaveBeenCalledWith(
-      `/budget/questions/education?focus=${items[1].firstQuestionId}`,
-      { scroll: false }
-    );
+    ).toBeVisible();
   });
 
   it("選択メニューから議員へ移動する", () => {
@@ -100,6 +97,7 @@ describe("BudgetQuestionNavigator", () => {
         activeCouncilorId={items[0].councilorId}
         categorySlug="education"
         items={items}
+        slides={slides}
       />
     );
 
@@ -119,6 +117,7 @@ describe("BudgetQuestionNavigator", () => {
         activeCouncilorId={items[0].councilorId}
         categorySlug="education"
         items={[items[0]]}
+        slides={[slides[0]]}
       />
     );
 

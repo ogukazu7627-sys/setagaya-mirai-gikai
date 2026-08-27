@@ -11,8 +11,10 @@ const MARKDOWN_CLASS_NAME =
 
 export async function CouncilQuestionMarkdown({
   content,
+  scrollSingleGroup = true,
 }: {
   content: string;
+  scrollSingleGroup?: boolean;
 }) {
   const normalizedMarkdown = normalizeSetagayaHeadings(content);
   const sectionHeadingTag =
@@ -36,7 +38,7 @@ export async function CouncilQuestionMarkdown({
           <div className={MARKDOWN_CLASS_NAME}>{beforeContent}</div>
         ) : null}
         <CouncilorOpinionChatSection
-          scrollSingleGroup
+          scrollSingleGroup={scrollSingleGroup}
           section={chatSplit.chatSection}
         />
         {afterContent ? (

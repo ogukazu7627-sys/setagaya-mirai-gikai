@@ -5,12 +5,10 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { DifficultyLevelEnum } from "@/features/bill-difficulty/shared/types";
-import {
-  CouncilQuestionAiAskButton,
-  CouncilQuestionAiChatProvider,
-} from "@/features/bills/client/components/question-collection/council-question-ai-chat";
+import { CouncilQuestionAiChatProvider } from "@/features/bills/client/components/question-collection/council-question-ai-chat";
 import { CouncilQuestionNavigator } from "@/features/bills/client/components/question-collection/council-question-navigator";
 import { CouncilQuestionMarkdown } from "@/features/bills/server/components/question-collection/council-question-markdown";
+import { getCouncilQuestionCarouselWindow } from "@/features/bills/shared/utils/council-question-carousel";
 import {
   groupCouncilQuestionsByCouncilor,
   prioritizeFocusedCouncilQuestion,
@@ -24,15 +22,14 @@ import type { loadGeneralQuestionCategoryPage } from "../loaders/load-general-qu
 type GeneralQuestionCategoryPageData = NonNullable<
   Awaited<ReturnType<typeof loadGeneralQuestionCategoryPage>>
 >;
+type GeneralQuestion = GeneralQuestionCategoryPageData["questions"][number];
 
 type GeneralQuestionPageProps = GeneralQuestionCategoryPageData & {
   difficultyLevel: DifficultyLevelEnum;
   focusBillId?: string | null;
 };
 
-function getQuestionMetaText(
-  question: GeneralQuestionCategoryPageData["questions"][number]
-): string | null {
+function getQuestionMetaText(question: GeneralQuestion): string | null {
   const displayDate = question.submittedDate ?? question.publishedAt;
   const sessionName = question.dietSession?.name;
 
@@ -41,6 +38,63 @@ function getQuestionMetaText(
   }
 
   return sessionName ?? null;
+}
+
+function GeneralQuestionCouncilorSlide({
+  focusBillId,
+  questions,
+}: {
+  focusBillId?: string | null;
+  questions: GeneralQuestion[];
+}) {
+  return (
+    <div className="space-y-12" data-general-councilor-questions>
+      {questions.map((question, index) => {
+        const metaText = getQuestionMetaText(question);
+
+        return (
+          <article
+            className="scroll-mt-28"
+            data-focused-general-question={
+              question.id === focusBillId ? "true" : undefined
+            }
+            id={`general-question-${question.id}`}
+            key={question.id}
+          >
+            <header className="border-mirai-border border-b pb-6">
+              {index > 0 ? (
+                <p className="mb-3 text-xs font-bold text-primary-strong">
+                  同じ議員の別の質問
+                </p>
+              ) : null}
+              {metaText ? (
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  {metaText}
+                </p>
+              ) : null}
+              <h2 className="mt-2 text-xl font-bold leading-8 text-mirai-text sm:text-2xl">
+                {question.selectedContent.title || question.name}
+              </h2>
+              <p className="mt-4 rounded-md bg-primary-light px-4 py-3 leading-7 text-mirai-text">
+                {buildCouncilQuestionOverview({
+                  councilorDisplayName: question.councilor.displayName,
+                  partyOrGroup: question.partyOrGroup,
+                  questionName: question.name,
+                })}
+              </p>
+            </header>
+
+            <div className="mt-6">
+              <CouncilQuestionMarkdown
+                content={question.selectedContent.content}
+                scrollSingleGroup={false}
+              />
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
 }
 
 export function GeneralQuestionPage({
@@ -67,6 +121,12 @@ export function GeneralQuestionPage({
     ? prioritizeFocusedCouncilQuestion(
         activeCouncilorGroup.questions,
         focusBillId
+      )
+    : [];
+  const carouselGroups = activeCouncilorGroup
+    ? getCouncilQuestionCarouselWindow(
+        councilorGroups,
+        activeCouncilorGroup.councilor.id
       )
     : [];
 
@@ -135,59 +195,23 @@ export function GeneralQuestionPage({
                 firstQuestionId: group.questions[0].id,
                 questionCount: group.questions.length,
               }))}
-            />
+              slides={carouselGroups.map((group) => {
+                const isActiveGroup =
+                  group.councilor.id === activeCouncilorGroup.councilor.id;
 
-            <div className="mt-8 space-y-12" data-general-councilor-questions>
-              {activeQuestions.map((question, index) => {
-                const metaText = getQuestionMetaText(question);
-
-                return (
-                  <article
-                    className="scroll-mt-28"
-                    data-focused-general-question={
-                      question.id === focusBillId ? "true" : undefined
-                    }
-                    id={`general-question-${question.id}`}
-                    key={question.id}
-                  >
-                    <header className="border-mirai-border border-b pb-6">
-                      {index > 0 ? (
-                        <p className="mb-3 text-xs font-bold text-primary-strong">
-                          同じ議員の別の質問
-                        </p>
-                      ) : null}
-                      {metaText ? (
-                        <p className="text-xs font-bold text-mirai-text-secondary">
-                          {metaText}
-                        </p>
-                      ) : null}
-                      <h2 className="mt-2 text-xl font-bold leading-8 text-mirai-text sm:text-2xl">
-                        {question.selectedContent.title || question.name}
-                      </h2>
-                      <p className="mt-4 rounded-md bg-primary-light px-4 py-3 leading-7 text-mirai-text">
-                        {buildCouncilQuestionOverview({
-                          councilorDisplayName: question.councilor.displayName,
-                          partyOrGroup: question.partyOrGroup,
-                          questionName: question.name,
-                        })}
-                      </p>
-                      <div className="mt-4 flex justify-end">
-                        <CouncilQuestionAiAskButton
-                          questionId={question.id}
-                          questionName={question.name}
-                        />
-                      </div>
-                    </header>
-
-                    <div className="mt-6">
-                      <CouncilQuestionMarkdown
-                        content={question.selectedContent.content}
-                      />
-                    </div>
-                  </article>
-                );
+                return {
+                  content: (
+                    <GeneralQuestionCouncilorSlide
+                      focusBillId={isActiveGroup ? focusBillId : null}
+                      questions={
+                        isActiveGroup ? activeQuestions : group.questions
+                      }
+                    />
+                  ),
+                  councilorId: group.councilor.id,
+                };
               })}
-            </div>
+            />
           </CouncilQuestionAiChatProvider>
         )}
       </div>
