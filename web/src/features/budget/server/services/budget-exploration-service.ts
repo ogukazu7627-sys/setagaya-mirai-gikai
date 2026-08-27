@@ -11,6 +11,7 @@ import type {
   BudgetExplorationProgram,
   BudgetExplorationTopic,
 } from "../../shared/types/budget-exploration";
+import { getBudgetManifestExpenditureTotal } from "../../shared/utils/budget-dataset-manifest";
 import {
   type BudgetExplorationRows,
   findPublishedBudgetExplorationRows,
@@ -181,6 +182,9 @@ function buildActiveDataset(
     schemaVersion: dataset.schema_version,
     currencyUnit: dataset.currency_unit,
     validationStatus: dataset.validation_status,
+    expenditureTotalAmountThousandYen: getBudgetManifestExpenditureTotal(
+      dataset.manifest_json
+    ),
   };
 }
 

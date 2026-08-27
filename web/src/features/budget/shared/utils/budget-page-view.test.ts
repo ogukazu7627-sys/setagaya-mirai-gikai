@@ -4,6 +4,7 @@ import {
   buildBudgetPageOverview,
   buildUnavailableBudgetPageOverview,
   formatBudgetAmount,
+  formatBudgetAmountInHundredMillions,
   formatBudgetDifference,
   formatJapaneseFiscalYear,
   formatRawThousandYen,
@@ -110,6 +111,7 @@ describe("budget page view", () => {
     expect(formatJapaneseFiscalYear(2026)).toBe("令和8年度");
     expect(formatJapaneseFiscalYear(2018)).toBe("2018年度");
     expect(formatBudgetAmount(621_033_664)).toBe("6,210億3,366万4千円");
+    expect(formatBudgetAmountInHundredMillions(621_033_664)).toBe("6,210億円");
     expect(formatBudgetAmount(431_353_010)).toBe("4,313億5,301万円");
     expect(formatBudgetAmount(0)).toBe("0円");
     expect(formatRawThousandYen(621_033_664)).toBe("621,033,664 千円");
@@ -122,6 +124,9 @@ describe("budget page view", () => {
     expect(() => formatBudgetAmount(Number.MAX_SAFE_INTEGER + 1)).toThrow(
       "予算額が安全整数ではありません"
     );
+    expect(() =>
+      formatBudgetAmountInHundredMillions(Number.MAX_SAFE_INTEGER + 1)
+    ).toThrow("予算額が安全整数ではありません");
   });
 
   it("市民向け正式部署名の末尾をグラフ用に短縮表示する", () => {

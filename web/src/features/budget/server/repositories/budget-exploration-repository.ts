@@ -55,6 +55,7 @@ export type BudgetExplorationDatasetRow = Pick<
   | "schema_version"
   | "currency_unit"
   | "validation_status"
+  | "manifest_json"
 >;
 
 export interface BudgetExplorationRows {
@@ -74,7 +75,7 @@ export async function findPublishedBudgetExplorationRows(): Promise<BudgetExplor
     supabase
       .from("budget_datasets")
       .select(
-        "id,fiscal_year,budget_type,schema_version,currency_unit,validation_status"
+        "id,fiscal_year,budget_type,schema_version,currency_unit,validation_status,manifest_json"
       )
       .eq("fiscal_year", BUDGET_PUBLIC_FISCAL_YEAR)
       .eq("budget_type", BUDGET_PUBLIC_BUDGET_TYPE)

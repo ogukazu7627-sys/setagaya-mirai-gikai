@@ -38,7 +38,10 @@ import {
   getBudgetMapV2DiveFocus,
 } from "../../../shared/utils/budget-map-v2-transition";
 import { getBudgetOfficialClassificationContext } from "../../../shared/utils/budget-official-classification";
-import { formatJapaneseFiscalYear } from "../../../shared/utils/budget-page-view";
+import {
+  formatBudgetAmountInHundredMillions,
+  formatJapaneseFiscalYear,
+} from "../../../shared/utils/budget-page-view";
 import { useBudgetMapTutorial } from "../../hooks/use-budget-map-tutorial";
 import { useBudgetMapV2Camera } from "../../hooks/use-budget-map-v2-camera";
 import {
@@ -434,6 +437,14 @@ function BudgetMapV2Core({
   scene: SceneModel;
   view: StableView;
 }) {
+  const overviewTotalLabel =
+    view.kind === "overview" &&
+    activeDataset?.expenditureTotalAmountThousandYen !== null &&
+    activeDataset?.expenditureTotalAmountThousandYen !== undefined
+      ? formatBudgetAmountInHundredMillions(
+          activeDataset.expenditureTotalAmountThousandYen
+        )
+      : null;
   const coreStyle = {
     "--budget-map-node-x": `${scene.coreCenter.x}px`,
     "--budget-map-node-y": `${scene.coreCenter.y}px`,
@@ -471,9 +482,23 @@ function BudgetMapV2Core({
           )}
         </div>
       )}
+      {overviewTotalLabel && (
+        <strong
+          aria-hidden="true"
+          className="budget-map-v2-overview-total"
+          data-testid="budget-map-v2-overview-total"
+          style={coreStyle}
+        >
+          {overviewTotalLabel}
+        </strong>
+      )}
       <div
         role="img"
-        aria-label={getCoreLabel(view, activeDataset?.fiscalYear ?? null)}
+        aria-label={getCoreLabel(
+          view,
+          activeDataset?.fiscalYear ?? null,
+          overviewTotalLabel
+        )}
         className="budget-map-v2-core-caption"
         data-placement={view.kind === "category" ? "inside" : "outside"}
         data-testid="budget-map-v2-core-caption"
@@ -689,12 +714,21 @@ function BudgetMapV2Chrome({
   );
 }
 
-function getCoreLabel(view: StableView, fiscalYear: number | null): string {
+function getCoreLabel(
+  view: StableView,
+  fiscalYear: number | null,
+  overviewTotalLabel: string | null
+): string {
   switch (view.kind) {
-    case "overview":
-      return fiscalYear === null
-        ? "当初予算、世田谷区の予算"
-        : `${formatJapaneseFiscalYear(fiscalYear)}当初予算、世田谷区の予算`;
+    case "overview": {
+      const title =
+        fiscalYear === null
+          ? "当初予算、世田谷区の予算"
+          : `${formatJapaneseFiscalYear(fiscalYear)}当初予算、世田谷区の予算`;
+      return overviewTotalLabel
+        ? `${title}、歳出予算 ${overviewTotalLabel}`
+        : title;
+    }
     case "category":
       return `選択中の分野、${view.category.name}、${
         fiscalYear === null

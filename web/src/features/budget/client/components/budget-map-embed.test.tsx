@@ -263,9 +263,12 @@ describe("BudgetMapEmbed", () => {
 
     expect(
       screen.getByRole("img", {
-        name: "令和9年度当初予算、世田谷区の予算",
+        name: "令和9年度当初予算、世田谷区の予算、歳出予算 6,210億円",
       })
     ).toBeVisible();
+    expect(
+      screen.getByTestId("budget-map-v2-overview-total")
+    ).toHaveTextContent("6,210億円");
   });
 
   it("categoryの分野名と年度を中心ノード内へ表示する", () => {
@@ -337,6 +340,9 @@ describe("BudgetMapEmbed", () => {
     expect(
       screen.getByRole("img", { name: "当初予算、世田谷区の予算" })
     ).toBeVisible();
+    expect(
+      screen.queryByTestId("budget-map-v2-overview-total")
+    ).not.toBeInTheDocument();
   });
 
   it("操作を任意URLではなく型付きmessageとして同一originの親へ送る", async () => {

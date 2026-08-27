@@ -20,6 +20,9 @@ const rows: BudgetExplorationRows = {
     schema_version: "public-budget-v1",
     currency_unit: "thousand_yen",
     validation_status: "PASS",
+    manifest_json: {
+      totals: { expenditureTotalAmountThousandYen: 621_033_664 },
+    },
   },
   categories: [
     {
@@ -143,6 +146,7 @@ describe("budget-exploration-service", () => {
       schemaVersion: "public-budget-v1",
       currencyUnit: "thousand_yen",
       validationStatus: "PASS",
+      expenditureTotalAmountThousandYen: 621_033_664,
     });
     expect(result.categories[0]?.topics).toHaveLength(1);
     expect(result.categories[0]?.topics[0]?.programs).toEqual([
