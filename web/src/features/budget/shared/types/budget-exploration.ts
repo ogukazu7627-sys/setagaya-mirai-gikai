@@ -43,6 +43,7 @@ export interface BudgetExplorationDataset {
   schemaVersion: string;
   currencyUnit: string;
   validationStatus: string;
+  expenditureTotalAmountThousandYen: number | null;
 }
 
 export type BudgetExplorationAvailability =

@@ -1135,6 +1135,27 @@
     z-index: 16;
   }
 
+  .budget-map-v2-overview-total {
+    position: absolute;
+    left: var(--budget-map-node-x);
+    top: var(--budget-map-node-y);
+    transform: translate(-50%, -50%);
+    z-index: 16;
+    color: var(--budget-node-cyan);
+    font-family: var(--font-mirai-serif), serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    text-shadow:
+      0 0 5px color-mix(in srgb, var(--budget-node-cyan) 92%, transparent),
+      0 0 16px color-mix(in srgb, var(--budget-node-cyan) 60%, transparent),
+      0 0 30px color-mix(in srgb, var(--budget-node-mint) 32%, transparent);
+    pointer-events: none;
+  }
+
   .budget-map-v2-core-caption[data-placement="inside"] {
     width: 7.25rem;
     padding: 0.5rem;
@@ -1185,6 +1206,10 @@
   }
 
   @media (max-width: 767px) {
+    .budget-map-v2-overview-total {
+      font-size: 0.95rem;
+    }
+
     .budget-map-v2-core-caption[data-placement="inside"] {
       width: 5rem;
       padding: 0.25rem;

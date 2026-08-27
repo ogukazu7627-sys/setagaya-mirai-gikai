@@ -12,6 +12,7 @@ export const TEST_ACTIVE_BUDGET_DATASET = {
   schemaVersion: "public-budget-v1",
   currencyUnit: "thousand_yen",
   validationStatus: "PASS",
+  expenditureTotalAmountThousandYen: 621_033_664,
 } satisfies BudgetExplorationDataset;
 
 /**

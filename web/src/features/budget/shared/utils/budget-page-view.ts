@@ -78,6 +78,19 @@ export function formatBudgetAmount(amountThousandYen: number): string {
   return `${sign}${formatted || "0"}円`;
 }
 
+export function formatBudgetAmountInHundredMillions(
+  amountThousandYen: number
+): string {
+  if (!Number.isSafeInteger(amountThousandYen)) {
+    throw new Error("予算額が安全整数ではありません");
+  }
+
+  // 1億円 = 100,000千円。中央球体では億円単位へ四捨五入する。
+  const sign = amountThousandYen < 0 ? "−" : "";
+  const roundedOku = Math.round(Math.abs(amountThousandYen) / 100_000);
+  return `${sign}${thousandYenFormatter.format(roundedOku)}億円`;
+}
+
 export function formatRawThousandYen(amountThousandYen: number): string {
   return `${thousandYenFormatter.format(amountThousandYen)} 千円`;
 }
