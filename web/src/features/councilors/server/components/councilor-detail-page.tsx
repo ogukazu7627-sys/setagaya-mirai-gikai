@@ -15,11 +15,19 @@ import { Container } from "@/components/layouts/container";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots } from "@/lib/utils/date";
 import { buildCouncilorStatementLink } from "../../shared/utils/build-councilor-statement-link";
+import { COUNCILOR_QUESTION_COUNT_LABELS } from "../../shared/utils/councilor-question-counts";
 import { loadCouncilorDetail } from "../loaders/load-councilor-directory";
 
 type CouncilorDetailPageProps = {
   councilorId: string;
 };
+
+const COUNCILOR_DETAIL_COUNT_ITEMS = [
+  { key: "total", label: COUNCILOR_QUESTION_COUNT_LABELS.total },
+  { key: "general", label: COUNCILOR_QUESTION_COUNT_LABELS.general },
+  { key: "budget", label: COUNCILOR_QUESTION_COUNT_LABELS.budget },
+  { key: "committee", label: COUNCILOR_QUESTION_COUNT_LABELS.committee },
+] as const;
 
 export async function CouncilorDetailPage({
   councilorId,
@@ -28,7 +36,7 @@ export async function CouncilorDetailPage({
   if (!detail) {
     notFound();
   }
-  const statementCount = detail.statements.length;
+  const questionCount = detail.questionCounts.total;
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -61,20 +69,25 @@ export async function CouncilorDetailPage({
                   {detail.councilor.displayName}
                 </h1>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-3 py-1 text-xs font-bold text-mirai-text-secondary">
-                    <MessageSquareText
-                      aria-hidden="true"
-                      className="size-4 text-primary-accent"
-                    />
-                    掲載中の発言 {statementCount}件
-                  </span>
+                  {COUNCILOR_DETAIL_COUNT_ITEMS.map(({ key, label }) => (
+                    <span
+                      key={key}
+                      className="inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-3 py-1 text-xs font-bold text-mirai-text-secondary"
+                    >
+                      <MessageSquareText
+                        aria-hidden="true"
+                        className="size-4 text-primary-accent"
+                      />
+                      {label} {detail.questionCounts[key]}件
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
           <div className="px-5 py-4 sm:px-7">
             <p className="text-sm leading-relaxed text-mirai-text-secondary">
-              掲載案件での発言と、予算特別委員会での質問をまとめています。それぞれの該当箇所へ直接たどれます。
+              議会、予算委員会、所属委員会での質問をまとめています。それぞれの該当箇所へ直接たどれます。
             </p>
           </div>
         </section>
@@ -89,11 +102,11 @@ export async function CouncilorDetailPage({
               id="councilor-statements-title"
               className="text-2xl font-bold text-mirai-text"
             >
-              掲載中の発言
+              掲載中の質問
             </h2>
           </div>
 
-          {statementCount > 0 ? (
+          {questionCount > 0 ? (
             <ul className="mt-5 flex flex-col gap-4">
               {detail.statements.map((statement) => {
                 const bill = statement.bills;
@@ -125,10 +138,10 @@ export async function CouncilorDetailPage({
                           </div>
                           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary-accent bg-white px-3 py-1 text-xs font-bold text-primary-strong">
                             {bill.publication_category === "budget"
-                              ? "予算の質問へ"
+                              ? "予算委員会の質問へ"
                               : bill.publication_category === "general_question"
-                                ? "一般質問へ"
-                                : "該当箇所へ"}
+                                ? "議会での質問へ"
+                                : "所属委員会の質問へ"}
                             <ArrowRight
                               aria-hidden="true"
                               className="size-3.5"
@@ -183,7 +196,7 @@ export async function CouncilorDetailPage({
           ) : (
             <div className="mt-5 rounded-lg border border-mirai-border bg-white p-6">
               <p className="text-sm leading-relaxed text-mirai-text-secondary">
-                このサイトに掲載している発言はまだありません。
+                このサイトに掲載している質問はまだありません。
               </p>
             </div>
           )}

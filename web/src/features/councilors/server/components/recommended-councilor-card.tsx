@@ -5,12 +5,13 @@ import type { Route } from "next";
 import Link from "next/link";
 import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { routes } from "@/lib/routes";
+import type { CouncilorQuestionCounts } from "../../shared/utils/councilor-question-counts";
 
 export type RecommendedCouncilor = {
   id: string;
   displayName: string;
   iconUrl: string;
-  statementCount: number;
+  questionCounts: CouncilorQuestionCounts;
 };
 
 type RecommendedCouncilorCardProps = {
@@ -44,14 +45,14 @@ export function RecommendedCouncilorCard({
                 aria-hidden="true"
                 className="size-4 shrink-0 text-primary-accent"
               />
-              {councilor.statementCount > 0
-                ? `掲載中の発言 ${councilor.statementCount}件`
-                : "掲載中の発言はまだありません"}
+              {councilor.questionCounts.total > 0
+                ? `掲載中の質問 ${councilor.questionCounts.total}件`
+                : "掲載中の質問はまだありません"}
             </span>
           </div>
         </div>
         <span className="flex items-center justify-between gap-3 border-t border-mirai-border px-4 py-3 text-sm font-bold text-primary-strong">
-          プロフィールと発言を見る
+          プロフィールと質問を見る
           <ArrowRight
             aria-hidden="true"
             className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5"

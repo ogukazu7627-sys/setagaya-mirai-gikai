@@ -2,7 +2,7 @@ const SITE_TITLE_SUFFIX = "みらい議会＠世田谷区";
 
 export type CouncilorMetadataInput = {
   displayName: string;
-  statementCount: number;
+  questionCount: number;
 };
 
 export type CouncilorMetadataText = {
@@ -16,14 +16,14 @@ export type CouncilorMetadataText = {
  */
 export function buildCouncilorMetadata({
   displayName,
-  statementCount,
+  questionCount,
 }: CouncilorMetadataInput): CouncilorMetadataText {
   const name = displayName.trim() || "議員";
   return {
     title: `${name} | ${SITE_TITLE_SUFFIX}`,
     description:
-      statementCount > 0
-        ? `世田谷区議会議員 ${name} の、このサイトに掲載中の発言${statementCount}件を確認できます。`
+      questionCount > 0
+        ? `世田谷区議会議員 ${name} の、このサイトに掲載中の質問${questionCount}件を確認できます。`
         : `世田谷区議会議員 ${name} のプロフィールを確認できます。`,
   };
 }

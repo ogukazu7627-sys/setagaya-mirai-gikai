@@ -9,17 +9,54 @@ import Link from "next/link";
 import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
 import { Container } from "@/components/layouts/container";
 import { routes } from "@/lib/routes";
+import {
+  COUNCILOR_QUESTION_COUNT_LABELS,
+  mergeCouncilorQuestionCounts,
+} from "../../shared/utils/councilor-question-counts";
 import { loadCouncilorDirectory } from "../loaders/load-councilor-directory";
+
+const COUNCILOR_CARD_COUNT_ITEMS = [
+  { key: "general", label: "議会" },
+  { key: "budget", label: "予算委" },
+  { key: "committee", label: "委員会" },
+] as const;
 
 export async function CouncilorDirectoryPage() {
   const councilors = await loadCouncilorDirectory();
-  const totalStatementCount = councilors.reduce(
-    (total, councilor) => total + councilor.statementCount,
-    0
+  const totalQuestionCounts = mergeCouncilorQuestionCounts(
+    councilors.map((councilor) => councilor.questionCounts)
   );
-  const activeStatementCouncilorCount = councilors.filter(
-    (councilor) => councilor.statementCount > 0
+  const activeQuestionCouncilorCount = councilors.filter(
+    (councilor) => councilor.questionCounts.total > 0
   ).length;
+  const directoryStats = [
+    { label: "掲載議員", value: councilors.length, unit: "人" },
+    {
+      label: "質問がある議員",
+      value: activeQuestionCouncilorCount,
+      unit: "人",
+    },
+    {
+      label: COUNCILOR_QUESTION_COUNT_LABELS.total,
+      value: totalQuestionCounts.total,
+      unit: "件",
+    },
+    {
+      label: COUNCILOR_QUESTION_COUNT_LABELS.general,
+      value: totalQuestionCounts.general,
+      unit: "件",
+    },
+    {
+      label: COUNCILOR_QUESTION_COUNT_LABELS.budget,
+      value: totalQuestionCounts.budget,
+      unit: "件",
+    },
+    {
+      label: COUNCILOR_QUESTION_COUNT_LABELS.committee,
+      value: totalQuestionCounts.committee,
+      unit: "件",
+    },
+  ];
 
   return (
     <div className="min-h-dvh bg-mirai-surface">
@@ -35,86 +72,84 @@ export async function CouncilorDirectoryPage() {
                 議員
               </h1>
               <p className="max-w-2xl text-[15px] leading-relaxed text-mirai-text-secondary">
-                世田谷区議会の議員と、このサイトに掲載している発言を確認できます。
+                世田谷区議会の議員と、このサイトに掲載している質問を確認できます。
               </p>
             </div>
 
             <dl className="flex flex-wrap gap-2">
-              <div className="inline-flex items-baseline gap-2 rounded-full border border-mirai-border bg-white px-4 py-2 shadow-sm">
-                <dt className="text-xs font-bold text-mirai-text-secondary">
-                  掲載議員
-                </dt>
-                <dd className="text-lg font-bold text-mirai-text">
-                  {councilors.length}
-                  <span className="ml-1 text-sm text-mirai-text-secondary">
-                    人
-                  </span>
-                </dd>
-              </div>
-              <div className="inline-flex items-baseline gap-2 rounded-full border border-mirai-border bg-white px-4 py-2 shadow-sm">
-                <dt className="text-xs font-bold text-mirai-text-secondary">
-                  発言がある議員
-                </dt>
-                <dd className="text-lg font-bold text-mirai-text">
-                  {activeStatementCouncilorCount}
-                  <span className="ml-1 text-sm text-mirai-text-secondary">
-                    人
-                  </span>
-                </dd>
-              </div>
-              <div className="inline-flex items-baseline gap-2 rounded-full border border-mirai-border bg-white px-4 py-2 shadow-sm">
-                <dt className="text-xs font-bold text-mirai-text-secondary">
-                  掲載中の発言
-                </dt>
-                <dd className="text-lg font-bold text-mirai-text">
-                  {totalStatementCount}
-                  <span className="ml-1 text-sm text-mirai-text-secondary">
-                    件
-                  </span>
-                </dd>
-              </div>
+              {directoryStats.map(({ label, value, unit }) => (
+                <div
+                  key={label}
+                  className="inline-flex items-baseline gap-2 rounded-full border border-mirai-border bg-white px-4 py-2 shadow-sm"
+                >
+                  <dt className="text-xs font-bold text-mirai-text-secondary">
+                    {label}
+                  </dt>
+                  <dd className="text-lg font-bold text-mirai-text">
+                    {value}
+                    <span className="ml-1 text-sm text-mirai-text-secondary">
+                      {unit}
+                    </span>
+                  </dd>
+                </div>
+              ))}
             </dl>
           </div>
         </div>
 
         {councilors.length > 0 ? (
           <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {councilors.map((councilor) => (
-              <li key={councilor.id}>
-                <Link
-                  href={routes.councilorDetail(councilor.id) as Route}
-                  className="group flex h-full min-h-28 items-center gap-4 rounded-lg border border-mirai-border bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-accent hover:shadow-md"
-                >
-                  <span className="relative size-20 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-mirai-gradient p-1">
-                    <span className="relative block size-full overflow-hidden rounded-full bg-white">
-                      <CouncilorAvatarImage
-                        src={councilor.iconUrl}
-                        alt=""
-                        size={72}
-                        className="size-full object-cover object-top"
-                      />
+            {councilors.map((councilor) => {
+              const questionCounts = councilor.questionCounts;
+              return (
+                <li key={councilor.id}>
+                  <Link
+                    href={routes.councilorDetail(councilor.id) as Route}
+                    className="group flex h-full min-h-32 items-center gap-4 rounded-lg border border-mirai-border bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-accent hover:shadow-md"
+                  >
+                    <span className="relative size-20 shrink-0 overflow-hidden rounded-full border border-mirai-border bg-mirai-gradient p-1">
+                      <span className="relative block size-full overflow-hidden rounded-full bg-white">
+                        <CouncilorAvatarImage
+                          src={councilor.iconUrl}
+                          alt=""
+                          size={72}
+                          className="size-full object-cover object-top"
+                        />
+                      </span>
                     </span>
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-lg font-bold text-mirai-text">
-                      {councilor.displayName}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-lg font-bold text-mirai-text">
+                        {councilor.displayName}
+                      </span>
+                      <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-mirai-border bg-mirai-surface-gray px-3 py-1 text-xs font-bold text-mirai-text-secondary">
+                        <MessageSquareText
+                          aria-hidden="true"
+                          className="size-3.5 text-primary-accent"
+                        />
+                        {questionCounts.total > 0
+                          ? `質問 ${questionCounts.total}件`
+                          : "質問はまだありません"}
+                      </span>
+                      {questionCounts.total > 0 && (
+                        <span className="mt-2 flex flex-wrap gap-1.5">
+                          {COUNCILOR_CARD_COUNT_ITEMS.map(({ key, label }) => (
+                            <span
+                              key={key}
+                              className="rounded-full bg-mirai-surface-gray px-2 py-0.5 text-[11px] font-bold leading-relaxed text-mirai-text-secondary"
+                            >
+                              {label} {questionCounts[key]}件
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </span>
-                    <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-mirai-border bg-mirai-surface-gray px-3 py-1 text-xs font-bold text-mirai-text-secondary">
-                      <MessageSquareText
-                        aria-hidden="true"
-                        className="size-3.5 text-primary-accent"
-                      />
-                      {councilor.statementCount > 0
-                        ? `発言 ${councilor.statementCount}件`
-                        : "発言はまだありません"}
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-mirai-border bg-white text-primary-accent transition-colors group-hover:border-primary-accent group-hover:bg-mirai-light-gradient">
+                      <ArrowRight aria-hidden="true" className="size-5" />
                     </span>
-                  </span>
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-mirai-border bg-white text-primary-accent transition-colors group-hover:border-primary-accent group-hover:bg-mirai-light-gradient">
-                    <ArrowRight aria-hidden="true" className="size-5" />
-                  </span>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <section className="mt-8 rounded-lg border border-mirai-border bg-white p-6 text-center shadow-sm">

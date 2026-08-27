@@ -87,17 +87,28 @@ describe("councilor directory repository", () => {
     ).resolves.toBeNull();
   });
 
-  it("counts and returns statements from published bills but excludes draft bills", async () => {
+  it("counts published questions by venue but excludes draft bills", async () => {
     const councilor = await createCouncilor();
-    const publishedBill = await createTestBill({
+    const reportBill = await createTestBill({
       publish_status: "published",
+      publication_category: "report",
     });
-    await createTestBillContent(publishedBill.id, {
+    await createTestBillContent(reportBill.id, {
       difficulty_level: "normal",
       content: "# 議員、会派の意見\n\n## 発言者\n\n### 発言者\n質問です。",
     });
+    const generalQuestionBill = await createTestBill({
+      publish_status: "published",
+      publication_category: "general_question",
+    });
+    const budgetBill = await createTestBill({
+      publish_status: "published",
+      publication_category: "budget",
+    });
     const draftBill = await createTestBill({ publish_status: "draft" });
-    billIds.add(publishedBill.id);
+    billIds.add(reportBill.id);
+    billIds.add(generalQuestionBill.id);
+    billIds.add(budgetBill.id);
     billIds.add(draftBill.id);
 
     const statementBase = {
@@ -112,7 +123,9 @@ describe("councilor directory repository", () => {
     const { error } = await adminClient
       .from("councilor_bill_statements")
       .insert([
-        { ...statementBase, bill_id: publishedBill.id },
+        { ...statementBase, bill_id: reportBill.id },
+        { ...statementBase, bill_id: generalQuestionBill.id },
+        { ...statementBase, bill_id: budgetBill.id },
         { ...statementBase, bill_id: draftBill.id },
       ]);
     if (error) throw new Error(error.message);
@@ -126,15 +139,65 @@ describe("councilor directory repository", () => {
 
     expect(
       counts.find(({ councilorId }) => councilorId === councilor.id)
-        ?.statementCount
-    ).toBe(1);
+        ?.questionCounts
+    ).toEqual({
+      total: 3,
+      general: 1,
+      budget: 1,
+      committee: 1,
+    });
     expect(selectedCounts).toEqual([
       {
         councilorId: councilor.id,
-        statementCount: 1,
+        questionCounts: {
+          total: 3,
+          general: 1,
+          budget: 1,
+          committee: 1,
+        },
       },
     ]);
-    expect(details.map(({ bill_id }) => bill_id)).toEqual([publishedBill.id]);
-    expect(details[0]?.billNormalContent).toContain("### 発言者");
+    expect(details.map(({ bill_id }) => bill_id).sort()).toEqual(
+      [reportBill.id, generalQuestionBill.id, budgetBill.id].sort()
+    );
+    expect(
+      details.find(({ bill_id }) => bill_id === reportBill.id)
+        ?.billNormalContent
+    ).toContain("### 発言者");
+  });
+
+  it("counts every published question beyond the first Supabase response page", async () => {
+    const councilor = await createCouncilor();
+    const bill = await createTestBill({
+      publish_status: "published",
+      publication_category: "report",
+    });
+    billIds.add(bill.id);
+
+    const rows = Array.from({ length: 1005 }, (_, statementIndex) => ({
+      bill_id: bill.id,
+      content_md: `発言本文${statementIndex}`,
+      content_text: `発言本文${statementIndex}`,
+      councilor_id: councilor.id,
+      councilor_name: councilor.display_name,
+      difficulty_level: "normal" as const,
+      raw_heading: `## ${councilor.display_name}`,
+      statement_index: statementIndex,
+    }));
+    const { error } = await adminClient
+      .from("councilor_bill_statements")
+      .insert(rows);
+    if (error) throw new Error(error.message);
+
+    const counts = await findPublishedCouncilorStatementCounts();
+    expect(
+      counts.find(({ councilorId }) => councilorId === councilor.id)
+        ?.questionCounts
+    ).toEqual({
+      total: 1005,
+      general: 0,
+      budget: 0,
+      committee: 1005,
+    });
   });
 });

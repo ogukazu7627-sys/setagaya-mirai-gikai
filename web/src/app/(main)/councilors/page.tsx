@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "議員 | みらい議会＠世田谷区",
   description:
-    "世田谷区議会の議員と、このサイトに掲載している案件での発言を確認できます。",
+    "世田谷区議会の議員と、このサイトに掲載している質問を確認できます。",
 };
 
 export default function CouncilorsPage() {
