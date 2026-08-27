@@ -19,6 +19,7 @@ import {
   CarouselItem,
   type CarouselOptions,
 } from "@/components/ui/carousel";
+import { shouldHandleCouncilorCarouselDrag } from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
 import { formatCouncilQuestionCouncilorLabel } from "@/features/bills/shared/utils/council-question-overview";
 import { routes } from "@/lib/routes";
 
@@ -78,7 +79,11 @@ export function CouncilQuestionNavigator({
     : -1;
   const hasMultipleCouncilors = items.length > 1 && slides.length > 1;
   const carouselOptions = useMemo<CarouselOptions>(
-    () => ({ align: "start", startIndex: activeSlideIndex }),
+    () => ({
+      align: "start",
+      startIndex: activeSlideIndex,
+      watchDrag: shouldHandleCouncilorCarouselDrag,
+    }),
     [activeSlideIndex]
   );
 
