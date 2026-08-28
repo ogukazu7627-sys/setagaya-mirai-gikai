@@ -20,7 +20,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !isSetagayaMockMode) {
 const chatDailyUserCostLimitUsdRaw =
   process.env.CHAT_DAILY_USER_COST_LIMIT_USD ||
   process.env.CHAT_DAILY_COST_LIMIT_USD ||
-  "10";
+  "1";
 
 const parsedChatDailyUserCostLimitUsd = Number(chatDailyUserCostLimitUsdRaw);
 
@@ -33,10 +33,10 @@ if (
   );
 }
 
-const chatDailyUserCostLimitUsd = Math.max(parsedChatDailyUserCostLimitUsd, 10);
+const chatDailyUserCostLimitUsd = parsedChatDailyUserCostLimitUsd;
 
 const chatDailyTotalCostLimitUsdRaw =
-  process.env.CHAT_DAILY_TOTAL_COST_LIMIT_USD || "300";
+  process.env.CHAT_DAILY_TOTAL_COST_LIMIT_USD || "5";
 
 const parsedChatDailyTotalCostLimitUsd = Number(chatDailyTotalCostLimitUsdRaw);
 
@@ -49,13 +49,10 @@ if (
   );
 }
 
-const chatDailyTotalCostLimitUsd = Math.max(
-  parsedChatDailyTotalCostLimitUsd,
-  300
-);
+const chatDailyTotalCostLimitUsd = parsedChatDailyTotalCostLimitUsd;
 
 const chatMonthlyTotalCostLimitUsdRaw =
-  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "3000";
+  process.env.CHAT_MONTHLY_TOTAL_COST_LIMIT_USD || "20";
 
 const parsedChatMonthlyTotalCostLimitUsd = Number(
   chatMonthlyTotalCostLimitUsdRaw
@@ -70,13 +67,10 @@ if (
   );
 }
 
-const chatMonthlyTotalCostLimitUsd = Math.max(
-  parsedChatMonthlyTotalCostLimitUsd,
-  3000
-);
+const chatMonthlyTotalCostLimitUsd = parsedChatMonthlyTotalCostLimitUsd;
 
 const interviewCompleteDailyUserLimitRaw =
-  process.env.INTERVIEW_COMPLETE_DAILY_USER_LIMIT || "100";
+  process.env.INTERVIEW_COMPLETE_DAILY_USER_LIMIT || "10";
 
 const parsedInterviewCompleteDailyUserLimit = Number(
   interviewCompleteDailyUserLimitRaw
@@ -91,10 +85,7 @@ if (
   );
 }
 
-const interviewCompleteDailyUserLimit = Math.max(
-  parsedInterviewCompleteDailyUserLimit,
-  100
-);
+const interviewCompleteDailyUserLimit = parsedInterviewCompleteDailyUserLimit;
 
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",

@@ -3,14 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
 import { BillDetailLayout } from "@/features/bills/server/components/bill-detail/bill-detail-layout";
 import { getBillById } from "@/features/bills/server/loaders/get-bill-by-id";
+import { getPublishedBillRedirectReference } from "@/features/bills/server/loaders/get-published-bill-redirect-reference";
 import { getRandomBillRecommendations } from "@/features/bills/server/loaders/get-random-bill-recommendations";
 import {
   BILL_SEO_SITE_NAME,
   buildBillSeoMetadata,
 } from "@/features/bills/shared/utils/bill-seo-metadata";
-import { findPublishedBudgetQuestionReferenceByBillId } from "@/features/budget/server/repositories/budget-question-repository";
 import { getBudgetQuestionCategoryBySlug } from "@/features/budget/shared/constants/budget-question-categories";
-import { findPublishedGeneralQuestionReferenceByBillId } from "@/features/general-questions/server/repositories/general-question-repository";
 import { getGeneralQuestionCategoryById } from "@/features/general-questions/shared/utils/general-question-categories";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
@@ -25,22 +24,17 @@ export async function generateMetadata({
   params,
 }: BillDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const [budgetQuestionReference, generalQuestionReference] = await Promise.all(
-    [
-      findPublishedBudgetQuestionReferenceByBillId(id),
-      findPublishedGeneralQuestionReferenceByBillId(id),
-    ]
-  );
+  const redirectReference = await getPublishedBillRedirectReference(id);
 
-  if (budgetQuestionReference) {
+  if (redirectReference?.kind === "budget") {
     const category = getBudgetQuestionCategoryBySlug(
-      budgetQuestionReference.categorySlug
+      redirectReference.categorySlug
     );
     const categoryName = category?.name ?? "予算";
     const title = `${categoryName}に関する議員の発言 | 触れる予算`;
     const description = `世田谷区議会で行われた${categoryName}分野の予算質問を、議員ごとに確認できます。`;
     const canonical = routes.budgetQuestionCategory(
-      budgetQuestionReference.categorySlug
+      redirectReference.categorySlug
     );
     return {
       title,
@@ -62,16 +56,16 @@ export async function generateMetadata({
     };
   }
 
-  if (generalQuestionReference) {
+  if (redirectReference?.kind === "general_question") {
     const category = getGeneralQuestionCategoryById(
-      generalQuestionReference.categoryId
+      redirectReference.categoryId
     );
     const categoryName = category?.name ?? "一般質問";
     const title = `${categoryName}に関する議員の質問 | 世田谷区議会`;
-    const description = `${generalQuestionReference.year}年の世田谷区議会で行われた${categoryName}分野の一般質問を、議員ごとに確認できます。`;
+    const description = `${redirectReference.year}年の世田谷区議会で行われた${categoryName}分野の一般質問を、議員ごとに確認できます。`;
     const canonical = routes.generalQuestionCategory(
-      generalQuestionReference.year,
-      generalQuestionReference.categoryId
+      redirectReference.year,
+      redirectReference.categoryId
     );
     return {
       title,
@@ -142,27 +136,19 @@ export async function generateMetadata({
 
 export default async function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = await params;
-  const [budgetQuestionReference, generalQuestionReference] = await Promise.all(
-    [
-      findPublishedBudgetQuestionReferenceByBillId(id),
-      findPublishedGeneralQuestionReferenceByBillId(id),
-    ]
-  );
+  const redirectReference = await getPublishedBillRedirectReference(id);
 
-  if (budgetQuestionReference) {
+  if (redirectReference?.kind === "budget") {
     redirect(
-      routes.budgetQuestionCategory(
-        budgetQuestionReference.categorySlug,
-        id
-      ) as Route
+      routes.budgetQuestionCategory(redirectReference.categorySlug, id) as Route
     );
   }
 
-  if (generalQuestionReference) {
+  if (redirectReference?.kind === "general_question") {
     redirect(
       routes.generalQuestionCategory(
-        generalQuestionReference.year,
-        generalQuestionReference.categoryId,
+        redirectReference.year,
+        redirectReference.categoryId,
         id
       ) as Route
     );
