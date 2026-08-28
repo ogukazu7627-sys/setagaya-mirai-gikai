@@ -94,28 +94,37 @@ describe("isNextRouterPrefetch", () => {
 
 describe("buildUtmShortLinkRedirectUrl", () => {
   it.each([
-    ["/ig", "instagram", "social"],
-    ["/x", "x", "social"],
-    ["/note", "note", "referral"],
-    ["/line", "line", "social"],
-    ["/qr", "qr", "offline"],
-  ])("redirects %s to the home page with UTM params", (path, source, medium) => {
+    ["/ig", "instagram", "social", undefined],
+    ["/ig-movie", "instagram", "social", "movie"],
+    ["/x", "x", "social", undefined],
+    ["/x-image", "x", "social", "image"],
+    ["/x-movie", "x", "social", "movie"],
+    ["/note", "note", "referral", undefined],
+    ["/line", "line", "social", undefined],
+    ["/qr", "qr", "offline", undefined],
+  ])("redirects %s to the home page with UTM params", (path, source, medium, content) => {
     const redirectUrl = buildUtmShortLinkRedirectUrl(
       new URL(`https://civictech-setagaya.org${path}`)
     );
 
-    expect(redirectUrl?.toString()).toBe(
-      `https://civictech-setagaya.org/?utm_source=${source}&utm_medium=${medium}&utm_campaign=launch`
-    );
+    const expectedUrl = new URL("https://civictech-setagaya.org/");
+    expectedUrl.searchParams.set("utm_source", source);
+    expectedUrl.searchParams.set("utm_medium", medium);
+    expectedUrl.searchParams.set("utm_campaign", "launch");
+    if (content) {
+      expectedUrl.searchParams.set("utm_content", content);
+    }
+
+    expect(redirectUrl?.toString()).toBe(expectedUrl.toString());
   });
 
   it("accepts a trailing slash on short links", () => {
     const redirectUrl = buildUtmShortLinkRedirectUrl(
-      new URL("https://civictech-setagaya.org/ig/")
+      new URL("https://civictech-setagaya.org/x-movie/")
     );
 
     expect(redirectUrl?.toString()).toBe(
-      "https://civictech-setagaya.org/?utm_source=instagram&utm_medium=social&utm_campaign=launch"
+      "https://civictech-setagaya.org/?utm_source=x&utm_medium=social&utm_campaign=launch&utm_content=movie"
     );
   });
 

@@ -20,10 +20,28 @@ const UTM_SHORT_LINKS = {
     medium: "social",
     campaign: "launch",
   },
+  "/ig-movie": {
+    source: "instagram",
+    medium: "social",
+    campaign: "launch",
+    content: "movie",
+  },
   "/x": {
     source: "x",
     medium: "social",
     campaign: "launch",
+  },
+  "/x-image": {
+    source: "x",
+    medium: "social",
+    campaign: "launch",
+    content: "image",
+  },
+  "/x-movie": {
+    source: "x",
+    medium: "social",
+    campaign: "launch",
+    content: "movie",
   },
   "/note": {
     source: "note",
@@ -167,6 +185,9 @@ export function buildUtmShortLinkRedirectUrl(
   redirectUrl.searchParams.set("utm_source", utm.source);
   redirectUrl.searchParams.set("utm_medium", utm.medium);
   redirectUrl.searchParams.set("utm_campaign", utm.campaign);
+  if ("content" in utm) {
+    redirectUrl.searchParams.set("utm_content", utm.content);
+  }
   return redirectUrl;
 }
 
