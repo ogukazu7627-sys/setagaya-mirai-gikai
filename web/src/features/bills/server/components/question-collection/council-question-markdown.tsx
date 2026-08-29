@@ -1,4 +1,7 @@
-import { CouncilorOpinionChatSection } from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
+import {
+  CouncilorOpinionChatMessages,
+  CouncilorOpinionChatSection,
+} from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
 import { normalizeSetagayaHeadings } from "@/features/bills/server/components/bill-detail/bill-content";
 import {
   parseMarkdown,
@@ -11,9 +14,11 @@ const MARKDOWN_CLASS_NAME =
 
 export async function CouncilQuestionMarkdown({
   content,
+  presentation = "section",
   scrollSingleGroup = true,
 }: {
   content: string;
+  presentation?: "embedded" | "section";
   scrollSingleGroup?: boolean;
 }) {
   const normalizedMarkdown = normalizeSetagayaHeadings(content);
@@ -37,10 +42,24 @@ export async function CouncilQuestionMarkdown({
         {beforeContent ? (
           <div className={MARKDOWN_CLASS_NAME}>{beforeContent}</div>
         ) : null}
-        <CouncilorOpinionChatSection
-          scrollSingleGroup={scrollSingleGroup}
-          section={chatSplit.chatSection}
-        />
+        {presentation === "embedded" ? (
+          <div
+            className="space-y-8"
+            data-councilor-opinion-chat-embedded="true"
+          >
+            {chatSplit.chatSection.groups.map((group) => (
+              <CouncilorOpinionChatMessages
+                group={group}
+                key={`${group.groupIndex}-${group.rawHeading}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <CouncilorOpinionChatSection
+            scrollSingleGroup={scrollSingleGroup}
+            section={chatSplit.chatSection}
+          />
+        )}
         {afterContent ? (
           <div className={MARKDOWN_CLASS_NAME}>{afterContent}</div>
         ) : null}

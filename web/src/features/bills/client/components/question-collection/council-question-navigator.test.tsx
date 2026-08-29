@@ -150,7 +150,13 @@ describe("CouncilQuestionNavigator", () => {
       />
     );
 
-    expect(screen.getByText("質問 2件")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "議員、会派の意見" })
+    ).toBeVisible();
+    expect(screen.queryByText("質問 2件")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "甲議員（2件）" })
+    ).toBeInTheDocument();
     expect(screen.getByText("甲の質問本文")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "次の議員を見る" }));
 

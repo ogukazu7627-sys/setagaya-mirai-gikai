@@ -1,6 +1,5 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import {
@@ -10,8 +9,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { CouncilorAvatarImage } from "@/components/councilor-avatar-image";
-import { Button } from "@/components/ui/button";
 import {
   Carousel,
   type CarouselApi,
@@ -20,6 +17,10 @@ import {
   type CarouselOptions,
 } from "@/components/ui/carousel";
 import { shouldHandleCouncilorCarouselDrag } from "@/features/bills/client/components/bill-detail/councilor-opinion-chat-section";
+import {
+  CouncilorOpinionPanel,
+  CouncilorOpinionScrollRegion,
+} from "@/features/bills/client/components/bill-detail/councilor-opinion-panel";
 import { formatCouncilQuestionCouncilorLabel } from "@/features/bills/shared/utils/council-question-overview";
 import { routes } from "@/lib/routes";
 
@@ -149,106 +150,64 @@ export function CouncilQuestionNavigator({
     return null;
   }
 
+  const councilorSelector = hasMultipleCouncilors ? (
+    <label className="block" htmlFor="council-question-selector">
+      <span className="mb-2 block text-xs font-bold text-mirai-text-secondary">
+        議員を選ぶ
+      </span>
+      <select
+        className="min-h-11 w-full rounded-md border border-mirai-border bg-white px-3 py-2 text-sm text-mirai-text outline-none focus-visible:border-primary-strong focus-visible:ring-2 focus-visible:ring-primary/30"
+        id="council-question-selector"
+        onChange={(event) => {
+          const selectedItem = items.find(
+            (item) => item.councilorId === event.target.value
+          );
+          if (selectedItem) {
+            navigateTo(selectedItem);
+          }
+        }}
+        value={currentItem.councilorId}
+      >
+        {items.map((item) => (
+          <option key={item.councilorId} value={item.councilorId}>
+            {`${formatCouncilQuestionCouncilorLabel(item.councilorDisplayName)}（${item.questionCount}件）`}
+          </option>
+        ))}
+      </select>
+    </label>
+  ) : null;
+
   return (
-    <section
+    <CouncilorOpinionPanel
       aria-label="議員ごとの質問と答弁"
-      className="mt-8 rounded-md border border-mirai-border bg-white p-4 sm:p-5"
+      canGoNext={canScrollNext}
+      canGoPrevious={canScrollPrev}
+      className="mt-8"
+      currentIndex={Math.max(0, currentItemIndex)}
       data-budget-question-navigator={
         collection.kind === "budget" ? "true" : undefined
       }
       data-general-question-navigator={
         collection.kind === "general" ? "true" : undefined
       }
+      heading="議員、会派の意見"
+      headingLevel="h2"
+      nextLabel="次の議員を見る"
+      onNext={() => carouselApi?.scrollNext()}
+      onPrevious={() => carouselApi?.scrollPrev()}
+      person={{
+        displayName: formatCouncilQuestionCouncilorLabel(
+          currentItem.councilorDisplayName
+        ),
+        iconUrl: currentItem.councilorIconUrl,
+      }}
+      previousLabel="前の議員を見る"
+      selector={councilorSelector}
+      totalCount={items.length}
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-mirai-border bg-mirai-surface-gray px-3 py-1 text-sm font-bold text-mirai-text">
-            <CouncilorAvatarImage
-              alt=""
-              aria-hidden="true"
-              className="size-8 shrink-0 rounded-full object-cover object-top"
-              size={32}
-              src={currentItem.councilorIconUrl}
-            />
-            <span className="truncate">
-              {formatCouncilQuestionCouncilorLabel(
-                currentItem.councilorDisplayName
-              )}
-            </span>
-          </span>
-          <span className="text-xs font-bold text-mirai-text-secondary">
-            質問 {currentItem.questionCount}件
-          </span>
-          {hasMultipleCouncilors && currentItemIndex >= 0 ? (
-            <span
-              aria-live="polite"
-              className="text-xs font-bold text-mirai-text-secondary"
-            >
-              {currentItemIndex + 1} / {items.length}
-            </span>
-          ) : null}
-        </div>
-
-        {hasMultipleCouncilors ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              aria-label="前の議員を見る"
-              className="size-10 rounded-full"
-              disabled={!canScrollPrev}
-              onClick={() => carouselApi?.scrollPrev()}
-              size="icon"
-              type="button"
-              variant="outline"
-            >
-              <ArrowLeft aria-hidden="true" className="size-4" />
-            </Button>
-            <Button
-              aria-label="次の議員を見る"
-              className="size-10 rounded-full"
-              disabled={!canScrollNext}
-              onClick={() => carouselApi?.scrollNext()}
-              size="icon"
-              type="button"
-              variant="outline"
-            >
-              <ArrowRight aria-hidden="true" className="size-4" />
-            </Button>
-          </div>
-        ) : null}
-      </div>
-
-      {hasMultipleCouncilors ? (
-        <label className="mt-4 block" htmlFor="council-question-selector">
-          <span className="mb-2 block text-xs font-bold text-mirai-text-secondary">
-            議員を選ぶ
-          </span>
-          <select
-            className="min-h-11 w-full rounded-md border border-mirai-border bg-white px-3 py-2 text-sm text-mirai-text outline-none focus-visible:border-primary-strong focus-visible:ring-2 focus-visible:ring-primary/30"
-            id="council-question-selector"
-            onChange={(event) => {
-              const selectedItem = items.find(
-                (item) => item.councilorId === event.target.value
-              );
-              if (selectedItem) {
-                navigateTo(selectedItem);
-              }
-            }}
-            value={currentItem.councilorId}
-          >
-            {items.map((item) => (
-              <option key={item.councilorId} value={item.councilorId}>
-                {formatCouncilQuestionCouncilorLabel(item.councilorDisplayName)}
-                （{item.questionCount}件）
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
-
       {hasMultipleCouncilors ? (
         <Carousel
           aria-label="議員、会派の意見を切り替える"
-          className="mt-6"
           opts={carouselOptions}
           setApi={setCarouselApi}
         >
@@ -263,26 +222,26 @@ export function CouncilQuestionNavigator({
                   aria-label={`${itemIndex + 1} / ${items.length}`}
                   key={slide.councilorId}
                 >
-                  <div
-                    className="h-[560px] max-h-[72vh] overflow-y-auto overscroll-contain rounded-md bg-mirai-surface-gray px-3 py-4 touch-pan-y [scrollbar-gutter:stable] md:h-[620px] md:px-4"
+                  <CouncilorOpinionScrollRegion
                     data-council-question-scroll-region="true"
                     data-council-question-slide={slide.councilorId}
+                    fixedHeight
                   >
                     {slide.content}
-                  </div>
+                  </CouncilorOpinionScrollRegion>
                 </CarouselItem>
               );
             })}
           </CarouselContent>
         </Carousel>
       ) : (
-        <div
-          className="mt-6"
+        <CouncilorOpinionScrollRegion
           data-council-question-slide={currentSlide.councilorId}
+          scroll={false}
         >
           {currentSlide.content}
-        </div>
+        </CouncilorOpinionScrollRegion>
       )}
-    </section>
+    </CouncilorOpinionPanel>
   );
 }
