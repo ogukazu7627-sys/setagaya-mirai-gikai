@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -59,40 +60,33 @@ export function CouncilQuestionNavigator({
     0,
     items.findIndex((item) => item.councilorId === activeCouncilorId)
   );
-  const activeSlideIndex = Math.max(
-    0,
-    slides.findIndex((slide) => slide.councilorId === activeCouncilorId)
-  );
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(activeSlideIndex);
+  const [currentIndex, setCurrentIndex] = useState(activeItemIndex);
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [canScrollPrev, setCanScrollPrev] = useState(activeSlideIndex > 0);
-  const [canScrollNext, setCanScrollNext] = useState(
-    activeSlideIndex < slides.length - 1
+  const currentIndexRef = useRef(activeItemIndex);
+  const suppressedSelectIndexRef = useRef<number | null>(null);
+  const lastRequestedCouncilorIdRef = useRef(activeCouncilorId);
+  const slideByCouncilorId = useMemo(
+    () => new Map(slides.map((slide) => [slide.councilorId, slide])),
+    [slides]
   );
-  const currentSlide =
-    slides[currentSlideIndex] ?? slides[activeSlideIndex] ?? slides[0];
-  const currentItem =
-    items.find((item) => item.councilorId === currentSlide?.councilorId) ??
-    items[activeItemIndex] ??
-    items[0];
-  const currentItemIndex = currentItem
-    ? items.findIndex((item) => item.councilorId === currentItem.councilorId)
-    : -1;
-  const hasMultipleCouncilors = items.length > 1 && slides.length > 1;
+  const currentItem = items[currentIndex] ?? items[activeItemIndex] ?? items[0];
+  const hasMultipleCouncilors = items.length > 1;
   const carouselOptions = useMemo<CarouselOptions>(
     () => ({
       align: "start",
-      startIndex: activeSlideIndex,
+      skipSnaps: false,
+      startIndex: activeItemIndex,
       watchDrag: shouldHandleCouncilorCarouselDrag,
     }),
-    [activeSlideIndex]
+    [activeItemIndex]
   );
 
   const navigateTo = useCallback(
     (item: CouncilQuestionNavigationItem) => {
-      if (item.councilorId === activeCouncilorId) {
+      if (item.councilorId === lastRequestedCouncilorIdRef.current) {
         return;
       }
+      lastRequestedCouncilorIdRef.current = item.councilorId;
       const href =
         collection.kind === "budget"
           ? routes.budgetQuestionCategory(
@@ -106,47 +100,76 @@ export function CouncilQuestionNavigator({
             );
       router.push(href as Route, { scroll: false });
     },
-    [activeCouncilorId, collection, router]
+    [collection, router]
   );
 
   useEffect(() => {
-    setCurrentSlideIndex(activeSlideIndex);
-    setCanScrollPrev(activeSlideIndex > 0);
-    setCanScrollNext(activeSlideIndex < slides.length - 1);
-    carouselApi?.scrollTo(activeSlideIndex, true);
-  }, [activeSlideIndex, carouselApi, slides.length]);
+    currentIndexRef.current = activeItemIndex;
+    lastRequestedCouncilorIdRef.current = activeCouncilorId;
+    setCurrentIndex(activeItemIndex);
+
+    if (carouselApi && carouselApi.selectedScrollSnap() !== activeItemIndex) {
+      suppressedSelectIndexRef.current = activeItemIndex;
+      carouselApi.scrollTo(activeItemIndex, true);
+    }
+  }, [activeCouncilorId, activeItemIndex, carouselApi]);
+
+  const selectIndex = useCallback(
+    (requestedIndex: number) => {
+      const targetIndex = Math.max(
+        0,
+        Math.min(requestedIndex, items.length - 1)
+      );
+      if (targetIndex === currentIndexRef.current) {
+        return;
+      }
+
+      currentIndexRef.current = targetIndex;
+      setCurrentIndex(targetIndex);
+      const targetItem = items[targetIndex];
+      if (targetItem) {
+        navigateTo(targetItem);
+      }
+
+      if (carouselApi && carouselApi.selectedScrollSnap() !== targetIndex) {
+        suppressedSelectIndexRef.current = targetIndex;
+        carouselApi.scrollTo(targetIndex);
+      }
+    },
+    [carouselApi, items, navigateTo]
+  );
 
   useEffect(() => {
     if (!carouselApi) {
       return;
     }
 
-    const updateCarouselState = () => {
-      setCurrentSlideIndex(carouselApi.selectedScrollSnap());
-      setCanScrollPrev(carouselApi.canScrollPrev());
-      setCanScrollNext(carouselApi.canScrollNext());
-    };
     const handleSelect = () => {
-      updateCarouselState();
-      const selectedSlide = slides[carouselApi.selectedScrollSnap()];
-      const selectedItem = items.find(
-        (item) => item.councilorId === selectedSlide?.councilorId
-      );
-      if (selectedItem) {
-        navigateTo(selectedItem);
+      const selectedIndex = carouselApi.selectedScrollSnap();
+      if (suppressedSelectIndexRef.current === selectedIndex) {
+        suppressedSelectIndexRef.current = null;
+        return;
       }
+
+      suppressedSelectIndexRef.current = null;
+      const previousIndex = currentIndexRef.current;
+      if (selectedIndex === previousIndex) {
+        return;
+      }
+
+      // A single swipe or keyboard action always advances exactly one councilor.
+      const targetIndex =
+        previousIndex + (selectedIndex > previousIndex ? 1 : -1);
+      selectIndex(targetIndex);
     };
 
-    updateCarouselState();
     carouselApi.on("select", handleSelect);
-    carouselApi.on("reInit", updateCarouselState);
     return () => {
       carouselApi.off("select", handleSelect);
-      carouselApi.off("reInit", updateCarouselState);
     };
-  }, [carouselApi, items, navigateTo, slides]);
+  }, [carouselApi, selectIndex]);
 
-  if (!(currentItem && currentSlide)) {
+  if (!currentItem) {
     return null;
   }
 
@@ -159,11 +182,11 @@ export function CouncilQuestionNavigator({
         className="min-h-11 w-full rounded-md border border-mirai-border bg-white px-3 py-2 text-sm text-mirai-text outline-none focus-visible:border-primary-strong focus-visible:ring-2 focus-visible:ring-primary/30"
         id="council-question-selector"
         onChange={(event) => {
-          const selectedItem = items.find(
+          const selectedIndex = items.findIndex(
             (item) => item.councilorId === event.target.value
           );
-          if (selectedItem) {
-            navigateTo(selectedItem);
+          if (selectedIndex >= 0) {
+            selectIndex(selectedIndex);
           }
         }}
         value={currentItem.councilorId}
@@ -180,10 +203,10 @@ export function CouncilQuestionNavigator({
   return (
     <CouncilorOpinionPanel
       aria-label="議員ごとの質問と答弁"
-      canGoNext={canScrollNext}
-      canGoPrevious={canScrollPrev}
+      canGoNext={currentIndex < items.length - 1}
+      canGoPrevious={currentIndex > 0}
       className="mt-8"
-      currentIndex={Math.max(0, currentItemIndex)}
+      currentIndex={currentIndex}
       data-budget-question-navigator={
         collection.kind === "budget" ? "true" : undefined
       }
@@ -193,8 +216,8 @@ export function CouncilQuestionNavigator({
       heading="議員、会派の意見"
       headingLevel="h2"
       nextLabel="次の議員を見る"
-      onNext={() => carouselApi?.scrollNext()}
-      onPrevious={() => carouselApi?.scrollPrev()}
+      onNext={() => selectIndex(currentIndexRef.current + 1)}
+      onPrevious={() => selectIndex(currentIndexRef.current - 1)}
       person={{
         displayName: formatCouncilQuestionCouncilorLabel(
           currentItem.councilorDisplayName
@@ -212,22 +235,27 @@ export function CouncilQuestionNavigator({
           setApi={setCarouselApi}
         >
           <CarouselContent className="cursor-grab touch-pan-y active:cursor-grabbing">
-            {slides.map((slide) => {
-              const itemIndex = items.findIndex(
-                (item) => item.councilorId === slide.councilorId
-              );
+            {items.map((item, itemIndex) => {
+              const slide = slideByCouncilorId.get(item.councilorId);
 
               return (
                 <CarouselItem
                   aria-label={`${itemIndex + 1} / ${items.length}`}
-                  key={slide.councilorId}
+                  key={item.councilorId}
                 >
                   <CouncilorOpinionScrollRegion
                     data-council-question-scroll-region="true"
-                    data-council-question-slide={slide.councilorId}
+                    data-council-question-slide={item.councilorId}
+                    data-council-question-slide-loaded={
+                      slide ? "true" : "false"
+                    }
                     fixedHeight
                   >
-                    {slide.content}
+                    {slide?.content ?? (
+                      <p className="py-10 text-center text-sm text-mirai-text-secondary">
+                        質問を読み込んでいます
+                      </p>
+                    )}
                   </CouncilorOpinionScrollRegion>
                 </CarouselItem>
               );
@@ -236,10 +264,10 @@ export function CouncilQuestionNavigator({
         </Carousel>
       ) : (
         <CouncilorOpinionScrollRegion
-          data-council-question-slide={currentSlide.councilorId}
+          data-council-question-slide={currentItem.councilorId}
           scroll={false}
         >
-          {currentSlide.content}
+          {slideByCouncilorId.get(currentItem.councilorId)?.content}
         </CouncilorOpinionScrollRegion>
       )}
     </CouncilorOpinionPanel>

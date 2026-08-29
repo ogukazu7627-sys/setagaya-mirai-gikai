@@ -12,7 +12,12 @@ const carouselMock = vi.hoisted(() => {
   const listeners = new Map<string, Set<() => void>>();
   let selectedIndex = 0;
   let itemCount = 2;
-  let options: Pick<NonNullable<CarouselOptions>, "watchDrag"> | undefined;
+  let options:
+    | Pick<
+        NonNullable<CarouselOptions>,
+        "skipSnaps" | "startIndex" | "watchDrag"
+      >
+    | undefined;
   const emit = (event: string) => {
     for (const listener of listeners.get(event) ?? []) {
       listener();
@@ -38,15 +43,20 @@ const carouselMock = vi.hoisted(() => {
       emit("select");
     }),
     scrollTo: vi.fn((index: number) => {
-      selectedIndex = index;
+      const nextIndex = Math.max(0, Math.min(index, itemCount - 1));
+      if (nextIndex === selectedIndex) {
+        return;
+      }
+      selectedIndex = nextIndex;
+      emit("select");
     }),
     selectedScrollSnap: vi.fn(() => selectedIndex),
   };
 
   return {
     api,
-    reset(nextItemCount = 2) {
-      selectedIndex = 0;
+    reset(nextItemCount = 2, nextSelectedIndex = 0) {
+      selectedIndex = nextSelectedIndex;
       itemCount = nextItemCount;
       options = undefined;
       listeners.clear();
@@ -55,11 +65,14 @@ const carouselMock = vi.hoisted(() => {
     getOptions() {
       return options;
     },
+    getSelectedIndex() {
+      return selectedIndex;
+    },
     setOptions(nextOptions: typeof options) {
       options = nextOptions;
     },
     select(index: number) {
-      selectedIndex = index;
+      selectedIndex = Math.max(0, Math.min(index, itemCount - 1));
       emit("select");
     },
   };
@@ -80,7 +93,10 @@ vi.mock("@/components/ui/carousel", async () => {
       "aria-label": ariaLabel,
     }: {
       children: ReactNode;
-      opts?: Pick<NonNullable<CarouselOptions>, "watchDrag">;
+      opts?: Pick<
+        NonNullable<CarouselOptions>,
+        "skipSnaps" | "startIndex" | "watchDrag"
+      >;
       setApi?: (api: typeof carouselMock.api) => void;
       "aria-label"?: string;
     }) => {
@@ -133,6 +149,25 @@ const slides = items.map((item) => ({
   content: <p>{item.councilorDisplayName}の質問本文</p>,
   councilorId: item.councilorId,
 }));
+
+const fifteenItems = Array.from({ length: 15 }, (_, index) => ({
+  councilorId: `councilor-${index + 1}`,
+  councilorDisplayName: `議員${index + 1}`,
+  councilorIconUrl: null,
+  firstQuestionId: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+  questionCount: 1,
+}));
+
+function getWindowSlides(activeIndex: number) {
+  const startIndex = Math.max(
+    0,
+    Math.min(activeIndex - 1, fifteenItems.length - 3)
+  );
+  return fifteenItems.slice(startIndex, startIndex + 3).map((item) => ({
+    content: <p>{item.councilorDisplayName}の質問本文</p>,
+    councilorId: item.councilorId,
+  }));
+}
 
 describe("CouncilQuestionNavigator", () => {
   beforeEach(() => {
@@ -220,5 +255,189 @@ describe("CouncilQuestionNavigator", () => {
     expect(
       watchDrag({} as never, { target: outside } as unknown as MouseEvent)
     ).toBe(true);
+  });
+
+  it("15人を1操作につき1人ずつ最後まで往復する", () => {
+    carouselMock.reset(15);
+    const { container } = render(
+      <CouncilQuestionNavigator
+        activeCouncilorId={fifteenItems[0].councilorId}
+        collection={{ kind: "budget", categorySlug: "all" }}
+        items={fifteenItems}
+        slides={getWindowSlides(0)}
+      />
+    );
+
+    const previousButton = screen.getByRole("button", {
+      name: "前の議員を見る",
+    });
+    const nextButton = screen.getByRole("button", {
+      name: "次の議員を見る",
+    });
+
+    expect(previousButton).toBeDisabled();
+    expect(nextButton).toBeEnabled();
+    expect(screen.getByText("1 / 15")).toBeVisible();
+    expect(
+      container.querySelectorAll("[data-council-question-slide]")
+    ).toHaveLength(15);
+    expect(
+      container.querySelectorAll('[data-council-question-slide-loaded="true"]')
+    ).toHaveLength(3);
+
+    for (let position = 2; position <= 15; position += 1) {
+      fireEvent.click(nextButton);
+      expect(screen.getByText(`${position} / 15`)).toBeVisible();
+      expect(carouselMock.getSelectedIndex()).toBe(position - 1);
+      expect(previousButton).toBeEnabled();
+      if (position === 15) {
+        expect(nextButton).toBeDisabled();
+      } else {
+        expect(nextButton).toBeEnabled();
+      }
+    }
+
+    expect(nextButton).toBeDisabled();
+    for (let position = 14; position >= 1; position -= 1) {
+      fireEvent.click(previousButton);
+      expect(screen.getByText(`${position} / 15`)).toBeVisible();
+      expect(carouselMock.getSelectedIndex()).toBe(position - 1);
+      expect(nextButton).toBeEnabled();
+      if (position === 1) {
+        expect(previousButton).toBeDisabled();
+      } else {
+        expect(previousButton).toBeEnabled();
+      }
+    }
+
+    expect(previousButton).toBeDisabled();
+    expect(navigationMocks.push).toHaveBeenCalledTimes(28);
+  });
+
+  it("中間位置を何度往復しても1人ずつ移動する", () => {
+    carouselMock.reset(15, 4);
+    render(
+      <CouncilQuestionNavigator
+        activeCouncilorId={fifteenItems[4].councilorId}
+        collection={{ kind: "general", categoryId: "all", year: 2026 }}
+        items={fifteenItems}
+        slides={getWindowSlides(4)}
+      />
+    );
+
+    const previousButton = screen.getByRole("button", {
+      name: "前の議員を見る",
+    });
+    const nextButton = screen.getByRole("button", {
+      name: "次の議員を見る",
+    });
+    const expectPosition = (position: number) => {
+      expect(screen.getByText(`${position} / 15`)).toBeVisible();
+      expect(carouselMock.getSelectedIndex()).toBe(position - 1);
+      expect(previousButton).toBeEnabled();
+      expect(nextButton).toBeEnabled();
+    };
+
+    expectPosition(5);
+    fireEvent.click(previousButton);
+    expectPosition(4);
+    fireEvent.click(nextButton);
+    expectPosition(5);
+    fireEvent.click(nextButton);
+    expectPosition(6);
+    fireEvent.click(previousButton);
+    expectPosition(5);
+    fireEvent.click(nextButton);
+    expectPosition(6);
+    fireEvent.click(nextButton);
+    expectPosition(7);
+
+    fireEvent.change(screen.getByLabelText("議員を選ぶ"), {
+      target: { value: fifteenItems[9].councilorId },
+    });
+    expectPosition(10);
+    fireEvent.click(previousButton);
+    expectPosition(9);
+    fireEvent.click(nextButton);
+    expectPosition(10);
+    fireEvent.click(nextButton);
+    expectPosition(11);
+    fireEvent.click(previousButton);
+    expectPosition(10);
+    fireEvent.click(nextButton);
+    expectPosition(11);
+
+    expect(navigationMocks.push).toHaveBeenCalledTimes(12);
+  });
+
+  it("URL同期で3人分の本文windowが差し替わってもindexを飛ばさない", () => {
+    carouselMock.reset(15, 4);
+    const renderNavigator = (activeIndex: number) => (
+      <CouncilQuestionNavigator
+        activeCouncilorId={fifteenItems[activeIndex].councilorId}
+        collection={{ kind: "budget", categorySlug: "all" }}
+        items={fifteenItems}
+        slides={getWindowSlides(activeIndex)}
+      />
+    );
+    const { rerender } = render(renderNavigator(4));
+    const previousButton = screen.getByRole("button", {
+      name: "前の議員を見る",
+    });
+    const nextButton = screen.getByRole("button", {
+      name: "次の議員を見る",
+    });
+
+    fireEvent.click(nextButton);
+    expect(screen.getByText("6 / 15")).toBeVisible();
+    rerender(renderNavigator(5));
+    expect(screen.getByText("6 / 15")).toBeVisible();
+    expect(nextButton).toBeEnabled();
+
+    fireEvent.click(previousButton);
+    expect(screen.getByText("5 / 15")).toBeVisible();
+    rerender(renderNavigator(4));
+    expect(screen.getByText("5 / 15")).toBeVisible();
+
+    fireEvent.click(nextButton);
+    expect(screen.getByText("6 / 15")).toBeVisible();
+    rerender(renderNavigator(5));
+    fireEvent.click(nextButton);
+    expect(screen.getByText("7 / 15")).toBeVisible();
+    rerender(renderNavigator(6));
+
+    expect(screen.getByText("7 / 15")).toBeVisible();
+    expect(carouselMock.getSelectedIndex()).toBe(6);
+    expect(nextButton).toBeEnabled();
+    expect(navigationMocks.push).toHaveBeenCalledTimes(4);
+  });
+
+  it("スワイプが複数snapを跨いでも1人分に補正する", () => {
+    carouselMock.reset(15, 4);
+    render(
+      <CouncilQuestionNavigator
+        activeCouncilorId={fifteenItems[4].councilorId}
+        collection={{ kind: "budget", categorySlug: "all" }}
+        items={fifteenItems}
+        slides={getWindowSlides(4)}
+      />
+    );
+
+    expect(carouselMock.getOptions()?.skipSnaps).toBe(false);
+    act(() => carouselMock.select(6));
+
+    expect(screen.getByText("6 / 15")).toBeVisible();
+    expect(carouselMock.getSelectedIndex()).toBe(5);
+    expect(navigationMocks.push).toHaveBeenCalledTimes(1);
+    expect(navigationMocks.push).toHaveBeenLastCalledWith(
+      `/budget/questions/all?focus=${fifteenItems[5].firstQuestionId}`,
+      { scroll: false }
+    );
+
+    act(() => carouselMock.select(3));
+
+    expect(screen.getByText("5 / 15")).toBeVisible();
+    expect(carouselMock.getSelectedIndex()).toBe(4);
+    expect(navigationMocks.push).toHaveBeenCalledTimes(2);
   });
 });
