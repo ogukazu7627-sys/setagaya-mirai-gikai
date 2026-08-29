@@ -93,5 +93,6 @@ export function mockFormData(billId?: string): AdminBillFormData {
     tags: mockTags(),
     sessions: [mockSession()],
     unknownCouncilorNames: [],
+    seoProfile: null,
   };
 }

@@ -1,3 +1,4 @@
+import { RefreshCw } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,11 @@ import type {
   MajorCategoryLabel,
 } from "@/features/bills/shared/types";
 import { MAJOR_CATEGORY_OPTIONS } from "@/features/bills/shared/types";
-import { saveAdminBillAction } from "../server/actions";
+import { routes } from "@/lib/routes";
+import {
+  regenerateAdminBillSeoAction,
+  saveAdminBillAction,
+} from "../server/actions";
 import {
   ADMIN_PUBLICATION_STATUS_OPTIONS,
   type AdminBillFormData,
@@ -40,6 +45,8 @@ interface AdminBillFormProps {
   error?: string;
   returnPath?: string;
   saved?: boolean;
+  seoStatus?: string;
+  seoWarning?: string;
 }
 
 function Field({
@@ -195,6 +202,8 @@ export function AdminBillForm({
   error,
   returnPath = "/admin/bills",
   saved,
+  seoStatus,
+  seoWarning,
 }: AdminBillFormProps) {
   const bill = data.bill;
   const values = getInitialAdminBillValues(data);
@@ -240,6 +249,9 @@ export function AdminBillForm({
     bill && data.previewToken
       ? getPreviewPath(bill.id, data.previewToken)
       : null;
+  const seoReturnPath = bill
+    ? `${routes.adminBillEdit(bill.id)}?return_path=${encodeURIComponent(returnPath)}`
+    : null;
 
   return (
     <form
@@ -250,6 +262,9 @@ export function AdminBillForm({
     >
       {bill?.id && <input type="hidden" name="id" value={bill.id} />}
       <input type="hidden" name="return_path" value={returnPath} />
+      {seoReturnPath && (
+        <input type="hidden" name="seo_return_path" value={seoReturnPath} />
+      )}
       <div hidden>
         <input
           type="hidden"
@@ -351,6 +366,16 @@ export function AdminBillForm({
       {saved && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
           保存しました。
+        </div>
+      )}
+      {seoWarning && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+          {seoWarning}
+        </div>
+      )}
+      {seoStatus === "ready" && !seoWarning && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
+          案件別SEOをAIで生成しました。
         </div>
       )}
       {data.unknownCouncilorNames.length > 0 && (
@@ -527,6 +552,85 @@ export function AdminBillForm({
           </PublicationCategoryHidden>
         </CardContent>
       </Card>
+
+      {bill && initialPublicationCategory === "report" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>案件別SEO</CardTitle>
+            <CardDescription>
+              公開されるnormal版の内容からAIが自動生成します。直接編集はできません。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-4 rounded-md border bg-white p-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  生成状態
+                </p>
+                <p className="mt-1 text-sm font-bold">
+                  {getSeoStatusLabel(data.seoProfile?.status)}
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  SEOタイトル
+                </p>
+                <p className="mt-1 text-sm">
+                  {data.seoProfile?.seoTitle ?? "未生成"}
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  SEO説明文
+                </p>
+                <p className="mt-1 text-sm leading-6">
+                  {data.seoProfile?.seoDescription ?? "未生成"}
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-xs font-bold text-mirai-text-secondary">
+                  キーワード
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(data.seoProfile?.seoKeywords.length ?? 0) > 0 ? (
+                    data.seoProfile?.seoKeywords.map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="rounded-full border border-mirai-light-blue bg-mirai-bg px-3 py-1 text-xs"
+                      >
+                        {keyword}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm">未生成</span>
+                  )}
+                </div>
+              </div>
+              {data.seoProfile?.lastError && (
+                <div className="md:col-span-2">
+                  <p className="text-xs font-bold text-red-700">直近のエラー</p>
+                  <p className="mt-1 text-sm text-red-700">
+                    {data.seoProfile.lastError}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-xs text-mirai-text-secondary">
+                本文やタグを変更した場合は、先に案件を保存してください。
+              </p>
+              <Button
+                type="submit"
+                variant="outline"
+                formAction={regenerateAdminBillSeoAction}
+              >
+                <RefreshCw aria-hidden="true" />
+                AIで再生成
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -710,4 +814,19 @@ export function AdminBillForm({
       </div>
     </form>
   );
+}
+
+function getSeoStatusLabel(status: string | undefined): string {
+  switch (status) {
+    case "pending":
+      return "生成待ち";
+    case "generating":
+      return "生成中";
+    case "ready":
+      return "生成済み";
+    case "failed":
+      return "生成失敗";
+    default:
+      return "未生成";
+  }
 }

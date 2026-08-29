@@ -13,6 +13,9 @@ const councilorRepositoryMock = vi.hoisted(() => ({
   findUnknownCouncilorNamesByBillId: vi.fn(),
   syncCouncilorBillStatements: vi.fn(),
 }));
+const billSeoServiceMock = vi.hoisted(() => ({
+  syncBillSeoProfileSafely: vi.fn(),
+}));
 
 vi.hoisted(() => {
   process.env.ADMIN_API_TOKEN = "test-admin-api-token";
@@ -30,6 +33,10 @@ vi.mock(
   "@/features/councilors/server/repositories/councilor-statement-repository",
   () => councilorRepositoryMock
 );
+vi.mock(
+  "@/features/bill-seo/server/services/generate-bill-seo",
+  () => billSeoServiceMock
+);
 
 const ADMIN_API_TOKEN = "test-admin-api-token";
 
@@ -44,6 +51,7 @@ type PublishApiResponse = {
   adminEditUrl?: string;
   publicUrl?: string;
   unknownCouncilorNames?: string[];
+  seoGeneration?: { status: "ready" | "skipped" | "failed" };
   error?: string;
   code?: string;
 };
@@ -96,6 +104,11 @@ describe("/api/admin/bills/publish", () => {
     councilorRepositoryMock.findUnknownCouncilorNamesByBillId.mockResolvedValue(
       []
     );
+    billSeoServiceMock.syncBillSeoProfileSafely.mockResolvedValue({
+      status: "ready",
+      profile: null,
+      warning: null,
+    });
   });
 
   afterAll(async () => {
@@ -150,6 +163,7 @@ describe("/api/admin/bills/publish", () => {
       publication_category: "report",
       is_review_completed: true,
       unknownCouncilorNames: [],
+      seoGeneration: { status: "ready" },
     });
     expect(body.adminEditUrl).toContain(`/admin/bills/${bill.id}/edit`);
     expect(body.publicUrl).toContain(`/bills/${bill.id}`);

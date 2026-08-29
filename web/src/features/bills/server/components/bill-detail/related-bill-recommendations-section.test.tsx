@@ -13,12 +13,12 @@ vi.mock(
   })
 );
 
-import { RandomBillRecommendationsSection } from "./random-bill-recommendations-section";
+import { RelatedBillRecommendationsSection } from "./related-bill-recommendations-section";
 
-describe("RandomBillRecommendationsSection", () => {
-  it("4件の案件をデスクトップで2列のカードグリッドとして表示する", () => {
+describe("RelatedBillRecommendationsSection", () => {
+  it("関連案件をデスクトップで2列のカードグリッドとして表示する", () => {
     render(
-      <RandomBillRecommendationsSection
+      <RelatedBillRecommendationsSection
         bills={[
           createBill("bill-1"),
           createBill("bill-2"),
@@ -28,17 +28,12 @@ describe("RandomBillRecommendationsSection", () => {
       />
     );
 
-    const section = screen.getByRole("region", {
-      name: "あなたへのおすすめ",
-    });
+    const section = screen.getByRole("region", { name: "関連する案件" });
     const links = screen.getAllByRole("link");
     const grid = section.querySelector(".grid");
 
     expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "あなたへのおすすめ",
-      })
+      screen.getByRole("heading", { level: 2, name: "関連する案件" })
     ).toBeVisible();
     expect(links).toHaveLength(4);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
@@ -52,7 +47,7 @@ describe("RandomBillRecommendationsSection", () => {
 
   it("案件がない場合はセクションを表示しない", () => {
     const { container } = render(
-      <RandomBillRecommendationsSection bills={[]} />
+      <RelatedBillRecommendationsSection bills={[]} />
     );
 
     expect(container).toBeEmptyDOMElement();

@@ -14,6 +14,8 @@ interface AdminEditBillPageProps {
     error?: string;
     return_path?: string;
     saved?: string;
+    seo_status?: string;
+    seo_warning?: string;
   }>;
 }
 
@@ -34,6 +36,8 @@ export default async function AdminEditBillPage({
         error={query?.error}
         returnPath={normalizeAdminBillsReturnPath(query?.return_path)}
         saved={query?.saved === "1"}
+        seoStatus={query?.seo_status}
+        seoWarning={query?.seo_warning}
       />
     </AdminShell>
   );

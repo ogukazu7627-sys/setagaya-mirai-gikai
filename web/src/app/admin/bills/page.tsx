@@ -351,6 +351,9 @@ export default async function AdminBillsPage({
                 議員宛レポート
               </Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link href={routes.adminSeo() as Route}>SEO管理</Link>
+            </Button>
             <Button asChild>
               <Link
                 href={

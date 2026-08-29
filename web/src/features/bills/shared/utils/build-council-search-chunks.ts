@@ -170,6 +170,9 @@ function buildOverviewContent(
     source.tags.length > 0
       ? `タグ: ${source.tags.map((tag) => tag.label).join("、")}`
       : "",
+    source.seoKeywords.length > 0
+      ? `検索キーワード: ${source.seoKeywords.join("、")}`
+      : "",
     category ? `テーマの説明: ${category.description}` : "",
     category ? `関連語: ${category.smallTags.join("、")}` : "",
   ]
@@ -186,6 +189,9 @@ function buildSharedContext(
     source.majorCategory ? `テーマ: ${source.majorCategory}` : "",
     source.tags.length > 0
       ? `タグ: ${source.tags.map((tag) => tag.label).join("、")}`
+      : "",
+    source.seoKeywords.length > 0
+      ? `検索キーワード: ${source.seoKeywords.join("、")}`
       : "",
     committeeName ? `委員会: ${committeeName}` : "",
   ]

@@ -3,6 +3,10 @@ import "server-only";
 import type { createAdminClient, Database } from "@mirai-gikai/supabase";
 import { z } from "zod";
 import type {
+  BillSeoGenerationResult,
+  BillSeoProfile,
+} from "@/features/bill-seo/shared/types";
+import type {
   BillItemType,
   BillPublicationCategory,
   BillPublishStatus,
@@ -142,6 +146,7 @@ export type AdminBillFormData = {
   tags: TagRow[];
   sessions: DietSessionRow[];
   unknownCouncilorNames: string[];
+  seoProfile: BillSeoProfile | null;
 };
 
 export const majorCategoryLabels = MAJOR_CATEGORY_OPTIONS.map(
@@ -185,6 +190,7 @@ export type SaveAdminBillInputResult = {
   mode: "created" | "updated";
   previewToken: string;
   unknownCouncilorNames: string[];
+  seoGeneration: BillSeoGenerationResult;
 };
 
 export type SaveAdminDraftBillApiResponse = {
@@ -194,6 +200,7 @@ export type SaveAdminDraftBillApiResponse = {
   adminEditUrl: string;
   previewUrl: string;
   unknownCouncilorNames: string[];
+  seoGeneration: BillSeoGenerationResult;
   forcedFields: {
     publish_status: "draft";
     is_review_completed: false;
@@ -212,6 +219,7 @@ export type PublishAdminDraftBillApiResponse = {
   adminEditUrl: string;
   publicUrl: string;
   unknownCouncilorNames: string[];
+  seoGeneration: BillSeoGenerationResult;
 };
 
 export type AdminDraftBillApiTag = {
@@ -258,6 +266,7 @@ export type GetAdminDraftBillApiResponse = {
   previewUrl: string;
   draft: AdminDraftBillApiPayload;
   unknownCouncilorNames: string[];
+  seo: BillSeoProfile | null;
   forcedFields: {
     publish_status: "draft";
     is_review_completed: false;

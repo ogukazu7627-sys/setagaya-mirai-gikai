@@ -80,7 +80,7 @@ export async function findCouncilSearchIndexSource(
   billId: string
 ): Promise<CouncilSearchIndexSourceResult> {
   const supabase = createAdminClient();
-  const [billResult, contentResult, tagsResult, statementsResult] =
+  const [billResult, contentResult, tagsResult, statementsResult, seoResult] =
     await Promise.all([
       supabase
         .from("bills")
@@ -122,13 +122,20 @@ export async function findCouncilSearchIndexSource(
         .eq("bill_id", billId)
         .eq("difficulty_level", "normal")
         .order("statement_index", { ascending: true }),
+      supabase
+        .from("bill_seo_profiles")
+        .select("seo_keywords")
+        .eq("bill_id", billId)
+        .eq("status", "ready")
+        .maybeSingle(),
     ]);
 
   const firstError =
     billResult.error ??
     contentResult.error ??
     tagsResult.error ??
-    statementsResult.error;
+    statementsResult.error ??
+    seoResult.error;
   if (firstError) {
     throw new Error(
       `Failed to fetch council search index source: ${firstError.message}`
@@ -164,6 +171,7 @@ export async function findCouncilSearchIndexSource(
       tags: ((tagsResult.data ?? []) as unknown as TagRelationRow[]).flatMap(
         toSearchIndexTag
       ),
+      seoKeywords: seoResult.data?.seo_keywords ?? [],
       statements: (statementsResult.data ?? []).map((statement) => ({
         statementIndex: statement.statement_index,
         councilorId: statement.councilor_id,

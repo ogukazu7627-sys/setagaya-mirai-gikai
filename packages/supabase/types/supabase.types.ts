@@ -75,6 +75,109 @@ export type Database = {
           },
         ]
       }
+      bill_seo_generation_events: {
+        Row: {
+          bill_id: string
+          cost_usd: number
+          created_at: string
+          error_message: string | null
+          id: string
+          input_tokens: number
+          model: string
+          output_tokens: number
+          source_hash: string
+          success: boolean
+          total_tokens: number
+        }
+        Insert: {
+          bill_id: string
+          cost_usd?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_tokens?: number
+          model: string
+          output_tokens?: number
+          source_hash: string
+          success: boolean
+          total_tokens?: number
+        }
+        Update: {
+          bill_id?: string
+          cost_usd?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_tokens?: number
+          model?: string
+          output_tokens?: number
+          source_hash?: string
+          success?: boolean
+          total_tokens?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_seo_generation_events_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bill_seo_profiles: {
+        Row: {
+          bill_id: string
+          created_at: string
+          generated_at: string | null
+          generation_started_at: string | null
+          last_error: string | null
+          model: string | null
+          seo_description: string | null
+          seo_keywords: string[]
+          seo_title: string | null
+          source_hash: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bill_id: string
+          created_at?: string
+          generated_at?: string | null
+          generation_started_at?: string | null
+          last_error?: string | null
+          model?: string | null
+          seo_description?: string | null
+          seo_keywords?: string[]
+          seo_title?: string | null
+          source_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bill_id?: string
+          created_at?: string
+          generated_at?: string | null
+          generation_started_at?: string | null
+          last_error?: string | null
+          model?: string | null
+          seo_description?: string | null
+          seo_keywords?: string[]
+          seo_title?: string | null
+          source_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_seo_profiles_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: true
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
           created_at: string
@@ -2869,6 +2972,14 @@ export type Database = {
           bill_id: string
           requested_at: string
         }[]
+      }
+      claim_bill_seo_generation: {
+        Args: {
+          p_bill_id: string
+          p_force?: boolean
+          p_source_hash: string
+        }
+        Returns: boolean
       }
       claim_daily_push_subscriptions: {
         Args: { p_limit?: number; p_recommendation_date: string }

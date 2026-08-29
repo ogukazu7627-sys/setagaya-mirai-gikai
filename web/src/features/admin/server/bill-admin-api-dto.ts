@@ -4,6 +4,8 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { BUDGET_OVERALL_MAJOR_CATEGORY } from "@/features/admin/shared/admin-budget-form-values";
+import { findBillSeoProfile } from "@/features/bill-seo/server/repositories/bill-seo-repository";
+import { syncBillSeoProfileSafely } from "@/features/bill-seo/server/services/generate-bill-seo";
 import type {
   BillItemType,
   BillPublicationCategory,
@@ -132,6 +134,7 @@ export async function saveAdminDraftBillFromJson(
       env.webUrl
     ).toString(),
     unknownCouncilorNames: result.unknownCouncilorNames,
+    seoGeneration: result.seoGeneration,
     forcedFields: {
       publish_status: "draft",
       is_review_completed: false,
@@ -308,6 +311,7 @@ export async function publishAdminDraftBillFromJson(
   const unknownCouncilorNames = await findUnknownCouncilorNamesByBillId(
     parsed.id
   );
+  const seoGeneration = await syncBillSeoProfileSafely(parsed.id);
   revalidateTag(CACHE_TAGS.BILLS);
 
   return {
@@ -334,6 +338,7 @@ export async function publishAdminDraftBillFromJson(
       env.webUrl
     ).toString(),
     unknownCouncilorNames,
+    seoGeneration,
   };
 }
 
@@ -360,23 +365,26 @@ export async function getAdminDraftBillForApi(
   }
 
   const supabase = createAdminClient();
-  const [billResult, contentsResult, billTagsResult, unknownCouncilorNames] =
-    await Promise.all([
-      supabase
-        .from("bills")
-        .select("*")
-        .eq("id", billIdResult.data)
-        .maybeSingle(),
-      supabase
-        .from("bill_contents")
-        .select("*")
-        .eq("bill_id", billIdResult.data),
-      supabase
-        .from("bills_tags")
-        .select("tag_id, tags(id, label, major_category)")
-        .eq("bill_id", billIdResult.data),
-      findUnknownCouncilorNamesByBillId(billIdResult.data),
-    ]);
+  const [
+    billResult,
+    contentsResult,
+    billTagsResult,
+    unknownCouncilorNames,
+    seoProfile,
+  ] = await Promise.all([
+    supabase
+      .from("bills")
+      .select("*")
+      .eq("id", billIdResult.data)
+      .maybeSingle(),
+    supabase.from("bill_contents").select("*").eq("bill_id", billIdResult.data),
+    supabase
+      .from("bills_tags")
+      .select("tag_id, tags(id, label, major_category)")
+      .eq("bill_id", billIdResult.data),
+    findUnknownCouncilorNamesByBillId(billIdResult.data),
+    findBillSeoProfile(billIdResult.data, supabase),
+  ]);
 
   if (billResult.error) {
     throw new AdminBillSaveError(
@@ -476,6 +484,7 @@ export async function getAdminDraftBillForApi(
       knowledge_source: bill.knowledge_source,
     },
     unknownCouncilorNames,
+    seo: seoProfile,
     forcedFields: {
       publish_status: "draft",
       is_review_completed: false,
