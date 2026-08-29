@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:integration": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts",
     "test:integration:coverage": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts --coverage",
-    "seo:audit": "dotenv -e ../.env -- tsx scripts/audit-bill-seo.ts"
+    "seo:audit": "dotenv -e ../.env -- tsx scripts/audit-bill-seo.ts",
+    "councilors:profiles:candidates": "tsx scripts/generate-councilor-profile-candidates.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",

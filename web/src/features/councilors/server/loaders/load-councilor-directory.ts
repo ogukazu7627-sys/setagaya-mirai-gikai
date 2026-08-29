@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { getCouncilorProfile } from "../../shared/councilor-profile-catalog";
 import {
   buildCouncilorQuestionCounts,
   createEmptyCouncilorQuestionCounts,
@@ -88,6 +89,7 @@ export const loadCouncilorDetail = cache(async (councilorId: string) => {
 
   return {
     councilor,
+    profile: getCouncilorProfile(councilor.normalizedName),
     statements,
     questionCounts: buildCouncilorQuestionCounts(
       statementDetails.flatMap((statement) =>

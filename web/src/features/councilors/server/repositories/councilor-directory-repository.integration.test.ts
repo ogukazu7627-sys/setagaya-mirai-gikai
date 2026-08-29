@@ -6,6 +6,7 @@ import {
   createTestBillContent,
 } from "@test-utils/utils";
 import { afterEach, describe, expect, it } from "vitest";
+import { COUNCILOR_PROFILE_CATALOG } from "../../shared/councilor-profile-catalog";
 import {
   findActivePublicCouncilorById,
   findActivePublicCouncilors,
@@ -18,6 +19,7 @@ import {
 
 const councilorIds = new Set<string>();
 const billIds = new Set<string>();
+const committeeIds = new Set<string>();
 
 async function createCouncilor({
   isActive = true,
@@ -42,9 +44,37 @@ async function createCouncilor({
   return data;
 }
 
+async function createCommittee({
+  isActive = true,
+}: {
+  isActive?: boolean;
+} = {}) {
+  const suffix = randomUUID();
+  const { data, error } = await adminClient
+    .from("committees")
+    .insert({
+      name: `公開委員会テスト-${suffix}`,
+      normalized_name: `公開委員会テスト${suffix}`,
+      is_active: isActive,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  committeeIds.add(data.id);
+  return data;
+}
+
 afterEach(async () => {
   await Promise.all(Array.from(billIds, cleanupTestBill));
   billIds.clear();
+
+  if (committeeIds.size > 0) {
+    await adminClient
+      .from("committees")
+      .delete()
+      .in("id", Array.from(committeeIds));
+    committeeIds.clear();
+  }
 
   if (councilorIds.size > 0) {
     await adminClient
@@ -85,6 +115,102 @@ describe("councilor directory repository", () => {
     await expect(
       findActivePublicCouncilorById(randomUUID())
     ).resolves.toBeNull();
+  });
+
+  it("returns normalized names and active committee memberships with roles", async () => {
+    const councilor = await createCouncilor();
+    const secondCommittee = await createCommittee();
+    const firstCommittee = await createCommittee();
+    const inactiveCommittee = await createCommittee({ isActive: false });
+    const { error } = await adminClient.from("committee_councilors").insert([
+      {
+        committee_id: secondCommittee.id,
+        councilor_id: councilor.id,
+        role: "委員",
+        sort_order: 2,
+      },
+      {
+        committee_id: firstCommittee.id,
+        councilor_id: councilor.id,
+        role: "副委員長",
+        sort_order: 1,
+      },
+      {
+        committee_id: inactiveCommittee.id,
+        councilor_id: councilor.id,
+        role: "委員長",
+        sort_order: 0,
+      },
+    ]);
+    if (error) throw new Error(error.message);
+
+    const result = await findActivePublicCouncilorById(councilor.id);
+
+    expect(result).toMatchObject({
+      id: councilor.id,
+      normalizedName: councilor.normalized_name,
+      committees: [
+        {
+          id: firstCommittee.id,
+          name: firstCommittee.name,
+          role: "副委員長",
+        },
+        {
+          id: secondCommittee.id,
+          name: secondCommittee.name,
+          role: "委員",
+        },
+      ],
+    });
+  });
+
+  it("returns the official 2026-08-25 memberships and current faction master", async () => {
+    const councilors = await findActivePublicCouncilors();
+    expect(
+      councilors.map(({ normalizedName }) => normalizedName).sort()
+    ).toEqual(
+      COUNCILOR_PROFILE_CATALOG.map(
+        ({ normalizedName }) => normalizedName
+      ).sort()
+    );
+
+    const itai = councilors.find(
+      ({ normalizedName }) => normalizedName === "いたいひとし"
+    );
+    const ogino = councilors.find(
+      ({ normalizedName }) => normalizedName === "おぎのけんじ"
+    );
+
+    expect(itai?.committees).toEqual([
+      expect.objectContaining({
+        name: "福祉保健常任委員会",
+        role: "委員長",
+      }),
+      expect.objectContaining({
+        name: "災害・防犯・オウム問題対策等特別委員会",
+        role: "委員",
+      }),
+    ]);
+    expect(ogino?.committees).toEqual([
+      expect.objectContaining({ name: "文教常任委員会", role: "委員" }),
+      expect.objectContaining({
+        name: "子ども・若者施策推進特別委員会",
+        role: "委員",
+      }),
+    ]);
+
+    const { data, error } = await adminClient
+      .from("councilors")
+      .select("normalized_name, is_active")
+      .in("normalized_name", ["世田谷自民の会", "世田谷刷新の会"]);
+    if (error) throw new Error(error.message);
+
+    expect(data).toEqual(
+      expect.arrayContaining([
+        { normalized_name: "世田谷自民の会", is_active: true },
+        { normalized_name: "世田谷刷新の会", is_active: false },
+      ])
+    );
   });
 
   it("counts published questions by venue but excludes draft bills", async () => {

@@ -17,6 +17,7 @@ import { formatDateWithDots } from "@/lib/utils/date";
 import { buildCouncilorStatementLink } from "../../shared/utils/build-councilor-statement-link";
 import { COUNCILOR_QUESTION_COUNT_LABELS } from "../../shared/utils/councilor-question-counts";
 import { loadCouncilorDetail } from "../loaders/load-councilor-directory";
+import { CouncilorProfileSection } from "./councilor-profile-section";
 
 type CouncilorDetailPageProps = {
   councilorId: string;
@@ -85,11 +86,11 @@ export async function CouncilorDetailPage({
               </div>
             </div>
           </div>
-          <div className="px-5 py-4 sm:px-7">
-            <p className="text-sm leading-relaxed text-mirai-text-secondary">
-              議会、予算委員会、所属委員会での質問をまとめています。それぞれの該当箇所へ直接たどれます。
-            </p>
-          </div>
+          <CouncilorProfileSection
+            councilor={detail.councilor}
+            profile={detail.profile}
+            publishedQuestionCount={questionCount}
+          />
         </section>
 
         <section aria-labelledby="councilor-statements-title" className="mt-10">
