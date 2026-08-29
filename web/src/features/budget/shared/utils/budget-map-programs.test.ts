@@ -32,7 +32,7 @@ describe("budget map programs", () => {
     });
   });
 
-  it("mobileは1ページを6件に抑える", () => {
+  it("mobileは下部の導線と重ならないよう1ページを4件に抑える", () => {
     const programs = Array.from({ length: 13 }, (_, index) => index + 1);
     const firstPage = getBudgetMapProgramPage(
       programs,
@@ -41,12 +41,12 @@ describe("budget map programs", () => {
     );
 
     expect(getBudgetMapProgramPageSize("desktop")).toBe(10);
-    expect(getBudgetMapProgramPageSize("mobile")).toBe(6);
+    expect(getBudgetMapProgramPageSize("mobile")).toBe(4);
     expect(firstPage).toMatchObject({
-      items: programs.slice(0, 6),
-      pageCount: 3,
+      items: programs.slice(0, 4),
+      pageCount: 4,
       startNumber: 1,
-      endNumber: 6,
+      endNumber: 4,
     });
   });
 

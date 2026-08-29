@@ -55,10 +55,10 @@ describe("budget topic network layout", () => {
     }
   });
 
-  it("mobileでは初期6事業を2列3段に収める", () => {
+  it("mobileでは初期4事業を2列2段に収める", () => {
     const dimensions = { width: 360, height: 700 };
     const positions = getBudgetTopicProgramPositions(
-      programIds.slice(0, 6),
+      programIds.slice(0, 4),
       "mobile",
       dimensions
     );
@@ -66,7 +66,7 @@ describe("budget topic network layout", () => {
     expect(new Set(positions.map((position) => position.x))).toEqual(
       new Set([25, 75])
     );
-    expect(positions).toHaveLength(6);
+    expect(positions).toHaveLength(4);
     expect(
       positions.every(
         (position) =>

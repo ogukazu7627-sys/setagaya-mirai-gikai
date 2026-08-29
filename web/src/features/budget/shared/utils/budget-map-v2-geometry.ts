@@ -236,8 +236,6 @@ const MOBILE_PROGRAM_SLOTS: readonly BudgetMapPosition[] = [
   { x: 264, y: 262 },
   { x: 96, y: 402 },
   { x: 264, y: 402 },
-  { x: 96, y: 542 },
-  { x: 264, y: 542 },
 ];
 
 /**
