@@ -72,7 +72,13 @@ describe("BudgetQuestionNavigator", () => {
     );
 
     expect(screen.getByText("くろだあいこ議員")).toBeVisible();
-    expect(screen.getByText("質問 2件")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "議員、会派の意見" })
+    ).toBeVisible();
+    expect(screen.queryByText("質問 2件")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "くろだあいこ議員（2件）" })
+    ).toBeInTheDocument();
     expect(screen.getByText("1 / 2")).toBeVisible();
     expect(
       screen.getByRole("region", {
@@ -83,6 +89,20 @@ describe("BudgetQuestionNavigator", () => {
     expect(
       container.querySelectorAll('[data-council-question-scroll-region="true"]')
     ).toHaveLength(2);
+    expect(
+      container.querySelectorAll('[data-councilor-opinion-panel="true"]')
+    ).toHaveLength(1);
+    for (const scrollRegion of container.querySelectorAll(
+      '[data-council-question-scroll-region="true"]'
+    )) {
+      expect(scrollRegion).toHaveAttribute(
+        "data-councilor-chat-scroll-region",
+        "true"
+      );
+      expect(
+        scrollRegion.querySelector('[data-councilor-opinion-panel="true"]')
+      ).not.toBeInTheDocument();
+    }
     expect(
       screen.getByRole("button", { name: "前の議員を見る" })
     ).toBeVisible();

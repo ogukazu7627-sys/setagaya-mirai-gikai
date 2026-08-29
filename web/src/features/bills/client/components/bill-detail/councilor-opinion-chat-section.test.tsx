@@ -94,6 +94,9 @@ describe("CouncilorOpinionChatSection", () => {
     expect(
       screen.getByRole("heading", { name: "議員、会派の意見" })
     ).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-councilor-opinion-panel="true"]')
+    ).toBeInTheDocument();
     expect(screen.getAllByText("中里光夫議員").length).toBeGreaterThan(0);
     expect(screen.getByText("質問本文です。")).toBeInTheDocument();
     expect(screen.getByText("答弁本文です。")).toBeInTheDocument();

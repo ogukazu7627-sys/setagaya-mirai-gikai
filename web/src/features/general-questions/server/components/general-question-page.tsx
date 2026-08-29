@@ -87,7 +87,7 @@ function GeneralQuestionCouncilorSlide({
             <div className="mt-6">
               <CouncilQuestionMarkdown
                 content={question.selectedContent.content}
-                scrollSingleGroup={false}
+                presentation="embedded"
               />
             </div>
           </article>

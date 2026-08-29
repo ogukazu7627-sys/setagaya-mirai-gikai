@@ -87,7 +87,11 @@ function renderSuspenseToHtml(element: ReactElement): Promise<string> {
 describe("BudgetQuestionMarkdown", () => {
   it("議員と区側の発言を既存の吹き出しUIで表示する", async () => {
     const element = await BudgetQuestionMarkdown({
-      content: `# 議員、会派の意見
+      content: `# 前置き
+
+質問前の説明です。
+
+# 議員、会派の意見
 
 ## くろだあいこ議員（会派名）
 
@@ -95,7 +99,11 @@ describe("BudgetQuestionMarkdown", () => {
 予算の増加要因を質問しました。
 
 ### 財政課長
-当初予算の内容を答弁しました。`,
+当初予算の内容を答弁しました。
+
+# 後置き
+
+質問後の説明です。`,
     });
     const html = await renderSuspenseToHtml(element as ReactElement);
 
@@ -132,6 +140,37 @@ describe("BudgetQuestionMarkdown", () => {
     expect(html).toContain("data-councilor-opinion-chat");
     expect(html).not.toContain('data-councilor-chat-scroll-region="true"');
   });
+
+  it("共通パネル内では発言本文だけを埋め込む", async () => {
+    const element = await BudgetQuestionMarkdown({
+      content: `# 前置き
+
+質問前の説明です。
+
+# 議員、会派の意見
+
+## くろだあいこ議員（会派名）
+
+### くろだあいこ議員
+予算の増加要因を質問しました。
+
+### 財政課長
+当初予算の内容を答弁しました。
+
+# 後置き
+
+質問後の説明です。`,
+      presentation: "embedded",
+    });
+    const html = await renderSuspenseToHtml(element as ReactElement);
+
+    expect(html).toContain('data-councilor-opinion-chat-embedded="true"');
+    expect(html).toContain("data-councilor-chat-bubble");
+    expect(html).toContain("質問前の説明です。");
+    expect(html).toContain("質問後の説明です。");
+    expect(html).not.toContain("data-councilor-opinion-panel");
+    expect(html).not.toContain('data-councilor-chat-scroll-region="true"');
+  });
 });
 
 describe("BudgetQuestionPage", () => {
@@ -162,14 +201,30 @@ describe("BudgetQuestionPage", () => {
           difficultyLevel: "normal" as const,
           title: name,
           summary: `旧概要-${id}`,
-          content: `# 概要\n\n${body}`,
+          content: `# 議員、会派の意見
+
+## ${councilorDisplayName}議員（会派名）
+
+### ${councilorDisplayName}議員
+${body}
+
+### 財政課長
+質問に対する答弁です。`,
         },
       },
       selectedContent: {
         difficultyLevel: "normal" as const,
         title: name,
         summary: `旧概要-${id}`,
-        content: `# 概要\n\n${body}`,
+        content: `# 議員、会派の意見
+
+## ${councilorDisplayName}議員（会派名）
+
+### ${councilorDisplayName}議員
+${body}
+
+### 財政課長
+質問に対する答弁です。`,
       },
     });
     const first = createQuestion(
@@ -218,6 +273,8 @@ describe("BudgetQuestionPage", () => {
     expect(html).toContain("選択した本文");
     expect(html).toContain("同じ議員の最初の本文");
     expect(html).toContain("別の議員の本文");
+    expect(html).toContain('data-councilor-opinion-chat-embedded="true"');
+    expect(html).not.toContain("data-councilor-opinion-panel");
     expect(html.indexOf("選択した本文")).toBeLessThan(
       html.indexOf("同じ議員の最初の本文")
     );

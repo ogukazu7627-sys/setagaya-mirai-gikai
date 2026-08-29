@@ -123,6 +123,10 @@ describe("GeneralQuestionPage", () => {
     expect(normalizedHtml).toContain("選択した質問と区の答弁");
     expect(normalizedHtml).toContain("同じ議員の最初の本文");
     expect(normalizedHtml).toContain("別の議員の本文");
+    expect(normalizedHtml).toContain(
+      'data-councilor-opinion-chat-embedded="true"'
+    );
+    expect(normalizedHtml).not.toContain("data-councilor-opinion-panel");
     expect(normalizedHtml.indexOf("選択した質問と区の答弁")).toBeLessThan(
       normalizedHtml.indexOf("同じ議員の最初の本文")
     );
@@ -143,7 +147,15 @@ function createQuestion(
     difficultyLevel: "normal" as const,
     title: name,
     summary: `${name}の概要`,
-    content: `# 概要\n\n${body}`,
+    content: `# 議員、会派の意見
+
+## ${councilorDisplayName}議員（会派名）
+
+### ${councilorDisplayName}議員
+${body}
+
+### 政策経営部長
+質問に対する答弁です。`,
   };
   return {
     id,
