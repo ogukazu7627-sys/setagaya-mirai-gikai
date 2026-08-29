@@ -66,7 +66,7 @@ describe("budget map layout", () => {
     ).toBe(true);
   });
 
-  it("mobileのcategoryと初期6事業をworld内に重複しない行間で配置する", () => {
+  it("mobileのcategoryと初期4事業をworld内に重複しない行間で配置する", () => {
     const topic = education.topics[0];
     if (!topic) {
       throw new Error("fixture topic is missing");
@@ -84,7 +84,7 @@ describe("budget map layout", () => {
       categoryDimensions
     );
     const visibleProgramIds = topic.programs
-      .slice(0, 6)
+      .slice(0, 4)
       .map((program) => program.budgetProgramIdentityId);
     const topicLayout = getBudgetMapTopicLayout(
       visibleProgramIds,
@@ -101,7 +101,7 @@ describe("budget map layout", () => {
           topicPosition.y + 48 <= categoryDimensions.height
       )
     ).toBe(true);
-    expect(topicLayout.programs).toHaveLength(6);
+    expect(topicLayout.programs).toHaveLength(4);
     expect(
       topicLayout.programs.every(
         (program) =>
@@ -113,7 +113,7 @@ describe("budget map layout", () => {
     ).toBe(true);
     expect(
       new Set(topicLayout.programs.map((program) => program.nodeId)).size
-    ).toBe(6);
+    ).toBe(4);
   });
 
   it.each([
@@ -127,7 +127,7 @@ describe("budget map layout", () => {
     {
       mode: "mobile",
       dimensions: { width: 360, height: 700 },
-      programCount: 6,
+      programCount: 4,
       programSize: { width: 156, height: 84 },
       topicSize: { width: 272, height: 104 },
     },

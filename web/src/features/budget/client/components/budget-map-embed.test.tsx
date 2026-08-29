@@ -758,6 +758,55 @@ describe("BudgetMapEmbed", () => {
     expect(screen.getByText("2 / 2 ページ")).toBeVisible();
   });
 
+  it("モバイルでは予算事業を1ページ4件までに抑える", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("prefers-reduced-motion"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    });
+    const approvedCategory = EDUCATION_SCHOOL_AGING_EXPLORATION.categories[0];
+    const approvedTopic = approvedCategory?.topics[0];
+    if (!approvedCategory || !approvedTopic) {
+      throw new Error("approved exploration fixture is missing");
+    }
+    const user = userEvent.setup();
+
+    render(
+      <BudgetMapEmbed
+        exploration={EDUCATION_SCHOOL_AGING_EXPLORATION}
+        initialView={{
+          kind: "topic",
+          category: approvedCategory,
+          topic: approvedTopic,
+        }}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("button", { name: /、概要を見る$/ })
+    ).toHaveLength(4);
+    expect(screen.getByText("1 / 4 ページ")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
+
+    expect(
+      screen.getAllByRole("button", { name: /、概要を見る$/ })
+    ).toHaveLength(4);
+    expect(screen.getByText("2 / 4 ページ")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
+
+    expect(
+      screen.getAllByRole("button", { name: /、概要を見る$/ })
+    ).toHaveLength(1);
+    expect(screen.getByText("4 / 4 ページ")).toBeVisible();
+  });
+
   it("unmount時にmessageとkeydown listenerを解除する", () => {
     const removeEventListener = vi.spyOn(window, "removeEventListener");
     const { unmount } = render(

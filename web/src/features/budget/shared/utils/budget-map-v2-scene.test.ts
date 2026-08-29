@@ -385,7 +385,7 @@ describe("buildBudgetMapV2Scene topic", () => {
     const scene = buildBudgetMapV2Scene({
       ...baseInput,
       mode: "mobile",
-      programPageSize: 6,
+      programPageSize: 4,
       view: { kind: "topic", category, topic },
       categories: [category],
     });
@@ -395,7 +395,7 @@ describe("buildBudgetMapV2Scene topic", () => {
     expect(scene.captionCenter.y).toBeLessThan(238);
   });
 
-  it("mobile は6件までを2列グリッドに置く", () => {
+  it("mobile は4件までを2列2段グリッドに置く", () => {
     const many = Array.from({ length: 10 }, (_, index) =>
       createProgram({ budgetProgramIdentityId: `m-${index}` })
     );
@@ -405,12 +405,12 @@ describe("buildBudgetMapV2Scene topic", () => {
     const scene = buildBudgetMapV2Scene({
       ...baseInput,
       mode: "mobile",
-      programPageSize: 6,
+      programPageSize: 4,
       view: { kind: "topic", category: manyCategory, topic: manyTopic },
       categories: [manyCategory],
     });
 
-    expect(scene.programs).toHaveLength(6);
+    expect(scene.programs).toHaveLength(4);
     expect(scene.programs[0]).toMatchObject({ x: 96, y: 262 });
   });
 

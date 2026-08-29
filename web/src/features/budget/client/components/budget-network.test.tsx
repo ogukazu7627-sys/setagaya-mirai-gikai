@@ -314,7 +314,7 @@ describe("BudgetNetwork", () => {
     expect(screen.queryByText("学校施設改修事業1")).not.toBeInTheDocument();
   });
 
-  it("mobileのtopicは1ページ6事業に抑える", async () => {
+  it("mobileのtopicは1ページ4事業に抑える", async () => {
     const user = userEvent.setup();
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
@@ -348,20 +348,26 @@ describe("BudgetNetwork", () => {
 
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
-    ).toHaveLength(6);
-    expect(screen.getByText("1 / 3 ページ")).toBeVisible();
+    ).toHaveLength(4);
+    expect(screen.getByText("1 / 4 ページ")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "次のページ" }));
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
-    ).toHaveLength(6);
-    expect(screen.getByText("2 / 3 ページ")).toBeVisible();
+    ).toHaveLength(4);
+    expect(screen.getByText("2 / 4 ページ")).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "次のページ" }));
+    expect(
+      screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
+    ).toHaveLength(4);
+    expect(screen.getByText("3 / 4 ページ")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "次のページ" }));
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
     ).toHaveLength(1);
-    expect(screen.getByText("3 / 3 ページ")).toBeVisible();
+    expect(screen.getByText("4 / 4 ページ")).toBeVisible();
   });
 
   it("topicがないcategoryでは整理中・検索・公式分類を示す", async () => {
@@ -879,7 +885,7 @@ describe("BudgetNetwork", () => {
     expect(document.querySelectorAll(".budget-map-star")).toHaveLength(70);
     expect(
       screen.getAllByRole("button", { name: /当初予算額.*概要を見る/ })
-    ).toHaveLength(6);
+    ).toHaveLength(4);
     expect(overviewElementCount).toBeLessThanOrEqual(225);
     expect(categoryElementCount).toBeLessThanOrEqual(180);
     expect(topicElementCount).toBeLessThanOrEqual(190);

@@ -1,5 +1,5 @@
 export const BUDGET_MAP_DESKTOP_PROGRAM_PAGE_SIZE = 10;
-export const BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE = 6;
+export const BUDGET_MAP_MOBILE_PROGRAM_PAGE_SIZE = 4;
 
 export type BudgetMapAmountTier = "low" | "medium" | "high";
 

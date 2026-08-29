@@ -148,7 +148,7 @@ describe("getBudgetMapV2ProgramNodes", () => {
     expect(nodes[0]?.y).toBeCloseTo(160.5, 0);
   });
 
-  it("mobile は2列グリッドの固定スロットを使う", () => {
+  it("mobile は下部の導線を避けた2列2段の固定スロットを使う", () => {
     const nodes = getBudgetMapV2ProgramNodes(6, "mobile");
 
     expect(nodes.map((node) => ({ x: node.x, y: node.y }))).toEqual([
@@ -156,8 +156,6 @@ describe("getBudgetMapV2ProgramNodes", () => {
       { x: 264, y: 262 },
       { x: 96, y: 402 },
       { x: 264, y: 402 },
-      { x: 96, y: 542 },
-      { x: 264, y: 542 },
     ]);
   });
 
