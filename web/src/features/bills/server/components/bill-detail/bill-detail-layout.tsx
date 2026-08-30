@@ -13,7 +13,7 @@ import { BillContent } from "./bill-content";
 import { BillDetailHeader } from "./bill-detail-header";
 import { CouncilVoteResultCard } from "./council-vote-result-card";
 import { OfficialSourcesSection } from "./official-sources-section";
-import { RandomBillRecommendationsSection } from "./random-bill-recommendations-section";
+import { RelatedBillRecommendationsSection } from "./related-bill-recommendations-section";
 
 interface BillDetailLayoutProps {
   bill: BillWithContent;
@@ -96,7 +96,7 @@ export async function BillDetailLayout({
           <BillShareButtons bill={bill} />
         </div>
 
-        <RandomBillRecommendationsSection bills={recommendedBills} />
+        <RelatedBillRecommendationsSection bills={recommendedBills} />
       </Container>
     </div>
   );

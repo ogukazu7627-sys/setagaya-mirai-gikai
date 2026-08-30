@@ -12,6 +12,7 @@ import {
   deleteAdminBill,
   saveAdminBill,
 } from "./bill-admin";
+import { regenerateAdminBillSeo } from "./bill-seo-admin";
 import { saveAdminDietSession } from "./diet-session-admin";
 import { buildAdminLoginErrorPath } from "./login-errors";
 
@@ -72,4 +73,8 @@ export async function bulkUpdateAdminBillPublishStatusAction(
 
 export async function saveAdminDietSessionAction(formData: FormData) {
   await saveAdminDietSession(formData);
+}
+
+export async function regenerateAdminBillSeoAction(formData: FormData) {
+  await regenerateAdminBillSeo(formData);
 }

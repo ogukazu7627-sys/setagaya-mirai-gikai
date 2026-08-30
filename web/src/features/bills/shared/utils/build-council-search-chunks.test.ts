@@ -37,6 +37,7 @@ const source: CouncilSearchIndexSource = {
       description: "災害時の避難に関する計画",
     },
   ],
+  seoKeywords: ["避難所運営", "情報保障"],
   statements: [
     {
       statementIndex: 0,
@@ -58,6 +59,9 @@ describe("buildCouncilSearchChunks", () => {
       committeeName: "災害・防犯・オウム問題対策等特別委員会",
     });
     expect(chunks[0]?.content).toContain("関連語: 風水害");
+    expect(chunks[0]?.content).toContain(
+      "検索キーワード: 避難所運営、情報保障"
+    );
     expect(
       chunks.some(
         (chunk) =>

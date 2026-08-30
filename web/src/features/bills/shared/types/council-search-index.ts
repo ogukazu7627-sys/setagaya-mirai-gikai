@@ -27,6 +27,7 @@ export type CouncilSearchIndexSource = {
   summary: string;
   content: string;
   tags: CouncilSearchIndexTag[];
+  seoKeywords: string[];
   statements: CouncilSearchIndexStatement[];
 };
 

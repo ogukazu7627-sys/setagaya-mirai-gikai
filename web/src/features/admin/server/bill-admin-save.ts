@@ -11,6 +11,7 @@ import {
   appendAdminBillsReturnPath,
   normalizeAdminBillsReturnPath,
 } from "@/features/admin/shared/admin-bill-return-path";
+import { syncBillSeoProfileSafely } from "@/features/bill-seo/server/services/generate-bill-seo";
 import {
   validateBudgetQuestionPublication,
   validateBudgetQuestionPublications,
@@ -506,6 +507,8 @@ export async function saveAdminBillInput(
     );
   }
 
+  const seoGeneration = await syncBillSeoProfileSafely(billId);
+
   const previewToken = await ensurePreviewToken(
     billId,
     options.previewCreatedBy ?? "admin"
@@ -521,6 +524,7 @@ export async function saveAdminBillInput(
     mode,
     previewToken,
     unknownCouncilorNames,
+    seoGeneration,
   };
 }
 
@@ -585,9 +589,16 @@ export async function saveAdminBill(formData: FormData) {
     );
   }
 
+  const saveParams = new URLSearchParams({
+    saved: "1",
+    seo_status: result.seoGeneration.status,
+  });
+  if (result.seoGeneration.warning) {
+    saveParams.set("seo_warning", result.seoGeneration.warning.slice(0, 500));
+  }
   redirect(
     appendAdminBillsReturnPath(
-      `/admin/bills/${result.billId}/edit?saved=1`,
+      `/admin/bills/${result.billId}/edit?${saveParams.toString()}`,
       returnPath
     ) as Route
   );

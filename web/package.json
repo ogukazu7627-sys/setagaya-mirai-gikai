@@ -14,7 +14,8 @@
     "test:integration": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts",
     "test:integration:coverage": "dotenv -e ../.env -- vitest run --config vitest.integration.config.mts --coverage",
     "seo:audit": "dotenv -e ../.env -- tsx scripts/audit-bill-seo.ts",
-    "councilors:profiles:candidates": "tsx scripts/generate-councilor-profile-candidates.ts"
+    "councilors:profiles:candidates": "tsx scripts/generate-councilor-profile-candidates.ts",
+    "seo:generate": "NODE_OPTIONS=--conditions=react-server dotenv -e ../.env -- tsx scripts/generate-bill-seo.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",

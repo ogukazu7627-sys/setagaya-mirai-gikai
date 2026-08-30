@@ -46,6 +46,12 @@ export function AdminShell({ user, children }: AdminShellProps) {
               >
                 議員宛レポート
               </Link>
+              <Link
+                href={routes.adminSeo() as Route}
+                className="hover:underline"
+              >
+                SEO
+              </Link>
             </nav>
             <span className="hidden text-xs text-mirai-text-secondary sm:inline">
               {user.email}

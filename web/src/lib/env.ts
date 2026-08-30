@@ -87,6 +87,19 @@ if (
 
 const interviewCompleteDailyUserLimit = parsedInterviewCompleteDailyUserLimit;
 
+const seoDailyTotalCostLimitUsdRaw =
+  process.env.SEO_DAILY_TOTAL_COST_LIMIT_USD || "1";
+const parsedSeoDailyTotalCostLimitUsd = Number(seoDailyTotalCostLimitUsdRaw);
+
+if (
+  Number.isNaN(parsedSeoDailyTotalCostLimitUsd) ||
+  parsedSeoDailyTotalCostLimitUsd <= 0
+) {
+  throw new Error(
+    "環境変数 SEO_DAILY_TOTAL_COST_LIMIT_USD は正の数値で指定してください"
+  );
+}
+
 export const env = {
   webUrl: process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000",
   adminUrl: process.env.ADMIN_URL || "http://localhost:3001",
@@ -111,6 +124,9 @@ export const env = {
   },
   interviewComplete: {
     dailyUserLimit: interviewCompleteDailyUserLimit,
+  },
+  seo: {
+    dailyTotalCostLimitUsd: parsedSeoDailyTotalCostLimitUsd,
   },
 } as const;
 

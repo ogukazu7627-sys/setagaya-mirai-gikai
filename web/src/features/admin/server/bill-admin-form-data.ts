@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { findBillSeoProfile } from "@/features/bill-seo/server/repositories/bill-seo-repository";
 import { findUnknownCouncilorNamesByBillId } from "@/features/councilors/server/repositories/councilor-statement-repository";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import { requireAdmin } from "./auth";
@@ -46,6 +47,7 @@ export async function getAdminBillFormData(
       tags: tagsResult.data ?? [],
       sessions: sessionsResult.data ?? [],
       unknownCouncilorNames: [],
+      seoProfile: null,
     };
   }
 
@@ -55,12 +57,14 @@ export async function getAdminBillFormData(
     billTagsResult,
     token,
     unknownCouncilorNames,
+    seoProfile,
   ] = await Promise.all([
     supabase.from("bills").select("*").eq("id", billId).single(),
     supabase.from("bill_contents").select("*").eq("bill_id", billId),
     supabase.from("bills_tags").select("tag_id").eq("bill_id", billId),
     ensurePreviewToken(billId),
     findUnknownCouncilorNamesByBillId(billId),
+    findBillSeoProfile(billId, supabase),
   ]);
 
   if (billResult.error) {
@@ -94,5 +98,6 @@ export async function getAdminBillFormData(
     tags: tagsResult.data ?? [],
     sessions: sessionsResult.data ?? [],
     unknownCouncilorNames,
+    seoProfile,
   };
 }
