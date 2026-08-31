@@ -1,6 +1,6 @@
 import { createAnonymousInstallationId } from "@/features/recommendations/client/utils/recommendation-storage";
 
-export const COUNCIL_AI_SEARCH_INSTALLATION_ID_KEY =
+export const COUNCIL_SEARCH_INSTALLATION_ID_KEY =
   "mirai-gikai:council-search-installation-id:v1";
 
 export function getBrowserCouncilSearchInstallationId(): string {
@@ -10,10 +10,10 @@ export function getBrowserCouncilSearchInstallationId(): string {
   } catch {
     storage = null;
   }
-  return getCouncilAiSearchInstallationId(storage, window.crypto);
+  return getCouncilSearchInstallationId(storage, window.crypto);
 }
 
-export function getCouncilAiSearchInstallationId(
+export function getCouncilSearchInstallationId(
   storage: Pick<Storage, "getItem" | "setItem"> | null,
   cryptoApi: Pick<Crypto, "getRandomValues"> & {
     randomUUID?: () => `${string}-${string}-${string}-${string}-${string}`;
@@ -21,7 +21,7 @@ export function getCouncilAiSearchInstallationId(
 ): string {
   if (storage) {
     try {
-      const stored = storage.getItem(COUNCIL_AI_SEARCH_INSTALLATION_ID_KEY);
+      const stored = storage.getItem(COUNCIL_SEARCH_INSTALLATION_ID_KEY);
       if (stored && isUuid(stored)) {
         return stored;
       }
@@ -33,7 +33,7 @@ export function getCouncilAiSearchInstallationId(
   const installationId = createAnonymousInstallationId(cryptoApi);
   if (storage) {
     try {
-      storage.setItem(COUNCIL_AI_SEARCH_INSTALLATION_ID_KEY, installationId);
+      storage.setItem(COUNCIL_SEARCH_INSTALLATION_ID_KEY, installationId);
     } catch {
       // The ephemeral ID still allows the current search request to proceed.
     }

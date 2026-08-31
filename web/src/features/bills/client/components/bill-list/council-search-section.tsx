@@ -6,18 +6,16 @@ import {
   ChevronRight,
   RotateCcw,
   Search,
-  Sparkles,
 } from "lucide-react";
 import {
   type FormEvent,
-  type KeyboardEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   RECOMMENDATION_CATEGORY_OPTIONS,
   type RecommendationCategoryId,
@@ -38,9 +36,9 @@ import {
   hasActiveCouncilSearch,
 } from "../../../shared/utils/council-search";
 import { applyCouncilSearchPageParam } from "../../../shared/utils/council-search-page-param";
-import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
-import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
 import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import { requestCouncilKeywordSearch } from "../../utils/council-keyword-search-api";
+import { getBrowserCouncilSearchInstallationId } from "../../utils/council-search-storage";
 import {
   CouncilDirectoryItemCard,
   getCouncilDirectoryItemKey,
@@ -57,7 +55,6 @@ const CONTENT_TYPE_OPTIONS: Array<{
   { value: "report", label: "報告事項" },
 ];
 
-const QUICK_QUERIES = ["防災", "子育て世代が知っておくべきこと"] as const;
 const SEARCH_SKELETON_KEYS = [
   "search-skeleton-1",
   "search-skeleton-2",
@@ -69,7 +66,7 @@ const SEARCH_SKELETON_KEYS = [
 type SearchStatus = "idle" | "loading" | "success" | "error";
 type SearchResult =
   | {
-      kind: "ai";
+      kind: "keyword";
       items: CouncilDirectoryItem[];
       total: number;
     }
@@ -125,13 +122,13 @@ export function CouncilSearchSection({
       try {
         const installationId = getBrowserCouncilSearchInstallationId();
         if (normalizedQuery) {
-          const response = await requestCouncilAiSearch(
+          const response = await requestCouncilKeywordSearch(
             {
               installationId,
               query: normalizedQuery,
               contentType: searchFilters.contentType,
               themeId: searchFilters.themeId as Parameters<
-                typeof requestCouncilAiSearch
+                typeof requestCouncilKeywordSearch
               >[0]["themeId"],
               committeeName: searchFilters.committeeName,
             },
@@ -139,7 +136,7 @@ export function CouncilSearchSection({
           );
           if (!controller.signal.aborted) {
             setResult({
-              kind: "ai",
+              kind: "keyword",
               items: response.items,
               total: response.total,
             });
@@ -192,16 +189,16 @@ export function CouncilSearchSection({
     []
   );
 
-  const aiTotalPages =
-    result?.kind === "ai"
+  const keywordTotalPages =
+    result?.kind === "keyword"
       ? Math.max(1, Math.ceil(result.items.length / COUNCIL_SEARCH_PAGE_SIZE))
       : 1;
   const currentPage =
     result?.kind === "filters"
       ? result.page.currentPage
-      : Math.min(requestedPage, aiTotalPages);
+      : Math.min(requestedPage, keywordTotalPages);
   const totalPages =
-    result?.kind === "filters" ? result.page.totalPages : aiTotalPages;
+    result?.kind === "filters" ? result.page.totalPages : keywordTotalPages;
   const visibleItems =
     result?.kind === "filters"
       ? result.page.items
@@ -249,22 +246,6 @@ export function CouncilSearchSection({
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void executeSearch(draftQuery, filters);
-  }
-
-  function handleQueryKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.nativeEvent.isComposing
-    ) {
-      event.preventDefault();
-      event.currentTarget.form?.requestSubmit();
-    }
-  }
-
-  function runQuickSearch(query: string) {
-    setDraftQuery(query);
-    void executeSearch(query, filters);
   }
 
   function resetSearch() {
@@ -317,57 +298,34 @@ export function CouncilSearchSection({
         className="mt-5 rounded-lg border border-mirai-border bg-white p-4 sm:p-5"
       >
         <label
-          htmlFor="council-ai-search-input"
+          htmlFor="council-keyword-search-input"
           className="text-sm font-bold text-mirai-text"
         >
-          知りたいことを入力
+          キーワード
         </label>
         <div className="border-mirai-gradient relative mt-2 rounded-lg bg-white focus-within:ring-[3px] focus-within:ring-primary/30">
-          <Sparkles
-            aria-hidden="true"
-            className="pointer-events-none absolute left-4 top-4 size-5 text-primary-accent"
-          />
-          <Textarea
-            id="council-ai-search-input"
-            rows={1}
+          <Input
+            id="council-keyword-search-input"
+            type="search"
             maxLength={200}
             value={draftQuery}
             onChange={(event) => setDraftQuery(event.target.value)}
-            onKeyDown={handleQueryKeyDown}
-            placeholder="例：若者が知るべきこと"
-            className="max-h-[92px] min-h-13 resize-none border-0 bg-transparent py-3 pl-12 pr-14 text-base leading-6 shadow-none focus-visible:border-0 focus-visible:ring-0"
+            placeholder="案件名、本文タイトル、概要、タグなど"
+            className="h-13 border-0 bg-transparent px-4 pr-14 text-base shadow-none focus-visible:border-0 focus-visible:ring-0"
           />
           <Button
             type="submit"
             size="icon"
-            aria-label="議会をAI検索"
+            aria-label="議会を検索"
             title="検索"
             disabled={!draftQuery.trim() || status === "loading"}
-            className="absolute bottom-2 right-2 size-9 rounded-md shadow-none"
+            className="absolute right-2 top-1/2 size-9 -translate-y-1/2 rounded-md shadow-none"
           >
             <Search aria-hidden="true" className="size-4" />
           </Button>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-xs font-bold text-mirai-text-secondary">
-            入力例
-          </span>
-          {QUICK_QUERIES.map((query) => (
-            <Button
-              key={query}
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => runQuickSearch(query)}
-              className="h-auto min-h-8 whitespace-normal border-mirai-border px-3 py-1.5 text-left text-xs shadow-none"
-            >
-              {query}
-            </Button>
-          ))}
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 gap-3 border-t border-mirai-border pt-5 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 border-t border-mirai-border pt-4 sm:grid-cols-3">
           <SearchFilter
             label="情報の種類"
             value={filters.contentType}

@@ -6,7 +6,7 @@ const councilSearchThemeIds = [
   ...RECOMMENDATION_CATEGORIES.map((category) => category.id),
 ] as const;
 
-export const councilAiSearchRequestSchema = z.strictObject({
+export const councilKeywordSearchRequestSchema = z.strictObject({
   installationId: z.uuid(),
   query: z.string().trim().min(1).max(200),
   contentType: z.enum(["all", "bill", "report", "petition", "question"]),

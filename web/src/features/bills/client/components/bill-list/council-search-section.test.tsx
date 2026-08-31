@@ -6,8 +6,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BillCardData } from "../../../shared/types";
-import { requestCouncilAiSearch } from "../../utils/council-ai-search-api";
 import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import { requestCouncilKeywordSearch } from "../../utils/council-keyword-search-api";
 import { CouncilSearchSection } from "./council-search-section";
 
 vi.mock("next/link", () => ({
@@ -16,74 +16,70 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../../utils/council-ai-search-api", () => ({
-  requestCouncilAiSearch: vi.fn(),
+vi.mock("../../utils/council-keyword-search-api", () => ({
+  requestCouncilKeywordSearch: vi.fn(),
 }));
 vi.mock("../../utils/council-bill-page-api", () => ({
   requestCouncilBillPage: vi.fn(),
 }));
-vi.mock("../../utils/council-ai-search-storage", () => ({
+vi.mock("../../utils/council-search-storage", () => ({
   getBrowserCouncilSearchInstallationId: () =>
     "11111111-1111-4111-8111-111111111111",
 }));
 
-const mockedRequestCouncilAiSearch = vi.mocked(requestCouncilAiSearch);
+const mockedRequestCouncilKeywordSearch = vi.mocked(
+  requestCouncilKeywordSearch
+);
 const mockedRequestCouncilBillPage = vi.mocked(requestCouncilBillPage);
 const committeeNames = ["文教常任委員会"];
 
 describe("CouncilSearchSection", () => {
   beforeEach(() => {
-    mockedRequestCouncilAiSearch.mockReset();
+    mockedRequestCouncilKeywordSearch.mockReset();
     mockedRequestCouncilBillPage.mockReset();
     window.history.replaceState(null, "", "/bills");
   });
 
-  it("入力中は検索せず、Enterで初めてAI検索する", async () => {
+  it("入力中は検索せず、Enterで初めてキーワード検索する", async () => {
     const user = userEvent.setup();
     const card = createCard(1);
-    mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: [card.id],
-      bills: [card],
+    mockedRequestCouncilKeywordSearch.mockResolvedValue({
       items: [{ kind: "bill", bill: card }],
       total: 1,
-      mode: "hybrid",
     });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
-    const input = screen.getByRole("textbox", {
-      name: "知りたいことを入力",
+    const input = screen.getByRole("searchbox", {
+      name: "キーワード",
     });
     await user.type(input, "学校");
 
-    expect(mockedRequestCouncilAiSearch).not.toHaveBeenCalled();
+    expect(mockedRequestCouncilKeywordSearch).not.toHaveBeenCalled();
     expect(mockedRequestCouncilBillPage).not.toHaveBeenCalled();
     expect(screen.queryByText("検索結果")).not.toBeInTheDocument();
 
     await user.keyboard("{Enter}");
 
     await waitFor(() =>
-      expect(mockedRequestCouncilAiSearch).toHaveBeenCalledOnce()
+      expect(mockedRequestCouncilKeywordSearch).toHaveBeenCalledOnce()
     );
     expect(screen.getByText("学校改築について1")).toBeInTheDocument();
     expect(screen.getByText("1件")).toBeInTheDocument();
   });
 
-  it("AI検索結果を1列5件ずつページ送りする", async () => {
+  it("キーワード検索結果を1列5件ずつページ送りする", async () => {
     const user = userEvent.setup();
     const sixCards = Array.from({ length: 6 }, (_, index) =>
       createCard(index + 1)
     );
-    mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: sixCards.map(({ id }) => id),
-      bills: sixCards,
+    mockedRequestCouncilKeywordSearch.mockResolvedValue({
       items: sixCards.map((bill) => ({ kind: "bill", bill })),
       total: 6,
-      mode: "hybrid",
     });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
-      screen.getByRole("textbox", { name: "知りたいことを入力" }),
+      screen.getByRole("searchbox", { name: "キーワード" }),
       "学校{Enter}"
     );
 
@@ -100,9 +96,7 @@ describe("CouncilSearchSection", () => {
 
   it("同じ大分類に一致した一般質問は個別カードではなく1枚で表示する", async () => {
     const user = userEvent.setup();
-    mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: ["question-1", "question-2"],
-      bills: [],
+    mockedRequestCouncilKeywordSearch.mockResolvedValue({
       items: [
         {
           kind: "general-question-category",
@@ -119,12 +113,11 @@ describe("CouncilSearchSection", () => {
         },
       ],
       total: 1,
-      mode: "hybrid",
     });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
-      screen.getByRole("textbox", { name: "知りたいことを入力" }),
+      screen.getByRole("searchbox", { name: "キーワード" }),
       "学校{Enter}"
     );
 
@@ -174,39 +167,33 @@ describe("CouncilSearchSection", () => {
   it("検索文をURLへ保存せず、フィルター条件だけを維持する", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/bills?q=以前の検索");
-    mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: [],
-      bills: [],
+    mockedRequestCouncilKeywordSearch.mockResolvedValue({
       items: [],
       total: 0,
-      mode: "keyword-fallback",
     });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
-      screen.getByRole("textbox", { name: "知りたいことを入力" }),
+      screen.getByRole("searchbox", { name: "キーワード" }),
       "防災{Enter}"
     );
 
     await waitFor(() =>
-      expect(mockedRequestCouncilAiSearch).toHaveBeenCalledOnce()
+      expect(mockedRequestCouncilKeywordSearch).toHaveBeenCalledOnce()
     );
     expect(new URL(window.location.href).searchParams.has("q")).toBe(false);
   });
 
   it("0件状態から条件をクリアして通常表示へ戻せる", async () => {
     const user = userEvent.setup();
-    mockedRequestCouncilAiSearch.mockResolvedValue({
-      billIds: [],
-      bills: [],
+    mockedRequestCouncilKeywordSearch.mockResolvedValue({
       items: [],
       total: 0,
-      mode: "keyword-fallback",
     });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
-    const input = screen.getByRole("textbox", {
-      name: "知りたいことを入力",
+    const input = screen.getByRole("searchbox", {
+      name: "キーワード",
     });
     await user.type(input, "存在しない検索語{Enter}");
 
@@ -225,19 +212,16 @@ describe("CouncilSearchSection", () => {
   it("検索失敗後に同じ条件で再試行できる", async () => {
     const user = userEvent.setup();
     const card = createCard(1);
-    mockedRequestCouncilAiSearch
+    mockedRequestCouncilKeywordSearch
       .mockRejectedValueOnce(new Error("temporary failure"))
       .mockResolvedValueOnce({
-        billIds: [card.id],
-        bills: [card],
         items: [{ kind: "bill", bill: card }],
         total: 1,
-        mode: "hybrid",
       });
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     await user.type(
-      screen.getByRole("textbox", { name: "知りたいことを入力" }),
+      screen.getByRole("searchbox", { name: "キーワード" }),
       "学校{Enter}"
     );
     await user.click(
@@ -245,7 +229,7 @@ describe("CouncilSearchSection", () => {
     );
 
     expect(await screen.findByText("学校改築について1")).toBeInTheDocument();
-    expect(mockedRequestCouncilAiSearch).toHaveBeenCalledTimes(2);
+    expect(mockedRequestCouncilKeywordSearch).toHaveBeenCalledTimes(2);
   });
 
   it("情報種別に委員会を表示しない", () => {
@@ -255,21 +239,24 @@ describe("CouncilSearchSection", () => {
     expect(informationType).not.toHaveTextContent("委員会");
   });
 
-  it("AI検索欄に共通の水色グラデーション枠を表示する", () => {
+  it("キーワード検索欄に共通の水色グラデーション枠を表示する", () => {
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
-    const input = screen.getByRole("textbox", {
-      name: "知りたいことを入力",
+    const input = screen.getByRole("searchbox", {
+      name: "キーワード",
     });
     expect(input.parentElement).toHaveClass("border-mirai-gradient");
   });
 
-  it("AI検索欄に若者向けの入力例を表示する", () => {
+  it("検索対象が分かる通常検索向けのプレースホルダーを表示する", () => {
     render(<CouncilSearchSection committeeNames={committeeNames} />);
 
     expect(
-      screen.getByPlaceholderText("例：若者が知るべきこと")
+      screen.getByPlaceholderText("案件名、本文タイトル、概要、タグなど")
     ).toBeInTheDocument();
+    expect(
+      screen.queryByText("子育て世代が知っておくべきこと")
+    ).not.toBeInTheDocument();
   });
 });
 

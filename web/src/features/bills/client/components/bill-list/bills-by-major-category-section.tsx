@@ -18,8 +18,8 @@ import type {
   CouncilBillCardPage,
   CouncilThemeSectionData,
 } from "../../../shared/types/council-bill-directory";
-import { getBrowserCouncilSearchInstallationId } from "../../utils/council-ai-search-storage";
 import { requestCouncilBillPage } from "../../utils/council-bill-page-api";
+import { getBrowserCouncilSearchInstallationId } from "../../utils/council-search-storage";
 import {
   CouncilDirectoryItemCard,
   getCouncilDirectoryItemKey,

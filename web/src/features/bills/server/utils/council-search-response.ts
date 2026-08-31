@@ -1,6 +1,6 @@
 import { PublicApiRequestError } from "@/lib/api/bounded-json";
 
-export function councilAiSearchJsonResponse(
+export function councilSearchJsonResponse(
   body: unknown,
   status: number
 ): Response {
@@ -13,9 +13,9 @@ export function councilAiSearchJsonResponse(
   });
 }
 
-export function councilAiSearchErrorResponse(error: unknown): Response {
+export function councilSearchErrorResponse(error: unknown): Response {
   if (error instanceof PublicApiRequestError) {
-    return councilAiSearchJsonResponse(
+    return councilSearchJsonResponse(
       { error: error.message, code: error.code },
       error.status
     );
@@ -27,7 +27,7 @@ export function councilAiSearchErrorResponse(error: unknown): Response {
       ? `${error.name}: ${error.message}\n${error.stack ?? ""}`
       : String(error)
   );
-  return councilAiSearchJsonResponse(
+  return councilSearchJsonResponse(
     {
       error: "議会内検索を一時的に利用できません",
       code: "council-search-unavailable",
