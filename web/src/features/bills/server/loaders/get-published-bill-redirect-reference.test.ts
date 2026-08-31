@@ -41,6 +41,10 @@ vi.mock("@/lib/setagaya-mock", () => ({
 
 import { getPublishedBillRedirectReference } from "./get-published-bill-redirect-reference";
 
+const budgetBillId = "11111111-1111-4111-8111-111111111111";
+const generalQuestionBillId = "22222222-2222-4222-8222-222222222222";
+const reportBillId = "33333333-3333-4333-8333-333333333333";
+
 describe("getPublishedBillRedirectReference", () => {
   beforeEach(() => {
     mocks.createAdminClient.mockClear();
@@ -60,7 +64,9 @@ describe("getPublishedBillRedirectReference", () => {
       error: null,
     });
 
-    await expect(getPublishedBillRedirectReference("bill-1")).resolves.toEqual({
+    await expect(
+      getPublishedBillRedirectReference(budgetBillId)
+    ).resolves.toEqual({
       kind: "budget",
       categorySlug: "education",
     });
@@ -78,7 +84,9 @@ describe("getPublishedBillRedirectReference", () => {
       error: null,
     });
 
-    await expect(getPublishedBillRedirectReference("bill-2")).resolves.toEqual({
+    await expect(
+      getPublishedBillRedirectReference(generalQuestionBillId)
+    ).resolves.toEqual({
       kind: "general_question",
       categoryId: "education",
       year: 2026,
@@ -96,8 +104,17 @@ describe("getPublishedBillRedirectReference", () => {
     });
 
     await expect(
-      getPublishedBillRedirectReference("bill-3")
+      getPublishedBillRedirectReference(reportBillId)
     ).resolves.toBeNull();
+  });
+
+  it("returns null without querying bills when the path segment is not a UUID", async () => {
+    await expect(
+      getPublishedBillRedirectReference("%E4%B8%96%E7%94%B0%E8%B0%B7%E5%8C%BA")
+    ).resolves.toBeNull();
+
+    expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    expect(mocks.from).not.toHaveBeenCalled();
   });
 
   it("defines a bill-tagged ten minute cache", () => {

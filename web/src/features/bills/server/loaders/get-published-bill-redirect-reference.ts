@@ -8,6 +8,7 @@ import { getGeneralQuestionCategoryByMajorCategory } from "@/features/general-qu
 import type { RecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { isUuid } from "@/lib/utils/uuid";
 
 type PublishedBillRedirectReference =
   | { kind: "budget"; categorySlug: string }
@@ -82,7 +83,7 @@ const getCachedPublishedBillRedirectReference = unstable_cache(
 
 export const getPublishedBillRedirectReference = cache(
   (billId: string): Promise<PublishedBillRedirectReference | null> => {
-    if (isSetagayaMockMode) {
+    if (isSetagayaMockMode || !isUuid(billId)) {
       return Promise.resolve(null);
     }
     return getCachedPublishedBillRedirectReference(billId);
