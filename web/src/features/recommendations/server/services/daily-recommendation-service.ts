@@ -8,6 +8,7 @@ import {
   type RecommendationCategoryId,
   type RecommendationSmallTag,
 } from "../../shared/constants/recommendation-taxonomy";
+import type { RecommendationPick } from "../../shared/types/recommendation";
 import { isJstDateKey } from "../../shared/utils/jst-date";
 import { selectDailyRecommendations } from "../../shared/utils/select-daily-recommendations";
 import {
@@ -16,6 +17,7 @@ import {
   findRecommendationProfileById,
   insertDailyRecommendation,
   type RecommendationProfileRow,
+  updateDailyRecommendationPicks,
 } from "../repositories/recommendation-repository";
 import { getRecommendationCandidates } from "./recommendation-candidate-service";
 
@@ -35,10 +37,47 @@ export async function getOrCreateDailyRecommendations(
     date,
     profile.preference_version
   );
-  if (existing) {
+  if (existing && existing.bill_ids.length > 0) {
     return existing;
   }
 
+  const picks = await selectRecommendationsForProfile(profile, date);
+  if (existing) {
+    if (picks.length === 0) {
+      return existing;
+    }
+    return updateDailyRecommendationPicks({
+      dailyRecommendationId: existing.id,
+      picks,
+    });
+  }
+
+  const inserted = await insertDailyRecommendation({
+    profileId: profile.id,
+    date,
+    preferenceVersion: profile.preference_version,
+    picks,
+  });
+
+  if (inserted) {
+    return inserted;
+  }
+
+  const winner = await findDailyRecommendation(
+    profile.id,
+    date,
+    profile.preference_version
+  );
+  if (!winner) {
+    throw new Error("Failed to resolve concurrent daily recommendation");
+  }
+  return winner;
+}
+
+async function selectRecommendationsForProfile(
+  profile: RecommendationProfileRow,
+  date: string
+): Promise<RecommendationPick[]> {
   const selectedSmallTags = profile.selected_small_tags.filter(
     isRecommendationSmallTag
   ) as RecommendationSmallTag[];
@@ -63,26 +102,7 @@ export async function getOrCreateDailyRecommendations(
     displayedBillIds,
     seed: `${profile.id}:${date}:${profile.preference_version}`,
   });
-  const inserted = await insertDailyRecommendation({
-    profileId: profile.id,
-    date,
-    preferenceVersion: profile.preference_version,
-    picks,
-  });
-
-  if (inserted) {
-    return inserted;
-  }
-
-  const winner = await findDailyRecommendation(
-    profile.id,
-    date,
-    profile.preference_version
-  );
-  if (!winner) {
-    throw new Error("Failed to resolve concurrent daily recommendation");
-  }
-  return winner;
+  return picks;
 }
 
 export async function getOrCreateDailyRecommendationsByProfileId(

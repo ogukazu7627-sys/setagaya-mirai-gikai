@@ -194,6 +194,29 @@ export async function insertDailyRecommendation(input: {
   return data;
 }
 
+export async function updateDailyRecommendationPicks(input: {
+  dailyRecommendationId: string;
+  picks: RecommendationPick[];
+}): Promise<DailyRecommendationRow> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("daily_recommendations")
+    .update({
+      bill_ids: input.picks.map((pick) => pick.billId),
+      sources: input.picks.map((pick) => pick.source),
+    })
+    .eq("id", input.dailyRecommendationId)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    throw new Error(
+      `Failed to update daily recommendations: ${error?.message ?? "empty result"}`
+    );
+  }
+  return data;
+}
+
 export async function findRecommendationCandidates(): Promise<
   RecommendationCandidate[]
 > {

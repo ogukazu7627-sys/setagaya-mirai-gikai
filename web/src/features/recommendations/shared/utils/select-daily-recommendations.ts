@@ -26,15 +26,45 @@ export function selectDailyRecommendations({
   seed,
   limit = 5,
 }: SelectionInput): RecommendationPick[] {
-  const eligible = Array.from(
-    new Map(
-      candidates
-        .filter((candidate) => !displayedBillIds.has(candidate.id))
-        .map((candidate) => [candidate.id, candidate])
-    ).values()
+  const uniqueCandidates = uniqueCandidatesById(candidates);
+  const unseenCandidates = uniqueCandidates.filter(
+    (candidate) => !displayedBillIds.has(candidate.id)
   );
-  const chosen = new Map<string, RecommendationPick>();
+  const unseenPicks = selectFromCandidatePool({
+    candidates: unseenCandidates,
+    selectedSmallTags,
+    selectedParentCategoryIds,
+    seed,
+    limit,
+  });
 
+  if (unseenPicks.length > 0) {
+    return unseenPicks;
+  }
+
+  return selectFromCandidatePool({
+    candidates: uniqueCandidates,
+    selectedSmallTags,
+    selectedParentCategoryIds,
+    seed: `${seed}:history-fallback`,
+    limit,
+  });
+}
+
+function selectFromCandidatePool({
+  candidates,
+  selectedSmallTags,
+  selectedParentCategoryIds,
+  seed,
+  limit,
+}: {
+  candidates: RecommendationCandidate[];
+  selectedSmallTags: RecommendationSmallTag[];
+  selectedParentCategoryIds: RecommendationCategoryId[];
+  seed: string;
+  limit: number;
+}): RecommendationPick[] {
+  const chosen = new Map<string, RecommendationPick>();
   // 興味分野が limit より多い場合、常に同じ並び順で先頭から詰めると
   // 後ろの分野が一度も出なくなる。seed には日付が入るので、
   // 日ごとに優先順を入れ替えて全ての分野に出番を回す。
@@ -45,7 +75,7 @@ export function selectDailyRecommendations({
   );
 
   for (const candidate of pickMaximumSelectedTagCoverage(
-    eligible,
+    candidates,
     prioritizedTags,
     seed
   )) {
@@ -58,7 +88,7 @@ export function selectDailyRecommendations({
   const selectedTagSet = new Set<string>(selectedSmallTags);
   addFromPool({
     chosen,
-    pool: eligible.filter((candidate) =>
+    pool: candidates.filter((candidate) =>
       candidate.tags.some((tag) => selectedTagSet.has(tag))
     ),
     targetSize: Math.min(3, limit),
@@ -74,7 +104,7 @@ export function selectDailyRecommendations({
 
   addFromPool({
     chosen,
-    pool: eligible.filter((candidate) =>
+    pool: candidates.filter((candidate) =>
       candidate.tags.some(
         (tag) => parentTagSet.has(tag) && !selectedTagSet.has(tag)
       )
@@ -86,7 +116,7 @@ export function selectDailyRecommendations({
 
   addFromPool({
     chosen,
-    pool: eligible.filter((candidate) =>
+    pool: candidates.filter((candidate) =>
       candidate.tags.some((tag) => parentTagSet.has(tag))
     ),
     targetSize: limit,
@@ -98,6 +128,14 @@ export function selectDailyRecommendations({
     Array.from(chosen.values()).slice(0, limit),
     `${seed}:final`,
     (pick) => pick.billId
+  );
+}
+
+function uniqueCandidatesById(
+  candidates: RecommendationCandidate[]
+): RecommendationCandidate[] {
+  return Array.from(
+    new Map(candidates.map((candidate) => [candidate.id, candidate])).values()
   );
 }
 
