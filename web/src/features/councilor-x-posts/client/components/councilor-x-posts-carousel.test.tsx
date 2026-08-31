@@ -4,7 +4,6 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { writeComponentState } from "@/features/public-view-state/client/utils/public-view-state-storage";
 import type { PublicCouncilorXPost } from "../../shared/types/councilor-x-post";
 import { CouncilorXPostsCarousel } from "./councilor-x-posts-carousel";
 
@@ -251,20 +250,21 @@ describe("CouncilorXPostsCarousel", () => {
     );
   });
 
-  it("ページへ戻ると直前に見ていた投稿を表示する", async () => {
-    writeComponentState("home-councilor-x-posts-carousel", {
-      postId: posts[6].postId,
-    });
+  it("保存済みの表示位置があっても毎回最新投稿から表示する", async () => {
+    window.sessionStorage.setItem(
+      "mirai-public-view-state:v1:component:home-councilor-x-posts-carousel",
+      JSON.stringify({ postId: posts[6].postId })
+    );
 
     render(<CouncilorXPostsCarousel posts={posts} />);
 
     await waitFor(() => {
-      expect(screen.getByText("7 / 10")).toBeVisible();
+      expect(screen.getByText("1 / 10")).toBeVisible();
     });
-    expect(carouselMock.api.scrollTo).toHaveBeenCalledWith(6, true);
+    expect(carouselMock.api.scrollTo).not.toHaveBeenCalled();
     expect(screen.getByTestId("post-1006")).toHaveAttribute(
       "data-should-load",
-      "true"
+      "false"
     );
   });
 });
