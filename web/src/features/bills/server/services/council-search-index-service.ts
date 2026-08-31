@@ -6,7 +6,7 @@ import { getJapanTime } from "@/lib/utils/date";
 import {
   COUNCIL_SEARCH_EMBEDDING_DIMENSIONS,
   COUNCIL_SEARCH_EMBEDDING_MODEL,
-} from "../../shared/constants/council-ai-search";
+} from "../../shared/constants/council-search-index";
 import { buildCouncilSearchChunks } from "../../shared/utils/build-council-search-chunks";
 import {
   type ClaimedCouncilSearchIndexJob,

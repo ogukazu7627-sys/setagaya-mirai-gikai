@@ -1,86 +1,164 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
+import { z } from "zod";
+import { statusNoteMatchesCommittee } from "@/features/committees/shared/committee-matching";
 import { COUNCIL_SEARCH_PUBLICATION_CATEGORIES } from "../../shared/constants/publication-categories";
 import type { BillItemType } from "../../shared/types";
-import type { CouncilSearchCouncilor } from "../../shared/types/council-ai-search";
+import { compareBillsForHomeList } from "../../shared/utils/sort-bills";
 
-export type CouncilSearchRankedBill = {
-  billId: string;
-  score: number;
-  semanticSimilarity: number;
-  keywordScore: number;
+type CouncilSearchCandidateRow = {
+  id: string;
+  item_type: BillItemType;
+  major_category: string | null;
+  status_note: string | null;
+  submitted_date: string | null;
 };
 
-export async function findCouncilSearchCouncilors(): Promise<
-  CouncilSearchCouncilor[]
-> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("councilors")
-    .select("id, display_name, normalized_name")
-    .order("display_name", { ascending: true });
-  if (error) {
-    throw new Error("Failed to fetch councilors for council search");
-  }
-  return (data ?? []).map((councilor) => ({
-    id: councilor.id,
-    displayName: councilor.display_name,
-    normalizedName: councilor.normalized_name,
-  }));
-}
+const SEARCH_RESULT_LIMIT = 1000;
+const BILL_SEARCH_COLUMNS = [
+  "name",
+  "major_category",
+  "status_label",
+  "status_note",
+] as const;
+const CONTENT_SEARCH_COLUMNS = ["title", "summary", "content"] as const;
 
-export async function findRankedCouncilSearchBills(input: {
-  queryEmbedding: string | null;
-  queryTerms: string[];
+/**
+ * 管理画面と同じ部分一致方式で公開情報を検索し、今年の案件だけを返す。
+ * 本文はDB内で照合し、レスポンスへは含めない。
+ */
+export async function findCouncilBillIdsByKeyword(input: {
+  keyword: string;
   dietSessionIds: string[];
   contentType: BillItemType | null;
   majorCategory: string | null;
   committeeName: string | null;
-  councilorIds: string[];
-  councilorNames: string[];
-  similarityThreshold: number;
-  limit: number;
-}): Promise<CouncilSearchRankedBill[]> {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("search_council_bills", {
-    p_query_embedding: input.queryEmbedding,
-    p_query_terms: input.queryTerms,
-    p_diet_session_ids: input.dietSessionIds,
-    p_content_type: input.contentType,
-    p_major_category: input.majorCategory,
-    p_committee_name: input.committeeName,
-    p_councilor_ids: input.councilorIds,
-    p_councilor_names: input.councilorNames,
-    p_similarity_threshold: input.similarityThreshold,
-    p_limit: input.limit,
-  });
-  if (error) {
-    throw new Error("Failed to search council bills");
-  }
-  const rankedRows = data ?? [];
-  if (rankedRows.length === 0) {
+}): Promise<string[]> {
+  const keyword = input.keyword.trim();
+  if (!keyword || input.dietSessionIds.length === 0) {
     return [];
   }
-  const { data: normalBills, error: normalBillsError } = await supabase
-    .from("bills")
-    .select("id")
-    .in(
-      "id",
-      rankedRows.map((row) => row.bill_id)
-    )
-    .in("publication_category", COUNCIL_SEARCH_PUBLICATION_CATEGORIES);
-  if (normalBillsError) {
-    throw new Error("Failed to validate council search results");
-  }
-  const normalBillIds = new Set((normalBills ?? []).map((bill) => bill.id));
 
-  return rankedRows
-    .filter((row) => normalBillIds.has(row.bill_id))
-    .map((row) => ({
-      billId: row.bill_id,
-      score: row.score,
-      semanticSimilarity: row.semantic_similarity,
-      keywordScore: row.keyword_score,
-    }));
+  const supabase = createAdminClient();
+  let candidatesQuery = supabase
+    .from("bills")
+    .select("id, item_type, major_category, status_note, submitted_date")
+    .in("diet_session_id", input.dietSessionIds)
+    .eq("publish_status", "published")
+    .in("publication_category", COUNCIL_SEARCH_PUBLICATION_CATEGORIES);
+  if (input.contentType) {
+    candidatesQuery = candidatesQuery.eq("item_type", input.contentType);
+  }
+  if (input.majorCategory) {
+    candidatesQuery = candidatesQuery.eq("major_category", input.majorCategory);
+  }
+
+  const { data: candidateData, error: candidatesError } =
+    await candidatesQuery.limit(SEARCH_RESULT_LIMIT);
+  if (candidatesError) {
+    throw new Error("Failed to fetch council search candidates");
+  }
+
+  const candidates = (
+    (candidateData ?? []) as CouncilSearchCandidateRow[]
+  ).filter((candidate) =>
+    input.committeeName
+      ? statusNoteMatchesCommittee(candidate.status_note, input.committeeName)
+      : true
+  );
+  if (candidates.length === 0) {
+    return [];
+  }
+
+  const candidateIds = candidates.map(({ id }) => id);
+  const matchedIds = new Set<string>();
+  if (
+    z.string().uuid().safeParse(keyword).success &&
+    candidateIds.includes(keyword)
+  ) {
+    matchedIds.add(keyword);
+  }
+
+  const pattern = `%${keyword}%`;
+  const [billColumnResults, contentColumnResults, tagResult] =
+    await Promise.all([
+      Promise.all(
+        BILL_SEARCH_COLUMNS.map((column) =>
+          supabase
+            .from("bills")
+            .select("id")
+            .in("id", candidateIds)
+            .ilike(column, pattern)
+            .limit(SEARCH_RESULT_LIMIT)
+        )
+      ),
+      Promise.all(
+        CONTENT_SEARCH_COLUMNS.map((column) =>
+          supabase
+            .from("bill_contents")
+            .select("bill_id")
+            .in("bill_id", candidateIds)
+            .ilike(column, pattern)
+            .limit(SEARCH_RESULT_LIMIT)
+        )
+      ),
+      supabase
+        .from("tags")
+        .select("id")
+        .ilike("label", pattern)
+        .limit(SEARCH_RESULT_LIMIT),
+    ]);
+
+  for (const result of billColumnResults) {
+    if (result.error) {
+      throw new Error("Failed to search council bills");
+    }
+    for (const row of result.data ?? []) {
+      matchedIds.add(row.id);
+    }
+  }
+  for (const result of contentColumnResults) {
+    if (result.error) {
+      throw new Error("Failed to search council bill contents");
+    }
+    for (const row of result.data ?? []) {
+      matchedIds.add(row.bill_id);
+    }
+  }
+  if (tagResult.error) {
+    throw new Error("Failed to search council tags");
+  }
+
+  const tagIds = (tagResult.data ?? []).map(({ id }) => id);
+  if (tagIds.length > 0) {
+    const { data: billTagData, error: billTagError } = await supabase
+      .from("bills_tags")
+      .select("bill_id")
+      .in("bill_id", candidateIds)
+      .in("tag_id", tagIds)
+      .limit(SEARCH_RESULT_LIMIT);
+    if (billTagError) {
+      throw new Error("Failed to search council bill tags");
+    }
+    for (const row of billTagData ?? []) {
+      matchedIds.add(row.bill_id);
+    }
+  }
+
+  return candidates
+    .filter(({ id }) => matchedIds.has(id))
+    .sort((left, right) =>
+      compareBillsForHomeList(
+        {
+          item_type: left.item_type,
+          submitted_date: left.submitted_date,
+        },
+        {
+          item_type: right.item_type,
+          submitted_date: right.submitted_date,
+        }
+      )
+    )
+    .map(({ id }) => id);
 }

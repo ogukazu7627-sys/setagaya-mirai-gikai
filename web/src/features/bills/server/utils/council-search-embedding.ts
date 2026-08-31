@@ -3,7 +3,7 @@ import {
   COUNCIL_SEARCH_EMBEDDING_DIMENSIONS,
   COUNCIL_SEARCH_EMBEDDING_MODEL,
   COUNCIL_SEARCH_INDEX_VERSION,
-} from "../../shared/constants/council-ai-search";
+} from "../../shared/constants/council-search-index";
 
 export function createCouncilSearchContentHash(content: string): string {
   return createHash("sha256")

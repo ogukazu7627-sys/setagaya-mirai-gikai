@@ -4,7 +4,7 @@ import type { CouncilBillCardRow } from "../repositories/council-bill-directory-
 import { loadCouncilBillCardsByIds } from "./load-council-bill-cards";
 
 describe("loadCouncilBillCardsByIds", () => {
-  it("本文なしの一覧行をカード化し、AI順位どおりに返す", async () => {
+  it("本文なしの一覧行をカード化し、検索順どおりに返す", async () => {
     const findRows = vi
       .fn()
       .mockResolvedValue([createRow("bill-2"), createRow("bill-1")]);

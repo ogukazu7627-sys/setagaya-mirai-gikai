@@ -30,7 +30,7 @@ vi.mock("./bill-card", () => ({
 vi.mock("../../utils/council-bill-page-api", () => ({
   requestCouncilBillPage: vi.fn(),
 }));
-vi.mock("../../utils/council-ai-search-storage", () => ({
+vi.mock("../../utils/council-search-storage", () => ({
   getBrowserCouncilSearchInstallationId: () =>
     "11111111-1111-4111-8111-111111111111",
 }));

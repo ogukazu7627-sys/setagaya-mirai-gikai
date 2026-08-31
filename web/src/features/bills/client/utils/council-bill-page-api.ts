@@ -1,5 +1,5 @@
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
-import { COUNCIL_SEARCH_CLIENT_TIMEOUT_MS } from "../../shared/constants/council-ai-search";
+import { COUNCIL_SEARCH_CLIENT_TIMEOUT_MS } from "../../shared/constants/council-search";
 import type {
   CouncilBillCardPage,
   CouncilBillPageRequest,

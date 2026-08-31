@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  searchCouncilBills: vi.fn(),
+  searchCouncilBillsByKeyword: vi.fn(),
   consumeAnonymousRateLimit: vi.fn(),
 }));
 
-vi.mock("@/features/bills/server/services/council-ai-search-service", () => ({
-  searchCouncilBills: mocks.searchCouncilBills,
-}));
+vi.mock(
+  "@/features/bills/server/services/council-keyword-search-service",
+  () => ({
+    searchCouncilBillsByKeyword: mocks.searchCouncilBillsByKeyword,
+  })
+);
 vi.mock("@/lib/api/anonymous-rate-limit", () => ({
   consumeAnonymousRateLimit: mocks.consumeAnonymousRateLimit,
 }));
@@ -24,14 +27,12 @@ const validBody = {
 
 describe("POST /api/council-search", () => {
   beforeEach(() => {
-    mocks.searchCouncilBills.mockReset();
+    mocks.searchCouncilBillsByKeyword.mockReset();
     mocks.consumeAnonymousRateLimit.mockReset();
     mocks.consumeAnonymousRateLimit.mockResolvedValue(true);
-    mocks.searchCouncilBills.mockResolvedValue({
-      billIds: ["22222222-2222-4222-8222-222222222222"],
-      bills: [],
+    mocks.searchCouncilBillsByKeyword.mockResolvedValue({
+      items: [],
       total: 1,
-      mode: "hybrid",
     });
   });
 
@@ -40,12 +41,10 @@ describe("POST /api/council-search", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(mocks.searchCouncilBills).toHaveBeenCalledWith(validBody);
+    expect(mocks.searchCouncilBillsByKeyword).toHaveBeenCalledWith(validBody);
     expect(await response.json()).toEqual({
-      billIds: ["22222222-2222-4222-8222-222222222222"],
-      bills: [],
+      items: [],
       total: 1,
-      mode: "hybrid",
     });
   });
 
@@ -64,7 +63,7 @@ describe("POST /api/council-search", () => {
       createRequest({ ...validBody, padding: "x".repeat(17 * 1024) })
     );
     expect(oversized.status).toBe(413);
-    expect(mocks.searchCouncilBills).not.toHaveBeenCalled();
+    expect(mocks.searchCouncilBillsByKeyword).not.toHaveBeenCalled();
   });
 
   it("端末またはIPの上限到達時は429を返す", async () => {
@@ -73,11 +72,13 @@ describe("POST /api/council-search", () => {
     const response = await POST(createRequest(validBody));
 
     expect(response.status).toBe(429);
-    expect(mocks.searchCouncilBills).not.toHaveBeenCalled();
+    expect(mocks.searchCouncilBillsByKeyword).not.toHaveBeenCalled();
   });
 
   it("内部エラー時も検索文をレスポンスへ含めない", async () => {
-    mocks.searchCouncilBills.mockRejectedValue(new Error("gateway failed"));
+    mocks.searchCouncilBillsByKeyword.mockRejectedValue(
+      new Error("database failed")
+    );
 
     const response = await POST(createRequest(validBody));
     const text = await response.text();

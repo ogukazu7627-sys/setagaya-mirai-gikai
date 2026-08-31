@@ -1,17 +1,20 @@
-import { searchCouncilBills } from "@/features/bills/server/services/council-ai-search-service";
+import { searchCouncilBillsByKeyword } from "@/features/bills/server/services/council-keyword-search-service";
 import {
-  councilAiSearchErrorResponse,
-  councilAiSearchJsonResponse,
-} from "@/features/bills/server/utils/council-ai-search-response";
-import { COUNCIL_SEARCH_ANONYMOUS_RATE_LIMIT } from "@/features/bills/shared/constants/council-ai-search";
-import { councilAiSearchRequestSchema } from "@/features/bills/shared/utils/council-ai-search-schema";
+  councilSearchErrorResponse,
+  councilSearchJsonResponse,
+} from "@/features/bills/server/utils/council-search-response";
+import { COUNCIL_SEARCH_ANONYMOUS_RATE_LIMIT } from "@/features/bills/shared/constants/council-search";
+import { councilKeywordSearchRequestSchema } from "@/features/bills/shared/utils/council-keyword-search-schema";
 import { consumeAnonymousRateLimit } from "@/lib/api/anonymous-rate-limit";
 import { assertSameOrigin, parseBoundedJson } from "@/lib/api/bounded-json";
 
 export async function POST(request: Request): Promise<Response> {
   try {
     assertSameOrigin(request);
-    const input = await parseBoundedJson(request, councilAiSearchRequestSchema);
+    const input = await parseBoundedJson(
+      request,
+      councilKeywordSearchRequestSchema
+    );
     const allowed = await consumeAnonymousRateLimit({
       request,
       installationId: input.installationId,
@@ -21,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
       ipLimit: COUNCIL_SEARCH_ANONYMOUS_RATE_LIMIT.ipLimit,
     });
     if (!allowed) {
-      return councilAiSearchJsonResponse(
+      return councilSearchJsonResponse(
         {
           error: "検索回数が多すぎます。少し待ってからお試しください",
           code: "rate-limited",
@@ -30,8 +33,11 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    return councilAiSearchJsonResponse(await searchCouncilBills(input), 200);
+    return councilSearchJsonResponse(
+      await searchCouncilBillsByKeyword(input),
+      200
+    );
   } catch (error) {
-    return councilAiSearchErrorResponse(error);
+    return councilSearchErrorResponse(error);
   }
 }

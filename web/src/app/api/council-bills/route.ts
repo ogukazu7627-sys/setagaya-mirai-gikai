@@ -1,9 +1,9 @@
 import { loadCouncilBillPage } from "@/features/bills/server/services/council-bill-page-service";
 import {
-  councilAiSearchErrorResponse,
-  councilAiSearchJsonResponse,
-} from "@/features/bills/server/utils/council-ai-search-response";
-import { COUNCIL_BILLS_ANONYMOUS_RATE_LIMIT } from "@/features/bills/shared/constants/council-ai-search";
+  councilSearchErrorResponse,
+  councilSearchJsonResponse,
+} from "@/features/bills/server/utils/council-search-response";
+import { COUNCIL_BILLS_ANONYMOUS_RATE_LIMIT } from "@/features/bills/shared/constants/council-search";
 import { councilBillPageRequestSchema } from "@/features/bills/shared/utils/council-bill-page-schema";
 import { consumeAnonymousRateLimit } from "@/lib/api/anonymous-rate-limit";
 import { assertSameOrigin, parseBoundedJson } from "@/lib/api/bounded-json";
@@ -21,7 +21,7 @@ export async function POST(request: Request): Promise<Response> {
       ipLimit: COUNCIL_BILLS_ANONYMOUS_RATE_LIMIT.ipLimit,
     });
     if (!allowed) {
-      return councilAiSearchJsonResponse(
+      return councilSearchJsonResponse(
         {
           error: "操作回数が多すぎます。少し待ってからお試しください",
           code: "rate-limited",
@@ -30,8 +30,8 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    return councilAiSearchJsonResponse(await loadCouncilBillPage(input), 200);
+    return councilSearchJsonResponse(await loadCouncilBillPage(input), 200);
   } catch (error) {
-    return councilAiSearchErrorResponse(error);
+    return councilSearchErrorResponse(error);
   }
 }

@@ -4,7 +4,7 @@ import type { GeneralQuestionCategoryCardData } from "../types/general-question"
 import { groupGeneralQuestionSearchResults } from "./group-general-question-search-results";
 
 describe("groupGeneralQuestionSearchResults", () => {
-  it("AI順位を保ちながら同じ大分類の一般質問を1枚に畳む", () => {
+  it("検索順を保ちながら同じ大分類の一般質問を1枚に畳む", () => {
     const reportFirst = createCard("report-first", "report", "教育🏫");
     const educationFirst = createCard(
       "education-first",
