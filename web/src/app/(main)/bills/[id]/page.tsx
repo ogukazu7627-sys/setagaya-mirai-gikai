@@ -15,6 +15,7 @@ import { getBudgetQuestionCategoryBySlug } from "@/features/budget/shared/consta
 import { getGeneralQuestionCategoryById } from "@/features/general-questions/shared/utils/general-question-categories";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
+import { isUuid } from "@/lib/utils/uuid";
 
 interface BillDetailPageProps {
   params: Promise<{
@@ -26,6 +27,12 @@ export async function generateMetadata({
   params,
 }: BillDetailPageProps): Promise<Metadata> {
   const { id } = await params;
+  if (!isUuid(id)) {
+    return {
+      title: "議案が見つかりません",
+    };
+  }
+
   const redirectReference = await getPublishedBillRedirectReference(id);
 
   if (redirectReference?.kind === "budget") {
@@ -138,6 +145,10 @@ export async function generateMetadata({
 
 export default async function BillDetailPage({ params }: BillDetailPageProps) {
   const { id } = await params;
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const redirectReference = await getPublishedBillRedirectReference(id);
 
   if (redirectReference?.kind === "budget") {
