@@ -226,7 +226,11 @@ export function TodayRecommendationsSection({
       } else {
         setStatus("loading");
       }
-      if (cachedEntry && isTodayRecommendationsCacheFresh(cachedEntry)) {
+      if (
+        cachedEntry &&
+        isTodayRecommendationsCacheFresh(cachedEntry) &&
+        cachedEntry.data.bills.length > 0
+      ) {
         return;
       }
 

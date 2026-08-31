@@ -285,6 +285,49 @@ describe("TodayRecommendationsSection", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("新しい当日キャッシュでも空ならAPIで再検証する", async () => {
+    const installationId = "11111111-1111-4111-8111-111111111111";
+    window.localStorage.setItem(
+      RECOMMENDATION_PROFILE_STORAGE_KEY,
+      JSON.stringify({
+        installationId,
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        completedAt: "2026-07-25T00:00:00.000Z",
+        preferenceVersion: 1,
+      })
+    );
+    writeTodayRecommendationsCache(
+      window.localStorage,
+      {
+        installationId,
+        preferenceVersion: 1,
+        difficultyLevel: "normal",
+      },
+      {
+        recommendationDate: getJstDateKey(),
+        bills: [],
+        selectedSmallTags: ["不登校支援", "学校改築", "防災情報"],
+        selectedParentCategoryIds: ["education", "disaster-prevention"],
+        preferenceVersion: 1,
+        pushEnabled: false,
+        vapidPublicKey: null,
+      }
+    );
+    mocks.fetchTodayRecommendations.mockResolvedValue(
+      recommendationResponse("履歴 fallback 案件")
+    );
+
+    render(<TodayRecommendationsSection currentDifficulty="normal" />);
+
+    expect(mocks.fetchTodayRecommendations).toHaveBeenCalledWith(
+      installationId
+    );
+    expect(
+      await screen.findByText("案件カード: 履歴 fallback 案件")
+    ).toBeVisible();
+  });
+
   it("古い当日キャッシュを即表示しながら裏で再検証する", async () => {
     const installationId = "11111111-1111-4111-8111-111111111111";
     window.localStorage.setItem(

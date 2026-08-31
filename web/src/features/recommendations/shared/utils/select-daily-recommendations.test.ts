@@ -158,32 +158,41 @@ describe("selectDailyRecommendations", () => {
     ).toBe(false);
   });
 
-  it("allows a previously displayed bill only after the history set is cleared", () => {
-    const candidates = [candidate("previously-seen", ["不登校支援"])];
-    const beforeReset = selectDailyRecommendations({
+  it("falls back to previously displayed bills when no unseen matches remain", () => {
+    const result = selectDailyRecommendations({
       ...baseInput,
       selectedSmallTags: [...baseInput.selectedSmallTags],
       selectedParentCategoryIds: [...baseInput.selectedParentCategoryIds],
-      candidates,
+      candidates: [
+        candidate("previously-seen", ["不登校支援"]),
+        candidate("unrelated", ["保育所"]),
+      ],
       displayedBillIds: new Set(["previously-seen"]),
     });
-    const afterReset = selectDailyRecommendations({
-      ...baseInput,
-      selectedSmallTags: [...baseInput.selectedSmallTags],
-      selectedParentCategoryIds: [...baseInput.selectedParentCategoryIds],
-      candidates,
-      displayedBillIds: new Set(),
-      seed: "profile:2026-07-25:2",
-    });
 
-    expect(beforeReset).toEqual([]);
-    expect(afterReset).toEqual([
+    expect(result).toEqual([
       {
         billId: "previously-seen",
         source: "selected-subcategory",
       },
     ]);
   });
+
+  it("still prefers unseen bills before reusing displayed bills", () => {
+    const result = selectDailyRecommendations({
+      ...baseInput,
+      selectedSmallTags: [...baseInput.selectedSmallTags],
+      selectedParentCategoryIds: [...baseInput.selectedParentCategoryIds],
+      candidates: [
+        candidate("previously-seen", ["不登校支援"]),
+        candidate("fresh", ["学校改築"]),
+      ],
+      displayedBillIds: new Set(["previously-seen"]),
+    });
+
+    expect(result.map((pick) => pick.billId)).toEqual(["fresh"]);
+  });
+
   it("covers only limit-many tags per day when more than five are selected", () => {
     const selectedSmallTags = [
       "不登校支援",
