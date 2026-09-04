@@ -54,6 +54,13 @@ function request(body: unknown) {
   });
 }
 
+function googleUser(id = "user-1") {
+  return {
+    id,
+    app_metadata: { provider: "google" },
+  };
+}
+
 describe("POST /api/interview/initialize", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -77,9 +84,27 @@ describe("POST /api/interview/initialize", () => {
     expect(mocks.initializeInterviewChat).not.toHaveBeenCalled();
   });
 
+  it("匿名認証だけでは初期化せず401を返す", async () => {
+    mocks.getChatSupabaseUser.mockResolvedValue({
+      data: {
+        user: {
+          id: "anonymous-user",
+          app_metadata: { provider: "anonymous" },
+        },
+      },
+      error: null,
+    });
+
+    const res = await POST(request({ billId: "bill-1" }));
+
+    expect(res.status).toBe(401);
+    expect(mocks.resolveInterviewRuntimeAccess).not.toHaveBeenCalled();
+    expect(mocks.initializeInterviewChat).not.toHaveBeenCalled();
+  });
+
   it("公開中の対象インタビューがなければ404を返す", async () => {
     mocks.getChatSupabaseUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
+      data: { user: googleUser() },
       error: null,
     });
     mocks.resolveInterviewRuntimeAccess.mockResolvedValue(null);
@@ -87,12 +112,14 @@ describe("POST /api/interview/initialize", () => {
     const res = await POST(request({ billId: "bill-1" }));
 
     expect(res.status).toBe(404);
+    expect(mocks.checkSystemDailyCostLimit).not.toHaveBeenCalled();
+    expect(mocks.checkSystemMonthlyCostLimit).not.toHaveBeenCalled();
     expect(mocks.initializeInterviewChat).not.toHaveBeenCalled();
   });
 
   it("ログイン済みで公開対象なら既存初期化処理の結果を返す", async () => {
     mocks.getChatSupabaseUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
+      data: { user: googleUser() },
       error: null,
     });
     mocks.resolveInterviewRuntimeAccess.mockResolvedValue({
@@ -143,11 +170,13 @@ describe("POST /api/interview/initialize", () => {
         getUser: expect.any(Function),
       })
     );
+    expect(mocks.checkSystemDailyCostLimit).toHaveBeenCalledTimes(1);
+    expect(mocks.checkSystemMonthlyCostLimit).toHaveBeenCalledTimes(1);
   });
 
   it("初回質問を後回しにする指定ならセッションだけ初期化する", async () => {
     mocks.getChatSupabaseUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
+      data: { user: googleUser() },
       error: null,
     });
     mocks.resolveInterviewRuntimeAccess.mockResolvedValue({
@@ -188,5 +217,7 @@ describe("POST /api/interview/initialize", () => {
         getUser: expect.any(Function),
       })
     );
+    expect(mocks.checkSystemDailyCostLimit).not.toHaveBeenCalled();
+    expect(mocks.checkSystemMonthlyCostLimit).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,27 @@
 import type { ReportRecipientSelection } from "@/features/councilor-digest/shared/types";
+import type { InterviewInitializeResponse } from "../../shared/types";
+
+export async function callInitializeInterviewApi(params: {
+  billId: string;
+  deferInitialQuestion: boolean;
+}): Promise<InterviewInitializeResponse> {
+  const res = await fetch("/api/interview/initialize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "AIインタビューを開始できませんでした"
+    );
+  }
+
+  return data as InterviewInitializeResponse;
+}
 
 interface CompleteInterviewParams {
   sessionId: string;

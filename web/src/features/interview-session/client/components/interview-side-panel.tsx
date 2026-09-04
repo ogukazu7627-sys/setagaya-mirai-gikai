@@ -1,30 +1,11 @@
 "use client";
 
-import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import { useCallback, useEffect, useState } from "react";
 import { GoogleLoginGate } from "@/features/chat/client/components/google-login-gate";
 import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
+import type { InterviewInitializeResponse } from "../../shared/types";
+import { callInitializeInterviewApi } from "../utils/interview-api-client";
 import { InterviewChatClient } from "./interview-chat-client";
-
-type InitializeResponse = {
-  session: {
-    id: string;
-    started_at: string;
-    rating: number | null;
-  };
-  messages: Array<{
-    id: string;
-    role: "assistant" | "user";
-    content: string;
-    created_at: string;
-  }>;
-  mode: InterviewMode;
-  totalQuestions: number;
-  estimatedDuration: number | null;
-  sessionStartedAt: string;
-  hasRated: boolean;
-  billTitle: string;
-};
 
 interface InterviewSidePanelProps {
   billId: string;
@@ -33,6 +14,7 @@ interface InterviewSidePanelProps {
   authStatus: ChatAuthStatus;
   authError?: string;
   onSignInWithGoogle: () => Promise<void>;
+  layout?: "page" | "panel";
 }
 
 export function InterviewSidePanel({
@@ -42,8 +24,9 @@ export function InterviewSidePanel({
   authStatus,
   authError,
   onSignInWithGoogle,
+  layout = "panel",
 }: InterviewSidePanelProps) {
-  const [data, setData] = useState<InitializeResponse | null>(null);
+  const [data, setData] = useState<InterviewInitializeResponse | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isPreparingInitialQuestion, setIsPreparingInitialQuestion] =
     useState(false);
@@ -53,24 +36,8 @@ export function InterviewSidePanel({
   const isLocked = !previewOnly && authStatus !== "authenticated";
 
   const requestInitialize = useCallback(
-    async (deferInitialQuestion: boolean) => {
-      const res = await fetch("/api/interview/initialize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ billId, deferInitialQuestion }),
-      });
-      const body = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(
-          typeof body.error === "string"
-            ? body.error
-            : "AIインタビューを開始できませんでした"
-        );
-      }
-
-      return body as InitializeResponse;
-    },
+    (deferInitialQuestion: boolean) =>
+      callInitializeInterviewApi({ billId, deferInitialQuestion }),
     [billId]
   );
 
@@ -189,7 +156,7 @@ export function InterviewSidePanel({
             AIがいくつか質問し、あなたの意見を整理します。
           </p>
           <p className="mt-1 text-xs font-medium leading-relaxed text-mirai-text-muted">
-            Googleログイン後、このパネル内でインタビューを進められます。
+            Googleログイン後、AIインタビューを進められます。
           </p>
         </div>
         <GoogleLoginGate
@@ -264,7 +231,7 @@ export function InterviewSidePanel({
       estimatedDuration={data.estimatedDuration}
       sessionStartedAt={data.sessionStartedAt}
       hasRated={data.hasRated}
-      layout="panel"
+      layout={layout}
       isPreparingInitialQuestion={isPreparingInitialQuestion}
     />
   );

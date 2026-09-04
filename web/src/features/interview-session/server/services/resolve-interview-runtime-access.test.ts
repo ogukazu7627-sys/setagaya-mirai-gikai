@@ -39,8 +39,10 @@ vi.mock(
 
 import { resolveInterviewRuntimeAccess } from "./resolve-interview-runtime-access";
 
+const BILL_ID = "123e4567-e89b-42d3-a456-426614174000";
+
 const publicBill = {
-  id: "bill-1",
+  id: BILL_ID,
   name: "テスト案件",
   interview_enabled: true,
   tags: [],
@@ -48,7 +50,7 @@ const publicBill = {
 
 const publicConfig = {
   id: "config-1",
-  bill_id: "bill-1",
+  bill_id: BILL_ID,
   status: "public",
   deleted_at: null,
 };
@@ -61,7 +63,7 @@ describe("resolveInterviewRuntimeAccess", () => {
   });
 
   it("公開案件かつインタビューONならpublic accessを返す", async () => {
-    const result = await resolveInterviewRuntimeAccess({ billId: "bill-1" });
+    const result = await resolveInterviewRuntimeAccess({ billId: BILL_ID });
 
     expect(result).toMatchObject({
       mode: "public",
@@ -77,7 +79,7 @@ describe("resolveInterviewRuntimeAccess", () => {
       interview_enabled: false,
     });
 
-    const result = await resolveInterviewRuntimeAccess({ billId: "bill-1" });
+    const result = await resolveInterviewRuntimeAccess({ billId: BILL_ID });
 
     expect(result).toBeNull();
   });
@@ -90,7 +92,7 @@ describe("resolveInterviewRuntimeAccess", () => {
     mocks.getInterviewConfigAdmin.mockResolvedValue(adminConfig);
 
     const result = await resolveInterviewRuntimeAccess({
-      billId: "bill-1",
+      billId: BILL_ID,
       previewToken: "preview-token-1",
     });
 
@@ -106,12 +108,23 @@ describe("resolveInterviewRuntimeAccess", () => {
     mocks.validatePreviewToken.mockResolvedValue(false);
 
     const result = await resolveInterviewRuntimeAccess({
-      billId: "bill-1",
+      billId: BILL_ID,
       previewToken: "bad-token",
     });
 
     expect(result).toBeNull();
     expect(mocks.getBillByIdAdmin).not.toHaveBeenCalled();
     expect(mocks.getInterviewConfigAdmin).not.toHaveBeenCalled();
+  });
+
+  it("UUIDではない案件IDは各ローダーを呼ばずnullを返す", async () => {
+    const result = await resolveInterviewRuntimeAccess({
+      billId: "not-a-uuid",
+    });
+
+    expect(result).toBeNull();
+    expect(mocks.getBillById).not.toHaveBeenCalled();
+    expect(mocks.getInterviewConfig).not.toHaveBeenCalled();
+    expect(mocks.validatePreviewToken).not.toHaveBeenCalled();
   });
 });

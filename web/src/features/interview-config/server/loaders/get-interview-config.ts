@@ -2,6 +2,7 @@ import type { Database } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
+import { isUuid } from "@/lib/utils/uuid";
 import { findPublicInterviewConfigByBillId } from "../repositories/interview-config-repository";
 
 export type InterviewConfig =
@@ -24,6 +25,10 @@ export async function getInterviewConfig(
       created_at: "2026-07-05 00:00:00+09",
       updated_at: "2026-07-05 00:00:00+09",
     };
+  }
+
+  if (!isUuid(billId)) {
+    return null;
   }
 
   return _getCachedInterviewConfig(billId);

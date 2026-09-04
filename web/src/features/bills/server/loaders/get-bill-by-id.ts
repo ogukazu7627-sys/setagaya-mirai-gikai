@@ -6,15 +6,20 @@ import {
   getSetagayaMockBillById,
   isSetagayaMockMode,
 } from "@/lib/setagaya-mock";
+import { isUuid } from "@/lib/utils/uuid";
 import type { BillWithContent } from "../../shared/types";
 import {
-  findPublishedBillById,
   findMiraiStanceByBillId,
+  findPublishedBillById,
   findTagsByBillId,
 } from "../repositories/bill-repository";
 import { getBillContentWithDifficulty } from "./helpers/get-bill-content";
 
 export async function getBillById(id: string): Promise<BillWithContent | null> {
+  if (!isSetagayaMockMode && !isUuid(id)) {
+    return null;
+  }
+
   // キャッシュ外でcookiesにアクセス
   const difficultyLevel = await getDifficultyLevel();
   if (isSetagayaMockMode) {
@@ -28,19 +33,17 @@ const _getCachedBillById = unstable_cache(
     id: string,
     difficultyLevel: DifficultyLevelEnum
   ): Promise<BillWithContent | null> => {
-    // 基本的なbill情報、見解、コンテンツ、タグを並列取得
-    // 公開ステータスの議案のみを取得
-    const [bill, miraiStance, billContent, billTags] = await Promise.all([
-      findPublishedBillById(id),
+    // 先に親案件の存在を確認し、404対象では関連テーブルを照会しない。
+    const bill = await findPublishedBillById(id);
+    if (!bill) {
+      return null;
+    }
+
+    const [miraiStance, billContent, billTags] = await Promise.all([
       findMiraiStanceByBillId(id),
       getBillContentWithDifficulty(id, difficultyLevel),
       findTagsByBillId(id),
     ]);
-
-    if (!bill) {
-      console.error("Failed to fetch bill");
-      return null;
-    }
 
     // タグデータを整形
     const tags =

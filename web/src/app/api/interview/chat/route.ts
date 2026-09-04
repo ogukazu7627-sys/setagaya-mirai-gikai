@@ -4,6 +4,7 @@ import {
 } from "@/features/chat/server/services/system-cost-guard";
 import { chatErrorToResponse } from "@/features/chat/server/utils/chat-error-response";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { isGoogleAuthUser } from "@/features/chat/shared/auth";
 import { handleInterviewChatRequest } from "@/features/interview-session/server/services/handle-interview-chat-request";
 import { resolveInterviewRuntimeAccess } from "@/features/interview-session/server/services/resolve-interview-runtime-access";
 import { jsonResponse } from "@/lib/api/response";
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
     error: getUserError,
   } = await getChatSupabaseUser();
 
-  if (getUserError || !user) {
+  if (getUserError || !user || !isGoogleAuthUser(user)) {
     return jsonResponse({ error: "Googleログインが必要です" }, 401);
   }
 

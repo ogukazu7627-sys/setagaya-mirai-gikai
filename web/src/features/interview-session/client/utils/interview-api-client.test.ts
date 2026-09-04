@@ -1,9 +1,72 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   callCompleteApi,
+  callInitializeInterviewApi,
   callRecipientCandidatesApi,
   callUpdatePublicSettingApi,
 } from "./interview-api-client";
+
+describe("callInitializeInterviewApi", () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("初回質問の遅延指定を初期化APIへ渡す", async () => {
+    const response = {
+      session: {
+        id: "session-1",
+        started_at: "2026-09-04T00:00:00.000Z",
+        rating: null,
+      },
+      messages: [],
+      mode: "loop",
+      totalQuestions: 4,
+      estimatedDuration: 5,
+      sessionStartedAt: "2026-09-04T00:00:00.000Z",
+      hasRated: false,
+      billTitle: "テスト案件",
+    };
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify(response), { status: 200 })
+    );
+
+    await expect(
+      callInitializeInterviewApi({
+        billId: "bill-1",
+        deferInitialQuestion: true,
+      })
+    ).resolves.toEqual(response);
+    expect(globalThis.fetch).toHaveBeenCalledWith("/api/interview/initialize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        billId: "bill-1",
+        deferInitialQuestion: true,
+      }),
+    });
+  });
+
+  it("初期化APIのエラーメッセージを利用者向けに返す", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify({ error: "Googleログインが必要です" }), {
+        status: 401,
+      })
+    );
+
+    await expect(
+      callInitializeInterviewApi({
+        billId: "bill-1",
+        deferInitialQuestion: true,
+      })
+    ).rejects.toThrow("Googleログインが必要です");
+  });
+});
 
 describe("callCompleteApi", () => {
   const originalFetch = globalThis.fetch;

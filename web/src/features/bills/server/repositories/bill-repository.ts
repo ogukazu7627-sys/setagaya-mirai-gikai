@@ -125,13 +125,13 @@ export async function findPublishedBillById(
     query = query.in("publication_category", NORMAL_PUBLICATION_CATEGORIES);
   }
 
-  const { data, error } = await query.single();
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
-    return null;
+    throw new Error(`Failed to fetch published bill: ${error.message}`);
   }
 
-  return data as BillWithDietSession;
+  return data as BillWithDietSession | null;
 }
 
 /**
@@ -170,7 +170,7 @@ export async function findMiraiStanceByBillId(billId: string) {
     .from("mirai_stances")
     .select("*")
     .eq("bill_id", billId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return null;
@@ -213,11 +213,10 @@ export async function findBillContentByDifficulty(
     .select("*")
     .eq("bill_id", billId)
     .eq("difficulty_level", difficultyLevel)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    console.error(`Failed to fetch bill content: ${error.message}`);
-    return null;
+    throw new Error(`Failed to fetch bill content: ${error.message}`);
   }
 
   return data;
