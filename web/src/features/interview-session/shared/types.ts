@@ -1,3 +1,4 @@
+import type { InterviewMode } from "@mirai-gikai/shared/interview-prompts/types";
 import type { Database } from "@mirai-gikai/supabase";
 
 // Database types
@@ -34,4 +35,24 @@ export interface InterviewChatRequestParams {
   isRetry?: boolean;
   nextQuestionId?: string;
   previewToken?: string;
+}
+
+export interface InterviewInitializeResponse {
+  session: {
+    id: string;
+    started_at: string;
+    rating: number | null;
+  };
+  messages: Array<{
+    id: string;
+    role: "assistant" | "user";
+    content: string;
+    created_at: string;
+  }>;
+  mode: InterviewMode;
+  totalQuestions: number;
+  estimatedDuration: number | null;
+  sessionStartedAt: string;
+  hasRated: boolean;
+  billTitle: string;
 }

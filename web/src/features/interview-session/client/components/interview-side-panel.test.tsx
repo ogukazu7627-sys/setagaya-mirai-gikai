@@ -8,14 +8,17 @@ vi.mock("./interview-chat-client", () => ({
   InterviewChatClient: ({
     initialMessages,
     isPreparingInitialQuestion,
+    layout,
   }: {
     initialMessages: Array<{ content: string }>;
     isPreparingInitialQuestion?: boolean;
+    layout?: "page" | "panel";
   }) => (
     <div>
       <p>初期化完了:</p>
       <p>{initialMessages[0]?.content ?? "メッセージなし"}</p>
       <p>{`準備中:${String(isPreparingInitialQuestion)}`}</p>
+      <p>{`レイアウト:${layout ?? "page"}`}</p>
     </div>
   ),
 }));
@@ -25,6 +28,25 @@ afterEach(() => {
 });
 
 describe("InterviewSidePanel", () => {
+  it("未ログインでは初期化APIを呼ばずGoogleログインを案内する", () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <InterviewSidePanel
+        authStatus="unauthenticated"
+        billId="bill-1"
+        isActive
+        onSignInWithGoogle={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText("AIインタビューを使うにはGoogleログインが必要です")
+    ).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("初期化開始時の再レンダーで通信結果をキャンセルせず、取得した初回メッセージを表示する", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -65,6 +87,7 @@ describe("InterviewSidePanel", () => {
       expect(screen.getByText("初期化完了:")).toBeInTheDocument();
     });
     expect(screen.getByText("最初の質問です")).toBeInTheDocument();
+    expect(screen.getByText("レイアウト:panel")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/interview/initialize",
@@ -75,6 +98,49 @@ describe("InterviewSidePanel", () => {
         }),
       })
     );
+  });
+
+  it("全画面指定では初期化後のチャットへpageレイアウトを渡す", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        session: {
+          id: "session-1",
+          started_at: "2026-07-19T01:00:00.000Z",
+          rating: null,
+        },
+        messages: [
+          {
+            id: "message-1",
+            role: "assistant",
+            content: "既存の質問です",
+            created_at: "2026-07-19T01:00:01.000Z",
+          },
+        ],
+        mode: "loop",
+        totalQuestions: 4,
+        estimatedDuration: 5,
+        sessionStartedAt: "2026-07-19T01:00:00.000Z",
+        hasRated: false,
+        billTitle: "テスト案件",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <InterviewSidePanel
+        authStatus="authenticated"
+        billId="bill-1"
+        isActive
+        layout="page"
+        onSignInWithGoogle={vi.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("レイアウト:page")).toBeInTheDocument();
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("初回質問が未生成でもパネルを先に表示し、裏側で最初の質問を取得する", async () => {

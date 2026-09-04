@@ -3,6 +3,7 @@ import {
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
 import { getChatSupabaseUser } from "@/features/chat/server/utils/supabase-server";
+import { isGoogleAuthUser } from "@/features/chat/shared/auth";
 import { getInterviewQuestions } from "@/features/interview-config/server/loaders/get-interview-questions";
 import { initializeInterviewChat } from "@/features/interview-session/server/loaders/initialize-interview-chat";
 import { resolveInterviewRuntimeAccess } from "@/features/interview-session/server/services/resolve-interview-runtime-access";
@@ -33,17 +34,19 @@ export async function POST(req: Request) {
     error: getUserError,
   } = await getChatSupabaseUser();
 
-  if (getUserError || !user) {
+  if (getUserError || !user || !isGoogleAuthUser(user)) {
     return jsonResponse({ error: "Googleログインが必要です" }, 401);
   }
 
   try {
-    await checkSystemDailyCostLimit();
-    await checkSystemMonthlyCostLimit();
-
     const access = await resolveInterviewRuntimeAccess({ billId });
     if (!access) {
       return jsonResponse({ error: "Interview config not found" }, 404);
+    }
+
+    if (generateInitialQuestion) {
+      await checkSystemDailyCostLimit();
+      await checkSystemMonthlyCostLimit();
     }
 
     const [questions, { session, messages }] = await Promise.all([

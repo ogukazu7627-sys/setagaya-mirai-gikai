@@ -9,6 +9,7 @@ import {
   type InterviewConfig,
 } from "@/features/interview-config/server/loaders/get-interview-config";
 import { getInterviewConfigAdmin } from "@/features/interview-config/server/loaders/get-interview-config-admin";
+import { isUuid } from "@/lib/utils/uuid";
 
 type InterviewRuntimeAccessMode = "public" | "preview";
 
@@ -32,6 +33,10 @@ export async function resolveInterviewRuntimeAccess({
   previewToken?: string | null;
   requireInterviewEnabled?: boolean;
 }): Promise<InterviewRuntimeAccess | null> {
+  if (!isUuid(billId)) {
+    return null;
+  }
+
   const token = normalizePreviewToken(previewToken);
 
   if (token) {
