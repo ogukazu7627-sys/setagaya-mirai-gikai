@@ -14,6 +14,13 @@ export type GeneralQuestionCouncilor = {
   iconUrl: string | null;
 };
 
+export type GeneralQuestionDietSession = {
+  id: string;
+  name: string;
+  slug: string | null;
+  startDate: string | null;
+};
+
 export type PublishedGeneralQuestion = {
   id: string;
   name: string;
@@ -22,11 +29,7 @@ export type PublishedGeneralQuestion = {
   submittedDate: string | null;
   publishedAt: string | null;
   updatedAt: string;
-  dietSession: {
-    id: string;
-    name: string;
-    slug: string | null;
-  } | null;
+  dietSession: GeneralQuestionDietSession | null;
   partyOrGroup: string | null;
   councilor: GeneralQuestionCouncilor;
   contents: Partial<Record<DifficultyLevelEnum, GeneralQuestionContent>>;
@@ -38,6 +41,7 @@ export type GeneralQuestionCategoryCardData = {
   majorCategory: string;
   description: string;
   year: number;
+  dietSession: GeneralQuestionDietSession;
   questionCount: number;
   latestSubmittedDate: string | null;
   focusBillId?: string | null;
@@ -46,5 +50,8 @@ export type GeneralQuestionCategoryCardData = {
 export type GeneralQuestionCategoryReference = {
   categoryId: RecommendationCategoryId;
   year: number;
+  sessionKey: string;
+  sessionName: string;
+  sessionStartDate: string;
   updatedAt: string;
 };

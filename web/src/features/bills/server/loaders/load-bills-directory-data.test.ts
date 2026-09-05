@@ -75,6 +75,12 @@ beforeEach(() => {
       majorCategory: "教育🏫",
       description: "教育に関する質問",
       year: 2026,
+      dietSession: {
+        id: "session-2026",
+        name: "令和8年第1回定例会",
+        slug: "2026-1",
+        startDate: "2026-02-01",
+      },
       questionCount: 30,
       latestSubmittedDate: "2026-02-20",
     },
@@ -108,7 +114,7 @@ describe("loadBillsDirectoryData", () => {
         { id: "current-bill" },
         expect.objectContaining({
           kind: "general-question-category",
-          id: "general-question:2026:education",
+          id: "general-question:session-2026:education",
           itemType: "question",
           majorCategory: "教育🏫",
         }),

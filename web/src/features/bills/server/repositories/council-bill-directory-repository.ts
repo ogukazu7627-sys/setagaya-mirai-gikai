@@ -7,7 +7,12 @@ import {
   COUNCIL_SEARCH_PUBLICATION_CATEGORIES,
   NORMAL_PUBLICATION_CATEGORIES,
 } from "../../shared/constants/publication-categories";
-import type { Bill, BillContent, BillItemType } from "../../shared/types";
+import type {
+  Bill,
+  BillContent,
+  BillDietSession,
+  BillItemType,
+} from "../../shared/types";
 import type { CouncilBillDirectoryEntry } from "../../shared/types/council-bill-directory";
 
 export type CouncilBillCardRow = Pick<
@@ -30,6 +35,7 @@ export type CouncilBillCardRow = Pick<
     | Array<Pick<BillContent, "title" | "summary">>
     | Pick<BillContent, "title" | "summary">
     | null;
+  diet_session: BillDietSession | BillDietSession[] | null;
 };
 
 type CouncilBillDirectoryRow = {
@@ -108,6 +114,7 @@ export async function findPublishedCouncilBillCardRowsByIds(
       is_review_completed,
       interview_enabled,
       publication_category,
+      diet_session:diet_sessions(id, name, slug),
       bill_contents!inner (
         title,
         summary,

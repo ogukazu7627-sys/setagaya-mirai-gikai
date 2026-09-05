@@ -34,6 +34,11 @@ describe("loadCouncilBillCardsByIds", () => {
       summary: "bill-1の概要",
     });
     expect(cards[0]?.tags).toEqual([{ id: "tag-1", label: "学校" }]);
+    expect(cards[0]?.diet_session).toEqual({
+      id: "session-1",
+      name: "第1回定例会",
+      slug: "2026-1",
+    });
     expect(cards[1]?.hasPublicInterview).toBe(true);
     expect(cards[0]?.bill_content).not.toHaveProperty("content");
   });
@@ -54,6 +59,11 @@ function createRow(id: string): CouncilBillCardRow {
     is_featured: false,
     is_review_completed: true,
     interview_enabled: false,
+    diet_session: {
+      id: "session-1",
+      name: "第1回定例会",
+      slug: "2026-1",
+    },
     bill_contents: {
       title: `${id}のタイトル`,
       summary: `${id}の概要`,

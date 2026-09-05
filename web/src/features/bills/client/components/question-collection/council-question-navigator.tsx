@@ -35,7 +35,12 @@ export type CouncilQuestionNavigationItem = {
 
 export type CouncilQuestionCollectionRoute =
   | { kind: "budget"; categorySlug: string }
-  | { kind: "general"; categoryId: string; year: number };
+  | {
+      kind: "general";
+      categoryId: string;
+      year: number;
+      sessionKey: string;
+    };
 
 export type CouncilQuestionCarouselSlide = {
   content: ReactNode;
@@ -96,6 +101,7 @@ export function CouncilQuestionNavigator({
           : routes.generalQuestionCategory(
               collection.year,
               collection.categoryId,
+              collection.sessionKey,
               item.firstQuestionId
             );
       router.push(href as Route, { scroll: false });

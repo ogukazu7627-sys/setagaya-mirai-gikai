@@ -12,7 +12,7 @@ type CouncilDirectoryItemCardProps = {
 export function getCouncilDirectoryItemKey(item: CouncilDirectoryItem): string {
   return item.kind === "bill"
     ? `bill:${item.bill.id}`
-    : `general-question:${item.category.year}:${item.category.categoryId}`;
+    : `general-question:${item.category.dietSession.id}:${item.category.categoryId}`;
 }
 
 export function CouncilDirectoryItemCard({

@@ -68,13 +68,16 @@ export const routes = {
   generalQuestionCategory: (
     year: number,
     categoryId: string,
+    sessionKey: string,
     focusBillId?: string
   ) => {
-    const pathname = `/bills/questions/${year}/${encodeURIComponent(categoryId)}`;
+    const pathname = `/bills/questions/${year}/${encodeURIComponent(categoryId)}/${encodeURIComponent(sessionKey)}`;
     return focusBillId
       ? (`${pathname}?focus=${encodeURIComponent(focusBillId)}` as const)
-      : (pathname as `/bills/questions/${number}/${string}`);
+      : (pathname as `/bills/questions/${number}/${string}/${string}`);
   },
+  legacyGeneralQuestionCategory: (year: number, categoryId: string) =>
+    `/bills/questions/${year}/${encodeURIComponent(categoryId)}` as const,
   councilors: () => "/councilors" as const,
   councilorDetail: (councilorId: string) =>
     `/councilors/${councilorId}` as const,

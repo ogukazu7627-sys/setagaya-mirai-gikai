@@ -52,7 +52,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     (category) => ({
       url: `${baseUrl}${routes.generalQuestionCategory(
         category.year,
-        category.categoryId
+        category.categoryId,
+        category.sessionKey
       )}`,
       lastModified: new Date(category.updatedAt),
       changeFrequency: "weekly" as const,
