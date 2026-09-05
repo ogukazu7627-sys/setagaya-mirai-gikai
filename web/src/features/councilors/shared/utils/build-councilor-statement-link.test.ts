@@ -16,17 +16,19 @@ describe("buildCouncilorStatementLink", () => {
     });
   });
 
-  it("一般質問を年別の大分類ページにある元質問へ送る", () => {
+  it("一般質問を会期別の大分類ページにある元質問へ送る", () => {
     expect(
       buildCouncilorStatementLink({
         billId: "bill-2",
         publicationCategory: "general_question",
         majorCategory: "防災☔",
+        sessionId: "session-1",
+        sessionSlug: "2026-1",
         sessionStartDate: "2026-01-01",
         statementIndex: 0,
       })
     ).toEqual({
-      href: "/bills/questions/2026/disaster-prevention?focus=bill-2",
+      href: "/bills/questions/2026/disaster-prevention/2026-1?focus=bill-2",
       kind: "general-question",
     });
   });

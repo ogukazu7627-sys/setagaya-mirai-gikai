@@ -1,17 +1,19 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getDifficultyLevel } from "@/features/bill-difficulty/server/loaders/get-difficulty-level";
+import type { Metadata, Route } from "next";
+import { notFound, redirect } from "next/navigation";
 import { parseCalendarYear } from "@/features/diet-sessions/shared/utils/calendar-year";
-import { GeneralQuestionPage } from "@/features/general-questions/server/components/general-question-page";
-import { loadGeneralQuestionCategoryPage } from "@/features/general-questions/server/loaders/load-general-question-category-page";
-import { getGeneralQuestionCategoryById } from "@/features/general-questions/shared/utils/general-question-categories";
+import { resolveLegacyGeneralQuestionCategoryRoute } from "@/features/general-questions/server/loaders/load-general-question-category-page";
 import { isRecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { routes } from "@/lib/routes";
 import { isUuid } from "@/lib/utils/uuid";
 
 export const dynamic = "force-dynamic";
 
-type GeneralQuestionCategoryRouteProps = {
+export const metadata: Metadata = {
+  title: "一般質問 | 世田谷区議会",
+  robots: { index: false, follow: true },
+};
+
+type LegacyGeneralQuestionCategoryRouteProps = {
   params: Promise<{ categoryId: string; year: string }>;
   searchParams: Promise<{ focus?: string | string[] }>;
 };
@@ -21,67 +23,34 @@ function getFocusBillId(focus: string | string[] | undefined): string | null {
   return value && isUuid(value) ? value : null;
 }
 
-export async function generateMetadata({
-  params,
-}: GeneralQuestionCategoryRouteProps): Promise<Metadata> {
-  const { categoryId, year: yearParam } = await params;
-  const year = parseCalendarYear(yearParam);
-  const category = getGeneralQuestionCategoryById(categoryId);
-  if (!year || !category) {
-    return {
-      title: "一般質問が見つかりません",
-      robots: { index: false, follow: false },
-    };
-  }
-
-  const title = `${category.name}に関する議員の質問 | 世田谷区議会`;
-  const description = `${year}年の世田谷区議会で行われた${category.name}分野の一般質問を、議員ごとに確認できます。`;
-  const canonical = routes.generalQuestionCategory(year, category.id);
-  return {
-    title,
-    description,
-    alternates: { canonical },
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: canonical,
-      images: ["/ogp.jpg"],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: ["/ogp.jpg"],
-    },
-  };
-}
-
-export default async function GeneralQuestionCategoryRoutePage({
+export default async function LegacyGeneralQuestionCategoryRoutePage({
   params,
   searchParams,
-}: GeneralQuestionCategoryRouteProps) {
-  const [{ categoryId, year: yearParam }, { focus }, difficultyLevel] =
-    await Promise.all([params, searchParams, getDifficultyLevel()]);
+}: LegacyGeneralQuestionCategoryRouteProps) {
+  const [{ categoryId, year: yearParam }, { focus }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const year = parseCalendarYear(yearParam);
   if (!year || !isRecommendationCategoryId(categoryId)) {
     notFound();
   }
 
-  const pageData = await loadGeneralQuestionCategoryPage({
+  const target = await resolveLegacyGeneralQuestionCategoryRoute({
     categoryId,
     year,
-    difficultyLevel,
+    focusBillId: getFocusBillId(focus),
   });
-  if (!pageData) {
+  if (!target) {
     notFound();
   }
 
-  return (
-    <GeneralQuestionPage
-      {...pageData}
-      difficultyLevel={difficultyLevel}
-      focusBillId={getFocusBillId(focus)}
-    />
+  redirect(
+    routes.generalQuestionCategory(
+      target.year,
+      target.categoryId,
+      target.sessionKey,
+      target.focusBillId ?? undefined
+    ) as Route
   );
 }

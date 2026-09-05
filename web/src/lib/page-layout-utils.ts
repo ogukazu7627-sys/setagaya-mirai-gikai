@@ -21,7 +21,7 @@ export function isMainPage(pathname: string): boolean {
 export function hasPersistentChatSidebar(pathname: string): boolean {
   return (
     /^\/(?:preview\/)?bills\/[^/]+\/?$/.test(pathname) ||
-    /^\/bills\/questions\/\d{4}\/[^/]+\/?$/.test(pathname) ||
+    /^\/bills\/questions\/\d{4}\/[^/]+(?:\/[^/]+)?\/?$/.test(pathname) ||
     /^\/budget\/questions\/[^/]+\/?$/.test(pathname)
   );
 }

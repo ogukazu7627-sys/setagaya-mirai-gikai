@@ -7,6 +7,8 @@ export type CouncilorStatementLinkInput = {
   billId: string;
   publicationCategory: BillPublicationCategory;
   majorCategory: string | null;
+  sessionId?: string | null;
+  sessionSlug?: string | null;
   sessionStartDate?: string | null;
   statementIndex: number;
 };
@@ -27,6 +29,8 @@ export function buildCouncilorStatementLink({
   billId,
   publicationCategory,
   majorCategory,
+  sessionId,
+  sessionSlug,
   sessionStartDate,
   statementIndex,
 }: CouncilorStatementLinkInput): CouncilorStatementLink {
@@ -41,11 +45,12 @@ export function buildCouncilorStatementLink({
   if (publicationCategory === "general_question") {
     const category = getGeneralQuestionCategoryByMajorCategory(majorCategory);
     const yearMatch = sessionStartDate?.match(/^(\d{4})/u);
-    if (category && yearMatch) {
+    if (category && yearMatch && sessionId) {
       return {
         href: routes.generalQuestionCategory(
           Number(yearMatch[1]),
           category.id,
+          sessionSlug ?? sessionId,
           billId
         ),
         kind: "general-question",

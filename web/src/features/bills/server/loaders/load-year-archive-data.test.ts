@@ -54,6 +54,12 @@ beforeEach(() => {
       majorCategory: "教育🏫",
       description: "教育に関する質問",
       year: 2024,
+      dietSession: {
+        id: "session-2024",
+        name: "令和6年第2回定例会",
+        slug: "2024-2",
+        startDate: "2024-06-01",
+      },
       questionCount: 12,
       latestSubmittedDate: "2024-06-01",
     },
@@ -90,7 +96,7 @@ describe("loadYearArchiveData", () => {
         { id: "archive-entry" },
         expect.objectContaining({
           kind: "general-question-category",
-          id: "general-question:2024:education",
+          id: "general-question:session-2024:education",
         }),
       ],
       dietSessionIds: ["session-2024"],

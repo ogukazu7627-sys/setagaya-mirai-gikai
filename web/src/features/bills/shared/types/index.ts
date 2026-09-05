@@ -102,6 +102,7 @@ export type BillCardData = Pick<
   | "is_review_completed"
   | "interview_enabled"
   | "publication_category"
+  | "diet_session"
   | "hasPublicInterview"
 > & {
   bill_content?: Pick<BillContent, "title" | "summary"> | null;

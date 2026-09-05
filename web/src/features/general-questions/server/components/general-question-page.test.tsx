@@ -35,15 +35,18 @@ vi.mock(
   () => ({
     CouncilQuestionNavigator: ({
       activeCouncilorId,
+      collection,
       items,
       slides,
     }: {
       activeCouncilorId: string;
+      collection: { kind: string; sessionKey?: string };
       items: Array<{ councilorId: string; questionCount: number }>;
       slides: Array<{ content: ReactNode; councilorId: string }>;
     }) => (
       <div
         data-active-councilor-id={activeCouncilorId}
+        data-collection-session-key={collection.sessionKey}
         data-active-question-count={
           items.find((item) => item.councilorId === activeCouncilorId)
             ?.questionCount
@@ -95,6 +98,12 @@ describe("GeneralQuestionPage", () => {
     const html = await renderToHtml(
       GeneralQuestionPage({
         category,
+        dietSession: {
+          id: "session",
+          name: "令和8年第1回定例会",
+          slug: "2026-1",
+          startDate: "2026-02-01",
+        },
         difficultyLevel: "normal",
         focusBillId: focused.id,
         questions: [first, otherCouncilor, focused],
@@ -104,6 +113,8 @@ describe("GeneralQuestionPage", () => {
     const normalizedHtml = html.replaceAll("<!-- -->", "");
 
     expect(normalizedHtml).toContain("教育に関する議員の質問");
+    expect(normalizedHtml).toContain("令和8年第1回定例会の一般質問");
+    expect(normalizedHtml).toContain('data-collection-session-key="2026-1"');
     expect(normalizedHtml).toContain("質問 3件・議員 2人");
     expect(normalizedHtml).toContain('data-active-councilor-id="councilor-a"');
     expect(normalizedHtml).toContain('data-active-question-count="2"');
@@ -165,7 +176,12 @@ ${body}
     submittedDate: "2026-02-20",
     publishedAt: "2026-02-21T00:00:00.000Z",
     updatedAt: "2026-02-22T00:00:00.000Z",
-    dietSession: { id: "session", name: "第1回定例会", slug: null },
+    dietSession: {
+      id: "session",
+      name: "令和8年第1回定例会",
+      slug: "2026-1",
+      startDate: "2026-02-01",
+    },
     partyOrGroup: "会派名",
     councilor: {
       id: councilorId,
