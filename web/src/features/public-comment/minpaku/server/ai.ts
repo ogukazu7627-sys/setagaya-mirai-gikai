@@ -6,7 +6,7 @@ import {
   recordChatUsage,
 } from "@/features/chat/server/services/cost-tracker";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
-import { DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import {
   publicCommentChatResponseSchema,
@@ -95,7 +95,7 @@ export async function generatePublicCommentDraft(params: {
   model?: LanguageModel;
 }) {
   await checkCost(params.userId);
-  const model = params.model ?? DEFAULT_INTERVIEW_CHAT_MODEL;
+  const model = params.model ?? AI_MODELS.gpt5_6_sol;
   const result = await generateText({
     model,
     prompt: buildDraftPrompt({
