@@ -8,7 +8,7 @@ import {
 type PromptMessage = { role: "user" | "assistant"; content: string };
 
 const sourceList = MINPAKU_SOURCES.map(
-  (source) => `- ${source.title}: ${source.url}`
+  (source) => `- ${source.id}: ${source.title} (${source.url})`
 ).join("\n");
 
 export function buildInterviewPrompt(params: {

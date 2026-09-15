@@ -1,3 +1,5 @@
+import { MINPAKU_LEARNING_REVIEWED_AT, MINPAKU_LESSONS } from "./learning";
+
 export const MINPAKU_CAMPAIGN_SLUG = "minpaku-2026";
 
 export const MINPAKU_CAMPAIGN_TITLE =
@@ -8,11 +10,14 @@ export const MINPAKU_SUBMISSION_DEADLINE = "2026-10-06T23:59:59+09:00";
 export const MINPAKU_OFFICIAL_SUBMISSION_URL =
   "https://www.city.setagaya.lg.jp/pub-comment/02245/34014.html";
 
+export const MINPAKU_OFFICIAL_INFORMATION_URL =
+  "https://www.city.setagaya.lg.jp/02245/35467.html";
+
 export const MINPAKU_SOURCES = [
   {
     id: "public-comment-page",
     title: "区民意見募集の案内",
-    url: MINPAKU_OFFICIAL_SUBMISSION_URL,
+    url: MINPAKU_OFFICIAL_INFORMATION_URL,
     description: "募集対象、提出期限、提出方法、提出先を確認できます。",
   },
   {
@@ -39,6 +44,18 @@ export const MINPAKU_SOURCES = [
     url: "https://www.city.setagaya.lg.jp/documents/35467/juutakusyukuhakusoan.pdf",
     description: "住宅宿泊事業条例の改正内容を確認できます。",
   },
+  {
+    id: "ryokan-procedure",
+    title: "旅館業の手続き",
+    url: "https://www.city.setagaya.lg.jp/02245/3225.html",
+    description: "旅館業の営業許可について確認できます。",
+  },
+  {
+    id: "housing-procedure",
+    title: "住宅宿泊事業（民泊）について",
+    url: "https://www.city.setagaya.lg.jp/02245/3247.html",
+    description: "住宅宿泊事業の届出と制度について確認できます。",
+  },
 ] as const;
 
 export type MinpakuSource = (typeof MINPAKU_SOURCES)[number];
@@ -46,11 +63,13 @@ export type MinpakuSource = (typeof MINPAKU_SOURCES)[number];
 export const MINPAKU_CONTEXT = `
 このAIインタビューは、世田谷区が募集している「世田谷区旅館業法施行条例（改正素案）」と「世田谷区住宅宿泊事業の適正な運営に関する条例（改正素案）」へのパブリックコメント作成を支援するものです。
 
-募集期限は2026年10月6日です。区は、騒音、ごみ出し、近隣トラブルへの対応強化、区民の安全・安心、静穏な住環境の維持、適正な事業者との地域共生を改正の目的として説明しています。
+募集期限は2026年10月6日です。
 
-主な検討事項には、開業前の周辺住民への事前周知、緊急時の駆けつけ体制、ごみの適正管理、苦情対応と記録の保存、施設の標識、玄関帳場または同等設備、宿泊者への地域ルールの説明、適正な運営を行う事業者の住居専用地域での取扱いなどがあります。
+## 学習画面と共通の公式情報の要約（確認日：${MINPAKU_LEARNING_REVIEWED_AT}）
+${MINPAKU_LESSONS.map((lesson) => `### ${lesson.title}\n${lesson.sections.map((section) => `${section.label}: ${section.body}\n出典ID: ${section.sourceRefs.join(", ")}`).join("\n\n")}`).join("\n\n")}
 
 この説明は区の公式資料を要約したものであり、条例が成立・施行済みであることを意味しません。ユーザーの経験や評価は、事実として断定せず、本人の意見・経験として扱ってください。
+学習の受講状況やクイズの回答・正誤は提供されません。受講したことや正解したことを推測せず、区の説明や改正素案への賛同と解釈しないでください。
 `.trim();
 
 export const MINPAKU_QUESTIONS = [
