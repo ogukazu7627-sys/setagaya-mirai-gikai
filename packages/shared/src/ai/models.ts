@@ -17,6 +17,7 @@ export const AI_MODELS = {
   gpt5_1_instant: "openai/gpt-5.1-instant",
   gpt5_1_thinking: "openai/gpt-5.1-thinking",
   gpt5_2: "openai/gpt-5.2",
+  gpt5_6_sol: "openai/gpt-5.6-sol",
   gpt5_6_luna: "openai/gpt-5.6-luna",
   // --- Google ---
   gemini3_flash: "google/gemini-3-flash",

@@ -1,13 +1,19 @@
 import { parse } from "csv-parse/sync";
 import fs from "node:fs";
 import path from "node:path";
-import type { Database } from "@mirai-gikai/supabase";
 import { createAdminClient, clearAllData } from "../shared/helper";
 
-type TableName = keyof Database["public"]["Tables"];
+type CsvTableName =
+  | "diet_sessions"
+  | "tags"
+  | "bills"
+  | "bill_contents"
+  | "bills_tags"
+  | "interview_configs"
+  | "interview_questions";
 
 interface CsvImportConfig {
-  table: TableName;
+  table: CsvTableName;
   file: string;
 }
 

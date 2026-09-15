@@ -2881,6 +2881,174 @@ export type Database = {
           },
         ]
       }
+      public_comment_campaigns: {
+        Row: {
+          created_at: string
+          id: string
+          official_url: string
+          slug: string
+          status: string
+          submission_deadline: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          official_url: string
+          slug: string
+          status?: string
+          submission_deadline: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          official_url?: string
+          slug?: string
+          status?: string
+          submission_deadline?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      public_comment_drafts: {
+        Row: {
+          ai_body: string
+          created_at: string
+          fact_check_notes: string[]
+          final_body: string
+          id: string
+          publication_requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string
+          source_refs: Json
+          target_ordinances: string[]
+          updated_at: string
+        }
+        Insert: {
+          ai_body: string
+          created_at?: string
+          fact_check_notes?: string[]
+          final_body: string
+          id?: string
+          publication_requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id: string
+          source_refs?: Json
+          target_ordinances?: string[]
+          updated_at?: string
+        }
+        Update: {
+          ai_body?: string
+          created_at?: string
+          fact_check_notes?: string[]
+          final_body?: string
+          id?: string
+          publication_requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          session_id?: string
+          source_refs?: Json
+          target_ordinances?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_drafts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          question_id: string | null
+          role: string
+          session_id: string
+          stage: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          role: string
+          session_id: string
+          stage: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          question_id?: string | null
+          role?: string
+          session_id?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_sessions: {
+        Row: {
+          campaign_id: string
+          completed_at: string | null
+          consented_at: string
+          created_at: string
+          id: string
+          publication_status: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          completed_at?: string | null
+          consented_at: string
+          created_at?: string
+          id?: string
+          publication_status?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          completed_at?: string | null
+          consented_at?: string
+          created_at?: string
+          id?: string
+          publication_status?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

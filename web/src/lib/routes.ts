@@ -84,6 +84,11 @@ export const routes = {
   learn: () => "/learn" as const,
   learnLesson: (slug: string) => `/learn/${slug}` as const,
 
+  // ── パブリックコメント ────────────────────────────────
+  publicCommentMinpaku: () => "/public-comment/minpaku" as const,
+  publicCommentMinpakuComments: () =>
+    "/public-comment/minpaku/comments" as const,
+
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
   adminLogin: () => "/admin/login" as const,
