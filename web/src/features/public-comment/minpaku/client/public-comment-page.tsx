@@ -79,8 +79,8 @@ function PublicCommentHeader() {
   return (
     <div className="relative h-50 w-full md:h-80">
       <Image
-        src="/illustrations/interview-illustration.png"
-        alt="AIインタビュー"
+        src="/illustrations/minpaku-public-comment-hero.png"
+        alt="民泊と地域の暮らしを表すイラスト"
         fill
         priority
         className="object-cover"

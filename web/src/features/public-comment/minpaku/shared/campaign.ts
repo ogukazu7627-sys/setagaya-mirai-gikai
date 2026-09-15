@@ -6,7 +6,7 @@ export const MINPAKU_CAMPAIGN_TITLE =
 export const MINPAKU_SUBMISSION_DEADLINE = "2026-10-06T23:59:59+09:00";
 
 export const MINPAKU_OFFICIAL_SUBMISSION_URL =
-  "https://www.city.setagaya.lg.jp/02245/35467.html";
+  "https://www.city.setagaya.lg.jp/pub-comment/02245/34014.html";
 
 export const MINPAKU_SOURCES = [
   {
