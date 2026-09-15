@@ -9,12 +9,26 @@ vi.mock("@/features/chat/client/hooks/use-anonymous-supabase-user", () => ({
   useAnonymousSupabaseUser: () => "anonymous-user",
 }));
 
+vi.mock("./public-comment-interview-chat", () => ({
+  PublicCommentInterviewChat: ({
+    messages,
+  }: {
+    messages: Array<{ content: string }>;
+  }) => (
+    <div>
+      {messages.map((message) => (
+        <p key={message.content}>{message.content}</p>
+      ))}
+    </div>
+  ),
+}));
+
 describe("PublicCommentMinpakuPage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("保存同意前は開始できず、同意後にだけセッション開始APIを呼ぶ", async () => {
+  it("同意モーダルで保存に同意した後にだけセッション開始APIを呼ぶ", async () => {
     const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -33,15 +47,16 @@ describe("PublicCommentMinpakuPage", () => {
     );
 
     render(<PublicCommentMinpakuPage />);
-    const startButton = screen.getByRole("button", {
-      name: "インタビューを始める",
-    });
-    expect(startButton).toBeDisabled();
+    const startButton = screen.getAllByRole("button", {
+      name: "AIインタビューをはじめる",
+    })[0];
+    expect(startButton).toBeEnabled();
     expect(fetchMock).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("checkbox"));
-    expect(startButton).toBeEnabled();
     fireEvent.click(startButton);
+    const consentCheckbox = await screen.findByRole("checkbox");
+    fireEvent.click(consentCheckbox);
+    fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
