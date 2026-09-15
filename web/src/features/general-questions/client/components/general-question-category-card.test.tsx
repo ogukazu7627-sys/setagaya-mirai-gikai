@@ -22,6 +22,12 @@ describe("GeneralQuestionCategoryCard", () => {
           majorCategory: "教育🏫",
           description: "学校、教育環境、学びの支援",
           year: 2026,
+          dietSession: {
+            id: "session-1",
+            name: "令和8年第1回定例会",
+            slug: "2026-1",
+            startDate: "2026-02-01",
+          },
           questionCount: 30,
           latestSubmittedDate: "2026-02-20",
           focusBillId: "11111111-1111-4111-8111-111111111111",
@@ -33,9 +39,9 @@ describe("GeneralQuestionCategoryCard", () => {
       screen.getByRole("link", { name: /教育に関する議員の質問/u })
     ).toHaveAttribute(
       "href",
-      "/bills/questions/2026/education?focus=11111111-1111-4111-8111-111111111111"
+      "/bills/questions/2026/education/2026-1?focus=11111111-1111-4111-8111-111111111111"
     );
     expect(screen.getByText("質問 30件")).toBeVisible();
-    expect(screen.getByText("2026年の一般質問")).toBeVisible();
+    expect(screen.getByText("令和8年第1回定例会の一般質問")).toBeVisible();
   });
 });

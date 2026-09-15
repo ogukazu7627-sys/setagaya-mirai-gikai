@@ -7,8 +7,8 @@ import { extractCouncilorStatementsFromMarkdown } from "@/lib/markdown/extract-c
 import { buildCouncilorStatementRows } from "../../shared/utils/build-councilor-statement-rows";
 import {
   addCouncilorQuestionCount,
-  createEmptyCouncilorQuestionCounts,
   type CouncilorQuestionCounts,
+  createEmptyCouncilorQuestionCounts,
 } from "../../shared/utils/councilor-question-counts";
 
 type AdminSupabaseClient = ReturnType<typeof createAdminClient>;
@@ -52,7 +52,11 @@ export type PublishedCouncilorStatementDetail = CouncilorStatementRow & {
     publish_status: Database["public"]["Enums"]["bill_publish_status"];
     publication_category: Database["public"]["Enums"]["bill_publication_category"];
     major_category: string | null;
-    diet_session: { start_date: string } | null;
+    diet_session: {
+      id: string;
+      slug: string | null;
+      start_date: string;
+    } | null;
   } | null;
   billNormalContent: string | null;
 };
@@ -257,6 +261,8 @@ export async function findPublishedCouncilorStatementDetails({
         publication_category,
         major_category,
         diet_session:diet_sessions (
+          id,
+          slug,
           start_date
         )
       )

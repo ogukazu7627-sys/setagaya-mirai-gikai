@@ -4,7 +4,10 @@ import { createAdminClient } from "@mirai-gikai/supabase";
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { getBudgetQuestionCategoryByMajorCategory } from "@/features/budget/shared/constants/budget-question-categories";
-import { getGeneralQuestionCategoryByMajorCategory } from "@/features/general-questions/shared/utils/general-question-categories";
+import {
+  getGeneralQuestionCategoryByMajorCategory,
+  getGeneralQuestionSessionKey,
+} from "@/features/general-questions/shared/utils/general-question-categories";
 import type { RecommendationCategoryId } from "@/features/recommendations/shared/constants/recommendation-taxonomy";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { isSetagayaMockMode } from "@/lib/setagaya-mock";
@@ -16,12 +19,27 @@ type PublishedBillRedirectReference =
       kind: "general_question";
       categoryId: RecommendationCategoryId;
       year: number;
+      sessionKey: string;
+      sessionName: string;
     };
 
 type PublishedBillRedirectRow = {
   publication_category: string | null;
   major_category: string | null;
-  diet_session: { start_date: string } | Array<{ start_date: string }> | null;
+  diet_session:
+    | {
+        id: string;
+        name: string;
+        slug: string | null;
+        start_date: string;
+      }
+    | Array<{
+        id: string;
+        name: string;
+        slug: string | null;
+        start_date: string;
+      }>
+    | null;
 };
 
 async function fetchPublishedBillRedirectReference(
@@ -31,7 +49,7 @@ async function fetchPublishedBillRedirectReference(
   const { data, error } = await supabase
     .from("bills")
     .select(
-      "publication_category, major_category, diet_session:diet_sessions(start_date)"
+      "publication_category, major_category, diet_session:diet_sessions(id, name, slug, start_date)"
     )
     .eq("id", billId)
     .eq("publish_status", "published")
@@ -61,7 +79,7 @@ async function fetchPublishedBillRedirectReference(
   const relation = row.diet_session;
   const session = Array.isArray(relation) ? relation[0] : relation;
   const yearMatch = session?.start_date.match(/^(\d{4})/u);
-  if (!category || !yearMatch) {
+  if (!category || !session || !yearMatch) {
     return null;
   }
 
@@ -69,6 +87,11 @@ async function fetchPublishedBillRedirectReference(
     kind: "general_question",
     categoryId: category.id,
     year: Number(yearMatch[1]),
+    sessionKey: getGeneralQuestionSessionKey({
+      id: session.id,
+      slug: session.slug,
+    }),
+    sessionName: session.name,
   };
 }
 

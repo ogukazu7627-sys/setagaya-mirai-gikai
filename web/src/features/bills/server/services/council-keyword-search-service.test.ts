@@ -14,6 +14,9 @@ const input: CouncilKeywordSearchRequest = {
 
 const session = {
   id: "22222222-2222-4222-8222-222222222222",
+  name: "令和8年第1回定例会",
+  slug: "2026-1",
+  start_date: "2026-02-01",
 } as DietSession;
 
 describe("searchCouncilBillsByKeyword", () => {
@@ -112,6 +115,12 @@ describe("searchCouncilBillsByKeyword", () => {
         majorCategory: "教育🏫",
         description: "学校、教育環境、学びの支援",
         year: 2026,
+        dietSession: {
+          id: session.id,
+          name: session.name,
+          slug: session.slug,
+          startDate: session.start_date,
+        },
         questionCount: 30,
         latestSubmittedDate: "2026-02-20",
       },
@@ -150,6 +159,11 @@ function createCard(id: string): BillCardData {
     id,
     name: id,
     item_type: "bill",
+    diet_session: {
+      id: session.id,
+      name: session.name,
+      slug: session.slug,
+    },
     major_category: "防災☔",
     status: "introduced",
     status_label: null,

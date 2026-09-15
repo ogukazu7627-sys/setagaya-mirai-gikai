@@ -182,6 +182,8 @@ export async function CouncilorDetailPage({
                           billId: bill.id,
                           publicationCategory: bill.publication_category,
                           majorCategory: bill.major_category,
+                          sessionId: bill.diet_session?.id,
+                          sessionSlug: bill.diet_session?.slug,
                           sessionStartDate: bill.diet_session?.start_date,
                           statementIndex: statement.statement_index,
                         }).href as Route

@@ -39,6 +39,9 @@ describe("hasPersistentChatSidebar", () => {
     expect(hasPersistentChatSidebar("/bills/questions/2026/education")).toBe(
       true
     );
+    expect(
+      hasPersistentChatSidebar("/bills/questions/2026/education/2026-1")
+    ).toBe(true);
     expect(hasPersistentChatSidebar("/budget/questions/education")).toBe(true);
   });
 

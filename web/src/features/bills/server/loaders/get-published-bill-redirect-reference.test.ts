@@ -74,12 +74,17 @@ describe("getPublishedBillRedirectReference", () => {
     expect(mocks.from).toHaveBeenCalledWith("bills");
   });
 
-  it("returns a general question category and session year", async () => {
+  it("returns a general question category and session route", async () => {
     mocks.maybeSingle.mockResolvedValue({
       data: {
         publication_category: "general_question",
         major_category: "教育🏫",
-        diet_session: { start_date: "2026-02-18" },
+        diet_session: {
+          id: "session-1",
+          name: "令和8年第1回定例会",
+          slug: "2026-1",
+          start_date: "2026-02-18",
+        },
       },
       error: null,
     });
@@ -90,6 +95,8 @@ describe("getPublishedBillRedirectReference", () => {
       kind: "general_question",
       categoryId: "education",
       year: 2026,
+      sessionKey: "2026-1",
+      sessionName: "令和8年第1回定例会",
     });
   });
 

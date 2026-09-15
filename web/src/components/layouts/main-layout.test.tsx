@@ -36,6 +36,7 @@ describe("MainLayout", () => {
     "/bills/abc-123",
     "/preview/bills/abc-123",
     "/bills/questions/2026/education",
+    "/bills/questions/2026/education/2026-1",
     "/budget/questions/education",
   ])("reserves desktop chat-panel space on %s", (pathname) => {
     navigationMock.pathname = pathname;

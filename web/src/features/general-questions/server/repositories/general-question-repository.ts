@@ -7,18 +7,31 @@ import { isSetagayaMockMode } from "@/lib/setagaya-mock";
 import type {
   GeneralQuestionCategoryCardData,
   GeneralQuestionCategoryReference,
+  GeneralQuestionDietSession,
   PublishedGeneralQuestion,
 } from "../../shared/types/general-question";
 import {
   buildGeneralQuestionCategoryCards,
   buildGeneralQuestionCategoryReferences,
   getGeneralQuestionCategoryByMajorCategory,
+  getGeneralQuestionSessionKey,
 } from "../../shared/utils/general-question-categories";
+
+type GeneralQuestionDietSessionRow = {
+  id: string;
+  name: string;
+  slug: string | null;
+  start_date: string;
+};
 
 type GeneralQuestionCategoryRow = {
   id: string;
   major_category: string | null;
   submitted_date: string | null;
+  diet_session:
+    | GeneralQuestionDietSessionRow
+    | GeneralQuestionDietSessionRow[]
+    | null;
 };
 
 type GeneralQuestionBillRow = {
@@ -29,8 +42,8 @@ type GeneralQuestionBillRow = {
   submitted_date: string | null;
   updated_at: string;
   diet_session:
-    | { id: string; name: string; slug: string | null }
-    | Array<{ id: string; name: string; slug: string | null }>
+    | GeneralQuestionDietSessionRow
+    | GeneralQuestionDietSessionRow[]
     | null;
 };
 
@@ -65,8 +78,29 @@ type GeneralQuestionContentRow = {
 type GeneralQuestionReferenceRow = {
   major_category: string | null;
   updated_at: string;
-  diet_session: { start_date: string } | Array<{ start_date: string }> | null;
+  diet_session:
+    | GeneralQuestionDietSessionRow
+    | GeneralQuestionDietSessionRow[]
+    | null;
 };
+
+function toGeneralQuestionDietSession(
+  relation:
+    | GeneralQuestionDietSessionRow
+    | GeneralQuestionDietSessionRow[]
+    | null
+    | undefined
+): GeneralQuestionDietSession | null {
+  const session = Array.isArray(relation) ? (relation[0] ?? null) : relation;
+  return session
+    ? {
+        id: session.id,
+        name: session.name,
+        slug: session.slug,
+        startDate: session.start_date,
+      }
+    : null;
+}
 
 export async function findPublishedGeneralQuestionCategoryCards(
   dietSessionIds: string[],
@@ -79,7 +113,14 @@ export async function findPublishedGeneralQuestionCategoryCards(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("id, major_category, submitted_date")
+    .select(
+      `
+        id,
+        major_category,
+        submitted_date,
+        diet_session:diet_sessions!inner(id, name, slug, start_date)
+      `
+    )
     .in("diet_session_id", dietSessionIds)
     .eq("publish_status", "published")
     .eq("publication_category", "general_question");
@@ -94,6 +135,7 @@ export async function findPublishedGeneralQuestionCategoryCards(
       id: row.id,
       majorCategory: row.major_category,
       submittedDate: row.submitted_date,
+      dietSession: toGeneralQuestionDietSession(row.diet_session),
     })),
     year
   );
@@ -118,7 +160,7 @@ export async function findPublishedGeneralQuestions(input: {
         submitted_date,
         published_at,
         updated_at,
-        diet_session:diet_sessions(id, name, slug)
+        diet_session:diet_sessions(id, name, slug, start_date)
       `
     )
     .in("diet_session_id", input.dietSessionIds)
@@ -207,10 +249,7 @@ export async function findPublishedGeneralQuestions(input: {
       return [];
     }
 
-    const dietSessionRelation = bill.diet_session;
-    const dietSession = Array.isArray(dietSessionRelation)
-      ? (dietSessionRelation[0] ?? null)
-      : dietSessionRelation;
+    const dietSession = toGeneralQuestionDietSession(bill.diet_session);
     return [
       {
         id: bill.id,
@@ -238,7 +277,12 @@ export async function findPublishedGeneralQuestions(input: {
 
 export async function findPublishedGeneralQuestionReferenceByBillId(
   billId: string
-): Promise<{ categoryId: RecommendationCategoryId; year: number } | null> {
+): Promise<{
+  categoryId: RecommendationCategoryId;
+  year: number;
+  sessionKey: string;
+  sessionName: string;
+} | null> {
   if (isSetagayaMockMode) {
     return null;
   }
@@ -246,7 +290,9 @@ export async function findPublishedGeneralQuestionReferenceByBillId(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bills")
-    .select("major_category, diet_session:diet_sessions(start_date)")
+    .select(
+      "major_category, diet_session:diet_sessions(id, name, slug, start_date)"
+    )
     .eq("id", billId)
     .eq("publish_status", "published")
     .eq("publication_category", "general_question")
@@ -260,14 +306,24 @@ export async function findPublishedGeneralQuestionReferenceByBillId(
   const category = getGeneralQuestionCategoryByMajorCategory(
     data?.major_category
   );
-  const relation = data?.diet_session;
-  const session = Array.isArray(relation) ? relation[0] : relation;
-  const yearMatch = session?.start_date.match(/^(\d{4})/u);
-  if (!category || !yearMatch) {
+  const session = toGeneralQuestionDietSession(
+    data?.diet_session as
+      | GeneralQuestionDietSessionRow
+      | GeneralQuestionDietSessionRow[]
+      | null
+      | undefined
+  );
+  const yearMatch = session?.startDate?.match(/^(\d{4})/u);
+  if (!category || !session || !yearMatch) {
     return null;
   }
 
-  return { categoryId: category.id, year: Number(yearMatch[1]) };
+  return {
+    categoryId: category.id,
+    year: Number(yearMatch[1]),
+    sessionKey: getGeneralQuestionSessionKey(session),
+    sessionName: session.name,
+  };
 }
 
 export async function findPublishedGeneralQuestionCategoryReferences(): Promise<
@@ -281,7 +337,7 @@ export async function findPublishedGeneralQuestionCategoryReferences(): Promise<
   const { data, error } = await supabase
     .from("bills")
     .select(
-      "major_category, updated_at, diet_session:diet_sessions(start_date)"
+      "major_category, updated_at, diet_session:diet_sessions(id, name, slug, start_date)"
     )
     .eq("publish_status", "published")
     .eq("publication_category", "general_question");
@@ -293,11 +349,9 @@ export async function findPublishedGeneralQuestionCategoryReferences(): Promise<
 
   return buildGeneralQuestionCategoryReferences(
     ((data ?? []) as unknown as GeneralQuestionReferenceRow[]).map((row) => {
-      const relation = row.diet_session;
-      const session = Array.isArray(relation) ? relation[0] : relation;
       return {
         majorCategory: row.major_category,
-        sessionStartDate: session?.start_date ?? null,
+        dietSession: toGeneralQuestionDietSession(row.diet_session),
         updatedAt: row.updated_at,
       };
     })

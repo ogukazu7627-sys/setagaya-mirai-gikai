@@ -60,6 +60,9 @@ function toCouncilBillCard(
   const billContent = Array.isArray(row.bill_contents)
     ? row.bill_contents[0]
     : row.bill_contents;
+  const dietSession = Array.isArray(row.diet_session)
+    ? (row.diet_session[0] ?? null)
+    : row.diet_session;
 
   return {
     id: row.id,
@@ -75,6 +78,7 @@ function toCouncilBillCard(
     is_review_completed: row.is_review_completed,
     interview_enabled: row.interview_enabled,
     publication_category: row.publication_category,
+    diet_session: dietSession,
     hasPublicInterview: metadata.hasPublicInterview,
     bill_content: billContent
       ? {

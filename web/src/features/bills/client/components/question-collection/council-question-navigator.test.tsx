@@ -179,7 +179,12 @@ describe("CouncilQuestionNavigator", () => {
     render(
       <CouncilQuestionNavigator
         activeCouncilorId={items[0].councilorId}
-        collection={{ kind: "general", categoryId: "education", year: 2026 }}
+        collection={{
+          kind: "general",
+          categoryId: "education",
+          year: 2026,
+          sessionKey: "2026-1",
+        }}
         items={items}
         slides={slides}
       />
@@ -196,7 +201,7 @@ describe("CouncilQuestionNavigator", () => {
     fireEvent.click(screen.getByRole("button", { name: "次の議員を見る" }));
 
     expect(navigationMocks.push).toHaveBeenCalledWith(
-      `/bills/questions/2026/education?focus=${items[1].firstQuestionId}`,
+      `/bills/questions/2026/education/2026-1?focus=${items[1].firstQuestionId}`,
       { scroll: false }
     );
     expect(
@@ -319,7 +324,12 @@ describe("CouncilQuestionNavigator", () => {
     render(
       <CouncilQuestionNavigator
         activeCouncilorId={fifteenItems[4].councilorId}
-        collection={{ kind: "general", categoryId: "all", year: 2026 }}
+        collection={{
+          kind: "general",
+          categoryId: "all",
+          year: 2026,
+          sessionKey: "2026-1",
+        }}
         items={fifteenItems}
         slides={getWindowSlides(4)}
       />

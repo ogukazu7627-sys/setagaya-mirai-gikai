@@ -17,6 +17,7 @@ import { buildCouncilQuestionOverview } from "@/features/bills/shared/utils/coun
 import { getCalendarYearFromDate } from "@/features/diet-sessions/shared/utils/calendar-year";
 import { routes } from "@/lib/routes";
 import { formatDateWithDots, getJapanTime } from "@/lib/utils/date";
+import { getGeneralQuestionSessionKey } from "../../shared/utils/general-question-categories";
 import type { loadGeneralQuestionCategoryPage } from "../loaders/load-general-question-category-page";
 
 type GeneralQuestionCategoryPageData = NonNullable<
@@ -99,6 +100,7 @@ function GeneralQuestionCouncilorSlide({
 
 export function GeneralQuestionPage({
   category,
+  dietSession,
   difficultyLevel,
   focusBillId,
   questions,
@@ -148,7 +150,7 @@ export function GeneralQuestionPage({
         <header className="mt-5 border-mirai-border border-b pb-6">
           <p className="flex items-center gap-2 text-sm font-bold text-primary-strong">
             <MessageCircleQuestion aria-hidden="true" className="size-4" />
-            {year}年の一般質問
+            {dietSession.name}の一般質問
           </p>
           <h1 className="mt-2 text-2xl font-bold text-mirai-text sm:text-3xl">
             {category.name}に関する議員の質問
@@ -187,6 +189,7 @@ export function GeneralQuestionPage({
                 kind: "general",
                 categoryId: category.id,
                 year,
+                sessionKey: getGeneralQuestionSessionKey(dietSession),
               }}
               items={councilorGroups.map((group) => ({
                 councilorId: group.councilor.id,

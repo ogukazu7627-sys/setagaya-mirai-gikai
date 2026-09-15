@@ -28,29 +28,42 @@ describe("general-question-repository 統合テスト", () => {
     dietSessionIds.length = 0;
   });
 
-  it("公開中の一般質問だけを会期内の大分類カードへ集約する", async () => {
-    const session = await createTestDietSession({
-      start_date: "2026-01-01",
-      end_date: "2026-12-31",
+  it("公開中の一般質問を会期と大分類ごとのカードへ集約する", async () => {
+    const firstSession = await createTestDietSession({
+      name: "令和8年第1回定例会",
+      slug: `general-question-first-${Date.now()}`,
+      start_date: "2026-02-01",
+      end_date: "2026-03-31",
     });
-    dietSessionIds.push(session.id);
+    const secondSession = await createTestDietSession({
+      name: "令和8年第2回定例会",
+      slug: `general-question-second-${Date.now()}`,
+      start_date: "2026-06-01",
+      end_date: "2026-07-31",
+    });
+    dietSessionIds.push(firstSession.id, secondSession.id);
     const educationQuestions = await Promise.all([
-      createGeneralQuestion(session.id, "教育🏫", "2026-02-18"),
-      createGeneralQuestion(session.id, "教育🏫", "2026-02-20"),
+      createGeneralQuestion(firstSession.id, "教育🏫", "2026-02-18"),
+      createGeneralQuestion(firstSession.id, "教育🏫", "2026-02-20"),
     ]);
     const disasterQuestion = await createGeneralQuestion(
-      session.id,
+      firstSession.id,
       "防災☔",
       "2026-02-19"
     );
+    const secondSessionEducationQuestion = await createGeneralQuestion(
+      secondSession.id,
+      "教育🏫",
+      "2026-06-20"
+    );
     const draft = await createTestBill({
-      diet_session_id: session.id,
+      diet_session_id: firstSession.id,
       publication_category: "general_question",
       publish_status: "draft",
       major_category: "教育🏫",
     });
     const report = await createTestBill({
-      diet_session_id: session.id,
+      diet_session_id: firstSession.id,
       publication_category: "report",
       publish_status: "published",
       major_category: "教育🏫",
@@ -58,23 +71,32 @@ describe("general-question-repository 統合テスト", () => {
     billIds.push(
       ...educationQuestions.map(({ id }) => id),
       disasterQuestion.id,
+      secondSessionEducationQuestion.id,
       draft.id,
       report.id
     );
 
     const cards = await findPublishedGeneralQuestionCategoryCards(
-      [session.id],
+      [firstSession.id, secondSession.id],
       2026
     );
 
     expect(cards).toEqual([
       expect.objectContaining({
         categoryId: "education",
+        dietSession: expect.objectContaining({ id: secondSession.id }),
+        questionCount: 1,
+        latestSubmittedDate: "2026-06-20",
+      }),
+      expect.objectContaining({
+        categoryId: "education",
+        dietSession: expect.objectContaining({ id: firstSession.id }),
         questionCount: 2,
         latestSubmittedDate: "2026-02-20",
       }),
       expect.objectContaining({
         categoryId: "disaster-prevention",
+        dietSession: expect.objectContaining({ id: firstSession.id }),
         questionCount: 1,
         latestSubmittedDate: "2026-02-19",
       }),
@@ -138,7 +160,11 @@ describe("general-question-repository 統合テスト", () => {
         displayName: "テスト議員",
         iconUrl: null,
       },
-      dietSession: { id: session.id, name: "令和8年第1回定例会" },
+      dietSession: {
+        id: session.id,
+        name: "令和8年第1回定例会",
+        startDate: "2026-01-01",
+      },
       contents: {
         normal: { title: "教育環境について" },
         hard: { title: "教育環境について（詳しく）" },
@@ -146,7 +172,12 @@ describe("general-question-repository 統合テスト", () => {
     });
     expect(
       await findPublishedGeneralQuestionReferenceByBillId(bill.id)
-    ).toEqual({ categoryId: "education", year: 2026 });
+    ).toEqual({
+      categoryId: "education",
+      year: 2026,
+      sessionKey: session.slug,
+      sessionName: "令和8年第1回定例会",
+    });
   });
 
   async function createGeneralQuestion(

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { routes } from "@/lib/routes";
 import type { GeneralQuestionCategoryCardData } from "../../shared/types/general-question";
+import { getGeneralQuestionSessionKey } from "../../shared/utils/general-question-categories";
 
 type GeneralQuestionCategoryCardProps = {
   category: GeneralQuestionCategoryCardData;
@@ -18,6 +19,7 @@ export function GeneralQuestionCategoryCard({
         routes.generalQuestionCategory(
           category.year,
           category.categoryId,
+          getGeneralQuestionSessionKey(category.dietSession),
           category.focusBillId ?? undefined
         ) as Route
       }
@@ -31,7 +33,7 @@ export function GeneralQuestionCategoryCard({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-primary-strong">
-                {category.year}年の一般質問
+                {category.dietSession.name}の一般質問
               </p>
               <CardTitle className="mt-2 text-xl leading-8 tracking-normal sm:text-2xl">
                 {category.name}に関する議員の質問

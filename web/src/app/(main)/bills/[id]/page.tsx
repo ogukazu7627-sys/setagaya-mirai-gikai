@@ -71,10 +71,11 @@ export async function generateMetadata({
     );
     const categoryName = category?.name ?? "一般質問";
     const title = `${categoryName}に関する議員の質問 | 世田谷区議会`;
-    const description = `${redirectReference.year}年の世田谷区議会で行われた${categoryName}分野の一般質問を、議員ごとに確認できます。`;
+    const description = `${redirectReference.sessionName}で行われた${categoryName}分野の一般質問を、議員ごとに確認できます。`;
     const canonical = routes.generalQuestionCategory(
       redirectReference.year,
-      redirectReference.categoryId
+      redirectReference.categoryId,
+      redirectReference.sessionKey
     );
     return {
       title,
@@ -162,6 +163,7 @@ export default async function BillDetailPage({ params }: BillDetailPageProps) {
       routes.generalQuestionCategory(
         redirectReference.year,
         redirectReference.categoryId,
+        redirectReference.sessionKey,
         id
       ) as Route
     );

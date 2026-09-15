@@ -115,7 +115,7 @@ export function toGeneralQuestionDirectoryEntries(
 ): CouncilGeneralQuestionDirectoryEntry[] {
   return categories.map((category) => ({
     kind: "general-question-category",
-    id: `general-question:${category.year}:${category.categoryId}`,
+    id: `general-question:${category.dietSession.id}:${category.categoryId}`,
     itemType: "question",
     majorCategory: category.majorCategory,
     committeeName: null,

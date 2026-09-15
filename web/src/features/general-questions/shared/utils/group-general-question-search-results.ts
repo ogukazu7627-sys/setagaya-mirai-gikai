@@ -1,7 +1,10 @@
 import type { BillCardData } from "@/features/bills/shared/types";
 import type { CouncilDirectoryItem } from "@/features/bills/shared/types/council-bill-directory";
 import type { GeneralQuestionCategoryCardData } from "../types/general-question";
-import { getGeneralQuestionCategoryByMajorCategory } from "./general-question-categories";
+import {
+  getGeneralQuestionCategoryByMajorCategory,
+  getGeneralQuestionCategoryGroupKey,
+} from "./general-question-categories";
 
 export function groupGeneralQuestionSearchResults(
   bills: readonly BillCardData[],
@@ -9,7 +12,13 @@ export function groupGeneralQuestionSearchResults(
   year: number
 ): CouncilDirectoryItem[] {
   const categoryCards = new Map(
-    categories.map((category) => [category.categoryId, category])
+    categories.map((category) => [
+      getGeneralQuestionCategoryGroupKey(
+        category.dietSession.id,
+        category.categoryId
+      ),
+      category,
+    ])
   );
   const matchedCounts = new Map<string, number>();
   for (const bill of bills) {
@@ -17,12 +26,16 @@ export function groupGeneralQuestionSearchResults(
     const category = getGeneralQuestionCategoryByMajorCategory(
       bill.major_category
     );
-    if (category) {
-      matchedCounts.set(category.id, (matchedCounts.get(category.id) ?? 0) + 1);
+    if (category && bill.diet_session) {
+      const key = getGeneralQuestionCategoryGroupKey(
+        bill.diet_session.id,
+        category.id
+      );
+      matchedCounts.set(key, (matchedCounts.get(key) ?? 0) + 1);
     }
   }
 
-  const emittedCategoryIds = new Set<string>();
+  const emittedCategoryKeys = new Set<string>();
   return bills.flatMap((bill): CouncilDirectoryItem[] => {
     if (bill.publication_category !== "general_question") {
       return [{ kind: "bill", bill }];
@@ -31,18 +44,29 @@ export function groupGeneralQuestionSearchResults(
     const category = getGeneralQuestionCategoryByMajorCategory(
       bill.major_category
     );
-    if (!category || emittedCategoryIds.has(category.id)) {
+    if (!category || !bill.diet_session) {
       return [];
     }
-    emittedCategoryIds.add(category.id);
+    const key = getGeneralQuestionCategoryGroupKey(
+      bill.diet_session.id,
+      category.id
+    );
+    if (emittedCategoryKeys.has(key)) {
+      return [];
+    }
+    emittedCategoryKeys.add(key);
 
-    const categoryCard = categoryCards.get(category.id) ?? {
+    const categoryCard = categoryCards.get(key) ?? {
       categoryId: category.id,
       name: category.name,
       majorCategory: category.label,
       description: category.description,
       year,
-      questionCount: matchedCounts.get(category.id) ?? 1,
+      dietSession: {
+        ...bill.diet_session,
+        startDate: null,
+      },
+      questionCount: matchedCounts.get(key) ?? 1,
       latestSubmittedDate: bill.submitted_date,
     };
     return [
