@@ -10,8 +10,10 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Button } from "@/components/ui/button";
 import {
   PUBLIC_COMMENT_AUTH_RETURN_KEY,
+  PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
   PUBLIC_COMMENT_CONSENT_VERSION,
 } from "../shared/consent";
 import { MINPAKU_LESSONS } from "../shared/learning";
@@ -30,13 +32,16 @@ vi.mock("@/features/chat/client/hooks/use-chat-auth", () => ({
 vi.mock("./public-comment-interview-chat", () => ({
   PublicCommentInterviewChat: ({
     messages,
+    onQuickReply,
   }: {
     messages: Array<{ content: string }>;
+    onQuickReply: (value: string) => void;
   }) => (
     <div>
       {messages.map((message) => (
         <p key={message.content}>{message.content}</p>
       ))}
+      <Button onClick={() => onQuickReply("私の経験です")}>回答する</Button>
     </div>
   ),
 }));
@@ -45,6 +50,7 @@ describe("PublicCommentMinpakuPage", () => {
   afterEach(cleanup);
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     auth.status = "authenticated";
     auth.signInWithGoogle.mockClear();
     sessionStorage.clear();
@@ -96,13 +102,13 @@ describe("PublicCommentMinpakuPage", () => {
       screen.getByRole("checkbox", { name: /回答の保存に同意/ })
     ).not.toBeChecked();
     expect(
-      screen.getByRole("checkbox", { name: /案内メールの受信/ })
-    ).not.toBeChecked();
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RETURN_KEY)).toBeNull();
   });
 
-  it("案内メールは任意で、希望した場合だけtrueを送る", async () => {
+  it("控えメールは初期チェック済みで、保存への同意は別に必要", async () => {
     const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -118,9 +124,12 @@ describe("PublicCommentMinpakuPage", () => {
       })[0]
     );
     expect(
-      screen.getByRole("checkbox", { name: /案内メールの受信/ })
-    ).not.toBeChecked();
-    fireEvent.click(screen.getByRole("checkbox", { name: /案内メールの受信/ }));
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
+    expect(screen.getByText("送信先：user@example.com")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "同意してはじめる" })
+    ).toBeDisabled();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
     await waitFor(() =>
@@ -129,7 +138,7 @@ describe("PublicCommentMinpakuPage", () => {
         expect.objectContaining({
           body: JSON.stringify({
             consented: true,
-            emailOptIn: true,
+            receiptOptIn: true,
             consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
           }),
         })
@@ -137,10 +146,9 @@ describe("PublicCommentMinpakuPage", () => {
     );
   });
 
-  it("規約同意やインタビュー開始をせずにメールを停止できる", async () => {
-    const fetchMock = vi
-      .spyOn(global, "fetch")
-      .mockResolvedValue(new Response(JSON.stringify({ optedIn: false })));
+  it("Googleログイン前に外した控えのチェックを、ログインから戻った後も保持する", async () => {
+    auth.status = "unauthenticated";
+    const fetchMock = vi.spyOn(global, "fetch");
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
@@ -148,18 +156,56 @@ describe("PublicCommentMinpakuPage", () => {
       })[0]
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "案内メールの配信を停止" })
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
     );
-    expect(
-      await screen.findByText("案内メールの配信停止を保存しました。")
-    ).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
-      "/api/public-comment/minpaku/email-preference",
-      { method: "DELETE" }
+    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
+    await waitFor(() => expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1));
+    expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY)).toBe(
+      "false"
     );
+    cleanup();
+    auth.status = "authenticated";
+    render(<PublicCommentMinpakuPage />);
     expect(
-      screen.getByRole("button", { name: "同意してはじめる" })
-    ).toBeDisabled();
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /回答の保存に同意/ })
+    ).not.toBeChecked();
+    expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("控えのチェックを外してもインタビューを開始できる", async () => {
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ sessionId: "session-1", messages: [] }))
+      );
+    render(<PublicCommentMinpakuPage />);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "すぐにAIインタビューをはじめる",
+      })[0]
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+        "/api/public-comment/minpaku/session",
+        expect.objectContaining({
+          body: JSON.stringify({
+            consented: true,
+            receiptOptIn: false,
+            consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          }),
+        })
+      )
+    );
   });
 
   it("同意モーダルで保存に同意した後にだけセッション開始APIを呼ぶ", async () => {
@@ -297,7 +343,7 @@ describe("PublicCommentMinpakuPage", () => {
       expect.objectContaining({
         body: JSON.stringify({
           consented: true,
-          emailOptIn: false,
+          receiptOptIn: true,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       })
@@ -407,5 +453,178 @@ describe("PublicCommentMinpakuPage", () => {
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  async function reachReview() {
+    const draft = {
+      id: "draft-1",
+      ai_body: "AIの下書き",
+      final_body: "AIの下書き",
+      target_ordinances: ["条例"],
+      fact_check_notes: [],
+    };
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockImplementation(async (url, init) => {
+        if (String(url).endsWith("/session"))
+          return Response.json({ sessionId: "session-1", messages: [] });
+        if (String(url).endsWith("/chat"))
+          return Response.json({
+            message: {
+              id: "last",
+              role: "assistant",
+              content: "聞き取りが終わりました",
+            },
+            nextStage: "draft",
+          });
+        if (init?.method === "PATCH") {
+          const { finalBody } = JSON.parse(String(init.body));
+          return Response.json({ draft: { ...draft, final_body: finalBody } });
+        }
+        if (String(url).endsWith("/draft")) return Response.json({ draft });
+        if (String(url).endsWith("/complete"))
+          return Response.json({
+            status: "private",
+            receipt: { status: "failed", canRetry: true },
+          });
+        if (String(url).endsWith("/receipt"))
+          return Response.json({
+            receipt: { status: "accepted", canRetry: false },
+          });
+        throw new Error("Unexpected test request");
+      });
+    render(<PublicCommentMinpakuPage />);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "すぐにAIインタビューをはじめる",
+      })[0]
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
+    fireEvent.click(await screen.findByRole("button", { name: "回答する" }));
+    const heading = await screen.findByRole("heading", {
+      name: "どの条例について意見を書きますか？",
+    });
+    expect(heading).toHaveFocus();
+    fireEvent.click(screen.getByRole("button", { name: "下書きを作る" }));
+    await screen.findByRole("textbox", { name: "提出用に編集する本文" });
+    return fetchMock;
+  }
+
+  it("完了前までメールを送らず、最終編集と受信設定を確定してから送信する", async () => {
+    const fetchMock = await reachReview();
+    expect(
+      screen.getByRole("heading", {
+        name: "あなたの言葉になっているか確認してください",
+      })
+    ).toHaveFocus();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).endsWith("/complete"))
+    ).toBe(false);
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "提出用に編集する本文" }),
+      { target: { value: "私が確認した最終コメント" } }
+    );
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
+    await screen.findByRole("heading", { name: "下書きを保存しました" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/complete",
+      expect.objectContaining({
+        body: JSON.stringify({
+          sessionId: "session-1",
+          publicationRequested: false,
+          receiptOptIn: false,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
+      })
+    );
+    const patch = fetchMock.mock.calls.find(
+      ([, init]) => init?.method === "PATCH"
+    );
+    expect(JSON.parse(String(patch?.[1]?.body)).finalBody).toBe(
+      "私が確認した最終コメント"
+    );
+    expect(
+      screen.getByRole("heading", { name: "下書きを保存しました" })
+    ).toHaveFocus();
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      left: 0,
+      behavior: "instant",
+    });
+  });
+
+  it("メールに失敗しても完了画面を表示し、再試行はメール専用APIだけを呼ぶ", async () => {
+    const fetchMock = await reachReview();
+    fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
+    const retry = await screen.findByRole("button", {
+      name: "控えメールの送信を再試行",
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "下書きは保存されています"
+    );
+    fetchMock.mockClear();
+    fireEvent.click(retry);
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "送信を受け付けました"
+      )
+    );
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/api/public-comment/minpaku/receipt",
+      expect.objectContaining({
+        body: JSON.stringify({ sessionId: "session-1" }),
+      })
+    );
+    expect(
+      screen.queryByRole("button", { name: "控えメールの送信を再試行" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("完了応答が失われても内容を固定し、同じ完了処理だけを再確認する", async () => {
+    const fetchMock = await reachReview();
+    const original = fetchMock.getMockImplementation();
+    if (!original) throw new Error("Test fetch implementation is missing");
+    let completions = 0;
+    fetchMock.mockImplementation(async (url, init) => {
+      if (String(url).endsWith("/complete")) {
+        completions++;
+        if (completions === 1) throw new TypeError("Connection lost");
+        return Response.json({
+          status: "private",
+          receipt: { status: "accepted", canRetry: false },
+        });
+      }
+      return original(url, init);
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /匿名で公開/ }));
+    fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
+    await screen.findByRole("alert");
+    expect(
+      screen.getByRole("textbox", { name: "提出用に編集する本文" })
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: /匿名で公開/ })).toBeDisabled();
+    fetchMock.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
+    await screen.findByRole("heading", { name: "下書きを保存しました" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "/api/public-comment/minpaku/complete"
+    );
+    expect(
+      screen.queryByText(/匿名公開の申請は運営確認待ち/)
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "送信を受け付けました"
+    );
   });
 });

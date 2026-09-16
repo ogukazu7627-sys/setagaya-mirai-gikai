@@ -58,7 +58,10 @@ export function PublicCommentLearning({
 
   useEffect(() => {
     // Move focus with the chapter so keyboard and screen-reader users follow it.
-    if (lesson.id) headingRef.current?.focus();
+    if (lesson.id) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      headingRef.current?.focus({ preventScroll: true });
+    }
   }, [lesson.id]);
 
   return (

@@ -81,9 +81,10 @@ export function PublicCommentInterviewChat({
 
   return (
     <div
-      className="h-[calc(100dvh-var(--app-header-layout-offset))] bg-mirai-surface-light"
+      className="h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))] bg-mirai-surface-light pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
       data-testid="public-comment-interview-chat"
     >
+      <h1 className="sr-only">民泊パブリックコメントのAIインタビュー</h1>
       <div className="flex h-full flex-col bg-white pt-4 min-[768px]:rounded-t-[36px] min-[768px]:px-12 min-[768px]:pt-10">
         <div className="px-4 pb-1">
           <InterviewProgressBar {...progress} />

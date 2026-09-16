@@ -15,17 +15,18 @@ import {
 import { GoogleGIcon } from "@/features/chat/client/components/google-login-gate";
 import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
 import { routes } from "@/lib/routes";
-import { PUBLIC_COMMENT_EMAIL_NOTICE } from "../shared/consent";
+import { ReceiptPreference } from "./receipt-preference";
 
 interface PublicCommentConsentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isStarting: boolean;
-  onAgree: (emailOptIn: boolean) => void;
+  onAgree: (receiptOptIn: boolean) => void;
   authStatus: ChatAuthStatus;
   userEmail?: string;
   authError?: string;
-  onSignIn: () => Promise<void>;
+  initialReceiptOptIn: boolean;
+  onSignIn: (receiptOptIn: boolean) => Promise<void>;
 }
 
 export function PublicCommentConsentModal({
@@ -36,56 +37,32 @@ export function PublicCommentConsentModal({
   authStatus,
   userEmail,
   authError,
+  initialReceiptOptIn,
   onSignIn,
 }: PublicCommentConsentModalProps) {
   const [agreed, setAgreed] = useState(false);
-  const [emailOptIn, setEmailOptIn] = useState(false);
+  const [receiptOptIn, setReceiptOptIn] = useState(initialReceiptOptIn);
   const [signingIn, setSigningIn] = useState(false);
-  const [stoppingEmail, setStoppingEmail] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const disabled = isStarting || signingIn || stoppingEmail;
+  const disabled = isStarting || signingIn;
 
   useEffect(() => {
+    setReceiptOptIn(initialReceiptOptIn);
     if (!open) {
       setAgreed(false);
-      setEmailOptIn(false);
-      setEmailStatus(null);
       setLoginError(null);
     }
-  }, [open]);
+  }, [open, initialReceiptOptIn]);
 
   const signIn = async () => {
     setSigningIn(true);
     setLoginError(null);
     try {
-      await onSignIn();
+      await onSignIn(receiptOptIn);
     } catch {
       setLoginError("ログインを開始できませんでした。もう一度お試しください。");
     } finally {
       setSigningIn(false);
-    }
-  };
-
-  const stopEmail = async () => {
-    setStoppingEmail(true);
-    setEmailStatus(null);
-    try {
-      const response = await fetch(
-        "/api/public-comment/minpaku/email-preference",
-        {
-          method: "DELETE",
-        }
-      );
-      if (!response.ok) throw new Error();
-      setEmailOptIn(false);
-      setEmailStatus("案内メールの配信停止を保存しました。");
-    } catch {
-      setEmailStatus(
-        "配信停止を保存できませんでした。もう一度お試しください。"
-      );
-    } finally {
-      setStoppingEmail(false);
     }
   };
 
@@ -102,7 +79,7 @@ export function PublicCommentConsentModal({
             AIインタビュー同意事項
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Googleログイン、回答の保存、任意の案内メールについて確認してください。
+            Googleログイン、回答の保存、任意の控えメールについて確認してください。
           </DialogDescription>
           <div className="mt-6 h-px bg-mirai-gradient" />
         </DialogHeader>
@@ -155,34 +132,12 @@ export function PublicCommentConsentModal({
             </label>
           </div>
           <div className="space-y-3 border-t border-gray-200 pt-4 text-sm leading-6">
-            <p>{PUBLIC_COMMENT_EMAIL_NOTICE}</p>
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                checked={emailOptIn}
-                disabled={disabled}
-                onChange={(event) => setEmailOptIn(event.target.checked)}
-                className="mt-1 size-4 shrink-0 accent-primary"
-              />
-              <span>
-                活動・イベント等の案内メールの受信に同意します（任意）
-              </span>
-            </label>
-            <p className="text-xs text-mirai-text-secondary">
-              「同意してはじめる」を押すと、今回の選択で配信希望を更新します。メールアドレスは公開コメントやAIへの入力に含めません。
-            </p>
-            {authStatus === "authenticated" && (
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => void stopEmail()}
-                disabled={disabled}
-                className="h-auto whitespace-normal p-0 text-sm"
-              >
-                案内メールの配信を停止
-              </Button>
-            )}
-            {emailStatus && <p role="status">{emailStatus}</p>}
+            <ReceiptPreference
+              checked={receiptOptIn}
+              onChange={setReceiptOptIn}
+              disabled={disabled}
+              userEmail={userEmail}
+            />
           </div>
         </div>
 
@@ -211,7 +166,7 @@ export function PublicCommentConsentModal({
             </p>
           )}
           <Button
-            onClick={() => onAgree(emailOptIn)}
+            onClick={() => onAgree(receiptOptIn)}
             disabled={disabled || !agreed || authStatus !== "authenticated"}
             className="w-full"
           >

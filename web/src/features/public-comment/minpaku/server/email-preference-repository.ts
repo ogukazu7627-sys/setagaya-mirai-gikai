@@ -1,7 +1,8 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import { PUBLIC_COMMENT_CONSENT_VERSION } from "../shared/consent";
+
+export const LEGACY_PUBLIC_COMMENT_EMAIL_CONSENT_VERSION = "2026-09-16";
 
 export async function savePublicCommentEmailPreference(
   userId: string,
@@ -13,7 +14,7 @@ export async function savePublicCommentEmailPreference(
     .upsert({
       user_id: userId,
       opted_in: optedIn,
-      consent_version: PUBLIC_COMMENT_CONSENT_VERSION,
+      consent_version: LEGACY_PUBLIC_COMMENT_EMAIL_CONSENT_VERSION,
       consented_at: optedIn ? now : null,
       updated_at: now,
     });

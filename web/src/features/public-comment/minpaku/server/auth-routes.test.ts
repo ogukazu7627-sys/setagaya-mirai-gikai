@@ -34,6 +34,8 @@ import {
   POST as draft,
   PATCH as updateDraft,
 } from "@/app/api/public-comment/minpaku/draft/route";
+import { POST as receipt } from "@/app/api/public-comment/minpaku/receipt/route";
+import { PUBLIC_COMMENT_CONSENT_VERSION } from "../shared/consent";
 
 const endpoints = [
   {
@@ -55,7 +57,17 @@ const endpoints = [
       finalBody: "本文",
     },
   },
-  { name: "complete", handler: complete, body: { sessionId: "session-1" } },
+  {
+    name: "complete",
+    handler: complete,
+    body: {
+      sessionId: "session-1",
+      publicationRequested: false,
+      receiptOptIn: true,
+      consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+    },
+  },
+  { name: "receipt", handler: receipt, body: { sessionId: "session-1" } },
 ];
 
 describe.each(endpoints)("民泊APIの認可: $name", ({ name, handler, body }) => {

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
-import { savePublicCommentEmailPreference } from "@/features/public-comment/minpaku/server/email-preference-repository";
 import {
   appendMessage,
   createSession,
   findActiveSession,
   findCampaign,
   findMessages,
+  saveSessionReceiptConsent,
 } from "@/features/public-comment/minpaku/server/repository";
 import {
   MINPAKU_CAMPAIGN_SLUG,
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   if (
     !body ||
     body.consented !== true ||
-    typeof body.emailOptIn !== "boolean" ||
+    typeof body.receiptOptIn !== "boolean" ||
     body.consentVersion !== PUBLIC_COMMENT_CONSENT_VERSION
   ) {
     return NextResponse.json(
@@ -48,11 +48,15 @@ export async function POST(request: Request) {
       );
     }
 
-    await savePublicCommentEmailPreference(user.id, body.emailOptIn);
-
-    const session =
-      (await findActiveSession(campaign.id, user.id)) ??
-      (await createSession({ campaignId: campaign.id, userId: user.id }));
+    const active = await findActiveSession(campaign.id, user.id);
+    const consent = {
+      userId: user.id,
+      receiptOptIn: body.receiptOptIn,
+      consentVersion: body.consentVersion,
+    };
+    const session = active
+      ? await saveSessionReceiptConsent({ sessionId: active.id, ...consent })
+      : await createSession({ campaignId: campaign.id, ...consent });
     let messages = await findMessages(session.id);
 
     if (messages.length === 0) {
@@ -69,11 +73,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       sessionId: session.id,
+      receiptOptIn: session.receipt_opt_in,
       messages,
       quickReplies: MINPAKU_QUESTIONS[0].quickReplies,
     });
-  } catch (error) {
-    console.error("Public comment session error:", error);
+  } catch {
+    console.error("Public comment session error");
     return NextResponse.json(
       { error: "インタビューを開始できませんでした" },
       { status: 500 }

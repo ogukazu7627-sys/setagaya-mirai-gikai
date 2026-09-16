@@ -70,6 +70,7 @@ export function isRestorablePublicPath(pathname: string): boolean {
   }
 
   return !(
+    /^\/public-comment\/minpaku\/?$/.test(pathname) ||
     /^\/bills\/[^/]+\/interview(?:\/|$)/.test(pathname) ||
     /^\/report\/[^/]+\/complete(?:\/|$)/.test(pathname)
   );
