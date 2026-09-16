@@ -26,7 +26,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div
       className={cn(
         // モバイルはsafe areaのみ、768px以上は固定ヘッダーの実測高を確保する。
-        "relative mx-auto pt-[var(--app-header-layout-offset)] min-[768px]:mt-[var(--app-header-layout-offset)] min-[768px]:pt-0",
+        "app-main-layout relative mx-auto pt-[var(--app-header-layout-offset)] min-[768px]:mt-[var(--app-header-layout-offset)] min-[768px]:pt-0",
         useWideLayout ? "max-w-[1180px]" : "max-w-[700px]",
         // インタビューページ以外ではshadowを表示
         !isInterview && "sm:shadow-lg",
