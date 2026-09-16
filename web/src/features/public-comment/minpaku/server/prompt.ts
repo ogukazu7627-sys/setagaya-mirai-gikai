@@ -8,7 +8,8 @@ import {
 type PromptMessage = { role: "user" | "assistant"; content: string };
 
 const sourceList = MINPAKU_SOURCES.map(
-  (source) => `- ${source.id}: ${source.title} (${source.url})`
+  (source) =>
+    `- ${source.id} [${source.kind === "opinion" ? "議員個人の主張" : "行政の公式資料"}]: ${source.title} (${source.url})`
 ).join("\n");
 
 export function buildInterviewPrompt(params: {
@@ -21,7 +22,7 @@ export function buildInterviewPrompt(params: {
 
   return `${MINPAKU_CONTEXT}
 
-## 参照してよい公式資料
+## 参照してよい登録済み資料
 ${sourceList}
 
 ## 対象条例
@@ -31,7 +32,7 @@ ${MINPAKU_ORDINANCES.map((item) => `- ${item}`).join("\n")}
 あなたは、ユーザーが区へ提出するパブリックコメントの下書きを自分の言葉で整理するための、中立的な聞き手です。意見を代わりに決めたり、賛成・反対へ分類したりしません。
 
 ## 必ず守ること
-- 参照できるのは、このプロンプトにある世田谷区の公式資料の説明だけです。web検索、外部知識、ツール呼び出しは使いません。
+- 参照できるのは、このプロンプトにある行政の公式資料の説明と、出典を明示した議員個人の主張だけです。web検索、外部知識、ツール呼び出しは使いません。
 - 民泊、旅館業、対象条例、地域の住環境や安全に関係しない質問には回答せず、「このインタビューは対象条例への意見整理を支援するものです」と短く伝えて、次の質問へ戻します。
 - 怒り、不安、不満、期待を否定せず、事実、本人の経験、意見、提案を分けて聞きます。
 - 違法性、被害、危険性、区や事業者の責任を断定しません。確認できないことは「確認が必要」と扱います。
@@ -55,7 +56,7 @@ export function buildDraftPrompt(params: {
 }) {
   return `${MINPAKU_CONTEXT}
 
-## 参照してよい公式資料
+## 参照してよい登録済み資料
 ${sourceList}
 
 ## 対象条例

@@ -24,6 +24,10 @@ import {
   MINPAKU_SUBMISSION_DEADLINE,
   type MinpakuSource,
 } from "../shared/campaign";
+import {
+  MINPAKU_LEARNING_ESTIMATED_TIME,
+  MINPAKU_LESSONS,
+} from "../shared/learning";
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
@@ -117,7 +121,8 @@ function PublicCommentStartActions({
         <ArrowRight className="size-4" />
       </Button>
       <p className="text-xs text-mirai-text-secondary">
-        4章・各1問 / 目安4〜6分
+        {MINPAKU_LESSONS.length}章・各1問 / 目安
+        {MINPAKU_LEARNING_ESTIMATED_TIME}
       </p>
       <Button
         type="button"
@@ -267,10 +272,10 @@ function PublicCommentIntro({
           </div>
         </IntroSection>
 
-        <IntroSection title="確認できる公式資料">
+        <IntroSection title="確認できる資料・議員の発信">
           <div className="space-y-4">
             <p>
-              インタビューでは、世田谷区の意見募集ページ、区の考え、改正素案概要、新旧対照表を前提にします。
+              インタビューでは、世田谷区の意見募集ページ、区の考え、改正素案概要、新旧対照表を前提にします。他区の制度は比較情報として、議員の発信は本人の主張として区別して参照します。
             </p>
             <div className="space-y-3">
               {MINPAKU_SOURCES.map((source) => (

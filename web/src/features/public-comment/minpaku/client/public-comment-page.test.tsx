@@ -84,7 +84,7 @@ describe("PublicCommentMinpakuPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("不正解も解説後に進め、4章の学習後も保存同意までAPIを呼ばない", async () => {
+  it("不正解も解説後に進め、6章の学習後も保存同意までAPIを呼ばない", async () => {
     const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -101,7 +101,10 @@ describe("PublicCommentMinpakuPage", () => {
       screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
     );
     expect(
-      screen.getByRole("heading", { level: 1, name: "なぜ見直すのか" })
+      screen.getByRole("heading", {
+        level: 1,
+        name: "なぜ、2つの条例を一緒に見直すの？",
+      })
     ).toHaveFocus();
     expect(screen.getByRole("button", { name: "回答を確認" })).toBeDisabled();
     expect(
@@ -109,7 +112,7 @@ describe("PublicCommentMinpakuPage", () => {
     ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("radio", {
-        name: "すべての施設に違法行為があると確認されたため",
+        name: "住宅宿泊事業だけ",
       })
     );
     fireEvent.click(screen.getByRole("button", { name: "回答を確認" }));
@@ -123,12 +126,15 @@ describe("PublicCommentMinpakuPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "前の章へ" }));
     expect(
       screen.getByRole("radio", {
-        name: "すべての施設に違法行為があると確認されたため",
+        name: "住宅宿泊事業だけ",
       })
     ).toBeChecked();
     expect(screen.getByRole("status")).toHaveTextContent("正解：");
     expect(
-      screen.getByRole("heading", { level: 1, name: "なぜ見直すのか" })
+      screen.getByRole("heading", {
+        level: 1,
+        name: "なぜ、2つの条例を一緒に見直すの？",
+      })
     ).toHaveFocus();
     fireEvent.click(screen.getByRole("button", { name: "次の章へ" }));
     for (const lesson of MINPAKU_LESSONS.slice(1)) {
@@ -144,7 +150,7 @@ describe("PublicCommentMinpakuPage", () => {
         lesson.quiz.explanation
       );
       expect(screen.getByRole("status")).toHaveTextContent("資料確認日");
-      if (lesson.id !== "position")
+      if (lesson !== MINPAKU_LESSONS.at(-1))
         fireEvent.click(screen.getByRole("button", { name: "次の章へ" }));
     }
     expect(fetchMock).not.toHaveBeenCalled();
@@ -184,7 +190,9 @@ describe("PublicCommentMinpakuPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "同意せずに戻る" }));
     expect(screen.getAllByRole("radio")[0]).toBeChecked();
     expect(
-      screen.getByRole("heading", { name: "何のルールを変えるのか" })
+      screen.getByRole("heading", {
+        name: "騒音やごみのトラブルに、どう備えるの？",
+      })
     ).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("正解です");
     fireEvent.click(
@@ -207,7 +215,10 @@ describe("PublicCommentMinpakuPage", () => {
     ).toBe(true);
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 1, name: "なぜ見直すのか" })
+      screen.getByRole("heading", {
+        level: 1,
+        name: "なぜ、2つの条例を一緒に見直すの？",
+      })
     ).toBeInTheDocument();
   });
 
@@ -241,7 +252,9 @@ describe("PublicCommentMinpakuPage", () => {
     expect(screen.getByRole("button", { name: "次の章へ" })).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(
-      screen.getByRole("heading", { name: "何のルールを変えるのか" })
+      screen.getByRole("heading", {
+        name: "騒音やごみのトラブルに、どう備えるの？",
+      })
     ).toHaveFocus();
   });
 
