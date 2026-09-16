@@ -1,4 +1,7 @@
-export const PUBLIC_COMMENT_CONSENT_VERSION = "2026-09-16";
+export const PUBLIC_COMMENT_CONSENT_VERSION = "2026-09-16-receipt-v1";
+export const PUBLIC_COMMENT_RECEIPT_LABEL =
+  "終了後に、今回のインタビューとコメントの控えをメールで受け取る";
 export const PUBLIC_COMMENT_EMAIL_NOTICE =
-  "みらい議会＠世田谷区の運営者が、Googleログインで取得したメールアドレス宛に、パブリックコメントやサービスの更新、この活動に関するイベント等の案内を送ることがあります。案内メールは希望した方にだけ送ります。受信に同意しなくてもインタビューに参加でき、同意はいつでも撤回できます。";
+  "「確認して完了」を押した後、Googleログインのメールアドレスに、今回のAIとの会話全文と確認済みコメントの控えを1通送ります。受信欄のチェックは外せます。外してもインタビューに参加でき、完了前に変更できます。活動・イベントの案内は送りません。";
 export const PUBLIC_COMMENT_AUTH_RETURN_KEY = "minpaku-interview-auth-return";
+export const PUBLIC_COMMENT_AUTH_RECEIPT_KEY = "minpaku-interview-auth-receipt";

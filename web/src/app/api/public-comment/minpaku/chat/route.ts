@@ -10,6 +10,7 @@ import {
   appendMessage,
   findMessages,
   findSessionForUser,
+  PublicCommentCompletedError,
 } from "@/features/public-comment/minpaku/server/repository";
 import { MINPAKU_QUESTIONS } from "@/features/public-comment/minpaku/shared/campaign";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
@@ -116,7 +117,13 @@ export async function POST(request: Request) {
       topicTitle: response.topic_title ?? nextQuestion.topic,
     });
   } catch (error) {
-    console.error("Public comment chat error:", error);
+    if (error instanceof PublicCommentCompletedError) {
+      return NextResponse.json(
+        { error: "このインタビューは完了しています" },
+        { status: 409 }
+      );
+    }
+    console.error("Public comment chat error");
     if (error instanceof ChatError) {
       const status =
         error.code === ChatErrorCode.DAILY_COST_LIMIT_REACHED ||

@@ -42,6 +42,25 @@ describe("public view state storage", () => {
     expect(readScrollPosition("/councilors")).toBeNull();
   });
 
+  it.each([
+    "/public-comment/minpaku",
+    "/public-comment/minpaku/",
+  ])("民泊の専用ページ %s はスクロール復元から除外する", (pathname) => {
+    expect(isRestorablePublicPath(pathname)).toBe(false);
+  });
+
+  it.each([
+    "/public-comment/minpaku/comments",
+    "/public-comment/minpaku/comments/",
+    "/public-comment/minpaku/comments/comment-id",
+    "/public-comment/minpaku-other",
+    "/public-comment/another-campaign",
+    "/public-comment",
+    "/bills",
+  ])("民泊の専用ページ以外 %s の復元は維持する", (pathname) => {
+    expect(isRestorablePublicPath(pathname)).toBe(true);
+  });
+
   it("主要ページのクエリ付きURLだけを復帰先として保存する", () => {
     writePrimaryDestination("council", "/bills", "/bills?type=report&page=2");
     expect(readPrimaryDestination("council", "/bills")).toBe(

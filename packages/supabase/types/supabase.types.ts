@@ -3033,10 +3033,12 @@ export type Database = {
         Row: {
           campaign_id: string
           completed_at: string | null
+          consent_version: string | null
           consented_at: string
           created_at: string
           id: string
           publication_status: string
+          receipt_opt_in: boolean
           started_at: string
           updated_at: string
           user_id: string
@@ -3044,10 +3046,12 @@ export type Database = {
         Insert: {
           campaign_id: string
           completed_at?: string | null
+          consent_version?: string | null
           consented_at: string
           created_at?: string
           id?: string
           publication_status?: string
+          receipt_opt_in?: boolean
           started_at?: string
           updated_at?: string
           user_id: string
@@ -3055,10 +3059,12 @@ export type Database = {
         Update: {
           campaign_id?: string
           completed_at?: string | null
+          consent_version?: string | null
           consented_at?: string
           created_at?: string
           id?: string
           publication_status?: string
+          receipt_opt_in?: boolean
           started_at?: string
           updated_at?: string
           user_id?: string
@@ -3069,6 +3075,83 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "public_comment_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_receipts: {
+        Row: {
+          accepted_at: string | null
+          attempt_count: number
+          body: string
+          consent_version: string
+          conversation: Json
+          created_at: string
+          failure_code: string | null
+          final_body: string
+          first_attempt_at: string | null
+          id: string
+          idempotency_key: string
+          lease_expires_at: string | null
+          lease_token: string | null
+          next_attempt_at: string | null
+          provider_id: string | null
+          recipient: string | null
+          sender: string | null
+          session_id: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          attempt_count?: number
+          body: string
+          consent_version: string
+          conversation: Json
+          created_at?: string
+          failure_code?: string | null
+          final_body: string
+          first_attempt_at?: string | null
+          id?: string
+          idempotency_key: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string | null
+          provider_id?: string | null
+          recipient?: string | null
+          sender?: string | null
+          session_id: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          accepted_at?: string | null
+          attempt_count?: number
+          body?: string
+          consent_version?: string
+          conversation?: Json
+          created_at?: string
+          failure_code?: string | null
+          final_body?: string
+          first_attempt_at?: string | null
+          id?: string
+          idempotency_key?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string | null
+          provider_id?: string | null
+          recipient?: string | null
+          sender?: string | null
+          session_id?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_receipts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "public_comment_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -3441,6 +3524,92 @@ export type Database = {
       validate_budget_dataset: {
         Args: { p_dataset_id: string }
         Returns: Json
+      }
+      save_public_comment_draft: {
+        Args: {
+          p_ai_body?: string
+          p_fact_check_notes?: string[]
+          p_final_body: string
+          p_session_id: string
+          p_source_refs?: Json
+          p_target_ordinances: string[]
+          p_user_id: string
+        }
+        Returns: {
+          ai_body: string
+          created_at: string
+          fact_check_notes: string[]
+          final_body: string
+          id: string
+          publication_requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string
+          source_refs: Json
+          target_ordinances: string[]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "public_comment_drafts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      finish_public_comment_receipt: {
+        Args: {
+          p_lease_token: string
+          p_needs_review?: boolean
+          p_provider_id?: string
+          p_receipt_id: string
+        }
+        Returns: undefined
+      }
+      claim_public_comment_receipt: {
+        Args: {
+          p_config_failure?: string
+          p_sender: string
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: {
+          accepted_at: string | null
+          attempt_count: number
+          body: string
+          consent_version: string
+          conversation: Json
+          created_at: string
+          failure_code: string | null
+          final_body: string
+          first_attempt_at: string | null
+          id: string
+          idempotency_key: string
+          lease_expires_at: string | null
+          lease_token: string | null
+          next_attempt_at: string | null
+          provider_id: string | null
+          recipient: string | null
+          sender: string | null
+          session_id: string
+          status: string
+          subject: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "public_comment_receipts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      complete_public_comment_session: {
+        Args: {
+          p_consent_version: string
+          p_publication_requested: boolean
+          p_receipt_opt_in: boolean
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {

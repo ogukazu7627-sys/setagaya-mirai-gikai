@@ -9,6 +9,7 @@ import {
   findDraft,
   findMessages,
   findSessionForUser,
+  PublicCommentCompletedError,
   updateDraft,
   upsertDraft,
 } from "@/features/public-comment/minpaku/server/repository";
@@ -57,6 +58,11 @@ export async function POST(request: Request) {
         { error: "セッションが見つかりません" },
         { status: 404 }
       );
+    if (session.completed_at)
+      return NextResponse.json(
+        { error: "このインタビューは完了しています" },
+        { status: 409 }
+      );
     const messages = await findMessages(session.id);
     const userAnswerCount = messages.filter(
       (message) => message.role === "user"
@@ -80,6 +86,7 @@ export async function POST(request: Request) {
     });
     const draft = await upsertDraft({
       sessionId,
+      userId: user.id,
       targetOrdinances: output.target_ordinances,
       aiBody: output.body,
       finalBody: output.body,
@@ -92,7 +99,12 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ draft, sources: MINPAKU_SOURCES });
   } catch (error) {
-    console.error("Public comment draft generation error:", error);
+    if (error instanceof PublicCommentCompletedError)
+      return NextResponse.json(
+        { error: "このインタビューは完了しています" },
+        { status: 409 }
+      );
+    console.error("Public comment draft generation error");
     return NextResponse.json(
       { error: "下書きを作成できませんでした" },
       { status: 500 }
@@ -103,10 +115,9 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => null);
   const sessionId = typeof body?.sessionId === "string" ? body.sessionId : "";
-  const finalBody =
-    typeof body?.finalBody === "string" ? body.finalBody.trim() : "";
+  const finalBody = typeof body?.finalBody === "string" ? body.finalBody : "";
   const targetOrdinances = parseTargetOrdinances(body?.targetOrdinances);
-  if (!sessionId || !finalBody || !targetOrdinances) {
+  if (!sessionId || !finalBody.trim() || !targetOrdinances) {
     return NextResponse.json(
       { error: "下書き本文と対象条例が必要です" },
       { status: 400 }
@@ -132,14 +143,37 @@ export async function PATCH(request: Request) {
         { error: "下書きが見つかりません" },
         { status: 404 }
       );
+    if (session.completed_at) {
+      return draft.final_body === finalBody &&
+        JSON.stringify(draft.target_ordinances) ===
+          JSON.stringify(targetOrdinances)
+        ? NextResponse.json({ draft })
+        : NextResponse.json(
+            { error: "完了済みの下書きは変更できません" },
+            { status: 409 }
+          );
+    }
     const updated = await updateDraft({
       sessionId,
+      userId: user.id,
       finalBody,
       targetOrdinances,
     });
     return NextResponse.json({ draft: updated });
   } catch (error) {
-    console.error("Public comment draft update error:", error);
+    if (error instanceof PublicCommentCompletedError) {
+      const frozen = await findDraft(sessionId);
+      return frozen &&
+        frozen.final_body === finalBody &&
+        JSON.stringify(frozen.target_ordinances) ===
+          JSON.stringify(targetOrdinances)
+        ? NextResponse.json({ draft: frozen })
+        : NextResponse.json(
+            { error: "完了済みの下書きは変更できません" },
+            { status: 409 }
+          );
+    }
+    console.error("Public comment draft update error");
     return NextResponse.json(
       { error: "下書きを保存できませんでした" },
       { status: 500 }

@@ -18,7 +18,7 @@ export function DelayedQuickReplies({
   useEffect(() => {
     setReady(false);
     if (!active) return;
-    const timer = window.setTimeout(() => setReady(true), 15_000);
+    const timer = window.setTimeout(() => setReady(true), 5_000);
     return () => window.clearTimeout(timer);
   }, [active]);
 

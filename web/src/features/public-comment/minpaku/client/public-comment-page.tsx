@@ -7,11 +7,13 @@ import {
   Clipboard,
   ExternalLink,
   Loader2,
+  Mail,
+  RefreshCw,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
@@ -26,6 +28,7 @@ import {
 } from "../shared/campaign";
 import {
   PUBLIC_COMMENT_AUTH_RETURN_KEY,
+  PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
   PUBLIC_COMMENT_CONSENT_VERSION,
 } from "../shared/consent";
 import {
@@ -35,6 +38,9 @@ import {
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
+import type { ReceiptResult } from "../shared/receipt";
+import { ReceiptPreference } from "./receipt-preference";
+import { usePublicCommentViewScroll } from "./use-public-comment-view-scroll";
 
 type Message = {
   id: string;
@@ -63,6 +69,16 @@ const PRIMARY_BUTTON_CLASS =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-[100px] bg-primary px-6 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
 const OUTLINE_BUTTON_CLASS =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-[100px] border border-black px-6 text-[15px] font-bold text-black transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50";
+
+const RECEIPT_STATUS_MESSAGES: Record<ReceiptResult["status"], string> = {
+  not_requested: "",
+  accepted:
+    "控えメールの送信を受け付けました。到着まで時間がかかる場合があります。届かない場合は迷惑メールフォルダもご確認ください。",
+  needs_review:
+    "控えメールの送信状況は運営による確認が必要です。下書きは保存されています。",
+  pending: "控えメールの送信状況を確認中です。下書きは保存されています。",
+  failed: "控えメールの送信を確認できませんでした。下書きは保存されています。",
+};
 
 function formatDeadline() {
   return new Intl.DateTimeFormat("ja-JP", {
@@ -310,7 +326,7 @@ function PublicCommentIntro({
               回答は同意後に専用のデータベースへ保存します。匿名公開を希望する場合も、運営の確認後に承認された本文だけが公開されます。
             </p>
             <p>
-              学習はログインなしで利用できます。AIインタビューには、不正利用・過剰利用を防ぐためGoogleログインが必要です。案内メールの受信は任意です。
+              学習はログインなしで利用できます。AIインタビューには、不正利用・過剰利用を防ぐためGoogleログインが必要です。今回の控えメールの受信は任意です。
             </p>
           </div>
         </IntroSection>
@@ -402,7 +418,11 @@ function DraftReview({
   sources,
   copied,
   isBusy,
+  completionPending,
   publicationRequested,
+  receiptOptIn,
+  userEmail,
+  onReceiptChange,
   onDraftChange,
   onCopy,
   onPublicationChange,
@@ -412,7 +432,11 @@ function DraftReview({
   sources: readonly MinpakuSource[];
   copied: boolean;
   isBusy: boolean;
+  completionPending: boolean;
   publicationRequested: boolean;
+  receiptOptIn: boolean;
+  userEmail?: string;
+  onReceiptChange: (value: boolean) => void;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onPublicationChange: (value: boolean) => void;
@@ -438,6 +462,7 @@ function DraftReview({
         <textarea
           id="public-comment-draft"
           value={draft.final_body}
+          disabled={isBusy || completionPending}
           onChange={(event) => onDraftChange(event.target.value)}
           rows={18}
           className="mt-2 w-full resize-y rounded-xl border border-gray-200 bg-white p-4 text-[15px] leading-[1.87] text-black outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -502,6 +527,7 @@ function DraftReview({
           <input
             type="checkbox"
             checked={publicationRequested}
+            disabled={isBusy || completionPending}
             onChange={(event) => onPublicationChange(event.target.checked)}
             className="mt-1 size-4 shrink-0 rounded accent-primary"
           />
@@ -509,6 +535,19 @@ function DraftReview({
             この最終コメントを匿名で公開し、運営の確認を受けることに同意します。公開前に人が確認し、会話全文や個人情報は公開しません。
           </span>
         </label>
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <ReceiptPreference
+            checked={receiptOptIn}
+            onChange={onReceiptChange}
+            disabled={isBusy || completionPending}
+            userEmail={userEmail}
+          />
+        </div>
+        {completionPending && (
+          <p className="mt-4 text-sm leading-7 text-mirai-text-secondary">
+            完了処理を開始したため、本文と設定を固定しています。通信に失敗した場合は「確認して完了」で同じ内容の結果を再確認できます。
+          </p>
+        )}
         <Button
           type="button"
           onClick={onComplete}
@@ -529,8 +568,14 @@ function DraftReview({
 
 function CompletePage({
   publicationRequested,
+  receipt,
+  isBusy,
+  onRetryReceipt,
 }: {
   publicationRequested: boolean;
+  receipt: ReceiptResult | null;
+  isBusy: boolean;
+  onRetryReceipt: () => void;
 }) {
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] flex-col items-center bg-mirai-light-gradient px-4 py-8">
@@ -553,6 +598,34 @@ function CompletePage({
             匿名公開の申請は運営確認待ちです。承認されたコメントだけが公開一覧に表示されます。
           </p>
         )}
+        {receipt && receipt.status !== "not_requested" && (
+          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+            <p role="status" className="flex items-start gap-2">
+              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+              <span>{RECEIPT_STATUS_MESSAGES[receipt.status]}</span>
+            </p>
+            {receipt.canRetry && (
+              <p className="text-xs text-mirai-text-secondary">
+                再試行しても状況が変わらない場合は、1〜2分待ってからお試しください。
+              </p>
+            )}
+            {receipt.canRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isBusy}
+                onClick={onRetryReceipt}
+              >
+                {isBusy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                控えメールの送信を再試行
+              </Button>
+            )}
+          </div>
+        )}
         <a
           href={MINPAKU_OFFICIAL_SUBMISSION_URL}
           target="_blank"
@@ -570,6 +643,8 @@ function CompletePage({
 export function PublicCommentMinpakuPage() {
   const auth = useChatAuth();
   const [view, setView] = useState<View>("intro");
+  const containerRef = useRef<HTMLDivElement>(null);
+  usePublicCommentViewScroll(view, containerRef);
   const [consentOpen, setConsentOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -582,6 +657,9 @@ export function PublicCommentMinpakuPage() {
   const [sources, setSources] =
     useState<readonly MinpakuSource[]>(MINPAKU_SOURCES);
   const [publicationRequested, setPublicationRequested] = useState(false);
+  const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
+  const [completionPending, setCompletionPending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -600,6 +678,11 @@ export function PublicCommentMinpakuPage() {
     try {
       if (sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RETURN_KEY) === "1") {
         sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RETURN_KEY);
+        const savedReceipt = sessionStorage.getItem(
+          PUBLIC_COMMENT_AUTH_RECEIPT_KEY
+        );
+        sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY);
+        if (savedReceipt === "false") setReceiptOptIn(false);
         setConsentOpen(true);
       }
     } catch {
@@ -607,10 +690,14 @@ export function PublicCommentMinpakuPage() {
     }
   }, []);
 
-  const signIn = async () => {
+  const signIn = async (requestedReceipt: boolean) => {
     setAuthReturnError(undefined);
     try {
       sessionStorage.setItem(PUBLIC_COMMENT_AUTH_RETURN_KEY, "1");
+      sessionStorage.setItem(
+        PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
+        String(requestedReceipt)
+      );
     } catch {
       // Do not block authentication when browser storage is unavailable.
     }
@@ -618,7 +705,7 @@ export function PublicCommentMinpakuPage() {
   };
 
   const startSession = useCallback(
-    async (emailOptIn: boolean) => {
+    async (requestedReceipt: boolean) => {
       if (auth.status !== "authenticated" || busy) return false;
       setBusy(true);
       setError(null);
@@ -628,13 +715,14 @@ export function PublicCommentMinpakuPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             consented: true,
-            emailOptIn,
+            receiptOptIn: requestedReceipt,
             consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
           }),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
         setSessionId(data.sessionId);
+        setReceiptOptIn(requestedReceipt);
         setMessages(
           (data.messages ?? []).map(
             (message: Omit<Message, "id"> & { id?: string }) => ({
@@ -738,27 +826,40 @@ export function PublicCommentMinpakuPage() {
     setBusy(true);
     setError(null);
     try {
-      const updateResponse = await fetch("/api/public-comment/minpaku/draft", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          finalBody: draft.final_body,
-          targetOrdinances: draft.target_ordinances,
-        }),
-      });
-      const updateData = await updateResponse.json();
-      if (!updateResponse.ok)
-        throw new Error(updateData.error ?? "下書きを保存できませんでした");
-      setDraft(updateData.draft);
+      if (!completionPending) {
+        const updateResponse = await fetch(
+          "/api/public-comment/minpaku/draft",
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId,
+              finalBody: draft.final_body,
+              targetOrdinances: draft.target_ordinances,
+            }),
+          }
+        );
+        const updateData = await updateResponse.json();
+        if (!updateResponse.ok)
+          throw new Error(updateData.error ?? "下書きを保存できませんでした");
+        setDraft(updateData.draft);
+        setCompletionPending(true);
+      }
 
       const response = await fetch("/api/public-comment/minpaku/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, publicationRequested }),
+        body: JSON.stringify({
+          sessionId,
+          publicationRequested,
+          receiptOptIn,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "完了できませんでした");
+      setReceipt(data.receipt);
+      setPublicationRequested(data.status === "pending_review");
       setView("complete");
     } catch (caught) {
       setError(
@@ -767,7 +868,36 @@ export function PublicCommentMinpakuPage() {
     } finally {
       setBusy(false);
     }
-  }, [busy, draft, publicationRequested, sessionId]);
+  }, [
+    busy,
+    completionPending,
+    draft,
+    publicationRequested,
+    receiptOptIn,
+    sessionId,
+  ]);
+
+  const retryReceipt = async () => {
+    if (!sessionId || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/public-comment/minpaku/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error();
+      setReceipt(data.receipt);
+    } catch {
+      setError(
+        "送信状況を確認できませんでした。しばらくしてからお試しください。"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const copyDraft = useCallback(async () => {
     if (!draft) return;
@@ -781,31 +911,33 @@ export function PublicCommentMinpakuPage() {
     setConsentOpen(true);
   };
 
-  const handleConsent = (emailOptIn: boolean) => {
-    void startSession(emailOptIn).then((started) => {
+  const handleConsent = (requestedReceipt: boolean) => {
+    void startSession(requestedReceipt).then((started) => {
       if (started) setConsentOpen(false);
     });
   };
 
   if (view === "interview") {
     return (
-      <PublicCommentInterviewChat
-        messages={messages}
-        quickReplies={quickReplies}
-        isLoading={busy}
-        error={error}
-        answer={answer}
-        onAnswerChange={setAnswer}
-        onSubmit={(message: PromptInputMessage) =>
-          void sendAnswer(message.text)
-        }
-        onQuickReply={(reply) => void sendAnswer(reply)}
-      />
+      <div ref={containerRef}>
+        <PublicCommentInterviewChat
+          messages={messages}
+          quickReplies={quickReplies}
+          isLoading={busy}
+          error={error}
+          answer={answer}
+          onAnswerChange={setAnswer}
+          onSubmit={(message: PromptInputMessage) =>
+            void sendAnswer(message.text)
+          }
+          onQuickReply={(reply) => void sendAnswer(reply)}
+        />
+      </div>
     );
   }
 
   return (
-    <>
+    <div ref={containerRef}>
       {view === "intro" && (
         <PublicCommentIntro
           onStart={handleStartClick}
@@ -842,6 +974,10 @@ export function PublicCommentMinpakuPage() {
           copied={copied}
           isBusy={busy}
           publicationRequested={publicationRequested}
+          completionPending={completionPending}
+          receiptOptIn={receiptOptIn}
+          userEmail={auth.userEmail}
+          onReceiptChange={setReceiptOptIn}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onPublicationChange={setPublicationRequested}
@@ -849,12 +985,17 @@ export function PublicCommentMinpakuPage() {
         />
       )}
       {view === "complete" && (
-        <CompletePage publicationRequested={publicationRequested} />
+        <CompletePage
+          publicationRequested={publicationRequested}
+          receipt={receipt}
+          isBusy={busy}
+          onRetryReceipt={() => void retryReceipt()}
+        />
       )}
 
       {error && (
         <div
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-[560px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-lg"
+          className="fixed inset-x-4 bottom-[var(--mobile-primary-navigation-layout-offset)] z-50 mx-auto max-w-[560px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 shadow-lg pc:bottom-4"
           role="alert"
         >
           {error}
@@ -869,8 +1010,9 @@ export function PublicCommentMinpakuPage() {
         authStatus={auth.status}
         userEmail={auth.userEmail}
         authError={auth.error ?? authReturnError}
+        initialReceiptOptIn={receiptOptIn}
         onSignIn={signIn}
       />
-    </>
+    </div>
   );
 }

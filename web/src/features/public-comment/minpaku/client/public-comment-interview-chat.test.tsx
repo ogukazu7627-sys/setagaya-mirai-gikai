@@ -71,9 +71,20 @@ describe("民泊インタビューの選択肢表示", () => {
   });
   const advance = (time: number) => act(() => vi.advanceTimersByTime(time));
 
-  it("初期状態では選択肢が存在せず、未入力15秒後に操作できる", () => {
+  it("モバイルでは固定ナビの高さを確保し、PCでは元の高さを使う", () => {
     render(<Chat />);
-    advance(14_999);
+    expect(screen.getByTestId("public-comment-interview-chat")).toHaveClass(
+      "h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))]",
+      "pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "民泊パブリックコメントのAIインタビュー"
+    );
+  });
+
+  it("初期状態では選択肢が存在せず、未入力5秒後に操作できる", () => {
+    render(<Chat />);
+    advance(4_999);
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
@@ -86,7 +97,7 @@ describe("民泊インタビューの選択肢表示", () => {
 
   it("一度入力した質問では、全削除しても選択肢を表示しない", () => {
     render(<Chat />);
-    advance(10_000);
+    advance(4_000);
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "暮らしている" },
     });
@@ -97,9 +108,9 @@ describe("民泊インタビューの選択肢表示", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("新しい質問では改めて15秒待ち、表示後に入力すると消える", () => {
+  it("新しい質問では改めて5秒待ち、表示後に入力すると消える", () => {
     const { rerender } = render(<Chat />);
-    advance(15_000);
+    advance(5_000);
     expect(
       screen.getByRole("button", { name: "近隣で暮らしている" })
     ).toBeInTheDocument();
@@ -107,27 +118,35 @@ describe("民泊インタビューの選択肢表示", () => {
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
-    advance(14_999);
+    advance(4_999);
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
     advance(1);
+    expect(
+      screen.getByRole("button", { name: "近隣で暮らしている" })
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "自分の意見" },
     });
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } });
+    advance(10_000);
+    expect(
+      screen.queryByRole("button", { name: "近隣で暮らしている" })
+    ).not.toBeInTheDocument();
   });
 
-  it("読み込み中・エラー中は表示せず、応答完了から15秒待つ", () => {
+  it("読み込み中・エラー中は表示せず、応答完了から5秒待つ", () => {
     const { rerender } = render(<Chat isLoading />);
     advance(20_000);
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
     rerender(<Chat />);
-    advance(14_999);
+    advance(4_999);
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
@@ -144,13 +163,34 @@ describe("民泊インタビューの選択肢表示", () => {
 
   it("質問変更・アンマウント時は古いタイマーを破棄する", () => {
     const { rerender, unmount } = render(<Chat />);
-    advance(10_000);
+    advance(4_000);
     rerender(<Chat question={{ ...first, id: "q2" }} />);
-    advance(5_000);
+    advance(1_000);
     expect(
       screen.queryByRole("button", { name: "近隣で暮らしている" })
     ).not.toBeInTheDocument();
     unmount();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("入力済みの質問の後も、新しい質問では5秒後に選択肢が表示される", () => {
+    const { rerender } = render(<Chat />);
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: " " },
+    });
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "" } });
+    advance(5_000);
+    expect(
+      screen.queryByRole("button", { name: "近隣で暮らしている" })
+    ).not.toBeInTheDocument();
+    rerender(<Chat question={{ ...first, id: "q2" }} />);
+    advance(4_999);
+    expect(
+      screen.queryByRole("button", { name: "近隣で暮らしている" })
+    ).not.toBeInTheDocument();
+    advance(1);
+    expect(
+      screen.getByRole("button", { name: "近隣で暮らしている" })
+    ).toBeInTheDocument();
   });
 });

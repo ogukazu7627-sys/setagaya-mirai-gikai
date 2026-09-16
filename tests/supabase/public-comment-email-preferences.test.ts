@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { savePublicCommentEmailPreference } from "../../web/src/features/public-comment/minpaku/server/email-preference-repository";
-import { PUBLIC_COMMENT_CONSENT_VERSION } from "../../web/src/features/public-comment/minpaku/shared/consent";
+import {
+  LEGACY_PUBLIC_COMMENT_EMAIL_CONSENT_VERSION,
+  savePublicCommentEmailPreference,
+} from "../../web/src/features/public-comment/minpaku/server/email-preference-repository";
 import {
   adminClient,
   cleanupTestUser,
@@ -30,7 +32,7 @@ describe("public_comment_email_preferences", () => {
     expect(result.data).toMatchObject({
       user_id: user.id,
       opted_in: true,
-      consent_version: PUBLIC_COMMENT_CONSENT_VERSION,
+      consent_version: LEGACY_PUBLIC_COMMENT_EMAIL_CONSENT_VERSION,
     });
     expect(result.data?.consented_at).toBeTruthy();
     await savePublicCommentEmailPreference(user.id, false);
@@ -39,7 +41,11 @@ describe("public_comment_email_preferences", () => {
       .select("*")
       .eq("user_id", user.id)
       .single();
-    expect(result.data).toMatchObject({ opted_in: false, consented_at: null });
+    expect(result.data).toMatchObject({
+      opted_in: false,
+      consented_at: null,
+      consent_version: "2026-09-16",
+    });
     await savePublicCommentEmailPreference(user.id, true);
     const all = await adminClient
       .from("public_comment_email_preferences")
@@ -76,7 +82,7 @@ describe("public_comment_email_preferences", () => {
       .single();
     expect(row.data).toEqual({
       opted_in: true,
-      consent_version: PUBLIC_COMMENT_CONSENT_VERSION,
+      consent_version: LEGACY_PUBLIC_COMMENT_EMAIL_CONSENT_VERSION,
     });
   });
 
