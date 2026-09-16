@@ -1,6 +1,5 @@
 "use client";
 
-import "./public-comment-interview-layout.css";
 import type { UIMessage } from "@ai-sdk/react";
 import { useState } from "react";
 import {
@@ -8,6 +7,7 @@ import {
   ConversationContent,
 } from "@/components/ai-elements/conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
+import { useActiveInterviewLayout } from "@/components/layouts/interview-layout-context";
 import { InterviewChatInput } from "@/features/interview-session/client/components/interview-chat-input";
 import { InterviewErrorDisplay } from "@/features/interview-session/client/components/interview-error-display";
 import { InterviewMessage } from "@/features/interview-session/client/components/interview-message";
@@ -73,6 +73,7 @@ export function PublicCommentInterviewChat({
   onSubmit,
   onQuickReply,
 }: PublicCommentInterviewChatProps) {
+  useActiveInterviewLayout();
   const progress = getProgress(messages);
   const errorObject = error ? new Error(error) : null;
   const questionId = messages.findLast(
@@ -83,7 +84,6 @@ export function PublicCommentInterviewChat({
   return (
     <div
       className="h-[calc(100dvh-var(--app-header-layout-offset))] bg-mirai-surface-light"
-      data-public-comment-interview
       data-testid="public-comment-interview-chat"
     >
       <h1 className="sr-only">民泊パブリックコメントのAIインタビュー</h1>
