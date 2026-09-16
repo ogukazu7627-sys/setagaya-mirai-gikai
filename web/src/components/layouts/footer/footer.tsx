@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import { SETAGAYA_CONTENT_NOTICE } from "@/config/site-disclaimer";
 import { isInterviewPage } from "@/lib/page-layout-utils";
 import { routes } from "@/lib/routes";
+import { useInterviewLayout } from "../interview-layout-context";
 import { policyLinks, primaryLinks } from "./footer.config";
 
 export function Footer() {
   const pathname = usePathname();
+  const { isInterviewActive } = useInterviewLayout();
 
-  if (isInterviewPage(pathname)) {
+  if (isInterviewPage(pathname) || isInterviewActive) {
     return null;
   }
 

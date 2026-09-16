@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useInterviewLayout } from "@/components/layouts/interview-layout-context";
 import { shouldShowMobilePrimaryNavigation } from "../../shared/primary-navigation";
 import { useMobileNavigationKeyboard } from "../hooks/use-mobile-navigation-keyboard";
 import { PrimaryNavigation } from "./primary-navigation";
@@ -8,8 +9,13 @@ import { PrimaryNavigation } from "./primary-navigation";
 export function MobileBottomNavigation() {
   const pathname = usePathname();
   const isKeyboardOpen = useMobileNavigationKeyboard();
+  const { isInterviewActive } = useInterviewLayout();
 
-  if (!shouldShowMobilePrimaryNavigation(pathname) || isKeyboardOpen) {
+  if (
+    !shouldShowMobilePrimaryNavigation(pathname) ||
+    isKeyboardOpen ||
+    isInterviewActive
+  ) {
     return null;
   }
 

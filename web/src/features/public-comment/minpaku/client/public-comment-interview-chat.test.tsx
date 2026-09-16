@@ -71,13 +71,10 @@ describe("民泊インタビューの選択肢表示", () => {
   });
   const advance = (time: number) => act(() => vi.advanceTimersByTime(time));
 
-  it("インタビュー中の表示マーカーを持ち、下部ナビの余白を引かない", () => {
+  it("下部ナビの余白を引かない高さを使う", () => {
     render(<Chat />);
     expect(screen.getByTestId("public-comment-interview-chat")).toHaveClass(
       "h-[calc(100dvh-var(--app-header-layout-offset))]"
-    );
-    expect(screen.getByTestId("public-comment-interview-chat")).toHaveAttribute(
-      "data-public-comment-interview"
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "民泊パブリックコメントのAIインタビュー"
