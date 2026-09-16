@@ -7,9 +7,12 @@ import {
 import { MINPAKU_LEARNING_REVIEWED_AT, MINPAKU_LESSONS } from "./learning";
 
 describe("民泊の学習教材", () => {
-  it("4章が一意なIDを持ち、各章が3択・正解1つで構成される", () => {
-    expect(MINPAKU_LESSONS).toHaveLength(4);
-    expect(new Set(MINPAKU_LESSONS.map((lesson) => lesson.id)).size).toBe(4);
+  it("6章が一意なIDを持ち、各章が指定された3択・正解1つで構成される", () => {
+    expect(MINPAKU_LESSONS).toHaveLength(6);
+    expect(new Set(MINPAKU_LESSONS.map((lesson) => lesson.id)).size).toBe(6);
+    expect(MINPAKU_LESSONS.map((lesson) => lesson.quiz.correctIndex)).toEqual([
+      2, 0, 1, 2, 1, 2,
+    ]);
     for (const lesson of MINPAKU_LESSONS) {
       expect(lesson.quiz.options).toHaveLength(3);
       expect(new Set(lesson.quiz.options).size).toBe(3);
@@ -21,7 +24,7 @@ describe("民泊の学習教材", () => {
     }
   });
 
-  it("すべての本文とクイズに登録済み公式資料の出典と確認日がある", () => {
+  it("すべての本文とクイズに登録済み一次資料の出典と確認日がある", () => {
     expect(MINPAKU_LEARNING_REVIEWED_AT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     const sources = new Map<string, string>(
       MINPAKU_SOURCES.map((source) => [source.id, source.url])
@@ -31,9 +34,50 @@ describe("民泊の学習教材", () => {
         expect(item.sourceRefs.length).toBeGreaterThan(0);
         for (const sourceRef of item.sourceRefs) {
           expect(sources.has(sourceRef)).toBe(true);
-          expect(sources.get(sourceRef)).toMatch(
-            /^https:\/\/www\.city\.setagaya\.lg\.jp\//
-          );
+          const url = new URL(sources.get(sourceRef) ?? "");
+          expect(url.protocol).toBe("https:");
+          expect([
+            "www.city.setagaya.lg.jp",
+            "www.mlit.go.jp",
+            "www.city.shinjuku.lg.jp",
+            "www.city.toshima.lg.jp",
+            "www.city.suginami.tokyo.jp",
+            "hieshimasusumu.com",
+          ]).toContain(url.hostname);
+        }
+      }
+    }
+  });
+
+  it("他区の制度と議員個人の主張を分け、賛同を正解にしない", () => {
+    const comparison = MINPAKU_LESSONS[4];
+    expect(comparison.sections[0].body).toContain(
+      "まだ施行されたルールではありません"
+    );
+    expect(comparison.sections[1].body).toContain("2026年12月16日から");
+    expect(comparison.sections[2].label).toContain("現行ルール");
+    const opinion = MINPAKU_LESSONS[5];
+    expect(opinion.sections[1].body).toContain(
+      "区民全体の意見を示すものではありません"
+    );
+    expect(opinion.quiz.explanation).toContain(
+      "賛同を求めるものではありません"
+    );
+    const opinionSources = MINPAKU_SOURCES.filter(
+      (source) => source.kind === "opinion"
+    );
+    expect(opinionSources.map((source) => source.id)).toEqual([
+      "hieshima-response",
+      "hieshima-opposition",
+    ]);
+    for (const lesson of MINPAKU_LESSONS) {
+      const expectedKind =
+        lesson.id === "opposing-views" ? "opinion" : "official";
+      for (const item of [...lesson.sections, lesson.quiz]) {
+        for (const sourceRef of item.sourceRefs) {
+          expect(
+            MINPAKU_SOURCES.find((source) => source.id === sourceRef)?.kind
+          ).toBe(expectedKind);
         }
       }
     }

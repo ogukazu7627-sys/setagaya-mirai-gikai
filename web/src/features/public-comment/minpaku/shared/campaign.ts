@@ -16,45 +16,107 @@ export const MINPAKU_OFFICIAL_INFORMATION_URL =
 export const MINPAKU_SOURCES = [
   {
     id: "public-comment-page",
+    kind: "official",
     title: "区民意見募集の案内",
     url: MINPAKU_OFFICIAL_INFORMATION_URL,
     description: "募集対象、提出期限、提出方法、提出先を確認できます。",
   },
   {
     id: "setagaya-position",
+    kind: "official",
     title: "条例改正素案に対する区の考え",
     url: "https://www.city.setagaya.lg.jp/02245/35770.html",
     description: "改正の経緯、目的、主な改正点、今後の取組を確認できます。",
   },
   {
     id: "draft-overview",
+    kind: "official",
     title: "改正素案概要",
     url: "https://www.city.setagaya.lg.jp/documents/35467/kaiseisoangaiyou.pdf",
     description: "2つの条例改正素案の概要を確認できます。",
   },
   {
     id: "ryokan-draft",
+    kind: "official",
     title: "旅館業法施行条例改正素案・新旧対照表",
     url: "https://www.city.setagaya.lg.jp/documents/35467/ryokangyousoan.pdf",
     description: "旅館業法施行条例の改正内容を確認できます。",
   },
   {
     id: "housing-draft",
+    kind: "official",
     title: "住宅宿泊事業条例改正素案・新旧対照表",
     url: "https://www.city.setagaya.lg.jp/documents/35467/juutakusyukuhakusoan.pdf",
     description: "住宅宿泊事業条例の改正内容を確認できます。",
   },
   {
     id: "ryokan-procedure",
+    kind: "official",
     title: "旅館業の手続き",
     url: "https://www.city.setagaya.lg.jp/02245/3225.html",
     description: "旅館業の営業許可について確認できます。",
   },
   {
     id: "housing-procedure",
+    kind: "official",
     title: "住宅宿泊事業（民泊）について",
     url: "https://www.city.setagaya.lg.jp/02245/3247.html",
     description: "住宅宿泊事業の届出と制度について確認できます。",
+  },
+  {
+    id: "national-minpaku-faq",
+    kind: "official",
+    title: "観光庁：民泊制度のよくあるご質問",
+    url: "https://www.mlit.go.jp/kankocho/minpaku/faq.html",
+    description: "住宅宿泊事業と旅館業の違い、営業日数の制限を確認できます。",
+  },
+  {
+    id: "shinjuku-policy",
+    kind: "official",
+    title: "新宿区：2026年9月8日記者会見（条例改正に向けた方針）",
+    url: "https://www.city.shinjuku.lg.jp/kucho/message/20260908.html",
+    description:
+      "新設・営業日数の制限と既存施設への経過措置の方針です。施行済みのルールではありません。",
+  },
+  {
+    id: "toshima-amendment",
+    kind: "official",
+    title: "豊島区：改正条例の新旧対照表",
+    url: "https://www.city.toshima.lg.jp/documents/54011/jyourei20251215.pdf",
+    description:
+      "区域・期間の制限、既存届出住宅等の特例、2026年12月16日の施行日を確認できます。",
+  },
+  {
+    id: "toshima-rules",
+    kind: "official",
+    title: "豊島区：住宅宿泊事業法について",
+    url: "https://www.city.toshima.lg.jp/214/kurashi/ese/kankyoese/minpaku.html",
+    description:
+      "住宅宿泊事業の手続きと区域・期間制限の適用時期を確認できます。",
+  },
+  {
+    id: "suginami-rules",
+    kind: "official",
+    title: "杉並区：住宅宿泊事業（民泊）の現行ルール",
+    url: "https://www.city.suginami.tokyo.jp/s046/871.html",
+    description:
+      "住居専用地域の家主不在型に対する平日制限と休日の例外を確認できます。",
+  },
+  {
+    id: "hieshima-response",
+    kind: "opinion",
+    title: "ひえしま進議員の発信：民泊・旅館業の苦情対応について",
+    url: "https://hieshimasusumu.com/blog/4632/",
+    description:
+      "議員本人の質問・主張の紹介です。行政の公式見解や区民全体の意見を示すものではありません。",
+  },
+  {
+    id: "hieshima-opposition",
+    kind: "opinion",
+    title: "ひえしま進議員の発信：2026年9月7日の改正素案への反対意見",
+    url: "https://hieshimasusumu.com/blog/5343/",
+    description:
+      "議員個人の見解を確認する資料です。制度の説明は行政資料と区別して扱います。",
   },
 ] as const;
 
@@ -65,10 +127,12 @@ export const MINPAKU_CONTEXT = `
 
 募集期限は2026年10月6日です。
 
-## 学習画面と共通の公式情報の要約（確認日：${MINPAKU_LEARNING_REVIEWED_AT}）
+## 学習画面と共通の参照情報（確認日：${MINPAKU_LEARNING_REVIEWED_AT}）
 ${MINPAKU_LESSONS.map((lesson) => `### ${lesson.title}\n${lesson.sections.map((section) => `${section.label}: ${section.body}\n出典ID: ${section.sourceRefs.join(", ")}`).join("\n\n")}`).join("\n\n")}
 
-この説明は区の公式資料を要約したものであり、条例が成立・施行済みであることを意味しません。ユーザーの経験や評価は、事実として断定せず、本人の意見・経験として扱ってください。
+世田谷区の改正素案は確認日時点で意見募集中であり、成立・施行済みのルールではありません。他区の制度を世田谷区のルールとして説明せず、改正方針・公布済みで施行前の規定・現行ルールを区別してください。
+行政の公式資料と議員個人の主張を区別してください。ひえしま進議員の発信は同議員の見解であり、区の公式見解や区民全体の意見として扱わないでください。議員の評価を客観的事実として断定せず、その主張への賛同・反対をユーザーに求めないでください。
+ユーザーの経験や評価は、事実として断定せず、本人の意見・経験として扱ってください。
 学習の受講状況やクイズの回答・正誤は提供されません。受講したことや正解したことを推測せず、区の説明や改正素案への賛同と解釈しないでください。
 `.trim();
 
