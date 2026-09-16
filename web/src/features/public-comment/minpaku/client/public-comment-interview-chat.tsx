@@ -1,6 +1,7 @@
 "use client";
 
 import type { UIMessage } from "@ai-sdk/react";
+import { useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -10,8 +11,8 @@ import { InterviewChatInput } from "@/features/interview-session/client/componen
 import { InterviewErrorDisplay } from "@/features/interview-session/client/components/interview-error-display";
 import { InterviewMessage } from "@/features/interview-session/client/components/interview-message";
 import { InterviewProgressBar } from "@/features/interview-session/client/components/interview-progress-bar";
-import { QuickReplyButtons } from "@/features/interview-session/client/components/quick-reply-buttons";
 import { MINPAKU_QUESTIONS } from "../shared/campaign";
+import { DelayedQuickReplies } from "./delayed-quick-replies";
 
 type PublicCommentMessage = {
   id: string;
@@ -73,6 +74,10 @@ export function PublicCommentInterviewChat({
 }: PublicCommentInterviewChatProps) {
   const progress = getProgress(messages);
   const errorObject = error ? new Error(error) : null;
+  const questionId = messages.findLast(
+    (message) => message.role === "assistant"
+  )?.id;
+  const [typedQuestionId, setTypedQuestionId] = useState<string | null>(null);
 
   return (
     <div
@@ -107,10 +112,18 @@ export function PublicCommentInterviewChat({
               isRetrying={isLoading}
             />
 
-            <QuickReplyButtons
+            <DelayedQuickReplies
+              key={questionId}
               replies={quickReplies}
               onSelect={onQuickReply}
-              disabled={isLoading}
+              disabled={
+                isLoading ||
+                Boolean(error) ||
+                !questionId ||
+                messages.at(-1)?.role !== "assistant" ||
+                answer.length > 0 ||
+                typedQuestionId === questionId
+              }
             />
           </ConversationContent>
         </Conversation>
@@ -118,7 +131,11 @@ export function PublicCommentInterviewChat({
         <div className="shrink-0 bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
           <InterviewChatInput
             input={answer}
-            onInputChange={onAnswerChange}
+            onInputChange={(value) => {
+              if (questionId && value.length > 0)
+                setTypedQuestionId(questionId);
+              onAnswerChange(value);
+            }}
             onSubmit={onSubmit}
             placeholder="AIの質問に回答する"
             isResponding={isLoading}

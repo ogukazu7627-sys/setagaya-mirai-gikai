@@ -5,7 +5,7 @@ import {
 } from "@/features/chat/server/services/system-cost-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
 import { generateInterviewResponse } from "@/features/public-comment/minpaku/server/ai";
-import { getAnonymousPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
 import {
   appendMessage,
   findMessages,
@@ -32,10 +32,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "回答が長すぎます" }, { status: 400 });
   }
 
-  const user = await getAnonymousPublicCommentUser();
+  const user = await getPublicCommentUser();
   if (!user) {
     return NextResponse.json(
-      { error: "匿名セッションが見つかりません" },
+      { error: "Googleログインが必要です" },
       { status: 401 }
     );
   }

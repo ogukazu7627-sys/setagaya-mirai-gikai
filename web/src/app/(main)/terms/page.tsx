@@ -8,6 +8,7 @@ import {
   LegalSubSectionTitle,
 } from "@/components/layouts/legal-page-layout";
 import { SETAGAYA_SITE_DISCLAIMER } from "@/config/site-disclaimer";
+import { PUBLIC_COMMENT_EMAIL_NOTICE } from "@/features/public-comment/minpaku/shared/consent";
 
 export const metadata: Metadata = {
   title: "利用規約 | みらい議会＠世田谷区",
@@ -23,7 +24,7 @@ export default function TermsPage() {
     >
       <Container className="space-y-10">
         <LegalParagraph className="text-right">
-          最終更新日：2026年7月5日
+          最終更新日：2026年9月16日
         </LegalParagraph>
 
         <LegalParagraph>
@@ -136,6 +137,18 @@ export default function TermsPage() {
           <LegalSectionTitle>第8条（準拠法・管轄）</LegalSectionTitle>
           <LegalParagraph>
             本規約は日本法に準拠し、本サービスに関連して生じる一切の紛争については、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+          </LegalParagraph>
+        </section>
+        <section className="space-y-4">
+          <LegalSectionTitle>
+            第9条（パブリックコメント作成支援）
+          </LegalSectionTitle>
+          <LegalParagraph>
+            パブリックコメントをつくるAIインタビューでは、不正利用・過剰利用の防止と利用上限の管理のためGoogleログインを必要とします。取得したユーザーID・メールアドレスで利用者を識別し、同意後の会話と下書きをアカウントにひも付けて保存します。学習・クイズにはログインは不要です。
+          </LegalParagraph>
+          <LegalParagraph>{PUBLIC_COMMENT_EMAIL_NOTICE}</LegalParagraph>
+          <LegalParagraph>
+            案内メールの同意は利用規約・回答保存への同意とは別に取得し、選択と日時、同意文面の版を記録します。パブリックコメントページの同意画面にある「案内メールの配信を停止」から、インタビューを始めずに撤回できます。配信メールにも停止方法を記載します。案内メールへの同意を、コメントの匿名公開や議員への連絡先共有への同意とみなすことはありません。
           </LegalParagraph>
         </section>
       </Container>

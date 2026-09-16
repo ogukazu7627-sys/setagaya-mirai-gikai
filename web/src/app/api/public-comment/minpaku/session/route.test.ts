@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -7,14 +8,21 @@ const mocks = vi.hoisted(() => ({
   createSession: vi.fn(),
   findMessages: vi.fn(),
   appendMessage: vi.fn(),
+  saveEmailPreference: vi.fn(),
 }));
 
 vi.mock("@/lib/telemetry/register", () => ({
   registerNodeTelemetry: vi.fn(),
 }));
 vi.mock("@/features/public-comment/minpaku/server/auth", () => ({
-  getAnonymousPublicCommentUser: mocks.getUser,
+  getPublicCommentUser: mocks.getUser,
 }));
+vi.mock(
+  "@/features/public-comment/minpaku/server/email-preference-repository",
+  () => ({
+    savePublicCommentEmailPreference: mocks.saveEmailPreference,
+  })
+);
 vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
   appendMessage: mocks.appendMessage,
   createSession: mocks.createSession,
@@ -27,8 +35,8 @@ import { POST } from "./route";
 
 describe("POST /api/public-comment/minpaku/session", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.getUser.mockResolvedValue({ id: "anonymous-user" });
+    vi.resetAllMocks();
+    mocks.getUser.mockResolvedValue({ id: "google-user" });
     mocks.findCampaign.mockResolvedValue({
       id: "campaign-1",
       status: "published",
@@ -62,14 +70,18 @@ describe("POST /api/public-comment/minpaku/session", () => {
     const response = await POST(
       new Request("http://localhost/api/public-comment/minpaku/session", {
         method: "POST",
-        body: JSON.stringify({ consented: true }),
+        body: JSON.stringify({
+          consented: true,
+          emailOptIn: false,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
       })
     );
 
     expect(response.status).toBe(200);
     expect(mocks.createSession).toHaveBeenCalledWith({
       campaignId: "campaign-1",
-      userId: "anonymous-user",
+      userId: "google-user",
     });
     expect(mocks.appendMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -82,5 +94,81 @@ describe("POST /api/public-comment/minpaku/session", () => {
       sessionId: "session-1",
       quickReplies: expect.any(Array),
     });
+    expect(mocks.saveEmailPreference).toHaveBeenCalledWith(
+      "google-user",
+      false
+    );
+  });
+
+  it("メールの明示同意を認証済み本人のIDに保存する", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/public-comment/minpaku/session", {
+        method: "POST",
+        body: JSON.stringify({
+          consented: true,
+          emailOptIn: true,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          userId: "other-user",
+          email: "other@example.com",
+        }),
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.saveEmailPreference).toHaveBeenCalledWith("google-user", true);
+  });
+
+  it.each([
+    { consented: true },
+    {
+      consented: true,
+      emailOptIn: "true",
+      consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+    },
+    { consented: true, emailOptIn: true, consentVersion: "old" },
+  ])("不完全・古い同意では保存しない: %j", async (body) => {
+    const response = await POST(
+      new Request("http://localhost/api/public-comment/minpaku/session", {
+        method: "POST",
+        body: JSON.stringify(body),
+      })
+    );
+    expect(response.status).toBe(400);
+    expect(mocks.saveEmailPreference).not.toHaveBeenCalled();
+    expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("未ログインではメール設定・セッションを保存しない", async () => {
+    mocks.getUser.mockResolvedValue(null);
+    const response = await POST(
+      new Request("http://localhost/api/public-comment/minpaku/session", {
+        method: "POST",
+        body: JSON.stringify({
+          consented: true,
+          emailOptIn: false,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
+      })
+    );
+    expect(response.status).toBe(401);
+    expect(mocks.saveEmailPreference).not.toHaveBeenCalled();
+    expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("メール設定の保存失敗時はセッションを開始しない", async () => {
+    mocks.saveEmailPreference.mockRejectedValue(
+      new Error("database unavailable")
+    );
+    const response = await POST(
+      new Request("http://localhost/api/public-comment/minpaku/session", {
+        method: "POST",
+        body: JSON.stringify({
+          consented: true,
+          emailOptIn: true,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
+      })
+    );
+    expect(response.status).toBe(500);
+    expect(mocks.createSession).not.toHaveBeenCalled();
   });
 });
