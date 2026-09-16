@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MINPAKU_LESSONS } from "../shared/learning";
 import { buildDraftPrompt, buildInterviewPrompt } from "./prompt";
 
 describe("民泊パブリックコメント用プロンプト", () => {
@@ -34,5 +35,22 @@ describe("民泊パブリックコメント用プロンプト", () => {
       "住所、氏名、施設名などの個人・施設特定情報は本文に含めません"
     );
     expect(prompt).toContain("世田谷区旅館業法施行条例（改正素案）");
+  });
+
+  it("教材と同じ説明を使うが、クイズや受講からユーザーの意見を作らない", () => {
+    const prompts = [
+      buildInterviewPrompt({ messages, nextQuestionId: "priority" }),
+      buildDraftPrompt({ messages, targetOrdinances: [] }),
+    ];
+    for (const prompt of prompts) {
+      for (const lesson of MINPAKU_LESSONS) {
+        for (const section of lesson.sections)
+          expect(prompt).toContain(section.body);
+        expect(prompt).not.toContain(lesson.quiz.question);
+        for (const option of lesson.quiz.options)
+          expect(prompt).not.toContain(option);
+      }
+      expect(prompt).toContain("区の説明や改正素案への賛同と解釈しない");
+    }
   });
 });

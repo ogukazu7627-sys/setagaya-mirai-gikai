@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  BookOpen,
   Check,
   Clipboard,
   ExternalLink,
@@ -25,6 +26,7 @@ import {
 } from "../shared/campaign";
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
+import { PublicCommentLearning } from "./public-comment-learning";
 
 type Message = {
   id: string;
@@ -41,7 +43,13 @@ type Draft = {
   fact_check_notes: string[];
 };
 
-type View = "intro" | "interview" | "ordinances" | "review" | "complete";
+type View =
+  | "intro"
+  | "learning"
+  | "interview"
+  | "ordinances"
+  | "review"
+  | "complete";
 
 const PRIMARY_BUTTON_CLASS =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-[100px] bg-primary px-6 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
@@ -90,7 +98,46 @@ function PublicCommentHeader() {
   );
 }
 
-function PublicCommentHero({ onStart }: { onStart: () => void }) {
+function PublicCommentStartActions({
+  onStart,
+  onLearn,
+}: {
+  onStart: () => void;
+  onLearn: () => void;
+}) {
+  return (
+    <div className="flex w-full max-w-[370px] flex-col items-center gap-3">
+      <Button
+        type="button"
+        onClick={onLearn}
+        className="h-auto min-h-13 w-full whitespace-normal py-3 text-[15px]"
+      >
+        <BookOpen className="size-5" />
+        条例改正について学ぶ
+        <ArrowRight className="size-4" />
+      </Button>
+      <p className="text-xs text-mirai-text-secondary">
+        4章・各1問 / 目安4〜6分
+      </p>
+      <Button
+        type="button"
+        variant="link"
+        onClick={onStart}
+        className="whitespace-normal text-sm leading-6"
+      >
+        すぐにAIインタビューをはじめる
+      </Button>
+    </div>
+  );
+}
+
+function PublicCommentHero({
+  onStart,
+  onLearn,
+}: {
+  onStart: () => void;
+  onLearn: () => void;
+}) {
   return (
     <div className="flex flex-col items-center gap-6 px-4">
       <div className="flex flex-col items-center gap-3">
@@ -127,20 +174,7 @@ function PublicCommentHero({ onStart }: { onStart: () => void }) {
         ))}
       </div>
 
-      <Button
-        type="button"
-        onClick={onStart}
-        className="mt-2 h-12 w-full max-w-[370px] rounded-[100px] bg-mirai-gradient px-6 text-[15px] font-bold text-black hover:opacity-90"
-      >
-        <Image
-          src="/icons/messages-square-icon.svg"
-          alt=""
-          width={24}
-          height={24}
-        />
-        AIインタビューをはじめる
-        <ArrowRight className="size-4" />
-      </Button>
+      <PublicCommentStartActions onStart={onStart} onLearn={onLearn} />
     </div>
   );
 }
@@ -166,16 +200,18 @@ function IntroSection({
 
 function PublicCommentIntro({
   onStart,
+  onLearn,
   onViewComments,
 }: {
   onStart: () => void;
+  onLearn: () => void;
   onViewComments: () => void;
 }) {
   return (
     <div className="flex flex-col gap-8 pb-8">
       <PublicCommentHeader />
       <div className="flex flex-col items-center gap-8 px-4">
-        <PublicCommentHero onStart={onStart} />
+        <PublicCommentHero onStart={onStart} onLearn={onLearn} />
 
         <IntroSection title="インタビュー概要">
           <div className="space-y-4">
@@ -278,20 +314,7 @@ function PublicCommentIntro({
         </div>
 
         <div className="flex w-full max-w-[370px] flex-col space-y-4">
-          <Button
-            type="button"
-            onClick={onStart}
-            className={PRIMARY_BUTTON_CLASS}
-          >
-            <Image
-              src="/icons/messages-square-icon.svg"
-              alt=""
-              width={24}
-              height={24}
-            />
-            AIインタビューをはじめる
-            <ArrowRight className="size-4" />
-          </Button>
+          <PublicCommentStartActions onStart={onStart} onLearn={onLearn} />
           <Link href={routes.publicCommentMinpakuComments() as Route}>
             <Button type="button" variant="outline" className="w-full">
               公開コメントを見る
@@ -736,9 +759,16 @@ export function PublicCommentMinpakuPage() {
       {view === "intro" && (
         <PublicCommentIntro
           onStart={handleStartClick}
+          onLearn={() => setView("learning")}
           onViewComments={() => {
             window.location.href = routes.publicCommentMinpakuComments();
           }}
+        />
+      )}
+      {view === "learning" && (
+        <PublicCommentLearning
+          onStartInterview={handleStartClick}
+          onBack={() => setView("intro")}
         />
       )}
       {view === "ordinances" && (
