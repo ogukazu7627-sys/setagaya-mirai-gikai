@@ -1,0 +1,15 @@
+/* The chat marker exists only during the interview, not learning or review. */
+.app-main-layout:has([data-public-comment-interview]) > footer,
+.app-main-layout:has([data-public-comment-interview])
+  + .app-mobile-primary-navigation {
+  display: none;
+}
+
+.app-main-layout:has([data-public-comment-interview]) {
+  padding-bottom: 0;
+}
+
+/* Override the page minimum height so it does not add space below the chat. */
+.app-main-layout:has([data-public-comment-interview]) > main {
+  min-height: 0;
+}

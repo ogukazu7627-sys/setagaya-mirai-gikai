@@ -71,11 +71,13 @@ describe("民泊インタビューの選択肢表示", () => {
   });
   const advance = (time: number) => act(() => vi.advanceTimersByTime(time));
 
-  it("モバイルでは固定ナビの高さを確保し、PCでは元の高さを使う", () => {
+  it("インタビュー中の表示マーカーを持ち、下部ナビの余白を引かない", () => {
     render(<Chat />);
     expect(screen.getByTestId("public-comment-interview-chat")).toHaveClass(
-      "h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))]",
-      "pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
+      "h-[calc(100dvh-var(--app-header-layout-offset))]"
+    );
+    expect(screen.getByTestId("public-comment-interview-chat")).toHaveAttribute(
+      "data-public-comment-interview"
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       "民泊パブリックコメントのAIインタビュー"

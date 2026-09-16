@@ -1,5 +1,6 @@
 "use client";
 
+import "./public-comment-interview-layout.css";
 import type { UIMessage } from "@ai-sdk/react";
 import { useState } from "react";
 import {
@@ -81,7 +82,8 @@ export function PublicCommentInterviewChat({
 
   return (
     <div
-      className="h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))] bg-mirai-surface-light pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
+      className="h-[calc(100dvh-var(--app-header-layout-offset))] bg-mirai-surface-light"
+      data-public-comment-interview
       data-testid="public-comment-interview-chat"
     >
       <h1 className="sr-only">民泊パブリックコメントのAIインタビュー</h1>
