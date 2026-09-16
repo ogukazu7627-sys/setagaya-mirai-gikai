@@ -7,6 +7,7 @@ import {
   sanitizeChatAuthNextPath,
 } from "@/features/chat/shared/auth";
 import { env } from "@/lib/env";
+import { routes } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,11 @@ export async function GET(request: Request) {
     }
   }
 
+  const failurePath =
+    nextPath.split("?")[0] === routes.publicCommentMinpaku()
+      ? routes.publicCommentMinpaku()
+      : "/";
   return NextResponse.redirect(
-    `${redirectBase}/?auth_error=google_login_failed`
+    `${redirectBase}${failurePath}?auth_error=google_login_failed`
   );
 }

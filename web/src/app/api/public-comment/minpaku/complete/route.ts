@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAnonymousPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
 import {
   completeSession,
   findDraft,
@@ -13,10 +13,10 @@ export async function POST(request: Request) {
   if (!sessionId)
     return NextResponse.json({ error: "sessionIdが必要です" }, { status: 400 });
 
-  const user = await getAnonymousPublicCommentUser();
+  const user = await getPublicCommentUser();
   if (!user)
     return NextResponse.json(
-      { error: "匿名セッションが見つかりません" },
+      { error: "Googleログインが必要です" },
       { status: 401 }
     );
 

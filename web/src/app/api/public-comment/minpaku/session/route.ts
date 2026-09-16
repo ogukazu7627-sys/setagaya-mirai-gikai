@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAnonymousPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import { savePublicCommentEmailPreference } from "@/features/public-comment/minpaku/server/email-preference-repository";
 import {
   appendMessage,
   createSession,
@@ -11,23 +12,29 @@ import {
   MINPAKU_CAMPAIGN_SLUG,
   MINPAKU_QUESTIONS,
 } from "@/features/public-comment/minpaku/shared/campaign";
+import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 export async function POST(request: Request) {
   await registerNodeTelemetry();
 
   const body = await request.json().catch(() => null);
-  if (!body || body.consented !== true) {
+  if (
+    !body ||
+    body.consented !== true ||
+    typeof body.emailOptIn !== "boolean" ||
+    body.consentVersion !== PUBLIC_COMMENT_CONSENT_VERSION
+  ) {
     return NextResponse.json(
-      { error: "保存方針への同意が必要です" },
+      { error: "最新の同意事項を確認してください" },
       { status: 400 }
     );
   }
 
-  const user = await getAnonymousPublicCommentUser();
+  const user = await getPublicCommentUser();
   if (!user) {
     return NextResponse.json(
-      { error: "匿名セッションを開始できません" },
+      { error: "Googleログインが必要です" },
       { status: 401 }
     );
   }
@@ -40,6 +47,8 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
+
+    await savePublicCommentEmailPreference(user.id, body.emailOptIn);
 
     const session =
       (await findActiveSession(campaign.id, user.id)) ??

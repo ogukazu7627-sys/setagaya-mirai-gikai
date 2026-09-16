@@ -11,10 +11,10 @@ import {
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
-import { useAnonymousSupabaseUser } from "@/features/chat/client/hooks/use-anonymous-supabase-user";
+import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
 import { routes } from "@/lib/routes";
 import {
   MINPAKU_CAMPAIGN_TITLE,
@@ -24,6 +24,10 @@ import {
   MINPAKU_SUBMISSION_DEADLINE,
   type MinpakuSource,
 } from "../shared/campaign";
+import {
+  PUBLIC_COMMENT_AUTH_RETURN_KEY,
+  PUBLIC_COMMENT_CONSENT_VERSION,
+} from "../shared/consent";
 import {
   MINPAKU_LEARNING_ESTIMATED_TIME,
   MINPAKU_LESSONS,
@@ -305,6 +309,9 @@ function PublicCommentIntro({
             <p>
               回答は同意後に専用のデータベースへ保存します。匿名公開を希望する場合も、運営の確認後に承認された本文だけが公開されます。
             </p>
+            <p>
+              学習はログインなしで利用できます。AIインタビューには、不正利用・過剰利用を防ぐためGoogleログインが必要です。案内メールの受信は任意です。
+            </p>
           </div>
         </IntroSection>
 
@@ -561,7 +568,7 @@ function CompletePage({
 }
 
 export function PublicCommentMinpakuPage() {
-  const userId = useAnonymousSupabaseUser();
+  const auth = useChatAuth();
   const [view, setView] = useState<View>("intro");
   const [consentOpen, setConsentOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -578,40 +585,78 @@ export function PublicCommentMinpakuPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [authReturnError, setAuthReturnError] = useState<string>();
 
-  const startSession = useCallback(async () => {
-    if (!userId || busy) return false;
-    setBusy(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/public-comment/minpaku/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consented: true }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
-      setSessionId(data.sessionId);
-      setMessages(
-        (data.messages ?? []).map(
-          (message: Omit<Message, "id"> & { id?: string }) => ({
-            ...message,
-            id: message.id ?? crypto.randomUUID(),
-          })
-        )
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("auth_error") === "google_login_failed") {
+      setAuthReturnError(
+        "Googleログインが完了しませんでした。もう一度お試しください。"
       );
-      setQuickReplies(data.quickReplies ?? []);
-      setView("interview");
-      return true;
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "開始できませんでした"
-      );
-      return false;
-    } finally {
-      setBusy(false);
+      setConsentOpen(true);
+      url.searchParams.delete("auth_error");
+      window.history.replaceState(window.history.state, "", url);
     }
-  }, [busy, userId]);
+    try {
+      if (sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RETURN_KEY) === "1") {
+        sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RETURN_KEY);
+        setConsentOpen(true);
+      }
+    } catch {
+      // Storage may be unavailable; the normal start button remains usable.
+    }
+  }, []);
+
+  const signIn = async () => {
+    setAuthReturnError(undefined);
+    try {
+      sessionStorage.setItem(PUBLIC_COMMENT_AUTH_RETURN_KEY, "1");
+    } catch {
+      // Do not block authentication when browser storage is unavailable.
+    }
+    await auth.signInWithGoogle();
+  };
+
+  const startSession = useCallback(
+    async (emailOptIn: boolean) => {
+      if (auth.status !== "authenticated" || busy) return false;
+      setBusy(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/public-comment/minpaku/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            consented: true,
+            emailOptIn,
+            consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
+        setSessionId(data.sessionId);
+        setMessages(
+          (data.messages ?? []).map(
+            (message: Omit<Message, "id"> & { id?: string }) => ({
+              ...message,
+              id: message.id ?? crypto.randomUUID(),
+            })
+          )
+        );
+        setQuickReplies(data.quickReplies ?? []);
+        setView("interview");
+        return true;
+      } catch (caught) {
+        setError(
+          caught instanceof Error ? caught.message : "開始できませんでした"
+        );
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, auth.status]
+  );
 
   const sendAnswer = useCallback(
     async (value = answer) => {
@@ -736,8 +781,8 @@ export function PublicCommentMinpakuPage() {
     setConsentOpen(true);
   };
 
-  const handleConsent = () => {
-    void startSession().then((started) => {
+  const handleConsent = (emailOptIn: boolean) => {
+    void startSession(emailOptIn).then((started) => {
       if (started) setConsentOpen(false);
     });
   };
@@ -821,6 +866,10 @@ export function PublicCommentMinpakuPage() {
         onOpenChange={setConsentOpen}
         isStarting={busy}
         onAgree={handleConsent}
+        authStatus={auth.status}
+        userEmail={auth.userEmail}
+        authError={auth.error ?? authReturnError}
+        onSignIn={signIn}
       />
     </>
   );

@@ -2967,6 +2967,30 @@ export type Database = {
           },
         ]
       }
+      public_comment_email_preferences: {
+        Row: {
+          consent_version: string;
+          consented_at: string | null;
+          opted_in: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          consent_version: string;
+          consented_at?: string | null;
+          opted_in?: boolean;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          consent_version?: string;
+          consented_at?: string | null;
+          opted_in?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       public_comment_messages: {
         Row: {
           content: string

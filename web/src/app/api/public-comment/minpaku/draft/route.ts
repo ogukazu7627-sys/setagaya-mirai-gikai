@@ -4,7 +4,7 @@ import {
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
 import { generatePublicCommentDraft } from "@/features/public-comment/minpaku/server/ai";
-import { getAnonymousPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
 import {
   findDraft,
   findMessages,
@@ -43,10 +43,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = await getAnonymousPublicCommentUser();
+  const user = await getPublicCommentUser();
   if (!user)
     return NextResponse.json(
-      { error: "匿名セッションが見つかりません" },
+      { error: "Googleログインが必要です" },
       { status: 401 }
     );
 
@@ -112,10 +112,10 @@ export async function PATCH(request: Request) {
       { status: 400 }
     );
   }
-  const user = await getAnonymousPublicCommentUser();
+  const user = await getPublicCommentUser();
   if (!user)
     return NextResponse.json(
-      { error: "匿名セッションが見つかりません" },
+      { error: "Googleログインが必要です" },
       { status: 401 }
     );
 

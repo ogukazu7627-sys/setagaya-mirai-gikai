@@ -7,6 +7,7 @@ import {
   LegalSectionTitle,
 } from "@/components/layouts/legal-page-layout";
 import { SETAGAYA_SITE_DISCLAIMER } from "@/config/site-disclaimer";
+import { PUBLIC_COMMENT_EMAIL_NOTICE } from "@/features/public-comment/minpaku/shared/consent";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー | みらい議会＠世田谷区",
@@ -22,7 +23,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年7月27日
+          最終更新日：2026年9月16日
         </p>
 
         <section className="space-y-4">
@@ -67,12 +68,25 @@ export default function PrivacyPage() {
           </LegalParagraph>
           <LegalList
             items={[
-              "ユーザーが回答した内容は、本人が明示的に拒否した場合を除き、当ウェブサイトや報告書等で公開される可能性があります。",
+              "通常のAIインタビューでユーザーが回答した内容は、本人が明示的に拒否した場合を除き、当ウェブサイトや報告書等で公開される可能性があります。パブリックコメント作成支援はこの扱いの対象外です。同機能では、完成後に本人が明示的に公開に同意し、運営が承認した最終本文だけを匿名公開し、会話全文は公開しません。",
               "ユーザーが特定の議員へ意見を伝えることを選択した場合、回答内容やAIが生成したレポートを、運営者が確認した上で当該議員向けの週次レポートに含めることがあります。",
               "Googleアカウントの表示名・メールアドレスは、ユーザーが議員向けレポートへの連絡先共有に明示的に同意した場合に限り、当該レポートに含めます。",
               "統計的利用：取得したデータは、個人を特定できない統計情報に加工した上で、第三者へ公表する場合があります。",
             ]}
           />
+        </section>
+
+        <section className="space-y-4">
+          <LegalSectionTitle>
+            パブリックコメント作成支援のメール利用
+          </LegalSectionTitle>
+          <LegalParagraph>{PUBLIC_COMMENT_EMAIL_NOTICE}</LegalParagraph>
+          <LegalParagraph>
+            配信希望、同意・更新日時、同意文面の版をユーザーIDにひも付けて保存します。配信時にはGoogleログインで取得したメールアドレスを使用します。メールアドレスや配信希望をAIへの入力や公開コメントに含めません。会話内容・政治的な意見を案内メールの配信対象の選別には使用しません。
+          </LegalParagraph>
+          <LegalParagraph>
+            パブリックコメントページの同意画面から、Googleログイン後に「案内メールの配信を停止」を選ぶと、インタビューへの参加とは無関係に停止できます。配信メールにも停止方法を記載します。個人情報の確認・削除は本サービスのお問い合わせ窓口へご相談ください。
+          </LegalParagraph>
         </section>
 
         <section className="space-y-4">
