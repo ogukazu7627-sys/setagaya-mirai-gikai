@@ -13,8 +13,6 @@ import { InterviewMessage } from "@/features/interview-session/client/components
 import { InterviewProgressBar } from "@/features/interview-session/client/components/interview-progress-bar";
 import { MINPAKU_QUESTIONS } from "../shared/campaign";
 import { DelayedQuickReplies } from "./delayed-quick-replies";
-import { PublicCommentChatScroll } from "./public-comment-chat-scroll";
-import { usePublicCommentChatViewport } from "./use-public-comment-chat-viewport";
 
 type PublicCommentMessage = {
   id: string;
@@ -80,94 +78,69 @@ export function PublicCommentInterviewChat({
     (message) => message.role === "assistant"
   )?.id;
   const [typedQuestionId, setTypedQuestionId] = useState<string | null>(null);
-  const [inputFocused, setInputFocused] = useState(false);
-  const { isMobile, isCompact, style } =
-    usePublicCommentChatViewport(inputFocused);
 
   return (
     <div
-      className="h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))] overflow-hidden bg-white [container-type:size] pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
-      style={style}
+      className="h-[calc(100dvh-var(--app-header-layout-offset)-var(--mobile-primary-navigation-layout-offset))] bg-mirai-surface-light pc:h-[calc(100dvh-var(--app-header-layout-offset))]"
       data-testid="public-comment-interview-chat"
     >
       <h1 className="sr-only">民泊パブリックコメントのAIインタビュー</h1>
-      <div className="flex h-full flex-col bg-white pt-2 pc:rounded-t-[36px] pc:px-12 pc:pt-10">
-        <div className={isCompact ? "sr-only" : "shrink-0 px-4 pb-1"}>
+      <div className="flex h-full flex-col bg-white pt-4 min-[768px]:rounded-t-[36px] min-[768px]:px-12 min-[768px]:pt-10">
+        <div className="px-4 pb-1">
           <InterviewProgressBar {...progress} />
         </div>
 
-        <Conversation
-          className="min-h-0 flex-1 overflow-hidden [&>div:first-child]:overscroll-contain [&>div:first-child]:touch-pan-y"
-          initial="instant"
-          resize="instant"
-        >
-          <ConversationContent className="flex min-h-full flex-col">
-            <div className="mt-auto flex flex-col gap-4">
-              {messages.map((message) => (
-                <InterviewMessage
-                  key={message.id}
-                  message={toUiMessage(message)}
-                  isStreaming={false}
-                />
-              ))}
-
-              {isLoading && (
-                <p className="text-sm text-gray-500" aria-live="polite">
-                  考え中...
-                </p>
-              )}
-
-              <InterviewErrorDisplay
-                error={errorObject}
-                canRetry={false}
-                onRetry={() => undefined}
-                isRetrying={isLoading}
+        <Conversation className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y">
+          <ConversationContent className="flex flex-col gap-4">
+            {messages.map((message) => (
+              <InterviewMessage
+                key={message.id}
+                message={toUiMessage(message)}
+                isStreaming={false}
               />
-            </div>
+            ))}
+
+            {isLoading && (
+              <p className="text-sm text-gray-500" aria-live="polite">
+                考え中...
+              </p>
+            )}
+
+            <InterviewErrorDisplay
+              error={errorObject}
+              canRetry={false}
+              onRetry={() => undefined}
+              isRetrying={isLoading}
+            />
+
+            <DelayedQuickReplies
+              key={questionId}
+              replies={quickReplies}
+              onSelect={onQuickReply}
+              disabled={
+                isLoading ||
+                Boolean(error) ||
+                !questionId ||
+                messages.at(-1)?.role !== "assistant" ||
+                answer.length > 0 ||
+                typedQuestionId === questionId
+              }
+            />
           </ConversationContent>
-          <PublicCommentChatScroll focused={inputFocused} />
         </Conversation>
 
-        <div
-          className="shrink-0 border-t border-mirai-border bg-white [&_textarea]:max-h-[min(8rem,25cqh)]"
-          data-testid="public-comment-composer"
-        >
-          <DelayedQuickReplies
-            key={questionId}
-            replies={quickReplies}
-            onSelect={onQuickReply}
-            disabled={
-              isLoading ||
-              Boolean(error) ||
-              !questionId ||
-              messages.at(-1)?.role !== "assistant" ||
-              answer.length > 0 ||
-              typedQuestionId === questionId
-            }
+        <div className="shrink-0 bg-white px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+          <InterviewChatInput
+            input={answer}
+            onInputChange={(value) => {
+              if (questionId && value.length > 0)
+                setTypedQuestionId(questionId);
+              onAnswerChange(value);
+            }}
+            onSubmit={onSubmit}
+            placeholder="AIの質問に回答する"
+            isResponding={isLoading}
           />
-          <div
-            className={
-              isMobile && inputFocused
-                ? "px-4 pb-2 pt-2"
-                : "px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2"
-            }
-          >
-            <InterviewChatInput
-              input={answer}
-              onInputChange={(value) => {
-                if (questionId && value.length > 0)
-                  setTypedQuestionId(questionId);
-                onAnswerChange(value);
-              }}
-              onSubmit={onSubmit}
-              placeholder="AIの質問に回答する"
-              isResponding={isLoading}
-              onTextareaFocus={() => setInputFocused(true)}
-              onTextareaBlur={() => setInputFocused(false)}
-              preserveFocusWhileResponding
-              showHint={!isMobile || (!inputFocused && !isCompact)}
-            />
-          </div>
         </div>
       </div>
     </div>
