@@ -64,6 +64,14 @@ describe("PublicCommentIjimePage", () => {
   it("相談窓口との違い、個人情報、安全導線を開始前に示す", () => {
     render(<PublicCommentIjimePage />);
     expect(
+      screen.getByRole("img", {
+        name: "子どもたちが安心して話せる学びの場を描いたイラスト",
+      })
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("ijime-public-comment-hero.webp")
+    );
+    expect(
       screen.getByText(/個別のいじめを相談・通報する窓口ではありません/)
     ).toBeInTheDocument();
     expect(

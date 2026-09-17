@@ -55,6 +55,14 @@ describe("PublicCommentDisabilityPage", () => {
   it("相談窓口との違い、センシティブ情報、公式の相談導線を示す", () => {
     render(<PublicCommentDisabilityPage />);
     expect(
+      screen.getByRole("img", {
+        name: "障害の有無や年齢にかかわらず地域で共に過ごす人々を描いたイラスト",
+      })
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("disability-public-comment-hero.webp")
+    );
+    expect(
       screen.getByText(/個別の差別や虐待を相談・通報する窓口ではありません/)
     ).toBeInTheDocument();
     expect(screen.getByText(/診断名や利用サービス/)).toBeInTheDocument();
