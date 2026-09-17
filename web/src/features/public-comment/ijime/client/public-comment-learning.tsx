@@ -93,12 +93,16 @@ export function PublicCommentLearning({
           <p className="mt-2 text-xs text-mirai-text-secondary">
             資料確認日：{IJIME_LEARNING_REVIEWED_AT}
           </p>
-          {lesson.sections.map((section) => (
-            <section key={section.label} className="mt-6">
-              <h2 className="text-sm font-bold leading-6 text-primary-accent">
-                {section.label}
-              </h2>
-              <p className="mt-2 text-[15px] leading-8 text-mirai-text">
+          {lesson.sections.map((section, index) => (
+            <section key={`${lesson.id}-${index}`} className="mt-6">
+              {section.label && (
+                <h2 className="text-sm font-bold leading-6 text-primary-accent">
+                  {section.label}
+                </h2>
+              )}
+              <p
+                className={`${section.label ? "mt-2" : ""} text-[15px] leading-8 text-mirai-text`}
+              >
                 {section.body}
               </p>
               <LearningSources sourceRefs={section.sourceRefs} />
@@ -116,7 +120,7 @@ export function PublicCommentLearning({
             <fieldset disabled={isRevealed}>
               <legend className="text-base font-bold leading-7 text-mirai-text">
                 <span className="mb-2 block text-sm text-primary-accent">
-                  理解を確認
+                  クイズ
                 </span>
                 {lesson.quiz.question}
               </legend>
@@ -172,7 +176,7 @@ export function PublicCommentLearning({
                   : "解説を確認しましょう"}
               </h2>
               <p className="mt-3 text-sm font-bold leading-7 text-mirai-text">
-                正解：{lesson.quiz.options[lesson.quiz.correctIndex]}
+                正解：{String.fromCharCode(65 + lesson.quiz.correctIndex)}
               </p>
               <p className="mt-3 text-sm leading-7 text-mirai-text">
                 {lesson.quiz.explanation}
