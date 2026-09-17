@@ -12,20 +12,25 @@ describe("自殺対策計画素案AIインタビューの固定設定", () => {
       SUICIDE_PREVENTION_QUESTIONS.map((question) => question.topic)
     ).toEqual([
       "この計画との関わり",
-      "素案の中で、特に考えたい論点",
-      "相談や支援につながるまでの課題",
-      "支援を途切れさせない仕組み",
-      "周囲の人と支援者が抱え込まないために",
-      "計画の実施と評価への具体的な提案",
+      "特に考えたい取組や論点",
+      "経験や期待から見える、支援の受けやすさ",
+      "区が示す目的や取組について、納得できる点と不十分な点",
+      "支援が実際に届くための条件と、確認の方法",
+      "計画や実施方法に、具体的に反映してほしいこと",
       "区に最も伝えたいこと",
     ]);
     expect(SUICIDE_PREVENTION_QUESTIONS[0].question).toContain(
-      "個人的なつらい経験や医療情報を話す必要はありません"
+      "直接の経験がなくても、地域の取組への関心から答えて構いません"
     );
     expect(SUICIDE_PREVENTION_QUESTIONS[3].question).toContain(
-      "本人の同意とプライバシー"
+      "納得できる点と、まだ不十分だと思う点"
     );
-    expect(SUICIDE_PREVENTION_QUESTIONS[5].question).toContain("１〜３個");
+    expect(SUICIDE_PREVENTION_QUESTIONS[4].question).toContain(
+      "必要な支援が届き、途中で途切れないために"
+    );
+    expect(SUICIDE_PREVENTION_QUESTIONS[5].question).toContain(
+      "現在の取組を維持・継続してほしいという意見でも構いません"
+    );
   });
 
   it("固定質問の深掘りで危機や医療情報の告白を求めない", () => {
@@ -34,7 +39,7 @@ describe("自殺対策計画素案AIインタビューの固定設定", () => {
       "個人的な経験の告白を求めない"
     );
     expect(SUICIDE_PREVENTION_QUESTIONS[4].followUp).toContain(
-      "単独での解決責任を負わせない"
+      "家族や身近な人だけに責任を負わせない"
     );
   });
 
