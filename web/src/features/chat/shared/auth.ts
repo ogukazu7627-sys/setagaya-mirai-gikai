@@ -30,9 +30,13 @@ export function sanitizeChatAuthNextPath(value: string | null | undefined) {
     return "/";
   }
 
-  const decoded = safeDecode(value).trim();
+  // Only decode legacy whole-path cookies; encoded query values must survive
+  // repeated validation and the OAuth round trip unchanged.
+  const trimmed = value.trim();
+  const decoded = trimmed.startsWith("/") ? trimmed : safeDecode(trimmed);
   if (
-    hasControlCharacter(decoded) ||
+    hasControlCharacter(safeDecode(decoded)) ||
+    safeDecode(decoded).includes("\\") ||
     !decoded.startsWith("/") ||
     decoded.startsWith("//") ||
     decoded.startsWith(CHAT_AUTH_CALLBACK_PATH)
@@ -40,7 +44,19 @@ export function sanitizeChatAuthNextPath(value: string | null | undefined) {
     return "/";
   }
 
-  return decoded;
+  const url = new URL(decoded, "https://auth-return.invalid");
+  if (
+    safeDecode(url.pathname).startsWith("//") ||
+    safeDecode(url.pathname).startsWith(CHAT_AUTH_CALLBACK_PATH)
+  )
+    return "/";
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+export function buildChatAuthCallbackUrl(base: string, nextPath: string) {
+  const url = new URL(CHAT_AUTH_CALLBACK_PATH, base);
+  url.searchParams.set("next", sanitizeChatAuthNextPath(nextPath));
+  return url.toString();
 }
 
 export function isGoogleAuthUser(

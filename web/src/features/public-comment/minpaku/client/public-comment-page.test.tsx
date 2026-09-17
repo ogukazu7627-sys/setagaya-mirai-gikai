@@ -76,6 +76,67 @@ describe("PublicCommentMinpakuPage", () => {
     await waitFor(() => expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+  it.each([
+    "0",
+    "1",
+  ])("別ブラウザでStorageがなくても同意画面と控え設定を復元: %s", (receipt) => {
+    window.history.replaceState(
+      null,
+      "",
+      `/public-comment/minpaku?auth_return=1&receipt=${receipt}&share=test`
+    );
+    const fetchMock = vi.spyOn(global, "fetch");
+    render(<PublicCommentMinpakuPage />);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /回答の保存に同意/ })
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toHaveProperty("checked", receipt === "1");
+    expect(window.location.search).toBe("?share=test");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("戻り先URLの設定は古いStorageより優先し、Storageを片付ける", () => {
+    sessionStorage.setItem(PUBLIC_COMMENT_AUTH_RETURN_KEY, "1");
+    sessionStorage.setItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY, "false");
+    window.history.replaceState(
+      null,
+      "",
+      "/public-comment/minpaku?auth_return=1&receipt=1"
+    );
+    render(<PublicCommentMinpakuPage />);
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
+    expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RETURN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY)).toBeNull();
+  });
+
+  it("別ブラウザで認証失敗してもメール未選択のまま再試行する", async () => {
+    auth.status = "unauthenticated";
+    window.history.replaceState(
+      null,
+      "",
+      "/public-comment/minpaku?auth_return=1&receipt=0&auth_error=google_login_failed"
+    );
+    const fetchMock = vi.spyOn(global, "fetch");
+    render(<PublicCommentMinpakuPage />);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Googleログインが完了しませんでした"
+    );
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).not.toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
+    await waitFor(() =>
+      expect(auth.signInWithGoogle).toHaveBeenCalledWith(
+        "/public-comment/minpaku?auth_return=1&receipt=0"
+      )
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 
   it("ログイン前は同意だけで開始できず、Googleログインから同意画面へ戻る", async () => {
     auth.status = "unauthenticated";
@@ -162,6 +223,9 @@ describe("PublicCommentMinpakuPage", () => {
     await waitFor(() => expect(auth.signInWithGoogle).toHaveBeenCalledTimes(1));
     expect(sessionStorage.getItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY)).toBe(
       "false"
+    );
+    expect(auth.signInWithGoogle).toHaveBeenCalledWith(
+      "/public-comment/minpaku?auth_return=1&receipt=0"
     );
     cleanup();
     auth.status = "authenticated";

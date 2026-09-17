@@ -24,8 +24,8 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
   const cookieStore = await cookies();
   const nextPath = sanitizeChatAuthNextPath(
-    cookieStore.get(CHAT_AUTH_NEXT_COOKIE)?.value ??
-      requestUrl.searchParams.get("next")
+    requestUrl.searchParams.get("next") ??
+      cookieStore.get(CHAT_AUTH_NEXT_COOKIE)?.value
   );
   const redirectBase = getRedirectBase(request);
 
@@ -59,10 +59,8 @@ export async function GET(request: Request) {
   }
 
   const failurePath =
-    nextPath.split("?")[0] === routes.publicCommentMinpaku()
-      ? routes.publicCommentMinpaku()
-      : "/";
-  return NextResponse.redirect(
-    `${redirectBase}${failurePath}?auth_error=google_login_failed`
-  );
+    nextPath.split("?")[0] === routes.publicCommentMinpaku() ? nextPath : "/";
+  const failureUrl = new URL(failurePath, redirectBase);
+  failureUrl.searchParams.set("auth_error", "google_login_failed");
+  return NextResponse.redirect(failureUrl);
 }

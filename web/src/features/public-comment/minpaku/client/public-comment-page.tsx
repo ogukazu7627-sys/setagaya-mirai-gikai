@@ -667,6 +667,14 @@ export function PublicCommentMinpakuPage() {
 
   useEffect(() => {
     const url = new URL(window.location.href);
+    const returningFromAuth = url.searchParams.get("auth_return") === "1";
+    if (returningFromAuth) {
+      setConsentOpen(true);
+      setReceiptOptIn(url.searchParams.get("receipt") === "1");
+      url.searchParams.delete("auth_return");
+      url.searchParams.delete("receipt");
+      window.history.replaceState(window.history.state, "", url);
+    }
     if (url.searchParams.get("auth_error") === "google_login_failed") {
       setAuthReturnError(
         "Googleログインが完了しませんでした。もう一度お試しください。"
@@ -682,7 +690,8 @@ export function PublicCommentMinpakuPage() {
           PUBLIC_COMMENT_AUTH_RECEIPT_KEY
         );
         sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY);
-        if (savedReceipt === "false") setReceiptOptIn(false);
+        if (!returningFromAuth && savedReceipt === "false")
+          setReceiptOptIn(false);
         setConsentOpen(true);
       }
     } catch {
@@ -701,7 +710,11 @@ export function PublicCommentMinpakuPage() {
     } catch {
       // Do not block authentication when browser storage is unavailable.
     }
-    await auth.signInWithGoogle();
+    const params = new URLSearchParams({
+      auth_return: "1",
+      receipt: requestedReceipt ? "1" : "0",
+    });
+    await auth.signInWithGoogle(`${routes.publicCommentMinpaku()}?${params}`);
   };
 
   const startSession = useCallback(

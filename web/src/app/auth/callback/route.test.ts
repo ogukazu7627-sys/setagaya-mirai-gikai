@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  next: "/public-comment/minpaku",
+  next: "/public-comment/minpaku" as string | undefined,
   exchange: vi.fn(),
   setCookie: vi.fn(),
 }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
-    get: () => ({ value: mocks.next }),
+    get: () => (mocks.next === undefined ? undefined : { value: mocks.next }),
     set: mocks.setCookie,
     getAll: () => [],
   }),
@@ -31,6 +31,58 @@ describe("Google OAuth callback", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.next = "/public-comment/minpaku";
+  });
+  it.each([
+    undefined,
+    "/",
+    "/bills/stale",
+  ])("Cookieがない・古くても今回の認証URLの戻り先を優先: %s", async (cookie) => {
+    mocks.next = cookie;
+    mocks.exchange.mockResolvedValue({ error: null });
+    const next = "/public-comment/minpaku?auth_return=1&receipt=0";
+    const response = await GET(
+      new Request(
+        `https://civictech-setagaya.org/auth/callback?code=valid&next=${encodeURIComponent(next)}`
+      )
+    );
+    expect(response.headers.get("location")).toBe(
+      `https://civictech-setagaya.org${next}`
+    );
+  });
+  it.each([
+    "code=missing-pkce",
+    "error=access_denied",
+  ])("Cookieを引き継げず認証失敗してもパブコメで再試行: %s", async (query) => {
+    mocks.next = undefined;
+    mocks.exchange.mockResolvedValue({
+      error: new Error("PKCE verifier missing"),
+    });
+    const next = "/public-comment/minpaku?auth_return=1&receipt=0";
+    const response = await GET(
+      new Request(
+        `https://civictech-setagaya.org/auth/callback?${query}&next=${encodeURIComponent(next)}`
+      )
+    );
+    expect(response.headers.get("location")).toBe(
+      `https://civictech-setagaya.org${next}&auth_error=google_login_failed`
+    );
+  });
+  it.each([
+    "https://evil.example",
+    "//evil.example",
+    "/\\evil.example",
+    "/auth/callback",
+  ])("URLの戻り先から外部へリダイレクトしない: %s", async (next) => {
+    mocks.next = undefined;
+    mocks.exchange.mockResolvedValue({ error: null });
+    const response = await GET(
+      new Request(
+        `https://civictech-setagaya.org/auth/callback?code=valid&next=${encodeURIComponent(next)}`
+      )
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://civictech-setagaya.org/"
+    );
   });
   it("成功時は元のパブコメページへ戻る", async () => {
     mocks.exchange.mockResolvedValue({ error: null });

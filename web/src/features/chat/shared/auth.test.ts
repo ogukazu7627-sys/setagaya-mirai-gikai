@@ -1,7 +1,53 @@
 import { describe, expect, it } from "vitest";
-import { isGoogleAuthUser, sanitizeChatAuthNextPath } from "./auth";
+import {
+  buildChatAuthCallbackUrl,
+  isGoogleAuthUser,
+  sanitizeChatAuthNextPath,
+} from "./auth";
+
+describe("buildChatAuthCallbackUrl", () => {
+  it("エンコード済みのクエリは認証の往復・再検証で変わらない", () => {
+    const next = "/bills?q=a%26b%3Dc&nested=%252526";
+    const callback = new URL(
+      buildChatAuthCallbackUrl(
+        "https://civictech-setagaya.org",
+        sanitizeChatAuthNextPath(next)
+      )
+    );
+    expect(sanitizeChatAuthNextPath(callback.searchParams.get("next"))).toBe(
+      next
+    );
+    expect(sanitizeChatAuthNextPath(encodeURIComponent(next))).toBe(next);
+  });
+  it("戻り先とクエリをOAuth URLに含める", () => {
+    const next = "/public-comment/minpaku?auth_return=1&receipt=0";
+    const callback = new URL(
+      buildChatAuthCallbackUrl("https://civictech-setagaya.org", next)
+    );
+    expect(callback.pathname).toBe("/auth/callback");
+    expect(callback.searchParams.get("next")).toBe(next);
+  });
+  it("外部への戻り先を受け入れない", () => {
+    const callback = new URL(
+      buildChatAuthCallbackUrl(
+        "https://civictech-setagaya.org",
+        "https://evil.example"
+      )
+    );
+    expect(callback.searchParams.get("next")).toBe("/");
+  });
+});
 
 describe("sanitizeChatAuthNextPath", () => {
+  it.each([
+    "/\\evil.example",
+    "/%5cevil.example",
+    "/a/..//evil.example",
+    "/a/../auth/callback",
+    "/%2e%2e/auth/callback",
+  ])("URL正規化による外部遷移・認証ループを拒否: %s", (path) => {
+    expect(sanitizeChatAuthNextPath(path)).toBe("/");
+  });
   it("keeps safe relative paths", () => {
     expect(sanitizeChatAuthNextPath("/bills/123?difficulty=normal")).toBe(
       "/bills/123?difficulty=normal"
