@@ -95,6 +95,10 @@ export const routes = {
   publicCommentDisability: () => "/public-comment/disability" as const,
   publicCommentRetainingWall: () => "/public-comment/retaining-wall" as const,
   publicCommentGenderEquality: () => "/public-comment/gender-equality" as const,
+  publicCommentSuicidePrevention: () =>
+    "/public-comment/suicide-prevention" as const,
+  publicCommentDementiaHopePlan: () =>
+    "/public-comment/dementia-hope-plan" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,

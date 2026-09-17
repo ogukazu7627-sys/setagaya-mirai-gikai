@@ -5,31 +5,47 @@ describe("がけ・擁壁等防災対策方針素案AIインタビューの固�
   it("素案の具体的な前提を含む7段階を順番どおり保持する", () => {
     expect(RETAINING_WALL_QUESTIONS).toHaveLength(7);
     expect(RETAINING_WALL_QUESTIONS.map((question) => question.topic)).toEqual([
-      "この方針改定との関わり",
-      "素案の中で、特に考えたい論点",
-      "安全対策を助けたもの・難しくしたもの",
-      "所有者の責任と、周囲の安全をどう両立するか",
-      "相談から実際の対策へつなげる仕組み",
-      "方針の文言や、改定後の具体策への提案",
-      "この方針改定について、区に最も伝えたいこと",
+      "このテーマとの関わり",
+      "素案の中で、特に考えたいこと",
+      "経験や不安から、具体的な課題を聞く",
+      "区の目的や対策内容への納得と、まだ不十分だと思う点",
+      "対策の安全性を、どう確かめるか",
+      "方針や制度の運用を、具体的にどうしてほしいか",
+      "区に最も伝えたいこと",
     ]);
-    expect(RETAINING_WALL_QUESTIONS[0].question).toContain("正確な住所など");
-    expect(RETAINING_WALL_QUESTIONS[1].question).toContain("補助額・補助率");
-    expect(RETAINING_WALL_QUESTIONS[2].question).toContain("制度への希望");
-    expect(RETAINING_WALL_QUESTIONS[3].question).toContain("公費で支える対象");
-    expect(RETAINING_WALL_QUESTIONS[4].question).toContain(
-      "誰が・どの段階で・何を支えるか"
+    expect(RETAINING_WALL_QUESTIONS[0].question).toContain(
+      "土砂が崩れるのを防ぐ壁"
     );
-    expect(RETAINING_WALL_QUESTIONS[5].question).toContain("１〜３個");
-    expect(RETAINING_WALL_QUESTIONS[6].question).toContain("あなた自身の言葉");
+    expect(RETAINING_WALL_QUESTIONS[0].question).toContain(
+      "具体的な住所や個人名"
+    );
+    expect(RETAINING_WALL_QUESTIONS[1].question).toContain(
+      "ここに挙げていないことでも"
+    );
+    expect(RETAINING_WALL_QUESTIONS[2].question).toContain(
+      "直接の経験がない場合"
+    );
+    expect(RETAINING_WALL_QUESTIONS[3].question).toContain(
+      "納得できる点と、まだ不十分だと思う点"
+    );
+    expect(RETAINING_WALL_QUESTIONS[4].question).toContain(
+      "安全性が高まったか、その後も維持されているか"
+    );
+    expect(RETAINING_WALL_QUESTIONS[5].question).toContain(
+      "道路に面しない擁壁への対応"
+    );
+    expect(RETAINING_WALL_QUESTIONS[5].question).toContain(
+      "今の案で続けてほしい点"
+    );
+    expect(RETAINING_WALL_QUESTIONS[6].question).toContain("あなたの言葉");
   });
 
   it("場所を特定せずに立場を選べる最初の回答候補を用意する", () => {
     expect(RETAINING_WALL_QUESTIONS[0].quickReplies).toEqual([
-      "がけ・擁壁の所有者として",
-      "近隣に住む・通行する立場として",
-      "建築・防災・施設に関わる立場として",
-      "区民・事業者として",
+      "所有・管理する立場",
+      "近くに住む立場",
+      "通学・通勤などでそばを通る立場",
+      "直接の関わりはないが関心がある",
     ]);
   });
 });
