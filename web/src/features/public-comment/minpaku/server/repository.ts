@@ -70,6 +70,25 @@ export async function findSessionForUser(
   return data;
 }
 
+export async function findSessionForCampaignUser(
+  sessionId: string,
+  userId: string,
+  campaignId: string
+): Promise<Session | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("public_comment_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .eq("campaign_id", campaignId)
+    .maybeSingle();
+
+  if (error)
+    throw new Error(`Failed to fetch public comment session: ${error.message}`);
+  return data;
+}
+
 export async function createSession(params: {
   campaignId: string;
   userId: string;

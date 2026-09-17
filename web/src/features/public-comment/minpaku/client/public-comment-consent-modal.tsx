@@ -26,6 +26,7 @@ interface PublicCommentConsentModalProps {
   userEmail?: string;
   authError?: string;
   initialReceiptOptIn: boolean;
+  receiptEnabled?: boolean;
   onSignIn: (receiptOptIn: boolean) => Promise<void>;
 }
 
@@ -38,6 +39,7 @@ export function PublicCommentConsentModal({
   userEmail,
   authError,
   initialReceiptOptIn,
+  receiptEnabled = true,
   onSignIn,
 }: PublicCommentConsentModalProps) {
   const [agreed, setAgreed] = useState(false);
@@ -79,7 +81,9 @@ export function PublicCommentConsentModal({
             AIインタビュー同意事項
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Googleログイン、回答の保存、任意の控えメールについて確認してください。
+            {receiptEnabled
+              ? "Googleログイン、回答の保存、任意の控えメールについて確認してください。"
+              : "Googleログインと回答の保存について確認してください。"}
           </DialogDescription>
           <div className="mt-6 h-px bg-mirai-gradient" />
         </DialogHeader>
@@ -93,7 +97,9 @@ export function PublicCommentConsentModal({
               Googleのメールアドレス・ユーザーIDを取得し、利用者の識別と利用上限の管理に使います。会話はアカウントにひも付けて保存されます。
             </li>
             <li>同意後の回答は、下書き作成のために保存します。</li>
-            <li>個人情報、住所、施設名などは入力しないでください。</li>
+            <li>
+              個人情報や、個人・施設・学校が特定できる情報は入力しないでください。
+            </li>
             <li>AIの下書きは、最後にあなた自身が確認・編集します。</li>
             <li>公式ページへの提出や匿名公開は自動では行いません。</li>
           </ul>
@@ -131,14 +137,16 @@ export function PublicCommentConsentModal({
               を確認し、回答の保存に同意します
             </label>
           </div>
-          <div className="space-y-3 border-t border-gray-200 pt-4 text-sm leading-6">
-            <ReceiptPreference
-              checked={receiptOptIn}
-              onChange={setReceiptOptIn}
-              disabled={disabled}
-              userEmail={userEmail}
-            />
-          </div>
+          {receiptEnabled && (
+            <div className="space-y-3 border-t border-gray-200 pt-4 text-sm leading-6">
+              <ReceiptPreference
+                checked={receiptOptIn}
+                onChange={setReceiptOptIn}
+                disabled={disabled}
+                userEmail={userEmail}
+              />
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-col gap-4">

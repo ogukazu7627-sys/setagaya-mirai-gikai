@@ -58,8 +58,15 @@ export async function GET(request: Request) {
     }
   }
 
-  const failurePath =
-    nextPath.split("?")[0] === routes.publicCommentMinpaku() ? nextPath : "/";
+  const publicCommentPaths = [
+    routes.publicCommentMinpaku(),
+    routes.publicCommentIjime(),
+  ];
+  const failurePath = publicCommentPaths.includes(
+    nextPath.split("?")[0] as (typeof publicCommentPaths)[number]
+  )
+    ? nextPath
+    : "/";
   const failureUrl = new URL(failurePath, redirectBase);
   failureUrl.searchParams.set("auth_error", "google_login_failed");
   return NextResponse.redirect(failureUrl);

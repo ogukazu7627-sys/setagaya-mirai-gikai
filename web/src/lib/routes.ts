@@ -91,6 +91,7 @@ export const routes = {
   publicCommentMinpaku: () => "/public-comment/minpaku" as const,
   publicCommentMinpakuComments: () =>
     "/public-comment/minpaku/comments" as const,
+  publicCommentIjime: () => "/public-comment/ijime" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,

@@ -93,6 +93,16 @@ describe("Google OAuth callback", () => {
       "https://civictech-setagaya.org/public-comment/minpaku"
     );
   });
+  it("いじめパブコメの認証失敗時は同じページへ戻る", async () => {
+    mocks.next = "/public-comment/ijime?auth_return=1";
+    mocks.exchange.mockResolvedValue({ error: new Error("failed") });
+    const response = await GET(
+      new Request("https://civictech-setagaya.org/auth/callback?code=invalid")
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://civictech-setagaya.org/public-comment/ijime?auth_return=1&auth_error=google_login_failed"
+    );
+  });
   it.each([
     "?error=access_denied",
     "?code=invalid",
