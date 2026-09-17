@@ -621,7 +621,9 @@ export function PublicCommentCampaignPage({
         if (!response.ok)
           throw new Error(data.error ?? "回答を送信できませんでした");
         setMessages((current) => [
-          ...current,
+          ...(data.userMessageStored === false
+            ? current.filter((message) => message.id !== optimisticMessage.id)
+            : current),
           { ...data.message, id: data.message.id ?? crypto.randomUUID() },
         ]);
         setQuickReplies(data.quickReplies ?? []);

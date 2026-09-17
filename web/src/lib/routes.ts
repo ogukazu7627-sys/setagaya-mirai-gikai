@@ -94,6 +94,8 @@ export const routes = {
   publicCommentIjime: () => "/public-comment/ijime" as const,
   publicCommentDisability: () => "/public-comment/disability" as const,
   publicCommentRetainingWall: () => "/public-comment/retaining-wall" as const,
+  publicCommentSuicidePrevention: () =>
+    "/public-comment/suicide-prevention" as const,
   publicCommentDementiaHopePlan: () =>
     "/public-comment/dementia-hope-plan" as const,
 
