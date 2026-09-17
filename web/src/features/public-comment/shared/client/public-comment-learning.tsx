@@ -4,17 +4,45 @@ import { ArrowLeft, ArrowRight, BookOpen, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { IJIME_SOURCES } from "../shared/campaign";
-import { IJIME_LEARNING_REVIEWED_AT, IJIME_LESSONS } from "../shared/learning";
 
-function LearningSources({ sourceRefs }: { sourceRefs: readonly string[] }) {
+export type LearningSource = {
+  id: string;
+  title: string;
+  url: string;
+};
+
+export type LearningLesson = {
+  id: string;
+  title: string;
+  sections: readonly {
+    label: string;
+    body: string;
+    sourceRefs: readonly string[];
+  }[];
+  quiz: {
+    question: string;
+    options: readonly string[];
+    correctIndex: number;
+    explanation: string;
+    sourceRefs: readonly string[];
+  };
+};
+
+function LearningSources({
+  sourceRefs,
+  sources,
+}: {
+  sourceRefs: readonly string[];
+  sources: readonly LearningSource[];
+}) {
   return (
     <ul
-      className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-5 text-primary-accent"
+      className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-5 text-primary-strong"
       aria-label="出典"
     >
-      {IJIME_SOURCES.filter((source) => sourceRefs.includes(source.id)).map(
-        (source) => (
+      {sources
+        .filter((source) => sourceRefs.includes(source.id))
+        .map((source) => (
           <li key={source.id}>
             <a
               href={source.url}
@@ -26,8 +54,7 @@ function LearningSources({ sourceRefs }: { sourceRefs: readonly string[] }) {
               {source.title}
             </a>
           </li>
-        )
-      )}
+        ))}
     </ul>
   );
 }
@@ -35,19 +62,31 @@ function LearningSources({ sourceRefs }: { sourceRefs: readonly string[] }) {
 export function PublicCommentLearning({
   onStartInterview,
   onBack,
+  sources,
+  lessons,
+  reviewedAt,
+  courseTitle,
+  courseSubtitle,
+  courseNote,
 }: {
   onStartInterview: () => void;
   onBack: () => void;
+  sources: readonly LearningSource[];
+  lessons: readonly LearningLesson[];
+  reviewedAt: string;
+  courseTitle?: string;
+  courseSubtitle?: string;
+  courseNote?: string;
 }) {
   const [chapter, setChapter] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const headingRef = useRef<HTMLHeadingElement>(null);
   const explanationRef = useRef<HTMLHeadingElement>(null);
-  const lesson = IJIME_LESSONS[chapter];
+  const lesson = lessons[chapter];
   const selected = answers[lesson.id];
   const isRevealed = revealed[lesson.id] === true;
-  const isLast = chapter === IJIME_LESSONS.length - 1;
+  const isLast = chapter === lessons.length - 1;
 
   useEffect(() => {
     if (isRevealed) explanationRef.current?.focus();
@@ -63,25 +102,47 @@ export function PublicCommentLearning({
   return (
     <div className="min-h-dvh bg-mirai-light-gradient px-4 py-8 pb-[calc(var(--mobile-primary-navigation-height,0px)+env(safe-area-inset-bottom,0px)+2rem)]">
       <div className="mx-auto max-w-[560px]">
-        <Button type="button" variant="link" className="mb-6" onClick={onBack}>
+        <Button
+          type="button"
+          variant="link"
+          className="mb-6 text-primary-strong"
+          onClick={onBack}
+        >
           <ArrowLeft className="size-4" />
           案内画面に戻る
         </Button>
-        <div className="mb-6 flex items-center justify-between gap-4 text-sm font-bold text-primary-accent">
+        <div className="mb-6 flex items-center justify-between gap-4 text-sm font-bold text-primary-strong">
           <span className="inline-flex items-center gap-2">
             <BookOpen className="size-5" />
             条例素案について学ぶ
           </span>
           <span>
             <span className="sr-only">章：</span>
-            {chapter + 1} / {IJIME_LESSONS.length}
+            {chapter + 1} / {lessons.length}
           </span>
         </div>
         <Progress
-          value={((chapter + 1) / IJIME_LESSONS.length) * 100}
+          value={((chapter + 1) / lessons.length) * 100}
           aria-label="学習の進捗"
           className="mb-6 h-[7px] bg-mirai-progress-track"
         />
+        {chapter === 0 && courseTitle && (
+          <section className="mb-6 rounded-2xl border border-primary/20 bg-white p-6">
+            {courseSubtitle && (
+              <p className="text-sm font-bold text-primary-strong">
+                {courseSubtitle}
+              </p>
+            )}
+            <p className="mt-2 text-xl font-bold leading-8 text-mirai-text">
+              {courseTitle}
+            </p>
+            {courseNote && (
+              <p className="mt-3 text-xs leading-6 text-mirai-text-secondary">
+                {courseNote}
+              </p>
+            )}
+          </section>
+        )}
         <article className="rounded-2xl bg-white p-6">
           <h1
             ref={headingRef}
@@ -91,12 +152,12 @@ export function PublicCommentLearning({
             {lesson.title}
           </h1>
           <p className="mt-2 text-xs text-mirai-text-secondary">
-            資料確認日：{IJIME_LEARNING_REVIEWED_AT}
+            資料確認日：{reviewedAt}
           </p>
           {lesson.sections.map((section, index) => (
             <section key={`${lesson.id}-${index}`} className="mt-6">
               {section.label && (
-                <h2 className="text-sm font-bold leading-6 text-primary-accent">
+                <h2 className="text-sm font-bold leading-6 text-primary-strong">
                   {section.label}
                 </h2>
               )}
@@ -105,7 +166,10 @@ export function PublicCommentLearning({
               >
                 {section.body}
               </p>
-              <LearningSources sourceRefs={section.sourceRefs} />
+              <LearningSources
+                sourceRefs={section.sourceRefs}
+                sources={sources}
+              />
             </section>
           ))}
 
@@ -119,7 +183,7 @@ export function PublicCommentLearning({
           >
             <fieldset disabled={isRevealed}>
               <legend className="text-base font-bold leading-7 text-mirai-text">
-                <span className="mb-2 block text-sm text-primary-accent">
+                <span className="mb-2 block text-sm text-primary-strong">
                   クイズ
                 </span>
                 {lesson.quiz.question}
@@ -169,7 +233,7 @@ export function PublicCommentLearning({
               <h2
                 ref={explanationRef}
                 tabIndex={-1}
-                className="scroll-mt-24 text-base font-bold text-primary-accent outline-none"
+                className="scroll-mt-24 text-base font-bold text-primary-strong outline-none"
               >
                 {selected === lesson.quiz.correctIndex
                   ? "正解です"
@@ -181,7 +245,10 @@ export function PublicCommentLearning({
               <p className="mt-3 text-sm leading-7 text-mirai-text">
                 {lesson.quiz.explanation}
               </p>
-              <LearningSources sourceRefs={lesson.quiz.sourceRefs} />
+              <LearningSources
+                sourceRefs={lesson.quiz.sourceRefs}
+                sources={sources}
+              />
             </section>
           )}
         </article>
@@ -212,7 +279,7 @@ export function PublicCommentLearning({
           <Button
             type="button"
             variant="link"
-            className="mt-3 whitespace-normal leading-6"
+            className="mt-3 whitespace-normal leading-6 text-primary-strong"
             onClick={onStartInterview}
           >
             学習を途中で終えてインタビューへ

@@ -15,7 +15,6 @@ import { InterviewErrorDisplay } from "@/features/interview-session/client/compo
 import { InterviewMessage } from "@/features/interview-session/client/components/interview-message";
 import { InterviewProgressBar } from "@/features/interview-session/client/components/interview-progress-bar";
 import { DelayedQuickReplies } from "@/features/public-comment/minpaku/client/delayed-quick-replies";
-import { IJIME_QUESTIONS } from "../shared/campaign";
 
 type PublicCommentMessage = {
   id: string;
@@ -35,6 +34,9 @@ interface PublicCommentInterviewChatProps {
   onSubmit: (message: PromptInputMessage) => void;
   onQuickReply: (reply: string) => void;
   onContinueToDraft: () => void;
+  questions: readonly { id: string; topic: string }[];
+  screenReaderTitle: string;
+  privacyNotice: string;
 }
 
 function toUiMessage(message: PublicCommentMessage): UIMessage {
@@ -45,7 +47,10 @@ function toUiMessage(message: PublicCommentMessage): UIMessage {
   };
 }
 
-function getProgress(messages: PublicCommentMessage[]) {
+function getProgress(
+  messages: PublicCommentMessage[],
+  questions: readonly { id: string; topic: string }[]
+) {
   const answerCount = messages.filter(
     (message) => message.role === "user"
   ).length;
@@ -53,15 +58,15 @@ function getProgress(messages: PublicCommentMessage[]) {
     .reverse()
     .find((message) => message.role === "assistant");
   const fallbackQuestion =
-    IJIME_QUESTIONS[Math.min(answerCount, IJIME_QUESTIONS.length - 1)];
+    questions[Math.min(answerCount, questions.length - 1)];
   const currentQuestion =
-    IJIME_QUESTIONS.find(
+    questions.find(
       (question) => question.id === lastAssistantMessage?.question_id
     ) ?? fallbackQuestion;
-  const remaining = Math.max(IJIME_QUESTIONS.length - answerCount, 0);
+  const remaining = Math.max(questions.length - answerCount, 0);
 
   return {
-    percentage: Math.min((answerCount / IJIME_QUESTIONS.length) * 100, 100),
+    percentage: Math.min((answerCount / questions.length) * 100, 100),
     currentTopic: currentQuestion?.topic ?? null,
     remainingQuestionRange: { min: remaining, max: remaining },
   };
@@ -78,9 +83,12 @@ export function PublicCommentInterviewChat({
   onSubmit,
   onQuickReply,
   onContinueToDraft,
+  questions,
+  screenReaderTitle,
+  privacyNotice,
 }: PublicCommentInterviewChatProps) {
   useActiveInterviewLayout();
-  const progress = getProgress(messages);
+  const progress = getProgress(messages, questions);
   const errorObject = error ? new Error(error) : null;
   const questionId = messages.findLast(
     (message) => message.role === "assistant"
@@ -92,13 +100,13 @@ export function PublicCommentInterviewChat({
       className="h-[calc(100dvh-var(--app-header-layout-offset))] bg-mirai-surface-light"
       data-testid="public-comment-interview-chat"
     >
-      <h1 className="sr-only">いじめ条例パブリックコメントのAIインタビュー</h1>
+      <h1 className="sr-only">{screenReaderTitle}</h1>
       <div className="flex h-full flex-col bg-white pt-4 min-[768px]:rounded-t-[36px] min-[768px]:px-12 min-[768px]:pt-10">
         <div className="px-4 pb-1">
           <InterviewProgressBar {...progress} />
         </div>
         <p className="px-4 pb-2 text-center text-[11px] leading-5 text-mirai-text-secondary">
-          個人名・学校名・詳しい出来事は入力しないでください。この画面から相談や通報はされません。
+          {privacyNotice}
         </p>
         <Conversation className="min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y">
           <ConversationContent className="flex flex-col gap-4">

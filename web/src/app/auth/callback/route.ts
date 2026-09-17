@@ -61,6 +61,7 @@ export async function GET(request: Request) {
   const publicCommentPaths = [
     routes.publicCommentMinpaku(),
     routes.publicCommentIjime(),
+    routes.publicCommentDisability(),
   ];
   const failurePath = publicCommentPaths.includes(
     nextPath.split("?")[0] as (typeof publicCommentPaths)[number]
