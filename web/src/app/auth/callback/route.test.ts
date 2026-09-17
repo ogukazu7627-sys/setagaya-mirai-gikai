@@ -123,6 +123,16 @@ describe("Google OAuth callback", () => {
       "https://civictech-setagaya.org/public-comment/retaining-wall?auth_return=1&auth_error=google_login_failed"
     );
   });
+  it("認知症希望計画パブコメの認証失敗時は同じページへ戻る", async () => {
+    mocks.next = "/public-comment/dementia-hope-plan?auth_return=1";
+    mocks.exchange.mockResolvedValue({ error: new Error("failed") });
+    const response = await GET(
+      new Request("https://civictech-setagaya.org/auth/callback?code=invalid")
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://civictech-setagaya.org/public-comment/dementia-hope-plan?auth_return=1&auth_error=google_login_failed"
+    );
+  });
   it.each([
     "?error=access_denied",
     "?code=invalid",
