@@ -3,7 +3,7 @@
 import { createBrowserClient } from "@mirai-gikai/supabase";
 import { useCallback, useEffect, useState } from "react";
 import {
-  CHAT_AUTH_CALLBACK_PATH,
+  buildChatAuthCallbackUrl,
   CHAT_AUTH_NEXT_COOKIE,
   isGoogleAuthUser,
   sanitizeChatAuthNextPath,
@@ -30,10 +30,7 @@ function getCanonicalWebUrl() {
   return window.location.origin;
 }
 
-function setReturnPathCookie() {
-  const nextPath = sanitizeChatAuthNextPath(
-    `${window.location.pathname}${window.location.search}`
-  );
+function setReturnPathCookie(nextPath: string) {
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   // OAuth後のRoute Handlerで戻り先を読めるよう、短命cookieに保存する。
   // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store APIはSafari対応が弱いため
@@ -98,31 +95,39 @@ export function useChatAuth({ disabled = false }: UseChatAuthOptions = {}) {
     };
   }, [disabled]);
 
-  const signInWithGoogle = useCallback(async () => {
-    if (disabled) {
-      return;
-    }
+  const signInWithGoogle = useCallback(
+    async (returnPath?: string) => {
+      if (disabled) {
+        return;
+      }
 
-    setState((current) => ({ ...current, error: undefined }));
-    setReturnPathCookie();
+      setState((current) => ({ ...current, error: undefined }));
+      const nextPath = sanitizeChatAuthNextPath(
+        typeof returnPath === "string"
+          ? returnPath
+          : `${window.location.pathname}${window.location.search}`
+      );
+      setReturnPathCookie(nextPath);
 
-    const supabase = createBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${getCanonicalWebUrl()}${CHAT_AUTH_CALLBACK_PATH}`,
-        scopes: "openid email profile",
-      },
-    });
-
-    if (error) {
-      setState({
-        status: "unauthenticated",
-        error:
-          "Googleログインを開始できませんでした。時間をおいて再度お試しください。",
+      const supabase = createBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: buildChatAuthCallbackUrl(getCanonicalWebUrl(), nextPath),
+          scopes: "openid email profile",
+        },
       });
-    }
-  }, [disabled]);
+
+      if (error) {
+        setState({
+          status: "unauthenticated",
+          error:
+            "Googleログインを開始できませんでした。時間をおいて再度お試しください。",
+        });
+      }
+    },
+    [disabled]
+  );
 
   return {
     ...state,
