@@ -38,16 +38,17 @@ ${MINPAKU_ORDINANCES.map((item) => `- ${item}`).join("\n")}
 - 違法性、被害、危険性、区や事業者の責任を断定しません。確認できないことは「確認が必要」と扱います。
 - 個人名、住所、部屋番号、施設名、電話番号、メールアドレスなどの個人や施設を特定する情報を求めません。入力された場合も、下書きに必要な範囲を超えて繰り返しません。
 - 区の説明や公式資料を、ユーザーが同意した事実として扱いません。ユーザーの評価は「私は〜と感じた」「〜を求める」のように本人の意見として整理します。
-- 一度に質問は1つだけにし、回答を受け止める短い一文と、次の問いを返します。必要なら同じ段階で1回だけ深掘りします。
+- 一度に質問は1つだけにし、直前の回答を受け止める短い一文だけをtextに入れます。質問文や新しい質問はtextに入れません。サーバーが固定説明と固定質問を後ろに付けます。
+- 固定質問は言い換えず、固定説明の内容を追加の事実として膨らませません。直前の回答から確認できる範囲でだけ、受け止めの一文を個別化します。
 - 7段階の質問順を大きく飛ばさず、最後は具体的な提案を1〜3個に絞ります。
 
 ## 今回の段階
-${question ? `${question.topic}: ${question.question}\n深掘りの方針: ${question.followUp}` : "インタビューの最終確認"}
+${question ? `${question.topic}\n固定説明: ${question.context || "（なし）"}\n固定質問: ${question.question}\n深掘りの方針: ${question.followUp}` : "インタビューの最終確認"}
 
 ## 会話履歴
 ${params.messages.map((message) => `${message.role === "user" ? "ユーザー" : "AI"}: ${message.content}`).join("\n")}
 
-JSONスキーマの各フィールドを埋めてください。textには画面に表示する日本語だけを入れ、question_idには現在聞いている質問のID、topic_titleには質問の見出し、quick_repliesには必要な場合だけ短い選択肢、next_stageには通常「interview」、最終確認が終わって下書きへ進める場合だけ「draft」を入れてください。`.trim();
+JSONスキーマの各フィールドを埋めてください。textには直前のユーザー回答への短い受け止めだけを入れ、質問文・固定説明・選択肢は入れないでください。question_idには現在聞いている質問のID、topic_titleには質問の見出し、quick_repliesには必要な場合だけ短い選択肢、next_stageには通常「interview」、最終確認が終わって下書きへ進める場合だけ「draft」を入れてください。`.trim();
 }
 
 export function buildDraftPrompt(params: {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MINPAKU_SOURCES } from "../shared/campaign";
+import { MINPAKU_QUESTIONS, MINPAKU_SOURCES } from "../shared/campaign";
 import { MINPAKU_LESSONS } from "../shared/learning";
 import { buildDraftPrompt, buildInterviewPrompt } from "./prompt";
 
@@ -21,6 +21,20 @@ describe("民泊パブリックコメント用プロンプト", () => {
     expect(prompt).toContain("web検索、外部知識、ツール呼び出しは使いません");
     expect(prompt).toContain("民泊、旅館業、対象条例");
     expect(prompt).toContain("騒音やごみ");
+  });
+
+  it("直前の回答だけをAIが受け止め、質問文は固定文を使う", () => {
+    const prompt = buildInterviewPrompt({
+      messages,
+      nextQuestionId: "priority",
+    });
+    const question = MINPAKU_QUESTIONS.find((item) => item.id === "priority");
+    if (!question) throw new Error("固定質問が見つかりません");
+
+    expect(prompt).toContain(`固定説明: ${question.context}`);
+    expect(prompt).toContain(`固定質問: ${question.question}`);
+    expect(prompt).toContain("textには直前のユーザー回答への短い受け止めだけ");
+    expect(prompt).toContain("サーバーが固定説明と固定質問を後ろに付けます");
   });
 
   it("下書きでは経験・意見・提案を分け、個人情報を除外する", () => {

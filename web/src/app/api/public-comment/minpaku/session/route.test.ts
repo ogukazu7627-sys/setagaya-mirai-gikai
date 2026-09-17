@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MINPAKU_QUESTIONS } from "@/features/public-comment/minpaku/shared/campaign";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import { composeMinpakuInterviewMessage } from "@/features/public-comment/minpaku/shared/question";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -99,6 +101,7 @@ describe("POST /api/public-comment/minpaku/session", () => {
         sessionId: "session-1",
         role: "assistant",
         stage: "interview",
+        content: composeMinpakuInterviewMessage("", MINPAKU_QUESTIONS[0]),
       })
     );
     await expect(response.json()).resolves.toMatchObject({
