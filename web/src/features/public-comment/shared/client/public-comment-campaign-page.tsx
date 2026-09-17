@@ -61,6 +61,7 @@ export type PublicCommentPageConfig = {
   learningTitle?: string;
   learningSubtitle?: string;
   learningNote?: string;
+  targetDocumentLabel?: string;
   questions: readonly { id: string; topic: string }[];
   themes: readonly string[];
   audienceLabel: string;
@@ -109,11 +110,13 @@ function StartActions({
   onLearn,
   lessonCount,
   learningEstimatedTime,
+  targetDocumentLabel,
 }: {
   onStart: () => void;
   onLearn: () => void;
   lessonCount: number;
   learningEstimatedTime: string;
+  targetDocumentLabel: string;
 }) {
   return (
     <div className="flex w-full max-w-[370px] flex-col items-center gap-3">
@@ -123,7 +126,7 @@ function StartActions({
         className="h-auto min-h-13 w-full whitespace-normal py-3 text-[15px]"
       >
         <BookOpen className="size-5" />
-        条例素案について学ぶ
+        {targetDocumentLabel}について学ぶ
         <ArrowRight className="size-4" />
       </Button>
       <p className="text-xs text-mirai-text-secondary">
@@ -177,13 +180,16 @@ function PublicCommentIntro({
             onLearn={onLearn}
             lessonCount={config.lessons.length}
             learningEstimatedTime={config.learningEstimatedTime}
+            targetDocumentLabel={config.targetDocumentLabel ?? "条例素案"}
           />
         </div>
 
         <IntroSection title="このインタビューでできること">
           <div className="space-y-4">
             <p>
-              世田谷区が意見を募集している条例素案について、AIが一度に1つずつ質問し、あなたが大切にしたいことを整理します。
+              世田谷区が意見を募集している
+              {config.targetDocumentLabel ?? "条例素案"}
+              について、AIが一度に1つずつ質問し、あなたが大切にしたいことを整理します。
             </p>
             <p>
               最後に、意見の要旨、理由、具体的な提案を分けた下書きを作ります。AIが賛成・反対を決めたり、あなたが話していない主張を足したりはしません。
@@ -262,6 +268,7 @@ function PublicCommentIntro({
           onLearn={onLearn}
           lessonCount={config.lessons.length}
           learningEstimatedTime={config.learningEstimatedTime}
+          targetDocumentLabel={config.targetDocumentLabel ?? "条例素案"}
         />
       </div>
     </div>
