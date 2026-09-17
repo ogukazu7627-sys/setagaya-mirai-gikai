@@ -13,6 +13,7 @@ import {
   MINPAKU_QUESTIONS,
 } from "@/features/public-comment/minpaku/shared/campaign";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import { composeMinpakuInterviewMessage } from "@/features/public-comment/minpaku/shared/question";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 export async function POST(request: Request) {
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
         role: "assistant",
         stage: "interview",
         questionId: firstQuestion.id,
-        content: firstQuestion.question,
+        content: composeMinpakuInterviewMessage("", firstQuestion),
       });
       messages = await findMessages(session.id);
     }

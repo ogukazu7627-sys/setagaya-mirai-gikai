@@ -13,6 +13,7 @@ import {
   PublicCommentCompletedError,
 } from "@/features/public-comment/minpaku/server/repository";
 import { MINPAKU_QUESTIONS } from "@/features/public-comment/minpaku/shared/campaign";
+import { composeMinpakuInterviewMessage } from "@/features/public-comment/minpaku/shared/question";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 
 const MAX_MESSAGE_LENGTH = 4000;
@@ -103,8 +104,8 @@ export async function POST(request: Request) {
       sessionId: session.id,
       role: "assistant",
       stage: "interview",
-      questionId: response.question_id ?? nextQuestion.id,
-      content: response.text,
+      questionId: nextQuestion.id,
+      content: composeMinpakuInterviewMessage(response.text, nextQuestion),
     });
 
     return NextResponse.json({
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
         response.quick_replies.length > 0
           ? response.quick_replies
           : nextQuestion.quickReplies,
-      topicTitle: response.topic_title ?? nextQuestion.topic,
+      topicTitle: nextQuestion.topic,
     });
   } catch (error) {
     if (error instanceof PublicCommentCompletedError) {
