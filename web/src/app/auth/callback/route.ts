@@ -63,6 +63,7 @@ export async function GET(request: Request) {
     routes.publicCommentIjime(),
     routes.publicCommentDisability(),
     routes.publicCommentRetainingWall(),
+    routes.publicCommentGenderEquality(),
     routes.publicCommentSuicidePrevention(),
     routes.publicCommentDementiaHopePlan(),
   ];
