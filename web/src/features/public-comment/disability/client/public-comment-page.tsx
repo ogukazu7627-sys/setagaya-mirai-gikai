@@ -35,15 +35,7 @@ const DISABILITY_PAGE_CONFIG: PublicCommentPageConfig = {
   learningNote:
     "※2026年９月公表の改正素案に基づく説明です。改正内容は、まだ確定していません。",
   questions: DISABILITY_QUESTIONS,
-  themes: [
-    "この条例改正のテーマとの関わり",
-    "特に考えたい論点",
-    "経験から見える支援と障壁",
-    "本人が決めるための支援",
-    "形だけにしない区政参加",
-    "条例・計画・運用への提案",
-    "最も伝えたいこと",
-  ],
+  themes: DISABILITY_QUESTIONS.map((question) => question.topic),
   audienceLabel: "本人、家族、支援者、事業者、関心のある区民の方へ",
   safetyContent: (
     <>
