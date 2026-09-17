@@ -15,6 +15,7 @@ import { RecommendedCouncilorsSection } from "@/features/councilors/server/compo
 import { loadRecommendedCouncilors } from "@/features/councilors/server/loaders/load-councilor-directory";
 import { CurrentDietSession } from "@/features/diet-sessions/client/components/current-diet-session";
 import { getCurrentDietSession } from "@/features/diet-sessions/server/loaders/get-current-diet-session";
+import { HomePublicCommentSection } from "@/features/public-comment/shared/server/components/home-public-comment-section";
 import { TodayRecommendationsSection } from "@/features/recommendations/client/components/today-recommendations-section";
 import { getJapanTime } from "@/lib/utils/date";
 
@@ -47,6 +48,8 @@ export async function HomePage() {
       <CurrentDietSession session={currentSession} />
 
       <TodayRecommendationsSection currentDifficulty={currentDifficulty} />
+
+      <HomePublicCommentSection />
 
       <HomeBudgetPromo />
 
