@@ -63,6 +63,7 @@ export async function GET(request: Request) {
     routes.publicCommentIjime(),
     routes.publicCommentDisability(),
     routes.publicCommentRetainingWall(),
+    routes.publicCommentElderlyCarePlan(),
   ];
   const failurePath = publicCommentPaths.includes(
     nextPath.split("?")[0] as (typeof publicCommentPaths)[number]
