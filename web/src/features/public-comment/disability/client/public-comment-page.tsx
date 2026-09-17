@@ -22,6 +22,9 @@ import {
 
 const DISABILITY_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: DISABILITY_CAMPAIGN_TITLE,
+  heroImageSrc: "/illustrations/disability-public-comment-hero.webp",
+  heroImageAlt:
+    "障害の有無や年齢にかかわらず地域で共に過ごす人々を描いたイラスト",
   submissionDeadline: DISABILITY_SUBMISSION_DEADLINE,
   officialSubmissionUrl: DISABILITY_OFFICIAL_SUBMISSION_URL,
   sources: DISABILITY_SOURCES,

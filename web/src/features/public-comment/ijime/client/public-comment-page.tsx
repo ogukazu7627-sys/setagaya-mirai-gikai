@@ -21,6 +21,8 @@ import {
 
 const IJIME_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: IJIME_CAMPAIGN_TITLE,
+  heroImageSrc: "/illustrations/ijime-public-comment-hero.webp",
+  heroImageAlt: "子どもたちが安心して話せる学びの場を描いたイラスト",
   submissionDeadline: IJIME_SUBMISSION_DEADLINE,
   officialSubmissionUrl: IJIME_OFFICIAL_SUBMISSION_URL,
   sources: IJIME_SOURCES,

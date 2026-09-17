@@ -49,6 +49,8 @@ type View =
 
 export type PublicCommentPageConfig = {
   campaignTitle: string;
+  heroImageSrc: string;
+  heroImageAlt: string;
   submissionDeadline: string;
   officialSubmissionUrl: string;
   sources: readonly LearningSource[];
@@ -150,16 +152,15 @@ function PublicCommentIntro({
 }) {
   return (
     <div className="flex flex-col gap-8 pb-8">
-      <div className="flex h-56 items-center justify-center bg-mirai-light-gradient md:h-72">
-        <Image
-          src="/illustrations/interview-illustration.png"
-          alt="話を丁寧に聴く人のイラスト"
-          width={580}
-          height={745}
-          priority
-          className="h-48 w-auto object-contain md:h-64"
-        />
-      </div>
+      <Image
+        src={config.heroImageSrc}
+        alt={config.heroImageAlt}
+        width={1672}
+        height={941}
+        priority
+        sizes="(max-width: 896px) 100vw, 896px"
+        className="h-auto w-full"
+      />
       <div className="flex flex-col items-center gap-8 px-4">
         <div className="flex flex-col items-center gap-5 text-center">
           <div className="inline-flex items-center rounded-2xl bg-primary-strong px-6 py-1 text-[13px] font-medium text-white">
