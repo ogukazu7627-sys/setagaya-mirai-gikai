@@ -4,6 +4,7 @@ export const interviewModeSchema = z.enum(["loop", "bulk", "targeted"]);
 export type InterviewMode = z.infer<typeof interviewModeSchema>;
 export const deepeningDecisionSchema = z.enum(["continue", "sufficient"]);
 export type DeepeningDecision = z.infer<typeof deepeningDecisionSchema>;
+export const MAX_INTERVIEW_TURNS = 10;
 export type InterviewQuestion = {
   id: string;
   topic: string;
@@ -28,10 +29,14 @@ export const interviewStateSchema = z.object({
   answered: z.array(z.string()),
   completed: z.array(z.string()),
   followUpAnswers: z.record(z.string(), z.number().int().min(0).max(2)),
-  skipped: z.record(z.string(), z.enum(["ineligible", "unknown", "declined"])),
+  skipped: z.record(
+    z.string(),
+    z.enum(["ineligible", "unknown", "declined", "covered"])
+  ),
   eligibility: z.array(eligibilitySchema),
   paused: z.boolean(),
   quickReplies: z.array(z.string()),
+  turnCount: z.number().int().min(0).default(0),
 });
 export type InterviewState = z.infer<typeof interviewStateSchema>;
 export type Eligibility = z.infer<typeof eligibilitySchema>;
@@ -58,7 +63,16 @@ export function initialInterviewState(mode: InterviewMode): InterviewState {
     eligibility: [],
     paused: false,
     quickReplies: [],
+    turnCount: 0,
   };
+}
+
+function finishInterview(state: InterviewState) {
+  state.phase = "done";
+  state.currentQuestionId = null;
+  state.quickReplies = [];
+  state.paused = false;
+  return state;
 }
 
 function selectNext(
@@ -109,7 +123,8 @@ export function advanceInterview(
   questions: readonly InterviewQuestion[],
   action: InterviewAction,
   eligibility: Eligibility[] = [],
-  deepeningDecision: DeepeningDecision = "continue"
+  deepeningDecision: DeepeningDecision = "continue",
+  alreadyCoveredQuestionIds: string[] = []
 ): InterviewState {
   const state = structuredClone(previous);
   if (state.phase === "done") return state;
@@ -120,11 +135,7 @@ export function advanceInterview(
     ...eligibility,
   ];
   if (action === "finish") {
-    state.phase = "done";
-    state.currentQuestionId = null;
-    state.quickReplies = [];
-    state.paused = false;
-    return state;
+    return finishInterview(state);
   }
   if (action === "resume") {
     state.paused = false;
@@ -134,6 +145,18 @@ export function advanceInterview(
   const id = state.currentQuestionId;
   if (!id) return selectNext(state, questions);
   const current = questions.find((q) => q.id === id);
+  const validQuestionIds = new Set(questions.map((question) => question.id));
+  for (const questionId of new Set(alreadyCoveredQuestionIds)) {
+    if (
+      validQuestionIds.has(questionId) &&
+      questionId !== id &&
+      !state.completed.includes(questionId) &&
+      !state.skipped[questionId]
+    ) {
+      state.skipped[questionId] = "covered";
+    }
+  }
+  if (action === "answer" || action === "skip") state.turnCount += 1;
   if (
     state.mode === "targeted" &&
     current?.targetAudience &&
@@ -152,6 +175,13 @@ export function advanceInterview(
         (state.followUpAnswers[id] ?? 0) + 1
       );
     }
+    // A hard upper bound keeps the interview short even if the model keeps
+    // asking for more detail. The tenth answer is retained, but no eleventh
+    // fixed question or follow-up is generated.
+    if (state.turnCount >= MAX_INTERVIEW_TURNS) {
+      if (!state.completed.includes(id)) state.completed.push(id);
+      return finishInterview(state);
+    }
     if (state.mode === "bulk" && state.phase === "questions") {
       // Bulk mode asks every base question first. A sufficient base answer is
       // complete; only topics that still need detail enter the later phase.
@@ -169,6 +199,12 @@ export function advanceInterview(
       }
       if (!state.completed.includes(id)) state.completed.push(id);
     }
+  }
+  if (state.turnCount >= MAX_INTERVIEW_TURNS) {
+    if (action === "answer" && !state.skipped[id]) {
+      if (!state.completed.includes(id)) state.completed.push(id);
+    }
+    return finishInterview(state);
   }
   return selectNext(state, questions);
 }
@@ -208,8 +244,13 @@ export function interviewProgress(
   // This is an estimate for the UI, not a hard turn quota. Keep the initial
   // range useful (7-10 for seven topics) while the server still allows a
   // second follow-up when it materially improves the submitted opinion.
-  const remainingMaximum =
-    remainingMinimum + Math.min(3, possibleAdditionalFollowUps);
+  const remainingMaximum = Math.max(
+    remainingMinimum,
+    Math.min(
+      Math.max(0, MAX_INTERVIEW_TURNS - state.turnCount),
+      remainingMinimum + Math.min(3, possibleAdditionalFollowUps)
+    )
+  );
   const completedTopicUnits = active.reduce((sum, item) => {
     if (state.completed.includes(item.id)) return sum + 1;
     if (!state.answered.includes(item.id)) return sum;
@@ -247,8 +288,27 @@ export function restoreInterviewState(
   messages: readonly { role: string; question_id?: string | null }[],
   hasDraft = false
 ): InterviewState {
-  if (saved !== null && saved !== undefined)
-    return interviewStateSchema.parse(saved);
+  if (saved !== null && saved !== undefined) {
+    const parsed = interviewStateSchema.parse(saved);
+    if (
+      typeof saved === "object" &&
+      saved !== null &&
+      !("turnCount" in saved)
+    ) {
+      parsed.turnCount = Math.min(
+        MAX_INTERVIEW_TURNS,
+        parsed.answered.length +
+          Object.values(parsed.followUpAnswers).reduce(
+            (sum, count) => sum + count,
+            0
+          ) +
+          Object.values(parsed.skipped).filter(
+            (reason) => reason === "declined"
+          ).length
+      );
+    }
+    return parsed;
+  }
   const state = initialInterviewState(mode);
   state.targetAudiences = Object.fromEntries(
     questions
