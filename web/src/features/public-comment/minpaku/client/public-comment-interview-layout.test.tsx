@@ -51,7 +51,7 @@ function Page({
                 progress={{
                   percentage: 0,
                   currentTopic: "関わり方",
-                  remainingQuestionRange: { min: 21, max: 21 },
+                  remainingQuestionRange: { min: 7, max: 10 },
                   paused: false,
                 }}
                 onAction={vi.fn()}

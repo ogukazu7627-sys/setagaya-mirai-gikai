@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const interviewModeSchema = z.enum(["loop", "bulk", "targeted"]);
 export type InterviewMode = z.infer<typeof interviewModeSchema>;
+export const deepeningDecisionSchema = z.enum(["continue", "sufficient"]);
+export type DeepeningDecision = z.infer<typeof deepeningDecisionSchema>;
 export type InterviewQuestion = {
   id: string;
   topic: string;
@@ -106,7 +108,8 @@ export function advanceInterview(
   previous: InterviewState,
   questions: readonly InterviewQuestion[],
   action: InterviewAction,
-  eligibility: Eligibility[] = []
+  eligibility: Eligibility[] = [],
+  deepeningDecision: DeepeningDecision = "continue"
 ): InterviewState {
   const state = structuredClone(previous);
   if (state.phase === "done") return state;
@@ -149,13 +152,22 @@ export function advanceInterview(
         (state.followUpAnswers[id] ?? 0) + 1
       );
     }
-    if (!(state.mode === "bulk" && state.phase === "questions")) {
-      if ((state.followUpAnswers[id] ?? 0) < 2) {
+    if (state.mode === "bulk" && state.phase === "questions") {
+      // Bulk mode asks every base question first. A sufficient base answer is
+      // complete; only topics that still need detail enter the later phase.
+      if (deepeningDecision === "sufficient" && !state.completed.includes(id)) {
+        state.completed.push(id);
+      }
+    } else {
+      if (
+        deepeningDecision === "continue" &&
+        (state.followUpAnswers[id] ?? 0) < 2
+      ) {
         state.kind = "followup";
         state.quickReplies = [];
         return state;
       }
-      state.completed.push(id);
+      if (!state.completed.includes(id)) state.completed.push(id);
     }
   }
   return selectNext(state, questions);
@@ -179,14 +191,29 @@ export function interviewProgress(
   );
   const active = questions.filter((item) => !state.skipped[item.id]);
   const done = state.phase === "done";
-  const remaining = active.reduce((sum, item) => {
+  const remainingBaseQuestions = active.filter(
+    (item) =>
+      !state.completed.includes(item.id) && !state.answered.includes(item.id)
+  ).length;
+  const requiredFollowUps = active.filter(
+    (item) =>
+      !state.completed.includes(item.id) && state.answered.includes(item.id)
+  ).length;
+  const remainingMinimum = remainingBaseQuestions + requiredFollowUps;
+  const possibleAdditionalFollowUps = active.reduce((sum, item) => {
     if (state.completed.includes(item.id)) return sum;
-    return (
-      sum +
-      (state.answered.includes(item.id) ? 0 : 1) +
-      2 -
-      (state.followUpAnswers[item.id] ?? 0)
-    );
+    if (!state.answered.includes(item.id)) return sum + 2;
+    return sum + Math.max(0, 1 - (state.followUpAnswers[item.id] ?? 0));
+  }, 0);
+  // This is an estimate for the UI, not a hard turn quota. Keep the initial
+  // range useful (7-10 for seven topics) while the server still allows a
+  // second follow-up when it materially improves the submitted opinion.
+  const remainingMaximum =
+    remainingMinimum + Math.min(3, possibleAdditionalFollowUps);
+  const completedTopicUnits = active.reduce((sum, item) => {
+    if (state.completed.includes(item.id)) return sum + 1;
+    if (!state.answered.includes(item.id)) return sum;
+    return sum + (1 + (state.followUpAnswers[item.id] ?? 0)) / 3;
   }, 0);
   // Targeted mode never exposes an inferred skip count or changing denominator.
   const targeted = state.mode === "targeted";
@@ -197,8 +224,7 @@ export function interviewProgress(
         ? 0
         : Math.min(
             95,
-            ((active.length * 3 - remaining) / Math.max(1, active.length * 3)) *
-              100
+            (completedTopicUnits / Math.max(1, active.length)) * 100
           ),
     currentTopic: state.paused
       ? "相談・支援のご案内"
@@ -206,7 +232,9 @@ export function interviewProgress(
         ? "インタビュー終了"
         : (question?.topic ?? null),
     remainingQuestionRange:
-      done || targeted ? null : { min: remaining, max: remaining },
+      done || targeted
+        ? null
+        : { min: remainingMinimum, max: remainingMaximum },
     paused: state.paused,
   };
 }
