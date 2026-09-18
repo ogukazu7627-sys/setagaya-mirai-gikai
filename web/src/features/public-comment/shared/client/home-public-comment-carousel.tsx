@@ -3,6 +3,7 @@
 import {
   Accessibility,
   ArrowRight,
+  Bike,
   Brain,
   CalendarDays,
   HandHeart,
@@ -13,7 +14,6 @@ import {
   Scale,
   School,
 } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -25,6 +25,7 @@ import {
   type CarouselOptions,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import type { PublicCommentCampaign } from "@/features/public-comment/shared/public-comment-campaigns";
 
 const campaignIcons = {
   accessibility: Accessibility,
@@ -36,19 +37,11 @@ const campaignIcons = {
   mountain: Mountain,
   equality: Scale,
   school: School,
+  traffic: Bike,
 } as const;
 
-export type HomePublicCommentCampaign = {
-  label: string;
-  title: string;
-  description: string;
-  deadline: string;
-  href: Route;
-  icon: keyof typeof campaignIcons;
-};
-
 type HomePublicCommentCarouselProps = {
-  campaigns: readonly HomePublicCommentCampaign[];
+  campaigns: readonly PublicCommentCampaign[];
 };
 
 const CAROUSEL_OPTIONS: CarouselOptions = {

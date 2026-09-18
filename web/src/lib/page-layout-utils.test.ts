@@ -55,16 +55,19 @@ describe("hasPersistentChatSidebar", () => {
 });
 
 describe("isWidePage", () => {
-  it("returns true for the budget and learn pages", () => {
+  it("returns true for the budget, learn, and public comment hub pages", () => {
     expect(isWidePage("/budget")).toBe(true);
     expect(isWidePage("/budget/programs/bpi-1")).toBe(true);
     expect(isWidePage("/learn")).toBe(true);
     expect(isWidePage("/learn/bill-process")).toBe(true);
+    expect(isWidePage("/public-comment")).toBe(true);
+    expect(isWidePage("/public-comment/")).toBe(true);
   });
 
   it("returns false for other routes", () => {
     expect(isWidePage("/")).toBe(false);
     expect(isWidePage("/bills")).toBe(false);
+    expect(isWidePage("/public-comment/minpaku")).toBe(false);
   });
 });
 

@@ -45,13 +45,16 @@ describe("HomePublicCommentSection", () => {
     expect(
       screen.getByRole("region", { name: "AIパブコメインタビュー一覧" })
     ).toHaveAttribute("aria-roledescription", "carousel");
-    expect(screen.getAllByRole("group")).toHaveLength(9);
-    expect(screen.getByRole("group", { name: "1 / 9" })).toHaveClass(
+    expect(screen.getAllByRole("group")).toHaveLength(10);
+    expect(screen.getByRole("group", { name: "1 / 10" })).toHaveClass(
       "basis-[86%]",
       "sm:basis-[48%]",
       "lg:basis-[32%]"
     );
-    expect(screen.getByText("全9件")).toBeVisible();
+    expect(screen.getByText("全10件")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "10件をすべて見る" })
+    ).toHaveAttribute("href", "/public-comment");
 
     expect(
       screen.getByRole("link", {
@@ -89,12 +92,17 @@ describe("HomePublicCommentSection", () => {
     ).toHaveAttribute("href", "/public-comment/inclusion-plan");
     expect(
       screen.getByRole("link", {
+        name: /第12次世田谷区交通安全計画/,
+      })
+    ).toHaveAttribute("href", "/public-comment/traffic-safety-plan");
+    expect(
+      screen.getByRole("link", {
         name: /いじめの予防と解消に向けた条例素案/,
       })
     ).toHaveAttribute("href", "/public-comment/ijime");
 
     expect(screen.getAllByText(/意見募集 9月29日/)).toHaveLength(2);
-    expect(screen.getAllByText(/意見募集 10月6日/)).toHaveLength(4);
+    expect(screen.getAllByText(/意見募集 10月6日/)).toHaveLength(5);
     expect(screen.getAllByText(/意見募集 10月7日/)).toHaveLength(2);
     expect(screen.getByText(/意見募集 10月8日/)).toBeVisible();
     expect(

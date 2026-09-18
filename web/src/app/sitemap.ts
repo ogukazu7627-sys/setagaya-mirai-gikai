@@ -28,6 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     routes.councilors(),
     routes.committees(),
     routes.learn(),
+    routes.publicComments(),
   ].map((pathname) => ({
     url: `${baseUrl}${pathname}`,
     lastModified: new Date(),
