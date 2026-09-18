@@ -116,6 +116,8 @@ export const routes = {
   adminDietSessionEdit: (sessionId: string) =>
     `/admin/diet-sessions/${sessionId}/edit` as const,
   adminIssueReports: () => "/admin/reports" as const,
+  adminPublicCommentsIndex: () => "/admin/public-comments" as const,
+  adminPublicComments: () => "/admin/public-comments/minpaku" as const,
   adminCouncilorDigests: () => "/admin/councilor-digests" as const,
   adminSeo: () => "/admin/seo" as const,
 
