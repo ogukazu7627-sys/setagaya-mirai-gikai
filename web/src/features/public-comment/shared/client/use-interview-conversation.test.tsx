@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, renderHook, cleanup } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useInterviewConversation } from "./use-interview-conversation";
 
@@ -8,6 +8,7 @@ const progress = {
   currentTopic: "最初のテーマ",
   remainingQuestionRange: { min: 20, max: 20 },
   paused: false,
+  checkpoint: null,
 };
 const snapshot = {
   messages: [
@@ -137,5 +138,33 @@ describe("インタビュー送信と画面状態", () => {
       revision: 2,
     });
     expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it("checkpoint選択は固定アクションとして送信し、ユーザー回答を追加しない", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({
+        ...next,
+        message: { id: "q4", role: "assistant", content: "4問目" },
+        progress: {
+          ...progress,
+          currentTopic: "次のテーマ",
+          checkpoint: null,
+        },
+      })
+    );
+    const { result } = setup();
+
+    await act(() => result.current.chooseCheckpoint("detailed"));
+
+    expect(JSON.parse(fetch.mock.calls[0][1]?.body as string)).toMatchObject({
+      action: "checkpoint",
+      choice: "detailed",
+      content: "",
+      revision: 1,
+    });
+    expect(result.current.messages.map((message) => message.role)).toEqual([
+      "assistant",
+      "assistant",
+    ]);
   });
 });

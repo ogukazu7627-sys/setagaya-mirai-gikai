@@ -27,15 +27,18 @@ const first = {
   question_id: "relationship",
 };
 const select = vi.fn();
+const checkpointSelect = vi.fn();
 
 function Chat({
   question = first,
   isLoading = false,
   error = null,
+  checkpoint = null,
 }: {
   question?: typeof first;
   isLoading?: boolean;
   error?: string | null;
+  checkpoint?: "after_core" | null;
 }) {
   const [answer, setAnswer] = useState("");
   return (
@@ -46,8 +49,10 @@ function Chat({
         currentTopic: "関わり方",
         remainingQuestionRange: { min: 7, max: 10 },
         paused: false,
+        checkpoint,
       }}
       onAction={vi.fn()}
+      onCheckpointChoice={checkpointSelect}
       messages={[question]}
       quickReplies={["近隣で暮らしている"]}
       isLoading={isLoading}
@@ -64,6 +69,7 @@ describe("民泊インタビューの選択肢表示", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     select.mockClear();
+    checkpointSelect.mockClear();
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: vi.fn(() => ({
@@ -199,5 +205,22 @@ describe("民泊インタビューの選択肢表示", () => {
     expect(
       screen.getByRole("button", { name: "近隣で暮らしている" })
     ).toBeInTheDocument();
+  });
+
+  it("3問後の選択画面では固定文と2つの選択肢を表示する", () => {
+    render(<Chat checkpoint="after_core" />);
+
+    expect(
+      screen.getByText(/ここまでの3問で、簡易版の意見を作成できます/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "簡易版を作成して終了" })
+    ).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "詳しく続ける" }));
+    expect(checkpointSelect).toHaveBeenCalledWith("detailed");
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "ここまでで終了する" })
+    ).not.toBeInTheDocument();
   });
 });

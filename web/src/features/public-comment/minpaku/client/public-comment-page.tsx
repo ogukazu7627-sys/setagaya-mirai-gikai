@@ -98,7 +98,7 @@ const FEATURES = [
   {
     iconSrc: "/icons/interview-messages.svg",
     iconSize: { w: 33, h: 26 },
-    text: "7つの質問テーマから、伝えたいことを整理します",
+    text: "まず3問で簡易版、続けると最大10回答で詳しく整理します",
   },
   {
     iconSrc: "/icons/interview-landmark.svg",
@@ -254,10 +254,10 @@ function PublicCommentIntro({
 
         <IntroSection title="進め方">
           <p className="text-[22px] font-bold leading-[1.64] text-primary-accent">
-            7テーマと、回答に沿った深掘り
+            まず3問、続けると最大10回答の詳細版
           </p>
           <p className="mt-2 text-[13px] leading-[1.69]">
-            所要時間は回答の長さによって変わります。答えたくないテーマは飛ばせます。
+            3問で簡易版を作成できます。詳しく続ける場合も、回答は最大10回です。答えたくないテーマは飛ばせます。
           </p>
         </IntroSection>
 
@@ -668,6 +668,7 @@ export function PublicCommentMinpakuPage() {
     mode,
     loadConversation,
     sendAnswer,
+    chooseCheckpoint,
   } = useInterviewConversation({
     sessionId,
     apiBasePath: "/api/public-comment/minpaku",
@@ -1029,6 +1030,7 @@ export function PublicCommentMinpakuPage() {
           progress={progress}
           mode={mode}
           onAction={(action) => void sendAnswer("", action)}
+          onCheckpointChoice={(choice) => void chooseCheckpoint(choice)}
           quickReplies={quickReplies}
           isLoading={busy}
           error={error}

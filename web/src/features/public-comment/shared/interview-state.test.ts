@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   advanceInterview,
   canCreateInterviewDraft,
+  chooseInterviewPath,
   initialInterviewState,
   interviewProgress,
   restoreInterviewState,
@@ -29,16 +30,20 @@ const response: TurnResponse = {
   eligibility: [],
 };
 const questions = getInterviewCampaign("elderly-care-plan").questions;
-const start = (mode: "loop" | "bulk" | "targeted" = "loop") =>
-  advanceInterview(initialInterviewState(mode), questions, "answer");
+const start = (mode: "loop" | "bulk" | "targeted" = "loop") => {
+  const state = initialInterviewState(mode);
+  state.journey = "detail";
+  state.currentQuestionId = questions[0].id;
+  state.quickReplies = [...questions[0].quickReplies];
+  return state;
+};
 
 describe.each(keys)("%s のサーバー進行", (key) => {
   const { questions: qs } = getInterviewCampaign(key);
   it("7問すべてに固定前提と短い問いを持つ", () => {
     expect(qs).toHaveLength(7);
     for (const q of qs) {
-      expect(q.premise.length).toBeGreaterThan(10);
-      expect(q.ask.length).toBeGreaterThan(10);
+      expect(`${q.premise}\n\n${q.ask}`.length).toBeGreaterThan(30);
     }
   });
   it.each([
@@ -46,7 +51,7 @@ describe.each(keys)("%s のサーバー進行", (key) => {
     "bulk",
     "targeted",
   ] as const)("%s: 回答が十分なら固定7問だけで完了する", (mode) => {
-    let state = advanceInterview(initialInterviewState(mode), qs, "answer");
+    let state = start(mode);
     const seen: string[] = [];
     for (let turn = 0; turn < 7; turn++) {
       expect(state.phase).not.toBe("done");
@@ -64,7 +69,7 @@ describe.each(keys)("%s のサーバー進行", (key) => {
     "bulk",
     "targeted",
   ] as const)("%s: 必要な場合も回答ターンは最大10回に制限する", (mode) => {
-    let state = advanceInterview(initialInterviewState(mode), qs, "answer");
+    let state = start(mode);
     const seen: string[] = [];
     for (let turn = 0; turn < 10; turn++) {
       expect(state.phase).not.toBe("done");
@@ -79,6 +84,66 @@ describe.each(keys)("%s のサーバー進行", (key) => {
     expect(
       advanceInterview(state, qs, "answer", [], "continue").turnCount
     ).toBe(10);
+  });
+});
+
+describe("最初の3問と簡易版・詳細版の分岐", () => {
+  it("最初の3問では深掘りせず、回答後にcheckpointへ進む", () => {
+    const qs = questions;
+    let state = advanceInterview(initialInterviewState("loop"), qs, "answer");
+    expect(state.currentQuestionId).toBe(qs[0].id);
+    state = advanceInterview(state, qs, "answer", [], "continue");
+    expect(state).toMatchObject({
+      currentQuestionId: qs[1].id,
+      kind: "base",
+      journey: "core",
+    });
+    state = advanceInterview(state, qs, "answer", [], "continue");
+    expect(state.currentQuestionId).toBe(qs[2].id);
+    state = advanceInterview(state, qs, "answer", [], "continue");
+    expect(state).toMatchObject({
+      checkpoint: "after_core",
+      currentQuestionId: null,
+      phase: "questions",
+      turnCount: 3,
+    });
+    expect(state.followUpAnswers).toEqual({});
+  });
+
+  it("最初の3問の進捗表示は詳細版の残りテーマを含めない", () => {
+    const state = advanceInterview(
+      initialInterviewState("loop"),
+      questions,
+      "answer"
+    );
+    expect(interviewProgress(state, questions).remainingQuestionRange).toEqual({
+      min: 3,
+      max: 3,
+    });
+  });
+
+  it("簡易版は最初の3問だけで完了し、詳細版は4問目から再開する", () => {
+    let state = initialInterviewState("loop");
+    state = advanceInterview(state, questions, "answer");
+    for (let index = 0; index < 3; index++)
+      state = advanceInterview(state, questions, "answer", [], "continue");
+    expect(state.checkpoint).toBe("after_core");
+
+    const simple = chooseInterviewPath(state, questions, "simple");
+    expect(simple).toMatchObject({
+      phase: "done",
+      completionMode: "simple",
+      checkpoint: null,
+    });
+
+    const detailed = chooseInterviewPath(state, questions, "detailed");
+    expect(detailed).toMatchObject({
+      phase: "questions",
+      journey: "detail",
+      completionMode: "detailed",
+      currentQuestionId: questions[3].id,
+      kind: "base",
+    });
   });
 });
 
@@ -224,11 +289,7 @@ describe("安全・例外・表示", () => {
       ...q,
       targetAudience: i === 1 ? "介護の仕事をしている人" : undefined,
     }));
-    let state = advanceInterview(
-      initialInterviewState("targeted"),
-      qs,
-      "answer"
-    );
+    let state = start("targeted");
     for (let i = 0; i < 2; i++) state = advanceInterview(state, qs, "answer");
     const result = resolveInterviewTurn({
       state,
@@ -250,6 +311,7 @@ describe("安全・例外・表示", () => {
     });
     expect(result.state.skipped[qs[1].id]).toBe("ineligible");
     expect(result.state.currentQuestionId).toBe(qs[2].id);
+    expect(result.state.turnCount).toBe(3);
     expect(result.content).not.toContain(qs[1].premise);
     expect(result.content).not.toMatch(/対象外|スキップ/);
     expect(interviewProgress(result.state, qs)).toMatchObject({
@@ -264,6 +326,31 @@ describe("安全・例外・表示", () => {
         []
       )
     ).toEqual(result.state);
+  });
+  it("対象外と判定された現在のテーマの内部スキップは回答回数を消費しない", () => {
+    const qs = questions.map((q, i) => ({
+      ...q,
+      targetAudience: i === 1 ? "介護の仕事をしている人" : undefined,
+    }));
+    const state = start("targeted");
+    state.currentQuestionId = qs[1].id;
+    state.kind = "base";
+    state.turnCount = 2;
+    const result = advanceInterview(
+      state,
+      qs,
+      "answer",
+      [
+        {
+          questionId: qs[1].id,
+          verdict: "ineligible",
+          evidenceMessageId: "evidence",
+        },
+      ],
+      "continue"
+    );
+    expect(result.turnCount).toBe(2);
+    expect(result.skipped[qs[1].id]).toBe("ineligible");
   });
   it("根拠がない判定で対象外にしない", () => {
     const qs = questions.map((q) => ({ ...q, targetAudience: "経験者" }));

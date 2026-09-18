@@ -5,6 +5,13 @@ export type InterviewMode = z.infer<typeof interviewModeSchema>;
 export const deepeningDecisionSchema = z.enum(["continue", "sufficient"]);
 export type DeepeningDecision = z.infer<typeof deepeningDecisionSchema>;
 export const MAX_INTERVIEW_TURNS = 10;
+export const CORE_INTERVIEW_QUESTION_COUNT = 3;
+export const interviewJourneySchema = z.enum(["core", "detail"]);
+export type InterviewJourney = z.infer<typeof interviewJourneySchema>;
+export const completionModeSchema = z.enum(["simple", "detailed"]);
+export type CompletionMode = z.infer<typeof completionModeSchema>;
+export const checkpointChoiceSchema = z.enum(["simple", "detailed"]);
+export type CheckpointChoice = z.infer<typeof checkpointChoiceSchema>;
 export type InterviewQuestion = {
   id: string;
   topic: string;
@@ -22,6 +29,9 @@ export const eligibilitySchema = z.object({
 export const interviewStateSchema = z.object({
   version: z.literal(1),
   mode: interviewModeSchema,
+  journey: interviewJourneySchema.default("core"),
+  checkpoint: z.literal("after_core").nullable().default(null),
+  completionMode: completionModeSchema.nullable().default(null),
   targetAudiences: z.record(z.string(), z.string()).default({}),
   phase: z.enum(["questions", "deepening", "done"]),
   currentQuestionId: z.string().nullable(),
@@ -46,12 +56,16 @@ export type InterviewProgress = {
   currentTopic: string | null;
   remainingQuestionRange: { min: number; max: number } | null;
   paused: boolean;
+  checkpoint: "after_core" | null;
 };
 
 export function initialInterviewState(mode: InterviewMode): InterviewState {
   return {
     version: 1,
     mode,
+    journey: "core",
+    checkpoint: null,
+    completionMode: null,
     targetAudiences: {},
     phase: "questions",
     currentQuestionId: null,
@@ -72,6 +86,26 @@ function finishInterview(state: InterviewState) {
   state.currentQuestionId = null;
   state.quickReplies = [];
   state.paused = false;
+  state.checkpoint = null;
+  if (!state.completionMode)
+    state.completionMode = state.journey === "core" ? "simple" : "detailed";
+  return state;
+}
+
+function coreQuestionIds(questions: readonly InterviewQuestion[]) {
+  return new Set(
+    questions
+      .slice(0, CORE_INTERVIEW_QUESTION_COUNT)
+      .map((question) => question.id)
+  );
+}
+
+function enterCoreCheckpoint(state: InterviewState) {
+  state.checkpoint = "after_core";
+  state.currentQuestionId = null;
+  state.kind = "base";
+  state.quickReplies = [];
+  state.paused = false;
   return state;
 }
 
@@ -79,7 +113,12 @@ function selectNext(
   state: InterviewState,
   questions: readonly InterviewQuestion[]
 ) {
-  for (const question of questions) {
+  const coreIds = coreQuestionIds(questions);
+  const candidates =
+    state.journey === "core"
+      ? questions.slice(0, CORE_INTERVIEW_QUESTION_COUNT)
+      : questions;
+  for (const question of candidates) {
     if (state.completed.includes(question.id) || state.skipped[question.id])
       continue;
     if (
@@ -106,11 +145,17 @@ function selectNext(
   if (
     state.mode === "bulk" &&
     state.phase === "questions" &&
-    state.answered.some((id) => !state.skipped[id])
+    state.answered.some(
+      (id) =>
+        !state.skipped[id] &&
+        !state.completed.includes(id) &&
+        (state.journey === "detail" || !coreIds.has(id))
+    )
   ) {
     state.phase = "deepening";
     return selectNext(state, questions);
   }
+  if (state.journey === "core") return enterCoreCheckpoint(state);
   state.phase = "done";
   state.currentQuestionId = null;
   state.quickReplies = [];
@@ -128,6 +173,7 @@ export function advanceInterview(
 ): InterviewState {
   const state = structuredClone(previous);
   if (state.phase === "done") return state;
+  if (state.checkpoint) return state;
   state.eligibility = [
     ...state.eligibility.filter(
       (old) => !eligibility.some((item) => item.questionId === old.questionId)
@@ -156,14 +202,17 @@ export function advanceInterview(
       state.skipped[questionId] = "covered";
     }
   }
-  if (action === "answer" || action === "skip") state.turnCount += 1;
-  if (
+  const targetedIneligible =
     state.mode === "targeted" &&
     current?.targetAudience &&
     state.eligibility.some(
       (item) => item.questionId === id && item.verdict === "ineligible"
-    )
-  ) {
+    );
+  // An eligibility-based skip is an internal transition, not a user answer.
+  // Do not consume one of the ten user-turn budget slots for it.
+  if (!targetedIneligible && (action === "answer" || action === "skip"))
+    state.turnCount += 1;
+  if (targetedIneligible) {
     state.skipped[id] = "ineligible";
   } else if (action === "skip") {
     state.skipped[id] = "declined";
@@ -182,7 +231,9 @@ export function advanceInterview(
       if (!state.completed.includes(id)) state.completed.push(id);
       return finishInterview(state);
     }
-    if (state.mode === "bulk" && state.phase === "questions") {
+    if (state.journey === "core") {
+      if (!state.completed.includes(id)) state.completed.push(id);
+    } else if (state.mode === "bulk" && state.phase === "questions") {
       // Bulk mode asks every base question first. A sufficient base answer is
       // complete; only topics that still need detail enter the later phase.
       if (deepeningDecision === "sufficient" && !state.completed.includes(id)) {
@@ -209,6 +260,23 @@ export function advanceInterview(
   return selectNext(state, questions);
 }
 
+export function chooseInterviewPath(
+  previous: InterviewState,
+  questions: readonly InterviewQuestion[],
+  choice: CheckpointChoice
+) {
+  const state = structuredClone(previous);
+  if (state.phase === "done" || state.checkpoint !== "after_core") return state;
+  state.checkpoint = null;
+  if (choice === "simple") {
+    state.completionMode = "simple";
+    return finishInterview(state);
+  }
+  state.journey = "detail";
+  state.completionMode = "detailed";
+  return selectNext(state, questions);
+}
+
 export function composeInterviewMessage(
   acknowledgement: string,
   question: InterviewQuestion
@@ -225,7 +293,11 @@ export function interviewProgress(
   const question = questions.find(
     (item) => item.id === state.currentQuestionId
   );
-  const active = questions.filter((item) => !state.skipped[item.id]);
+  const visibleQuestions =
+    state.journey === "core"
+      ? questions.slice(0, CORE_INTERVIEW_QUESTION_COUNT)
+      : questions;
+  const active = visibleQuestions.filter((item) => !state.skipped[item.id]);
   const done = state.phase === "done";
   const remainingBaseQuestions = active.filter(
     (item) =>
@@ -241,16 +313,19 @@ export function interviewProgress(
     if (!state.answered.includes(item.id)) return sum + 2;
     return sum + Math.max(0, 1 - (state.followUpAnswers[item.id] ?? 0));
   }, 0);
-  // This is an estimate for the UI, not a hard turn quota. Keep the initial
-  // range useful (7-10 for seven topics) while the server still allows a
-  // second follow-up when it materially improves the submitted opinion.
-  const remainingMaximum = Math.max(
-    remainingMinimum,
-    Math.min(
-      Math.max(0, MAX_INTERVIEW_TURNS - state.turnCount),
-      remainingMinimum + Math.min(3, possibleAdditionalFollowUps)
-    )
-  );
+  // This is an estimate for the UI, not a hard turn quota. In the core stage
+  // it shows only the three fixed questions; detail mode includes a small
+  // allowance for follow-ups while the server still applies the hard cap.
+  const remainingMaximum =
+    state.journey === "core"
+      ? remainingMinimum
+      : Math.max(
+          remainingMinimum,
+          Math.min(
+            Math.max(0, MAX_INTERVIEW_TURNS - state.turnCount),
+            remainingMinimum + Math.min(3, possibleAdditionalFollowUps)
+          )
+        );
   const completedTopicUnits = active.reduce((sum, item) => {
     if (state.completed.includes(item.id)) return sum + 1;
     if (!state.answered.includes(item.id)) return sum;
@@ -269,14 +344,17 @@ export function interviewProgress(
           ),
     currentTopic: state.paused
       ? "相談・支援のご案内"
-      : done
-        ? "インタビュー終了"
-        : (question?.topic ?? null),
+      : state.checkpoint
+        ? "簡易版か詳細版を選択"
+        : done
+          ? "インタビュー終了"
+          : (question?.topic ?? null),
     remainingQuestionRange:
-      done || targeted
+      done || targeted || state.checkpoint
         ? null
         : { min: remainingMinimum, max: remainingMaximum },
     paused: state.paused,
+    checkpoint: state.checkpoint,
   };
 }
 
@@ -290,9 +368,20 @@ export function restoreInterviewState(
 ): InterviewState {
   if (saved !== null && saved !== undefined) {
     const parsed = interviewStateSchema.parse(saved);
+    const raw = saved as Record<string, unknown>;
+    if (!("journey" in raw)) {
+      const coreIds = coreQuestionIds(questions);
+      const hasDetailProgress =
+        parsed.phase === "deepening" ||
+        (parsed.currentQuestionId !== null &&
+          !coreIds.has(parsed.currentQuestionId)) ||
+        parsed.answered.some((id) => !coreIds.has(id)) ||
+        parsed.completed.some((id) => !coreIds.has(id));
+      parsed.journey = hasDetailProgress ? "detail" : "core";
+    }
     if (
-      typeof saved === "object" &&
-      saved !== null &&
+      typeof saved !== "object" ||
+      saved === null ||
       !("turnCount" in saved)
     ) {
       parsed.turnCount = Math.min(

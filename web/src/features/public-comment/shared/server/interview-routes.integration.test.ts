@@ -87,7 +87,22 @@ describe.each(keys)("%s 実DB統合", (key) => {
     expect(data.messages[0].content).toContain(qs[0].premise);
     expect(data.messages[0].content).toContain(qs[0].ask);
     const sessionId = data.sessionId;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; ) {
+      if (data.nextStage === "checkpoint") {
+        const checkpoint = await handlers.chat(
+          request({
+            sessionId,
+            revision: data.revision,
+            requestId: crypto.randomUUID(),
+            action: "checkpoint",
+            choice: "detailed",
+            content: "",
+          })
+        );
+        expect(checkpoint.status).toBe(200);
+        data = await checkpoint.json();
+        continue;
+      }
       const response = await handlers.chat(
         request({
           sessionId,
@@ -110,6 +125,7 @@ describe.each(keys)("%s 実DB統合", (key) => {
       }
       if (i === 6 && mode === "bulk")
         expect(data.message.content).toContain("ひと通りのお話");
+      i += 1;
     }
     expect(data.nextStage).toBe("draft");
     const saved = await adminClient
@@ -148,7 +164,7 @@ describe("共通HTTP境界", () => {
     });
     let data = await (await handlers.session(request(consent))).json();
     const sessionId = data.sessionId;
-    for (let i = 0; i < qs.length; i++) {
+    for (let i = 0; i < 3; i++) {
       const response = await handlers.chat(
         request({
           sessionId,
@@ -159,10 +175,37 @@ describe("共通HTTP境界", () => {
       );
       expect(response.status).toBe(200);
       data = await response.json();
-      if (i < qs.length - 1) {
+      if (i < 2) expect(data.message.content).toContain(qs[i + 1].premise);
+      expect(data.message.content).not.toContain(answer.followUp);
+    }
+    expect(data.nextStage).toBe("checkpoint");
+    const checkpoint = await handlers.chat(
+      request({
+        sessionId,
+        revision: data.revision,
+        requestId: crypto.randomUUID(),
+        action: "checkpoint",
+        choice: "detailed",
+        content: "",
+      })
+    );
+    expect(checkpoint.status).toBe(200);
+    data = await checkpoint.json();
+    expect(data.message.content).toContain(qs[3].premise);
+    for (let i = 3; i < qs.length; i++) {
+      const response = await handlers.chat(
+        request({
+          sessionId,
+          revision: data.revision,
+          requestId: crypto.randomUUID(),
+          content: "支援の利用条件と相談先を具体的に示してほしいです。",
+        })
+      );
+      expect(response.status).toBe(200);
+      data = await response.json();
+      if (i < qs.length - 1)
         expect(data.message.content).toContain(qs[i + 1].premise);
-        expect(data.message.content).not.toContain(answer.followUp);
-      }
+      expect(data.message.content).not.toContain(answer.followUp);
     }
     expect(data.nextStage).toBe("draft");
   });
@@ -292,7 +335,7 @@ describe("共通HTTP境界", () => {
     expect(data.messages).toHaveLength(3);
     expect(data.messages.at(-1)).toMatchObject({
       question_id: qs[1].id,
-      content: qs[1].premise + "\n\n" + qs[1].ask,
+      content: `${qs[1].premise}\n\n${qs[1].ask}`,
     });
     const replay = await (
       await routes("minpaku").session(request(consent))
@@ -460,7 +503,21 @@ describe("共通HTTP境界", () => {
     const normal = routes("suicide-prevention");
     let data = await (await normal.session(request(consent))).json();
     const sessionId = data.sessionId;
-    for (let i = 0; i < 9; i++)
+    for (let i = 0; i < 9; i++) {
+      if (data.nextStage === "checkpoint") {
+        data = await (
+          await normal.chat(
+            request({
+              sessionId,
+              revision: data.revision,
+              requestId: crypto.randomUUID(),
+              action: "checkpoint",
+              choice: "detailed",
+              content: "",
+            })
+          )
+        ).json();
+      }
       data = await (
         await normal.chat(
           request({
@@ -471,6 +528,7 @@ describe("共通HTTP境界", () => {
           })
         )
       ).json();
+    }
     const safe = routes("suicide-prevention", {
       generate: async () => ({
         ...answer,

@@ -61,7 +61,6 @@ import {
   TRAFFIC_SAFETY_PLAN_SOURCES,
 } from "../../traffic-safety-plan/shared/campaign";
 import type { InterviewQuestion } from "../interview-state";
-import { QUESTION_PRESENTATIONS } from "../question-presentations";
 
 export type InterviewCampaign = {
   key: string;
@@ -71,6 +70,30 @@ export type InterviewCampaign = {
   policy: () => string;
   receiptEnabled: boolean;
 };
+
+function splitFixedQuestion(question: { question: string; context?: string }) {
+  if (typeof question.context === "string")
+    return { premise: question.context, ask: question.question };
+  const paragraphs = question.question
+    .trim()
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const questionParagraphIndex = paragraphs.findIndex((paragraph) =>
+    /[？?]/u.test(paragraph)
+  );
+  if (questionParagraphIndex >= 0) {
+    return {
+      premise: paragraphs.slice(0, questionParagraphIndex).join("\n\n"),
+      ask: paragraphs.slice(questionParagraphIndex).join("\n\n"),
+    };
+  }
+  return {
+    premise: paragraphs.slice(0, -1).join("\n\n"),
+    ask: paragraphs.at(-1) ?? question.question,
+  };
+}
+
 const campaigns = {
   minpaku: {
     slug: MINPAKU_CAMPAIGN_SLUG,
@@ -153,13 +176,13 @@ export function getInterviewCampaign(
     policy: campaign.policy,
     sources: campaign.sources,
     receiptEnabled: true,
-    questions: campaign.questions.map((q, i) => {
-      const presentation = QUESTION_PRESENTATIONS[key]?.[i];
-      if (!presentation) throw new Error("Missing question presentation");
+    questions: campaign.questions.map((q) => {
       return {
         ...q,
-        premise: presentation[0],
-        ask: presentation[1],
+        // The campaign files contain the canonical fixed question text. Keep
+        // it server-controlled instead of replacing it with an AI-generated
+        // or shortened presentation.
+        ...splitFixedQuestion(q),
         targetAudience: targetAudiences[q.id] || undefined,
       };
     }),

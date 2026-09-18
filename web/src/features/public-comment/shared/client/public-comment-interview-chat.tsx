@@ -9,17 +9,18 @@ import {
 } from "@/components/ai-elements/conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { useActiveInterviewLayout } from "@/components/layouts/interview-layout-context";
-import type {
-  InterviewAction,
-  InterviewMode,
-  InterviewProgress,
-} from "../interview-state";
 import { Button } from "@/components/ui/button";
 import { InterviewChatInput } from "@/features/interview-session/client/components/interview-chat-input";
 import { InterviewErrorDisplay } from "@/features/interview-session/client/components/interview-error-display";
 import { InterviewMessage } from "@/features/interview-session/client/components/interview-message";
 import { InterviewProgressBar } from "@/features/interview-session/client/components/interview-progress-bar";
 import { DelayedQuickReplies } from "@/features/public-comment/minpaku/client/delayed-quick-replies";
+import type {
+  CheckpointChoice,
+  InterviewAction,
+  InterviewMode,
+  InterviewProgress,
+} from "../interview-state";
 
 type PublicCommentMessage = {
   id: string;
@@ -32,6 +33,7 @@ export interface PublicCommentInterviewChatProps {
   progress: InterviewProgress;
   mode: InterviewMode;
   onAction: (action: Exclude<InterviewAction, "answer">) => void;
+  onCheckpointChoice: (choice: CheckpointChoice) => void;
   messages: PublicCommentMessage[];
   quickReplies: string[];
   isLoading: boolean;
@@ -69,6 +71,7 @@ export function PublicCommentInterviewChat({
   progress,
   mode,
   onAction,
+  onCheckpointChoice,
   screenReaderTitle,
   privacyNotice,
 }: PublicCommentInterviewChatProps) {
@@ -143,6 +146,35 @@ export function PublicCommentInterviewChat({
               内容を確認して下書き作成へ進む
               <ArrowRight className="size-4" />
             </Button>
+          ) : progress.checkpoint === "after_core" ? (
+            <div className="space-y-3 rounded-2xl border border-primary/20 bg-mirai-surface-light p-4">
+              <p className="text-sm font-bold leading-6 text-mirai-text">
+                ここまでの3問で、簡易版の意見を作成できます。
+                <br />
+                続ける場合は、残りのテーマについて回答に応じた深掘りを行い、
+                <br />
+                詳細版の意見を作成できます。
+              </p>
+              <div className="flex flex-col gap-2 min-[480px]:flex-row">
+                <Button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => onCheckpointChoice("simple")}
+                  className="min-h-11 flex-1 whitespace-normal text-sm"
+                >
+                  簡易版を作成して終了
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading}
+                  onClick={() => onCheckpointChoice("detailed")}
+                  className="min-h-11 flex-1 whitespace-normal text-sm"
+                >
+                  詳しく続ける
+                </Button>
+              </div>
+            </div>
           ) : progress.paused ? (
             <Button
               type="button"
