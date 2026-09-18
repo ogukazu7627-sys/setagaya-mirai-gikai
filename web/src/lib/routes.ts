@@ -96,6 +96,12 @@ export const routes = {
   publicCommentRetainingWall: () => "/public-comment/retaining-wall" as const,
   publicCommentElderlyCarePlan: () =>
     "/public-comment/elderly-care-plan" as const,
+  publicCommentInclusionPlan: () => "/public-comment/inclusion-plan" as const,
+  publicCommentGenderEquality: () => "/public-comment/gender-equality" as const,
+  publicCommentSuicidePrevention: () =>
+    "/public-comment/suicide-prevention" as const,
+  publicCommentDementiaHopePlan: () =>
+    "/public-comment/dementia-hope-plan" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
