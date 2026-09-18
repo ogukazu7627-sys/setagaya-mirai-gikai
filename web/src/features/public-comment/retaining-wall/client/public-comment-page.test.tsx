@@ -54,6 +54,14 @@ describe("PublicCommentRetainingWallPage", () => {
 
   it("安全判定・補助申請との違い、個人情報、公式の相談導線を示す", () => {
     render(<PublicCommentRetainingWallPage />);
+    expect(
+      screen.getByRole("img", {
+        name: "住宅地のがけ・擁壁を住民と専門家が確認するイラスト",
+      })
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("retaining-wall-public-comment-hero.webp")
+    );
     expect(screen.getByText(/個別のがけ・擁壁の安全判定/)).toBeInTheDocument();
     expect(screen.getByText(/正確な住所・地番/)).toBeInTheDocument();
     expect(screen.getByText(/119または110/)).toBeInTheDocument();

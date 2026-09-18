@@ -54,6 +54,14 @@ describe("PublicCommentGenderEqualityPage", () => {
 
   it("センシティブ情報への配慮、緊急時の案内、公式の相談導線を示す", () => {
     render(<PublicCommentGenderEqualityPage />);
+    expect(
+      screen.getByRole("img", {
+        name: "幅広い年代や立場の人が地域で交流するイラスト",
+      })
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("gender-equality-public-comment-hero.webp")
+    );
     expect(screen.getByText(/性的指向・性自認/)).toBeInTheDocument();
     expect(screen.getByText(/氏名、住所、学校名、勤務先/)).toBeInTheDocument();
     expect(screen.getByText(/110（警察）/)).toBeInTheDocument();

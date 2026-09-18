@@ -55,10 +55,12 @@ describe("PublicCommentElderlyCarePlanPage", () => {
   it("相談窓口との違い、センシティブ情報、公式の相談導線を示す", () => {
     render(<PublicCommentElderlyCarePlanPage />);
     expect(
-      screen.getByRole("img", { name: "話を丁寧に聴く人のイラスト" })
+      screen.getByRole("img", {
+        name: "高齢者や家族、支援者が地域で過ごすイラスト",
+      })
     ).toHaveAttribute(
       "src",
-      expect.stringContaining("interview-illustration.png")
+      expect.stringContaining("elderly-care-plan-public-comment-hero.webp")
     );
     expect(
       screen.getByText(

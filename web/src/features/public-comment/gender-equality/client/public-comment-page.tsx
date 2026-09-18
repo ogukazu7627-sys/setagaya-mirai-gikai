@@ -21,8 +21,8 @@ import {
 
 const GENDER_EQUALITY_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: GENDER_EQUALITY_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/gender-equality-public-comment-hero.webp",
+  heroImageAlt: "幅広い年代や立場の人が地域で交流するイラスト",
   submissionDeadline: GENDER_EQUALITY_SUBMISSION_DEADLINE,
   officialSubmissionUrl: GENDER_EQUALITY_OFFICIAL_SUBMISSION_URL,
   sources: GENDER_EQUALITY_SOURCES,

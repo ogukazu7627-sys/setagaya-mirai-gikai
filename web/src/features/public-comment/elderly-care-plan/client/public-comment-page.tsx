@@ -21,8 +21,8 @@ import {
 
 const ELDERLY_CARE_PLAN_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: ELDERLY_CARE_PLAN_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/elderly-care-plan-public-comment-hero.webp",
+  heroImageAlt: "高齢者や家族、支援者が地域で過ごすイラスト",
   submissionDeadline: ELDERLY_CARE_PLAN_SUBMISSION_DEADLINE,
   officialSubmissionUrl: ELDERLY_CARE_PLAN_OFFICIAL_SUBMISSION_URL,
   sources: ELDERLY_CARE_PLAN_SOURCES,
