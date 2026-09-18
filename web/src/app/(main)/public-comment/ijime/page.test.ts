@@ -5,11 +5,11 @@ import type { ResolvingMetadata } from "next";
 import { describe, expect, it, vi } from "vitest";
 import { generateMetadata } from "./page";
 
-vi.mock("@/features/public-comment/minpaku/client/public-comment-page", () => ({
-  PublicCommentMinpakuPage: () => null,
+vi.mock("@/features/public-comment/ijime/client/public-comment-page", () => ({
+  PublicCommentIjimePage: () => null,
 }));
 
-describe("民泊パブコメの共有画像", () => {
+describe("いじめ条例パブコメの共有画像", () => {
   const openGraph = {
     title: { absolute: "みらい議会＠世田谷区", template: null },
     description: "世田谷区議会の情報整理サイト",
@@ -23,32 +23,45 @@ describe("民泊パブコメの共有画像", () => {
     images: [{ url: "/ogp.jpg" }],
   };
 
-  it("親のタイトル・説明を保持し、OGPとXの画像だけを置き換える", async () => {
+  it("ページ固有の文言と画像をOGPとXカードに設定する", async () => {
     const parent = Promise.resolve({ openGraph, twitter }) as ResolvingMetadata;
     const metadata = await generateMetadata({}, parent);
+    const title = "いじめ条例素案へのAIパブコメインタビュー";
+    const description =
+      "世田谷区のいじめ予防・解消条例素案について学び、7つの質問で考えを整理し、提出用の意見下書きを作成します。";
     const image = {
-      url: "/minpaku-public-comment-ogp.png",
+      url: "/ijime-public-comment-ogp.png",
       width: 1731,
       height: 909,
-      alt: "みらい議会＠世田谷 民泊パブコメインタビュー",
+      alt: "みらい議会＠世田谷 いじめ条例のAIパブコメインタビュー",
     };
 
     expect(metadata).toEqual({
-      openGraph: { ...openGraph, images: [image] },
-      twitter: { ...twitter, images: [image] },
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        siteName: openGraph.siteName,
+        images: [image],
+      },
+      twitter: {
+        title,
+        description,
+        card: "summary_large_image",
+        images: [image],
+      },
     });
-    expect(openGraph.images).toEqual([{ url: "/ogp.jpg" }]);
-    expect(twitter.images).toEqual([{ url: "/ogp.jpg" }]);
   });
 
   it("添付されたPNGを加工せず配信する", () => {
     const file = path.resolve(
       __dirname,
-      "../../../../../public/minpaku-public-comment-ogp.png"
+      "../../../../../public/ijime-public-comment-ogp.png"
     );
     expect(
       createHash("sha256").update(fs.readFileSync(file)).digest("hex")
-    ).toBe("903e6c8ba96990513220b61d9cc3c0612ca9bdd78d905b131361e35603cb60a5");
+    ).toBe("3b107d68dd727ab5a41bfb1eeadecc1f05a823682ba8efc682d21e89a257b563");
     expect(fs.statSync(file).size).toBeLessThan(5 * 1024 * 1024);
   });
 });
