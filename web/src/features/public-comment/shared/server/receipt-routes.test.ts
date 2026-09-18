@@ -57,7 +57,8 @@ describe("public comment receipt routes", () => {
     mocks.findCampaign.mockResolvedValue({ id: "campaign-1" });
     mocks.findSession.mockResolvedValue({
       id: "session-1",
-      completed_at: "2026-09-18T00:00:00.000Z",
+      completed_at: null,
+      publication_status: null,
     });
     mocks.findDraft.mockResolvedValue({ final_body: "確認済み本文" });
     mocks.completeSession.mockResolvedValue("private");
@@ -105,6 +106,11 @@ describe("public comment receipt routes", () => {
   });
 
   it("完了済みの本人セッションだけ控えメールを再試行できる", async () => {
+    mocks.findSession.mockResolvedValue({
+      id: "session-1",
+      completed_at: "2026-09-18T00:00:00.000Z",
+      publication_status: "private",
+    });
     const response = await retryReceipt(receiptRequest());
 
     expect(response.status).toBe(200);
@@ -117,6 +123,23 @@ describe("public comment receipt routes", () => {
       "session-1",
       "owner"
     );
+  });
+
+  it("完了済みセッションの再送では完了RPCを再実行しない", async () => {
+    mocks.findSession.mockResolvedValue({
+      id: "session-1",
+      completed_at: "2026-09-18T00:00:00.000Z",
+      publication_status: "private",
+    });
+
+    const response = await complete(completionRequest(true));
+
+    expect(response.status).toBe(200);
+    expect(mocks.completeSession).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({
+      status: "private",
+      receipt: { status: "accepted", canRetry: false },
+    });
   });
 
   it("別キャンペーンのセッションでは再試行できない", async () => {

@@ -10,6 +10,7 @@ import {
   findSessionForCampaignUser,
 } from "@/features/public-comment/minpaku/server/repository";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import type { PublicCommentReceipt } from "@/features/public-comment/minpaku/shared/receipt";
 
 export function createPublicCommentCompleteHandler(campaignSlug: string) {
   return async function POST(request: Request) {
@@ -60,16 +61,40 @@ export function createPublicCommentCompleteHandler(campaignSlug: string) {
           { error: "下書きを確認してから完了してください" },
           { status: 400 }
         );
-      const status = await completeSession({
-        sessionId,
-        userId: user.id,
-        publicationRequested: false,
-        receiptOptIn: body.receiptOptIn,
-        consentVersion: body.consentVersion,
-      });
-      const receipt = body.receiptOptIn
-        ? await sendPublicCommentReceipt(sessionId, user.id)
-        : { status: "not_requested" as const, canRetry: false };
+      let status: string;
+      try {
+        // A response can be lost after the database commit, especially in an
+        // embedded browser. Retrying must not turn a completed session into a
+        // generic 500 error.
+        status = session.completed_at
+          ? (session.publication_status ?? "private")
+          : await completeSession({
+              sessionId,
+              userId: user.id,
+              publicationRequested: false,
+              receiptOptIn: body.receiptOptIn,
+              consentVersion: body.consentVersion,
+            });
+      } catch (error) {
+        const completedSession = await findSessionForCampaignUser(
+          sessionId,
+          user.id,
+          campaign.id
+        );
+        if (!completedSession?.completed_at) throw error;
+        status = completedSession.publication_status ?? "private";
+      }
+      let receipt: PublicCommentReceipt = {
+        status: "not_requested",
+        canRetry: false,
+      };
+      if (body.receiptOptIn) {
+        try {
+          receipt = await sendPublicCommentReceipt(sessionId, user.id);
+        } catch {
+          receipt = { status: "pending", canRetry: true };
+        }
+      }
       return NextResponse.json({ status, receipt });
     } catch {
       console.warn("public_comment_completion_failed");
