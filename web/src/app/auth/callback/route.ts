@@ -6,6 +6,9 @@ import {
   CHAT_AUTH_NEXT_COOKIE,
   sanitizeChatAuthNextPath,
 } from "@/features/chat/shared/auth";
+import { consumeAuthHandoff } from "@/features/public-comment/minpaku/server/repository";
+import { PUBLIC_COMMENT_AUTH_HANDOFF_COOKIE } from "@/features/public-comment/shared/auth-handoff";
+import { hashPublicCommentAuthToken } from "@/features/public-comment/shared/server/auth-handoff";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -28,12 +31,14 @@ export async function GET(request: Request) {
       cookieStore.get(CHAT_AUTH_NEXT_COOKIE)?.value
   );
   const redirectBase = getRedirectBase(request);
+  const publicCommentHandoff = cookieStore.get(
+    PUBLIC_COMMENT_AUTH_HANDOFF_COOKIE
+  )?.value;
 
   cookieStore.set(CHAT_AUTH_NEXT_COOKIE, "", {
     path: "/",
     maxAge: 0,
   });
-
   if (code) {
     const supabase = createServerClient<Database>(
       env.supabaseUrl,
@@ -52,8 +57,29 @@ export async function GET(request: Request) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      if (publicCommentHandoff) {
+        if (!data?.user) {
+          const failureUrl = new URL(nextPath, redirectBase);
+          failureUrl.searchParams.set("auth_error", "handoff_failed");
+          return NextResponse.redirect(failureUrl);
+        }
+        try {
+          await consumeAuthHandoff({
+            tokenHash: hashPublicCommentAuthToken(publicCommentHandoff),
+            targetUserId: data.user.id,
+          });
+          cookieStore.set(PUBLIC_COMMENT_AUTH_HANDOFF_COOKIE, "", {
+            path: "/",
+            maxAge: 0,
+          });
+        } catch {
+          const failureUrl = new URL(nextPath, redirectBase);
+          failureUrl.searchParams.set("auth_error", "handoff_failed");
+          return NextResponse.redirect(failureUrl);
+        }
+      }
       return NextResponse.redirect(`${redirectBase}${nextPath}`);
     }
   }

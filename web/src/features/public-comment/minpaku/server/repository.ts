@@ -7,6 +7,11 @@ type Session = Database["public"]["Tables"]["public_comment_sessions"]["Row"];
 type Message = Database["public"]["Tables"]["public_comment_messages"]["Row"];
 type Draft = Database["public"]["Tables"]["public_comment_drafts"]["Row"];
 
+export type DraftGenerationClaim =
+  | { status: "ready" }
+  | { status: "generating" }
+  | { status: "claimed"; token: string };
+
 export class PublicCommentCompletedError extends Error {
   constructor() {
     super("public_comment_completed");
@@ -44,6 +49,7 @@ export async function findActiveSession(
     .eq("campaign_id", campaignId)
     .eq("user_id", userId)
     .is("completed_at", null)
+    .is("superseded_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -63,6 +69,7 @@ export async function findSessionForUser(
     .select("*")
     .eq("id", sessionId)
     .eq("user_id", userId)
+    .is("superseded_at", null)
     .maybeSingle();
 
   if (error)
@@ -82,6 +89,7 @@ export async function findSessionForCampaignUser(
     .eq("id", sessionId)
     .eq("user_id", userId)
     .eq("campaign_id", campaignId)
+    .is("superseded_at", null)
     .maybeSingle();
 
   if (error)
@@ -131,6 +139,7 @@ export async function saveSessionReceiptConsent(params: {
     .eq("id", params.sessionId)
     .eq("user_id", params.userId)
     .is("completed_at", null)
+    .is("superseded_at", null)
     .select("*")
     .maybeSingle();
   if (error) throw new Error("public_comment_consent_save_failed");
@@ -190,6 +199,113 @@ export async function findDraft(sessionId: string): Promise<Draft | null> {
 
   if (error)
     throw new Error(`Failed to fetch public comment draft: ${error.message}`);
+  return data;
+}
+
+export async function claimDraftGeneration(params: {
+  sessionId: string;
+  userId: string;
+}): Promise<DraftGenerationClaim> {
+  const { data, error } = await createAdminClient().rpc(
+    "claim_public_comment_draft_generation",
+    {
+      p_session_id: params.sessionId,
+      p_user_id: params.userId,
+    }
+  );
+  if (error)
+    throw new Error(`Failed to claim public comment draft: ${error.message}`);
+  if (!data || typeof data !== "object" || Array.isArray(data))
+    throw new Error("public_comment_invalid_generation_claim");
+  const status = data.status;
+  if (status === "ready" || status === "generating") return { status };
+  if (status === "claimed" && typeof data.token === "string")
+    return { status, token: data.token };
+  throw new Error("public_comment_invalid_generation_claim");
+}
+
+export async function saveGeneratedDraft(params: {
+  sessionId: string;
+  generationToken: string;
+  targetOrdinances: string[];
+  aiBody: string;
+  finalBody: string;
+  sourceRefs: unknown[];
+  factCheckNotes: string[];
+}): Promise<Draft> {
+  const { data, error } = await createAdminClient().rpc(
+    "save_public_comment_generated_draft",
+    {
+      p_session_id: params.sessionId,
+      p_generation_token: params.generationToken,
+      p_target_ordinances: params.targetOrdinances,
+      p_ai_body: params.aiBody,
+      p_final_body: params.finalBody,
+      p_source_refs:
+        params.sourceRefs as Database["public"]["Functions"]["save_public_comment_generated_draft"]["Args"]["p_source_refs"],
+      p_fact_check_notes: params.factCheckNotes,
+    }
+  );
+  if (error)
+    throw new Error(
+      `Failed to save generated public comment: ${error.message}`
+    );
+  return data;
+}
+
+export async function failDraftGeneration(params: {
+  sessionId: string;
+  generationToken: string;
+  errorCode: string;
+}) {
+  const { error } = await createAdminClient().rpc(
+    "fail_public_comment_draft_generation",
+    {
+      p_session_id: params.sessionId,
+      p_generation_token: params.generationToken,
+      p_error_code: params.errorCode,
+    }
+  );
+  if (error)
+    throw new Error(
+      `Failed to mark public comment draft failed: ${error.message}`
+    );
+}
+
+export async function createAuthHandoff(params: {
+  sessionId: string;
+  anonymousUserId: string;
+  tokenHash: string;
+  expiresAt: string;
+}) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("public_comment_auth_handoffs").insert({
+    session_id: params.sessionId,
+    anonymous_user_id: params.anonymousUserId,
+    token_hash: params.tokenHash,
+    expires_at: params.expiresAt,
+  });
+  if (error)
+    throw new Error(
+      `Failed to create public comment handoff: ${error.message}`
+    );
+}
+
+export async function consumeAuthHandoff(params: {
+  tokenHash: string;
+  targetUserId: string;
+}) {
+  const { data, error } = await createAdminClient().rpc(
+    "consume_public_comment_auth_handoff",
+    {
+      p_token_hash: params.tokenHash,
+      p_target_user_id: params.targetUserId,
+    }
+  );
+  if (error)
+    throw new Error(
+      `Failed to consume public comment handoff: ${error.message}`
+    );
   return data;
 }
 

@@ -22,6 +22,16 @@ vi.mock("@/features/chat/client/hooks/use-chat-auth", () => ({
 }));
 
 vi.mock(
+  "@/features/public-comment/shared/client/ensure-public-comment-actor",
+  () => ({
+    ensurePublicCommentActor: vi.fn().mockResolvedValue({
+      id: "anonymous-user",
+      is_anonymous: true,
+    }),
+  })
+);
+
+vi.mock(
   "@/features/public-comment/shared/client/public-comment-interview-chat",
   () => ({
     PublicCommentInterviewChat: ({
@@ -116,9 +126,6 @@ describe("PublicCommentInclusionPlanPage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
-    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -129,12 +136,12 @@ describe("PublicCommentInclusionPlanPage", () => {
       "/api/public-comment/inclusion-plan/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":true'),
+        body: expect.stringContaining('"receiptOptIn":false'),
       })
     );
   });
 
-  it("未ログイン時は認証後に同じページへ戻す", async () => {
+  it("未ログインでも保存同意だけでインタビューを開始できる", () => {
     auth.status = "unauthenticated";
     render(<PublicCommentInclusionPlanPage />);
     fireEvent.click(
@@ -142,10 +149,44 @@ describe("PublicCommentInclusionPlanPage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
+    expect(
+      screen.queryByRole("button", { name: /Google/ })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    expect(
+      screen.getByRole("button", { name: "同意してはじめる" })
+    ).toBeEnabled();
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled();
+  });
+
+  it("完成文章はGoogleログイン後にだけ表示する", async () => {
+    auth.status = "unauthenticated";
+    window.history.replaceState(
+      null,
+      "",
+      "/public-comment/inclusion-plan?auth_return=1&receipt=1&session=session-1"
+    );
+    vi.spyOn(global, "fetch").mockImplementation(async (url) => {
+      if (String(url).endsWith("/draft"))
+        return Response.json({ status: "ready", requiresGoogle: true });
+      if (String(url).endsWith("/auth/prepare"))
+        return Response.json({ handoffRequired: true });
+      throw new Error("Unexpected test request");
+    });
+
+    render(<PublicCommentInclusionPlanPage />);
+    expect(
+      await screen.findByRole("heading", { name: "下書きが完成しました" })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Googleでログインして完成を見る",
+      })
+    );
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/inclusion-plan?auth_return=1&receipt=1"
+        "/public-comment/inclusion-plan?auth_return=1&receipt=1&session=session-1"
       )
     );
   });

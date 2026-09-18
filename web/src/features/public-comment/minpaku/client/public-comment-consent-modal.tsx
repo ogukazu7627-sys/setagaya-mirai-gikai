@@ -12,67 +12,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { GoogleGIcon } from "@/features/chat/client/components/google-login-gate";
-import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
 import { routes } from "@/lib/routes";
-import { ReceiptPreference } from "./receipt-preference";
-
-interface PublicCommentConsentModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isStarting: boolean;
-  onAgree: (receiptOptIn: boolean) => void;
-  authStatus: ChatAuthStatus;
-  userEmail?: string;
-  authError?: string;
-  initialReceiptOptIn: boolean;
-  receiptEnabled?: boolean;
-  onSignIn: (receiptOptIn: boolean) => Promise<void>;
-}
 
 export function PublicCommentConsentModal({
   open,
   onOpenChange,
   isStarting,
   onAgree,
-  authStatus,
-  userEmail,
-  authError,
-  initialReceiptOptIn,
-  receiptEnabled = true,
-  onSignIn,
-}: PublicCommentConsentModalProps) {
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isStarting: boolean;
+  onAgree: () => void;
+}) {
   const [agreed, setAgreed] = useState(false);
-  const [receiptOptIn, setReceiptOptIn] = useState(initialReceiptOptIn);
-  const [signingIn, setSigningIn] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const disabled = isStarting || signingIn;
 
   useEffect(() => {
-    setReceiptOptIn(initialReceiptOptIn);
-    if (!open) {
-      setAgreed(false);
-      setLoginError(null);
-    }
-  }, [open, initialReceiptOptIn]);
-
-  const signIn = async () => {
-    setSigningIn(true);
-    setLoginError(null);
-    try {
-      await onSignIn(receiptOptIn);
-    } catch {
-      setLoginError("ログインを開始できませんでした。もう一度お試しください。");
-    } finally {
-      setSigningIn(false);
-    }
-  };
+    if (!open) setAgreed(false);
+  }, [open]);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!disabled) onOpenChange(nextOpen);
+        if (!isStarting) onOpenChange(nextOpen);
       }}
     >
       <DialogContent className="max-h-[90dvh] overflow-y-auto px-5 py-8 sm:px-8">
@@ -81,9 +44,7 @@ export function PublicCommentConsentModal({
             AIインタビュー同意事項
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {receiptEnabled
-              ? "Googleログイン、回答の保存、任意の控えメールについて確認してください。"
-              : "Googleログインと回答の保存について確認してください。"}
+            回答の保存と、最終文章の確認に必要なGoogleログインについて確認してください。
           </DialogDescription>
           <div className="mt-6 h-px bg-mirai-gradient" />
         </DialogHeader>
@@ -91,12 +52,14 @@ export function PublicCommentConsentModal({
         <div className="mt-6 flex flex-col gap-6">
           <ul className="flex list-disc flex-col gap-3 pl-5 text-sm font-bold leading-[22px] text-gray-800">
             <li>
-              不正利用・過剰利用を防ぐため、AIの利用にはGoogleログインが必要です。
+              インタビューはログインなしで開始できます。回答は一時的な匿名IDにひも付けて保存します。
             </li>
             <li>
-              Googleのメールアドレス・ユーザーIDを取得し、利用者の識別と利用上限の管理に使います。会話はアカウントにひも付けて保存されます。
+              不正利用・過剰利用を防ぐため、完成した文章の表示にはGoogleログインが必要です。
             </li>
-            <li>同意後の回答は、下書き作成のために保存します。</li>
+            <li>
+              ログイン後はGoogleのユーザーID・メールアドレスを利用者の識別と利用上限の管理に使い、今回の回答と下書きを引き継ぎます。
+            </li>
             <li>
               個人情報や、個人・施設・学校が特定できる情報は入力しないでください。
             </li>
@@ -109,7 +72,7 @@ export function PublicCommentConsentModal({
               type="checkbox"
               id="public-comment-consent-agree"
               checked={agreed}
-              disabled={disabled}
+              disabled={isStarting}
               onChange={(event) => setAgreed(event.target.checked)}
               className="mt-0.5 size-4 shrink-0 rounded accent-primary"
             />
@@ -137,45 +100,12 @@ export function PublicCommentConsentModal({
               を確認し、回答の保存に同意します
             </label>
           </div>
-          {receiptEnabled && (
-            <div className="space-y-3 border-t border-gray-200 pt-4 text-sm leading-6">
-              <ReceiptPreference
-                checked={receiptOptIn}
-                onChange={setReceiptOptIn}
-                disabled={disabled}
-                userEmail={userEmail}
-              />
-            </div>
-          )}
         </div>
 
         <div className="mt-6 flex flex-col gap-4">
-          {authStatus === "authenticated" ? (
-            <p className="break-all text-sm text-mirai-text-secondary">
-              ログイン中：{userEmail}
-            </p>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void signIn()}
-              disabled={disabled || authStatus === "loading"}
-              className="w-full"
-            >
-              <GoogleGIcon />
-              {authStatus === "loading"
-                ? "ログイン状態を確認中..."
-                : "Google でログイン"}
-            </Button>
-          )}
-          {(authError || loginError) && (
-            <p role="alert" className="text-sm text-destructive">
-              {authError || loginError}
-            </p>
-          )}
           <Button
-            onClick={() => onAgree(receiptOptIn)}
-            disabled={disabled || !agreed || authStatus !== "authenticated"}
+            onClick={onAgree}
+            disabled={isStarting || !agreed}
             className="w-full"
           >
             {isStarting ? (
@@ -193,7 +123,7 @@ export function PublicCommentConsentModal({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={disabled}
+            disabled={isStarting}
             className="w-full"
           >
             同意せずに戻る

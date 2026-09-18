@@ -5,10 +5,29 @@ vi.mock("@/features/chat/server/utils/supabase-server", () => ({
   getChatSupabaseUser: mocks.getUser,
 }));
 
-import { getPublicCommentUser } from "./auth";
+import { getPublicCommentActor, getPublicCommentUser } from "./auth";
 
 describe("getPublicCommentUser", () => {
   beforeEach(() => vi.resetAllMocks());
+
+  it("匿名ユーザーもインタビューの参加者として返す", async () => {
+    const anonymousUser = { id: "anonymous", is_anonymous: true };
+    mocks.getUser.mockResolvedValue({
+      data: { user: anonymousUser },
+      error: null,
+    });
+
+    expect(await getPublicCommentActor()).toBe(anonymousUser);
+  });
+
+  it("認証セッションの検証エラー時は匿名ユーザーも返さない", async () => {
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "anonymous", is_anonymous: true } },
+      error: new Error("expired"),
+    });
+
+    expect(await getPublicCommentActor()).toBeNull();
+  });
 
   it.each([
     null,

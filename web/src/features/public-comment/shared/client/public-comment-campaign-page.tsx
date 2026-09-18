@@ -21,6 +21,11 @@ import { ReceiptPreference } from "@/features/public-comment/minpaku/client/rece
 import { usePublicCommentViewScroll } from "@/features/public-comment/minpaku/client/use-public-comment-view-scroll";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 import type { ReceiptResult } from "@/features/public-comment/minpaku/shared/receipt";
+import { ensurePublicCommentActor } from "@/features/public-comment/shared/client/ensure-public-comment-actor";
+import {
+  type DraftGenerationStatus,
+  PublicCommentDraftAuthGate,
+} from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
@@ -42,6 +47,7 @@ type View =
   | "learning"
   | "interview"
   | "ready"
+  | "auth"
   | "review"
   | "complete";
 
@@ -255,10 +261,10 @@ function PublicCommentIntro({
         <IntroSection title="利用上の注意">
           <div className="space-y-3 text-[13px] leading-6">
             <p>
-              AIインタビューにはGoogleログインが必要です。同意後の回答は、下書き作成のためアカウントにひも付けて保存します。
+              AIインタビューはログインなしで始められます。同意後の回答は、下書き作成のため一時的な匿名IDにひも付けて保存します。
             </p>
             <p>
-              会話や下書きの匿名公開は行いません。希望した場合は、完了後に会話全文と確認済みコメントの控えをGoogleログインのメールアドレスへ送ります。公式ページへの提出は自動では行われません。
+              最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。希望した場合は、完了後に会話全文と確認済みコメントの控えをGoogleログインのメールアドレスへ送ります。公式ページへの提出は自動では行われません。
             </p>
             <p>
               AIが作った下書きは、事実関係と自分の言葉になっているかを必ず確認・編集してから、本人が公式フォームへ転記してください。
@@ -563,6 +569,8 @@ export function PublicCommentCampaignPage({
   const [copied, setCopied] = useState(false);
   const [completionPending, setCompletionPending] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [draftGenerationStatus, setDraftGenerationStatus] =
+    useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
   const [authReturnError, setAuthReturnError] = useState<string>();
   const {
@@ -587,17 +595,24 @@ export function PublicCommentCampaignPage({
     const url = new URL(window.location.href);
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
-      setConsentOpen(true);
       setReceiptOptIn(url.searchParams.get("receipt") !== "0");
+      const returnedSession = url.searchParams.get("session");
+      if (returnedSession) {
+        setSessionId(returnedSession);
+        setView("auth");
+      }
       url.searchParams.delete("auth_return");
       url.searchParams.delete("receipt");
+      url.searchParams.delete("session");
       window.history.replaceState(window.history.state, "", url);
     }
-    if (url.searchParams.get("auth_error") === "google_login_failed") {
+    const authError = url.searchParams.get("auth_error");
+    if (authError) {
       setAuthReturnError(
-        "Googleログインが完了しませんでした。もう一度お試しください。"
+        authError === "handoff_failed"
+          ? "ログイン後のインタビュー引き継ぎに失敗しました。もう一度お試しください。"
+          : "Googleログインが完了しませんでした。もう一度お試しください。"
       );
-      setConsentOpen(true);
       url.searchParams.delete("auth_error");
       window.history.replaceState(window.history.state, "", url);
     }
@@ -610,71 +625,106 @@ export function PublicCommentCampaignPage({
         sessionStorage.removeItem(`${config.authReturnKey}-receipt`);
         if (!returningFromAuth && savedReceipt === "false")
           setReceiptOptIn(false);
-        setConsentOpen(true);
+        const savedSession = sessionStorage.getItem(
+          `${config.authReturnKey}-session`
+        );
+        sessionStorage.removeItem(`${config.authReturnKey}-session`);
+        if (!returningFromAuth && savedSession) {
+          setSessionId(savedSession);
+          setView("auth");
+        }
       }
     } catch {
       // Storage may be unavailable; the normal start button remains usable.
     }
   }, [config.authReturnKey]);
 
-  const signIn = async (requestedReceipt: boolean) => {
+  const signIn = async () => {
+    if (!sessionId || busy) return;
     setAuthReturnError(undefined);
+    setBusy(true);
+    const prepareResponse = await fetch("/api/public-comment/auth/prepare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    const prepareData = await prepareResponse.json().catch(() => null);
+    if (!prepareResponse.ok) {
+      setBusy(false);
+      setAuthReturnError(
+        prepareData?.error ?? "ログインの準備に失敗しました。"
+      );
+      return;
+    }
     try {
       sessionStorage.setItem(config.authReturnKey, "1");
       sessionStorage.setItem(
         `${config.authReturnKey}-receipt`,
-        String(requestedReceipt)
+        String(receiptOptIn)
       );
+      sessionStorage.setItem(`${config.authReturnKey}-session`, sessionId);
     } catch {
       // Authentication can continue without browser storage.
     }
     const params = new URLSearchParams({
       auth_return: "1",
-      receipt: requestedReceipt ? "1" : "0",
+      receipt: receiptOptIn ? "1" : "0",
+      session: sessionId,
     });
     await auth.signInWithGoogle(`${config.routePath}?${params}`);
+    setBusy(false);
   };
 
-  const startSession = useCallback(
-    async (requestedReceipt: boolean) => {
-      if (auth.status !== "authenticated" || busy) return false;
-      setBusy(true);
-      setError(null);
-      try {
-        const response = await fetch(`${config.apiBasePath}/session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            consented: true,
-            receiptOptIn: requestedReceipt,
-            consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
-          }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
-        setSessionId(data.sessionId);
-        setReceiptOptIn(data.receiptOptIn ?? requestedReceipt);
-        loadConversation(data);
-        if (data.draft) setDraft(data.draft);
-        if (data.sources) setSources(data.sources);
-        if (data.nextStage === "review") {
-          setView("review");
-        } else {
-          setInterviewComplete(data.nextStage === "draft");
-          setView("interview");
-        }
-        return true;
-      } catch (caught) {
-        setError(
-          caught instanceof Error ? caught.message : "開始できませんでした"
+  const startSession = useCallback(async () => {
+    if (busy) return false;
+    setBusy(true);
+    setError(null);
+    try {
+      await ensurePublicCommentActor();
+      const response = await fetch(`${config.apiBasePath}/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consented: true,
+          receiptOptIn: false,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
+      setSessionId(data.sessionId);
+      setReceiptOptIn(true);
+      loadConversation(data);
+      if (data.draft) setDraft(data.draft);
+      if (data.sources) setSources(data.sources);
+      if (data.nextStage === "review" && data.draft) {
+        setView("review");
+      } else if (
+        data.nextStage === "draft" &&
+        ["generating", "ready", "failed"].includes(data.draftGenerationStatus)
+      ) {
+        setDraftGenerationStatus(
+          data.draftGenerationStatus === "failed"
+            ? "failed"
+            : data.draftGenerationStatus === "ready"
+              ? "ready"
+              : "generating"
         );
-        return false;
-      } finally {
-        setBusy(false);
+        setView("auth");
+      } else {
+        setInterviewComplete(data.nextStage === "draft");
+        setView("interview");
       }
-    },
-    [auth.status, busy, config.apiBasePath, loadConversation]
-  );
+      return true;
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "開始できませんでした"
+      );
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, config.apiBasePath, loadConversation]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || busy) return;
@@ -689,9 +739,16 @@ export function PublicCommentCampaignPage({
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error ?? "下書きを作成できませんでした");
-      setDraft(data.draft);
-      setSources(data.sources ?? config.sources);
-      setView("review");
+      if (data.draft) {
+        setDraft(data.draft);
+        setSources(data.sources ?? config.sources);
+        setView("review");
+      } else {
+        setDraftGenerationStatus(
+          data.status === "ready" ? "ready" : "generating"
+        );
+        setView("auth");
+      }
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -702,6 +759,52 @@ export function PublicCommentCampaignPage({
       setBusy(false);
     }
   }, [busy, config.apiBasePath, config.sources, sessionId]);
+
+  useEffect(() => {
+    if (view !== "auth" || !sessionId) return;
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const poll = async () => {
+      try {
+        const response = await fetch(`${config.apiBasePath}/draft`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data.error ?? "下書きを確認できませんでした");
+        if (cancelled) return;
+        if (data.draft) {
+          setDraft(data.draft);
+          setSources(data.sources ?? config.sources);
+          setError(null);
+          setView("review");
+          return;
+        }
+        setDraftGenerationStatus(
+          data.status === "ready" ? "ready" : "generating"
+        );
+        if (data.status === "ready" && auth.status !== "authenticated") return;
+        timeoutId = setTimeout(poll, 2000);
+      } catch (caught) {
+        if (cancelled) return;
+        setDraftGenerationStatus("failed");
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "下書きを確認できませんでした"
+        );
+      }
+    };
+
+    void poll();
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [auth.status, config.apiBasePath, config.sources, sessionId, view]);
 
   const complete = useCallback(async () => {
     if (!sessionId || !draft || busy) return;
@@ -845,6 +948,19 @@ export function PublicCommentCampaignPage({
       {view === "ready" && (
         <DraftReady isBusy={busy} onGenerate={() => void generateDraft()} />
       )}
+      {view === "auth" && (
+        <PublicCommentDraftAuthGate
+          status={draftGenerationStatus}
+          authStatus={auth.status}
+          userEmail={auth.userEmail}
+          receiptOptIn={receiptOptIn}
+          isBusy={busy}
+          error={auth.error ?? authReturnError ?? error}
+          onReceiptChange={setReceiptOptIn}
+          onSignIn={() => void signIn()}
+          onRetry={() => void generateDraft()}
+        />
+      )}
       {view === "review" && draft && (
         <DraftReview
           draft={draft}
@@ -886,16 +1002,11 @@ export function PublicCommentCampaignPage({
         open={consentOpen}
         onOpenChange={setConsentOpen}
         isStarting={busy}
-        onAgree={(requestedReceipt) => {
-          void startSession(requestedReceipt).then((started) => {
+        onAgree={() => {
+          void startSession().then((started) => {
             if (started) setConsentOpen(false);
           });
         }}
-        authStatus={auth.status}
-        userEmail={auth.userEmail}
-        authError={auth.error ?? authReturnError}
-        initialReceiptOptIn={receiptOptIn}
-        onSignIn={signIn}
       />
     </div>
   );

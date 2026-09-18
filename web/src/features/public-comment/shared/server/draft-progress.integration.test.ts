@@ -1,10 +1,10 @@
-import { adminClient } from "@test-utils/utils";
 import { createPublicCommentFixture } from "@test-utils/public-comment-utils";
+import { adminClient } from "@test-utils/utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MINPAKU_ORDINANCES } from "../../minpaku/shared/campaign";
-import { QUESTION_PRESENTATIONS } from "../question-presentations";
 import { initialInterviewState } from "../interview-state";
-import { getInterviewCampaign, type CampaignKey } from "./interview-campaigns";
+import { QUESTION_PRESENTATIONS } from "../question-presentations";
+import { type CampaignKey, getInterviewCampaign } from "./interview-campaigns";
 
 // Existing draft routes expose no DI factory. Substitute only auth/LLM boundaries;
 // campaign lookup, session/message reads, completion gating and draft persistence use real DB.
@@ -14,7 +14,9 @@ const boundary = vi.hoisted(() => ({
   campaignSlug: "",
 }));
 vi.mock("@/features/public-comment/minpaku/server/auth", () => ({
+  getPublicCommentActor: boundary.getUser,
   getPublicCommentUser: boundary.getUser,
+  isVerifiedPublicCommentUser: () => true,
 }));
 vi.mock("@/features/public-comment/minpaku/server/ai", () => ({
   generatePublicCommentDraft: boundary.generate,
