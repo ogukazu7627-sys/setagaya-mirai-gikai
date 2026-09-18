@@ -14,10 +14,15 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
+import { ensurePublicCommentActor } from "@/features/public-comment/shared/client/ensure-public-comment-actor";
+import {
+  type DraftGenerationStatus,
+  PublicCommentDraftAuthGate,
+} from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
+import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import { routes } from "@/lib/routes";
 import {
   MINPAKU_CAMPAIGN_TITLE,
@@ -28,8 +33,8 @@ import {
   type MinpakuSource,
 } from "../shared/campaign";
 import {
-  PUBLIC_COMMENT_AUTH_RETURN_KEY,
   PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
+  PUBLIC_COMMENT_AUTH_RETURN_KEY,
   PUBLIC_COMMENT_CONSENT_VERSION,
 } from "../shared/consent";
 import {
@@ -56,6 +61,7 @@ type View =
   | "learning"
   | "interview"
   | "ordinances"
+  | "auth"
   | "review"
   | "complete";
 
@@ -316,7 +322,7 @@ function PublicCommentIntro({
               回答は同意後に専用のデータベースへ保存します。匿名公開を希望する場合も、運営の確認後に承認された本文だけが公開されます。
             </p>
             <p>
-              学習はログインなしで利用できます。AIインタビューには、不正利用・過剰利用を防ぐためGoogleログインが必要です。今回の控えメールの受信は任意です。
+              学習とAIインタビューはログインなしで利用できます。最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。今回の控えメールの受信は任意です。
             </p>
           </div>
         </IntroSection>
@@ -645,6 +651,8 @@ export function PublicCommentMinpakuPage() {
     useState<readonly MinpakuSource[]>(MINPAKU_SOURCES);
   const [publicationRequested, setPublicationRequested] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [draftGenerationStatus, setDraftGenerationStatus] =
+    useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
   const [completionPending, setCompletionPending] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -673,17 +681,34 @@ export function PublicCommentMinpakuPage() {
     const url = new URL(window.location.href);
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
-      setConsentOpen(true);
       setReceiptOptIn(url.searchParams.get("receipt") === "1");
+      const returnedSession = url.searchParams.get("session");
+      const returnedTargets = url.searchParams.get("targets");
+      if (returnedSession) {
+        setSessionId(returnedSession);
+        setView("auth");
+      }
+      if (returnedTargets) {
+        try {
+          const parsed = JSON.parse(returnedTargets);
+          if (Array.isArray(parsed)) setSelectedOrdinances(parsed);
+        } catch {
+          // The default two ordinances remain selected.
+        }
+      }
       url.searchParams.delete("auth_return");
       url.searchParams.delete("receipt");
+      url.searchParams.delete("session");
+      url.searchParams.delete("targets");
       window.history.replaceState(window.history.state, "", url);
     }
-    if (url.searchParams.get("auth_error") === "google_login_failed") {
+    const authError = url.searchParams.get("auth_error");
+    if (authError) {
       setAuthReturnError(
-        "Googleログインが完了しませんでした。もう一度お試しください。"
+        authError === "handoff_failed"
+          ? "ログイン後のインタビュー引き継ぎに失敗しました。もう一度お試しください。"
+          : "Googleログインが完了しませんでした。もう一度お試しください。"
       );
-      setConsentOpen(true);
       url.searchParams.delete("auth_error");
       window.history.replaceState(window.history.state, "", url);
     }
@@ -696,72 +721,122 @@ export function PublicCommentMinpakuPage() {
         sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY);
         if (!returningFromAuth && savedReceipt === "false")
           setReceiptOptIn(false);
-        setConsentOpen(true);
+        const savedSession = sessionStorage.getItem(
+          `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`
+        );
+        const savedTargets = sessionStorage.getItem(
+          `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-targets`
+        );
+        sessionStorage.removeItem(`${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`);
+        sessionStorage.removeItem(`${PUBLIC_COMMENT_AUTH_RETURN_KEY}-targets`);
+        if (!returningFromAuth && savedSession) {
+          setSessionId(savedSession);
+          setView("auth");
+        }
+        if (!returningFromAuth && savedTargets) {
+          try {
+            const parsed = JSON.parse(savedTargets);
+            if (Array.isArray(parsed)) setSelectedOrdinances(parsed);
+          } catch {
+            // The default two ordinances remain selected.
+          }
+        }
       }
     } catch {
       // Storage may be unavailable; the normal start button remains usable.
     }
   }, []);
 
-  const signIn = async (requestedReceipt: boolean) => {
+  const signIn = async () => {
+    if (!sessionId || busy) return;
     setAuthReturnError(undefined);
+    setBusy(true);
+    const prepareResponse = await fetch("/api/public-comment/auth/prepare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    const prepareData = await prepareResponse.json().catch(() => null);
+    if (!prepareResponse.ok) {
+      setBusy(false);
+      setAuthReturnError(
+        prepareData?.error ?? "ログインの準備に失敗しました。"
+      );
+      return;
+    }
     try {
       sessionStorage.setItem(PUBLIC_COMMENT_AUTH_RETURN_KEY, "1");
       sessionStorage.setItem(
         PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
-        String(requestedReceipt)
+        String(receiptOptIn)
+      );
+      sessionStorage.setItem(
+        `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`,
+        sessionId
+      );
+      sessionStorage.setItem(
+        `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-targets`,
+        JSON.stringify(selectedOrdinances)
       );
     } catch {
       // Do not block authentication when browser storage is unavailable.
     }
     const params = new URLSearchParams({
       auth_return: "1",
-      receipt: requestedReceipt ? "1" : "0",
+      receipt: receiptOptIn ? "1" : "0",
+      session: sessionId,
+      targets: JSON.stringify(selectedOrdinances),
     });
     await auth.signInWithGoogle(`${routes.publicCommentMinpaku()}?${params}`);
+    setBusy(false);
   };
 
-  const startSession = useCallback(
-    async (requestedReceipt: boolean) => {
-      if (auth.status !== "authenticated" || busy) return false;
-      setBusy(true);
-      setError(null);
-      try {
-        const response = await fetch("/api/public-comment/minpaku/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            consented: true,
-            receiptOptIn: requestedReceipt,
-            consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
-          }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
-        setSessionId(data.sessionId);
-        setReceiptOptIn(requestedReceipt);
-        loadConversation(data);
-        if (data.draft) setDraft(data.draft);
-        if (data.sources) setSources(data.sources);
-        setView(
-          data.nextStage === "review"
-            ? "review"
-            : data.nextStage === "draft"
-              ? "ordinances"
-              : "interview"
+  const startSession = useCallback(async () => {
+    if (busy) return false;
+    setBusy(true);
+    setError(null);
+    try {
+      await ensurePublicCommentActor();
+      const response = await fetch("/api/public-comment/minpaku/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          consented: true,
+          receiptOptIn: false,
+          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
+      setSessionId(data.sessionId);
+      setReceiptOptIn(true);
+      loadConversation(data);
+      if (data.draft) setDraft(data.draft);
+      if (data.sources) setSources(data.sources);
+      if (data.nextStage === "review" && data.draft) setView("review");
+      else if (
+        data.nextStage === "draft" &&
+        ["generating", "ready", "failed"].includes(data.draftGenerationStatus)
+      ) {
+        setDraftGenerationStatus(
+          data.draftGenerationStatus === "failed"
+            ? "failed"
+            : data.draftGenerationStatus === "ready"
+              ? "ready"
+              : "generating"
         );
-        return true;
-      } catch (caught) {
-        setError(
-          caught instanceof Error ? caught.message : "開始できませんでした"
-        );
-        return false;
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, auth.status, loadConversation]
-  );
+        setView("auth");
+      } else setView(data.nextStage === "draft" ? "ordinances" : "interview");
+      return true;
+    } catch (caught) {
+      setError(
+        caught instanceof Error ? caught.message : "開始できませんでした"
+      );
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, loadConversation]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || selectedOrdinances.length === 0 || busy) return;
@@ -779,9 +854,16 @@ export function PublicCommentMinpakuPage() {
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.error ?? "下書きを作成できませんでした");
-      setDraft(data.draft);
-      setSources(data.sources ?? MINPAKU_SOURCES);
-      setView("review");
+      if (data.draft) {
+        setDraft(data.draft);
+        setSources(data.sources ?? MINPAKU_SOURCES);
+        setView("review");
+      } else {
+        setDraftGenerationStatus(
+          data.status === "ready" ? "ready" : "generating"
+        );
+        setView("auth");
+      }
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -792,6 +874,56 @@ export function PublicCommentMinpakuPage() {
       setBusy(false);
     }
   }, [busy, selectedOrdinances, sessionId]);
+
+  useEffect(() => {
+    if (view !== "auth" || !sessionId || selectedOrdinances.length === 0)
+      return;
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const poll = async () => {
+      try {
+        const response = await fetch("/api/public-comment/minpaku/draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            targetOrdinances: selectedOrdinances,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data.error ?? "下書きを確認できませんでした");
+        if (cancelled) return;
+        if (data.draft) {
+          setDraft(data.draft);
+          setSources(data.sources ?? MINPAKU_SOURCES);
+          setError(null);
+          setView("review");
+          return;
+        }
+        setDraftGenerationStatus(
+          data.status === "ready" ? "ready" : "generating"
+        );
+        if (data.status === "ready" && auth.status !== "authenticated") return;
+        timeoutId = setTimeout(poll, 2000);
+      } catch (caught) {
+        if (cancelled) return;
+        setDraftGenerationStatus("failed");
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "下書きを確認できませんでした"
+        );
+      }
+    };
+
+    void poll();
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [auth.status, selectedOrdinances, sessionId, view]);
 
   const complete = useCallback(async () => {
     if (!sessionId || !draft || busy) return;
@@ -883,8 +1015,8 @@ export function PublicCommentMinpakuPage() {
     setConsentOpen(true);
   };
 
-  const handleConsent = (requestedReceipt: boolean) => {
-    void startSession(requestedReceipt).then((started) => {
+  const handleConsent = () => {
+    void startSession().then((started) => {
       if (started) setConsentOpen(false);
     });
   };
@@ -942,6 +1074,19 @@ export function PublicCommentMinpakuPage() {
           onGenerate={() => void generateDraft()}
         />
       )}
+      {view === "auth" && (
+        <PublicCommentDraftAuthGate
+          status={draftGenerationStatus}
+          authStatus={auth.status}
+          userEmail={auth.userEmail}
+          receiptOptIn={receiptOptIn}
+          isBusy={busy}
+          error={auth.error ?? authReturnError ?? error}
+          onReceiptChange={setReceiptOptIn}
+          onSignIn={() => void signIn()}
+          onRetry={() => void generateDraft()}
+        />
+      )}
       {view === "review" && draft && (
         <DraftReview
           draft={draft}
@@ -982,11 +1127,6 @@ export function PublicCommentMinpakuPage() {
         onOpenChange={setConsentOpen}
         isStarting={busy}
         onAgree={handleConsent}
-        authStatus={auth.status}
-        userEmail={auth.userEmail}
-        authError={auth.error ?? authReturnError}
-        initialReceiptOptIn={receiptOptIn}
-        onSignIn={signIn}
       />
     </div>
   );

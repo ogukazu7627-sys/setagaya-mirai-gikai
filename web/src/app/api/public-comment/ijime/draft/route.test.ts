@@ -16,7 +16,9 @@ vi.mock("@/lib/telemetry/register", () => ({
   registerNodeTelemetry: vi.fn(),
 }));
 vi.mock("@/features/public-comment/minpaku/server/auth", () => ({
+  getPublicCommentActor: mocks.getUser,
   getPublicCommentUser: mocks.getUser,
+  isVerifiedPublicCommentUser: () => true,
 }));
 vi.mock("@/features/chat/server/services/system-cost-guard", () => ({
   checkSystemDailyCostLimit: mocks.checkDaily,

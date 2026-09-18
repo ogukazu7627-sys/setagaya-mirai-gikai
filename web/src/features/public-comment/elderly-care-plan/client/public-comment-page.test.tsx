@@ -22,6 +22,16 @@ vi.mock("@/features/chat/client/hooks/use-chat-auth", () => ({
 }));
 
 vi.mock(
+  "@/features/public-comment/shared/client/ensure-public-comment-actor",
+  () => ({
+    ensurePublicCommentActor: vi.fn().mockResolvedValue({
+      id: "anonymous-user",
+      is_anonymous: true,
+    }),
+  })
+);
+
+vi.mock(
   "@/features/public-comment/shared/client/public-comment-interview-chat",
   () => ({
     PublicCommentInterviewChat: ({
@@ -126,9 +136,6 @@ describe("PublicCommentElderlyCarePlanPage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
-    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -139,12 +146,12 @@ describe("PublicCommentElderlyCarePlanPage", () => {
       "/api/public-comment/elderly-care-plan/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":true'),
+        body: expect.stringContaining('"receiptOptIn":false'),
       })
     );
   });
 
-  it("未ログイン時は認証後に同じページへ戻す", async () => {
+  it("未ログインでも保存同意だけでインタビューを開始できる", () => {
     auth.status = "unauthenticated";
     render(<PublicCommentElderlyCarePlanPage />);
     fireEvent.click(
@@ -152,11 +159,13 @@ describe("PublicCommentElderlyCarePlanPage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
-    await waitFor(() =>
-      expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/elderly-care-plan?auth_return=1&receipt=1"
-      )
-    );
+    expect(
+      screen.queryByRole("button", { name: /Google/ })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    expect(
+      screen.getByRole("button", { name: "同意してはじめる" })
+    ).toBeEnabled();
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled();
   });
 });

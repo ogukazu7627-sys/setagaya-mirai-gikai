@@ -6,7 +6,10 @@ import {
   checkSystemMonthlyCostLimit,
 } from "@/features/chat/server/services/system-cost-guard";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
-import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
+import {
+  getPublicCommentActor,
+  isVerifiedPublicCommentUser,
+} from "@/features/public-comment/minpaku/server/auth";
 import {
   createSession,
   findActiveSession,
@@ -27,8 +30,8 @@ import {
 import { resolveInterviewTurn, type TurnMessage } from "../interview-turn";
 import { generateInterviewTurn } from "./interview-ai";
 import {
-  getInterviewCampaign,
   type CampaignKey,
+  getInterviewCampaign,
   type InterviewCampaign,
 } from "./interview-campaigns";
 import { commitInterviewTurn, findCommittedTurn } from "./interview-repository";
@@ -94,17 +97,20 @@ function errorResponse(error: unknown, message: string) {
 export function createInterviewRoutes(
   key: CampaignKey,
   dependencies: {
-    getUser?: typeof getPublicCommentUser;
+    getUser?: typeof getPublicCommentActor;
     generate?: typeof generateInterviewTurn;
     checkBudgets?: () => Promise<void>;
     registerTelemetry?: () => Promise<void>;
     campaignSlug?: string;
+    isVerifiedUser?: typeof isVerifiedPublicCommentUser;
   } = {}
 ) {
-  const getUser = dependencies.getUser ?? getPublicCommentUser;
+  const getUser = dependencies.getUser ?? getPublicCommentActor;
   const generate = dependencies.generate ?? generateInterviewTurn;
   const registerTelemetry =
     dependencies.registerTelemetry ?? registerNodeTelemetry;
+  const isVerifiedUser =
+    dependencies.isVerifiedUser ?? isVerifiedPublicCommentUser;
   const checkBudgets =
     dependencies.checkBudgets ??
     (async () => {
@@ -130,7 +136,7 @@ export function createInterviewRoutes(
       const user = await getUser();
       if (!user)
         return NextResponse.json(
-          { error: "Googleログインが必要です" },
+          { error: "セッションを確認できません" },
           { status: 401 }
         );
       try {
@@ -231,14 +237,21 @@ export function createInterviewRoutes(
           revision,
           receiptOptIn: session.receipt_opt_in,
           nextStage: draft
-            ? "review"
+            ? isVerifiedUser(user)
+              ? "review"
+              : "draft"
             : state.phase === "done"
               ? "draft"
               : "interview",
           quickReplies: state.paused || draft ? [] : state.quickReplies,
           progress: interviewProgress(state, campaign.questions),
           mode: state.mode,
-          ...(draft ? { draft, sources: campaign.sources } : {}),
+          draftGenerationStatus: draft
+            ? "ready"
+            : session.draft_generation_status,
+          ...(draft && isVerifiedUser(user)
+            ? { draft, sources: campaign.sources }
+            : {}),
         });
       } catch (error) {
         return errorResponse(error, "インタビューを開始できませんでした");
@@ -258,7 +271,7 @@ export function createInterviewRoutes(
       const user = await getUser();
       if (!user)
         return NextResponse.json(
-          { error: "Googleログインが必要です" },
+          { error: "セッションを確認できません" },
           { status: 401 }
         );
       try {

@@ -2881,6 +2881,44 @@ export type Database = {
           },
         ]
       }
+      public_comment_auth_handoffs: {
+        Row: {
+          anonymous_user_id: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          session_id: string
+          token_hash: string
+        }
+        Insert: {
+          anonymous_user_id: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          session_id: string
+          token_hash: string
+        }
+        Update: {
+          anonymous_user_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          session_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_auth_handoffs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_comment_campaigns: {
         Row: {
           created_at: string
@@ -3071,12 +3109,18 @@ export type Database = {
           consent_version: string | null
           consented_at: string
           created_at: string
+          draft_generation_error_code: string | null
+          draft_generation_finished_at: string | null
+          draft_generation_started_at: string | null
+          draft_generation_status: string
+          draft_generation_token: string | null
           id: string
           interview_revision: number
           interview_state: Json | null
           publication_status: string
           receipt_opt_in: boolean
           started_at: string
+          superseded_at: string | null
           updated_at: string
           user_id: string
         }
@@ -3086,12 +3130,18 @@ export type Database = {
           consent_version?: string | null
           consented_at: string
           created_at?: string
+          draft_generation_error_code?: string | null
+          draft_generation_finished_at?: string | null
+          draft_generation_started_at?: string | null
+          draft_generation_status?: string
+          draft_generation_token?: string | null
           id?: string
           interview_revision?: number
           interview_state?: Json | null
           publication_status?: string
           receipt_opt_in?: boolean
           started_at?: string
+          superseded_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -3101,12 +3151,18 @@ export type Database = {
           consent_version?: string | null
           consented_at?: string
           created_at?: string
+          draft_generation_error_code?: string | null
+          draft_generation_finished_at?: string | null
+          draft_generation_started_at?: string | null
+          draft_generation_status?: string
+          draft_generation_token?: string | null
           id?: string
           interview_revision?: number
           interview_state?: Json | null
           publication_status?: string
           receipt_opt_in?: boolean
           started_at?: string
+          superseded_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3575,6 +3631,53 @@ export type Database = {
           p_source_refs?: Json
           p_target_ordinances: string[]
           p_user_id: string
+        }
+        Returns: {
+          ai_body: string
+          created_at: string
+          fact_check_notes: string[]
+          final_body: string
+          id: string
+          publication_requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          session_id: string
+          source_refs: Json
+          target_ordinances: string[]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "public_comment_drafts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      claim_public_comment_draft_generation: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
+      consume_public_comment_auth_handoff: {
+        Args: { p_target_user_id: string; p_token_hash: string }
+        Returns: string
+      }
+      fail_public_comment_draft_generation: {
+        Args: {
+          p_error_code: string
+          p_generation_token: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
+      save_public_comment_generated_draft: {
+        Args: {
+          p_ai_body: string
+          p_fact_check_notes: string[]
+          p_final_body: string
+          p_generation_token: string
+          p_session_id: string
+          p_source_refs: Json
+          p_target_ordinances: string[]
         }
         Returns: {
           ai_body: string

@@ -3,6 +3,7 @@ import { MINPAKU_ORDINANCES } from "../shared/campaign";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
+  findCampaign: vi.fn(),
   findSession: vi.fn(),
   generate: vi.fn(),
 }));
@@ -19,6 +20,9 @@ vi.mock("./ai", () => ({
   generatePublicCommentDraft: mocks.generate,
 }));
 vi.mock("./repository", () => ({
+  PublicCommentCompletedError: class PublicCommentCompletedError extends Error {},
+  findCampaign: mocks.findCampaign,
+  findSessionForCampaignUser: mocks.findSession,
   findSessionForUser: mocks.findSession,
   appendMessage: vi.fn(),
   findMessages: vi.fn(),
@@ -29,19 +33,11 @@ vi.mock("./repository", () => ({
 }));
 
 import { POST as complete } from "@/app/api/public-comment/minpaku/complete/route";
-import {
-  POST as draft,
-  PATCH as updateDraft,
-} from "@/app/api/public-comment/minpaku/draft/route";
+import { PATCH as updateDraft } from "@/app/api/public-comment/minpaku/draft/route";
 import { POST as receipt } from "@/app/api/public-comment/minpaku/receipt/route";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "../shared/consent";
 
 const endpoints = [
-  {
-    name: "draft",
-    handler: draft,
-    body: { sessionId: "session-1", targetOrdinances: [...MINPAKU_ORDINANCES] },
-  },
   {
     name: "updateDraft",
     handler: updateDraft,
@@ -65,7 +61,10 @@ const endpoints = [
 ];
 
 describe.each(endpoints)("民泊APIの認可: $name", ({ name, handler, body }) => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.findCampaign.mockResolvedValue({ id: "campaign-1" });
+  });
   it.each([
     null,
     { id: "anonymous", is_anonymous: true },
@@ -105,7 +104,18 @@ describe.each(endpoints)("民泊APIの認可: $name", ({ name, handler, body }) 
       })
     );
     expect(response.status).toBe(404);
-    expect(mocks.findSession).toHaveBeenCalledWith("session-1", "google-user");
+    if (name === "updateDraft") {
+      expect(mocks.findSession).toHaveBeenCalledWith(
+        "session-1",
+        "google-user",
+        "campaign-1"
+      );
+    } else {
+      expect(mocks.findSession).toHaveBeenCalledWith(
+        "session-1",
+        "google-user"
+      );
+    }
     expect(mocks.generate).not.toHaveBeenCalled();
   });
 });

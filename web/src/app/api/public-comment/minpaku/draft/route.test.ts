@@ -3,6 +3,7 @@ import { MINPAKU_ORDINANCES } from "@/features/public-comment/minpaku/shared/cam
 
 const mocks = vi.hoisted(() => ({
   user: vi.fn(),
+  campaign: vi.fn(),
   session: vi.fn(),
   draft: vi.fn(),
   update: vi.fn(),
@@ -12,7 +13,9 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/telemetry/register", () => ({ registerNodeTelemetry: vi.fn() }));
 vi.mock("@/features/public-comment/minpaku/server/auth", () => ({
+  getPublicCommentActor: mocks.user,
   getPublicCommentUser: mocks.user,
+  isVerifiedPublicCommentUser: () => true,
 }));
 vi.mock("@/features/chat/server/services/system-cost-guard", () => ({
   checkSystemDailyCostLimit: vi.fn(),
@@ -22,7 +25,8 @@ vi.mock("@/features/public-comment/minpaku/server/ai", () => ({
   generatePublicCommentDraft: mocks.generate,
 }));
 vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
-  findSessionForUser: mocks.session,
+  findCampaign: mocks.campaign,
+  findSessionForCampaignUser: mocks.session,
   findDraft: mocks.draft,
   updateDraft: mocks.update,
   findMessages: mocks.messages,
@@ -52,6 +56,7 @@ describe("frozen draft API", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.user.mockResolvedValue({ id: "owner" });
+    mocks.campaign.mockResolvedValue({ id: "campaign" });
     mocks.session.mockResolvedValue({
       id: "session",
       completed_at: "2026-09-16T00:00:00Z",

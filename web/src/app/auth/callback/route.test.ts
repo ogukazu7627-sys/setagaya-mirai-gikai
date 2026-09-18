@@ -2,12 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   next: "/public-comment/minpaku" as string | undefined,
+  handoff: undefined as string | undefined,
   exchange: vi.fn(),
+  consumeHandoff: vi.fn(),
   setCookie: vi.fn(),
 }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
-    get: () => (mocks.next === undefined ? undefined : { value: mocks.next }),
+    get: (name: string) => {
+      if (name === "mirai_public_comment_auth_handoff")
+        return mocks.handoff === undefined
+          ? undefined
+          : { value: mocks.handoff };
+      return mocks.next === undefined ? undefined : { value: mocks.next };
+    },
     set: mocks.setCookie,
     getAll: () => [],
   }),
@@ -24,6 +32,9 @@ vi.mock("@/lib/env", () => ({
     supabasePublishableKey: "test",
   },
 }));
+vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
+  consumeAuthHandoff: mocks.consumeHandoff,
+}));
 
 import { GET } from "./route";
 
@@ -31,6 +42,7 @@ describe("Google OAuth callback", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.next = "/public-comment/minpaku";
+    mocks.handoff = undefined;
   });
   it.each([
     undefined,
@@ -91,6 +103,50 @@ describe("Google OAuth callback", () => {
     );
     expect(response.headers.get("location")).toBe(
       "https://civictech-setagaya.org/public-comment/minpaku"
+    );
+    expect(mocks.setCookie).toHaveBeenCalledWith("mirai_chat_auth_next", "", {
+      path: "/",
+      maxAge: 0,
+    });
+  });
+  it("匿名セッションをGoogleユーザーに引き継いてから戻る", async () => {
+    mocks.handoff = "one-time-token";
+    mocks.exchange.mockResolvedValue({
+      data: { user: { id: "google-user" } },
+      error: null,
+    });
+
+    const response = await GET(
+      new Request("https://civictech-setagaya.org/auth/callback?code=valid")
+    );
+
+    expect(mocks.consumeHandoff).toHaveBeenCalledWith({
+      tokenHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      targetUserId: "google-user",
+    });
+    expect(response.headers.get("location")).toBe(
+      "https://civictech-setagaya.org/public-comment/minpaku"
+    );
+  });
+  it("引き継ぎトークンを利用できない場合は本文画面へ進まない", async () => {
+    mocks.handoff = "expired-token";
+    mocks.exchange.mockResolvedValue({
+      data: { user: { id: "google-user" } },
+      error: null,
+    });
+    mocks.consumeHandoff.mockRejectedValue(new Error("expired"));
+
+    const response = await GET(
+      new Request("https://civictech-setagaya.org/auth/callback?code=valid")
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://civictech-setagaya.org/public-comment/minpaku?auth_error=handoff_failed"
+    );
+    expect(mocks.setCookie).not.toHaveBeenCalledWith(
+      "mirai_public_comment_auth_handoff",
+      "",
+      { path: "/", maxAge: 0 }
     );
   });
   it("いじめパブコメの認証失敗時は同じページへ戻る", async () => {

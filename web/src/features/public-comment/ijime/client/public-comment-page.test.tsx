@@ -22,6 +22,16 @@ vi.mock("@/features/chat/client/hooks/use-chat-auth", () => ({
 }));
 
 vi.mock(
+  "@/features/public-comment/shared/client/ensure-public-comment-actor",
+  () => ({
+    ensurePublicCommentActor: vi.fn().mockResolvedValue({
+      id: "anonymous-user",
+      is_anonymous: true,
+    }),
+  })
+);
+
+vi.mock(
   "@/features/public-comment/shared/client/public-comment-interview-chat",
   () => ({
     PublicCommentInterviewChat: ({
@@ -105,9 +115,6 @@ describe("PublicCommentIjimePage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
-    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -119,12 +126,12 @@ describe("PublicCommentIjimePage", () => {
       "/api/public-comment/ijime/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":true'),
+        body: expect.stringContaining('"receiptOptIn":false'),
       })
     );
   });
 
-  it("未ログイン時は認証後に同じページへ戻す", async () => {
+  it("未ログインでも保存同意だけでインタビューを開始できる", () => {
     auth.status = "unauthenticated";
     render(<PublicCommentIjimePage />);
     fireEvent.click(
@@ -132,32 +139,35 @@ describe("PublicCommentIjimePage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
-    fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
-    await waitFor(() =>
-      expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/ijime?auth_return=1&receipt=1"
-      )
-    );
+    expect(
+      screen.queryByRole("button", { name: /Google/ })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    expect(
+      screen.getByRole("button", { name: "同意してはじめる" })
+    ).toBeEnabled();
+    expect(auth.signInWithGoogle).not.toHaveBeenCalled();
   });
 
   it("最終応答と安全案内を表示してから下書き作成へ進む", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          sessionId: "session-1",
-          messages: [
-            {
-              id: "safety-message",
-              role: "assistant",
-              content: "今すぐ危険がある場合は110または119へ。",
-              question_id: null,
-            },
-          ],
-          quickReplies: [],
-          nextStage: "draft",
-        }),
-        { status: 200 }
-      )
+    vi.spyOn(global, "fetch").mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            sessionId: "session-1",
+            messages: [
+              {
+                id: "safety-message",
+                role: "assistant",
+                content: "今すぐ危険がある場合は110または119へ。",
+                question_id: null,
+              },
+            ],
+            quickReplies: [],
+            nextStage: "draft",
+          }),
+          { status: 200 }
+        )
     );
     render(<PublicCommentIjimePage />);
     fireEvent.click(
@@ -228,9 +238,6 @@ describe("PublicCommentIjimePage", () => {
         name: "あなたの言葉になっているか確認してください",
       })
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
-    ).toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
 
     expect(

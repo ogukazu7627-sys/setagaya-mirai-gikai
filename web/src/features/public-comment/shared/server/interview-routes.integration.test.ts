@@ -42,6 +42,7 @@ function routes(
     registerTelemetry: async () => {},
     checkBudgets: async () => {},
     generate: async () => answer,
+    isVerifiedUser: () => true,
     ...overrides,
   });
 }
@@ -279,6 +280,26 @@ describe("共通HTTP境界", () => {
     expect(data.nextStage).toBe("review");
     expect(data.draft.final_body).toBe("編集した本文");
     expect(data.messages).toHaveLength(0);
+  });
+  it("匿名ユーザーの再読込みでは保存済み下書き本文を返さない", async () => {
+    const session = await fixture.createSession();
+    const inserted = await adminClient.from("public_comment_drafts").insert({
+      session_id: session.id,
+      ai_body: "下書き",
+      final_body: "認証前には表示しない本文",
+    });
+    expect(inserted.error).toBeNull();
+
+    const data = await (
+      await routes("ijime", { isVerifiedUser: () => false }).session(
+        request(consent)
+      )
+    ).json();
+
+    expect(data.nextStage).toBe("draft");
+    expect(data.draftGenerationStatus).toBe("ready");
+    expect(data.draft).toBeUndefined();
+    expect(JSON.stringify(data)).not.toContain("認証前には表示しない本文");
   });
   it("開始後にcampaign設定が変わっても、modeと対象条件のsnapshotを維持する", async () => {
     const handlers = routes("ijime");
