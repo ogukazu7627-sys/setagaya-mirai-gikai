@@ -55,10 +55,12 @@ describe("PublicCommentDementiaHopePlanPage", () => {
   it("診断・相談窓口との違い、センシティブ情報、公式の相談導線を示す", () => {
     render(<PublicCommentDementiaHopePlanPage />);
     expect(
-      screen.getByRole("img", { name: "話を丁寧に聴く人のイラスト" })
+      screen.getByRole("img", {
+        name: "高齢者と支援者が地域を歩くイラスト",
+      })
     ).toHaveAttribute(
       "src",
-      expect.stringContaining("interview-illustration.png")
+      expect.stringContaining("dementia-hope-plan-public-comment-hero.webp")
     );
     expect(
       screen.getByText(/認知症の診断、個別の医療・介護相談/)

@@ -55,6 +55,14 @@ describe("PublicCommentSuicidePreventionPage", () => {
   it("相談窓口との違い、緊急時の連絡先、公式の相談導線を示す", () => {
     render(<PublicCommentSuicidePreventionPage />);
 
+    expect(
+      screen.getByRole("img", {
+        name: "明るい相談室で相談員が話を聴くイラスト",
+      })
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("suicide-prevention-public-comment-hero.webp")
+    );
     expect(screen.getByText(/こころの相談、診断・治療/)).toBeInTheDocument();
     expect(screen.getByText(/119（救急）または110/)).toBeInTheDocument();
     expect(screen.getByText(/03-6276-0044/)).toBeInTheDocument();

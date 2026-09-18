@@ -22,8 +22,8 @@ import {
 
 const INCLUSION_PLAN_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: INCLUSION_PLAN_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/inclusion-plan-public-comment-hero.webp",
+  heroImageAlt: "車いす利用者や補助犬を含む人々が地域で交流するイラスト",
   submissionDeadline: INCLUSION_PLAN_SUBMISSION_DEADLINE,
   officialSubmissionUrl: INCLUSION_PLAN_OFFICIAL_SUBMISSION_URL,
   sources: INCLUSION_PLAN_SOURCES,

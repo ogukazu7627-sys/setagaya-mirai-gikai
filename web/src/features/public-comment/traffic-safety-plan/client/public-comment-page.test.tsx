@@ -78,10 +78,12 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
   it("通報窓口との違い、個人・場所の特定防止、公式情報を示す", () => {
     render(<PublicCommentTrafficSafetyPlanPage />);
     expect(
-      screen.getByRole("img", { name: "話を丁寧に聴く人のイラスト" })
+      screen.getByRole("img", {
+        name: "子どもや高齢者、自転車利用者が道路を安全に通行するイラスト",
+      })
     ).toHaveAttribute(
       "src",
-      expect.stringContaining("interview-illustration.png")
+      expect.stringContaining("traffic-safety-plan-public-comment-hero.webp")
     );
     expect(
       screen.getByText(/個別の事故・違反・道路危険箇所の通報窓口ではありません/)

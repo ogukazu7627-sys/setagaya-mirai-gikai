@@ -21,8 +21,8 @@ import {
 
 const DEMENTIA_HOPE_PLAN_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: DEMENTIA_HOPE_PLAN_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/dementia-hope-plan-public-comment-hero.webp",
+  heroImageAlt: "高齢者と支援者が地域を歩くイラスト",
   submissionDeadline: DEMENTIA_HOPE_PLAN_SUBMISSION_DEADLINE,
   officialSubmissionUrl: DEMENTIA_HOPE_PLAN_OFFICIAL_SUBMISSION_URL,
   sources: DEMENTIA_HOPE_PLAN_SOURCES,

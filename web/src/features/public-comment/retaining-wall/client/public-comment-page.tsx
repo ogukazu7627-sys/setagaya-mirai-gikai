@@ -22,8 +22,8 @@ import {
 
 const RETAINING_WALL_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: RETAINING_WALL_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/retaining-wall-public-comment-hero.webp",
+  heroImageAlt: "住宅地のがけ・擁壁を住民と専門家が確認するイラスト",
   submissionDeadline: RETAINING_WALL_SUBMISSION_DEADLINE,
   officialSubmissionUrl: RETAINING_WALL_OFFICIAL_SUBMISSION_URL,
   sources: RETAINING_WALL_SOURCES,

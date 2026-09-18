@@ -21,8 +21,8 @@ import {
 
 const TRAFFIC_SAFETY_PLAN_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: TRAFFIC_SAFETY_PLAN_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/traffic-safety-plan-public-comment-hero.webp",
+  heroImageAlt: "子どもや高齢者、自転車利用者が道路を安全に通行するイラスト",
   submissionDeadline: TRAFFIC_SAFETY_PLAN_SUBMISSION_DEADLINE,
   officialSubmissionUrl: TRAFFIC_SAFETY_PLAN_OFFICIAL_SUBMISSION_URL,
   sources: TRAFFIC_SAFETY_PLAN_SOURCES,

@@ -22,8 +22,8 @@ import {
 
 const SUICIDE_PREVENTION_PAGE_CONFIG: PublicCommentPageConfig = {
   campaignTitle: SUICIDE_PREVENTION_CAMPAIGN_TITLE,
-  heroImageSrc: "/illustrations/interview-illustration.png",
-  heroImageAlt: "話を丁寧に聴く人のイラスト",
+  heroImageSrc: "/illustrations/suicide-prevention-public-comment-hero.webp",
+  heroImageAlt: "明るい相談室で相談員が話を聴くイラスト",
   submissionDeadline: SUICIDE_PREVENTION_SUBMISSION_DEADLINE,
   officialSubmissionUrl: SUICIDE_PREVENTION_OFFICIAL_SUBMISSION_URL,
   sources: SUICIDE_PREVENTION_SOURCES,

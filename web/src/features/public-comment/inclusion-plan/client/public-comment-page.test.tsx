@@ -56,11 +56,11 @@ describe("PublicCommentInclusionPlanPage", () => {
     render(<PublicCommentInclusionPlanPage />);
     expect(
       screen.getByRole("img", {
-        name: "話を丁寧に聴く人のイラスト",
+        name: "車いす利用者や補助犬を含む人々が地域で交流するイラスト",
       })
     ).toHaveAttribute(
       "src",
-      expect.stringContaining("interview-illustration.png")
+      expect.stringContaining("inclusion-plan-public-comment-hero.webp")
     );
     expect(
       screen.getByText(/個別の差別や虐待を相談・通報する窓口ではありません/)
