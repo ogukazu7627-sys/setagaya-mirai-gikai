@@ -31,6 +31,7 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
         title: "receipt integration",
         submission_deadline: "2026-10-06T00:00:00Z",
         official_url: "https://example.test",
+        submission_url: "https://example.test/submit",
         status: "draft",
       })
       .select()
@@ -143,8 +144,10 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
     const row = await read(f.id);
     expect(row).toMatchObject({
       recipient: user.email,
+      subject: "receipt integration：インタビューと最終案の控え",
       final_body: "  最終案\n編集済み  ",
       consent_version: VERSION,
+      idempotency_key: `public-comment-receipt/${f.id}`,
       attempt_count: 0,
     });
     expect(row?.conversation).toEqual(
@@ -156,9 +159,7 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
       }))
     );
     expect(row?.body).toContain("【最終案】\n  最終案\n編集済み  \n");
-    expect(row?.body).toContain(
-      "https://www.city.setagaya.lg.jp/pub-comment/02245/34014.html"
-    );
+    expect(row?.body).toContain("https://example.test/submit");
     expect(row?.body).toContain("自動提出されていません");
     for (const message of f.messages)
       expect(row?.body).toContain(message.content);

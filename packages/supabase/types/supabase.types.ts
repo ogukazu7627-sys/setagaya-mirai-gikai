@@ -2890,6 +2890,7 @@ export type Database = {
           slug: string
           status: string
           submission_deadline: string
+          submission_url: string
           target_audiences: Json
           title: string
           updated_at: string
@@ -2902,6 +2903,7 @@ export type Database = {
           slug: string
           status?: string
           submission_deadline: string
+          submission_url: string
           target_audiences?: Json
           title: string
           updated_at?: string
@@ -2914,6 +2916,7 @@ export type Database = {
           slug?: string
           status?: string
           submission_deadline?: string
+          submission_url?: string
           target_audiences?: Json
           title?: string
           updated_at?: string

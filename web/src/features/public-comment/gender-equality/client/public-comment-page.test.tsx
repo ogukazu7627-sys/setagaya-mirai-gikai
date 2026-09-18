@@ -121,8 +121,8 @@ describe("PublicCommentGenderEqualityPage", () => {
       })[0]
     );
     expect(
-      screen.queryByText(/控えをメールで受け取る/)
-    ).not.toBeInTheDocument();
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -133,7 +133,7 @@ describe("PublicCommentGenderEqualityPage", () => {
       "/api/public-comment/gender-equality/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":false'),
+        body: expect.stringContaining('"receiptOptIn":true'),
       })
     );
   });
@@ -149,7 +149,7 @@ describe("PublicCommentGenderEqualityPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/gender-equality?auth_return=1"
+        "/public-comment/gender-equality?auth_return=1&receipt=1"
       )
     );
   });

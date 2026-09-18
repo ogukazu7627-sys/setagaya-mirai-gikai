@@ -1,7 +1,7 @@
 import { GENDER_EQUALITY_CAMPAIGN_SLUG } from "@/features/public-comment/gender-equality/shared/campaign";
-import { createPublicCommentCompleteHandler } from "@/features/public-comment/shared/server/receipt-routes";
+import { createPublicCommentReceiptHandler } from "@/features/public-comment/shared/server/receipt-routes";
 
 export const maxDuration = 30;
-export const POST = createPublicCommentCompleteHandler(
+export const POST = createPublicCommentReceiptHandler(
   GENDER_EQUALITY_CAMPAIGN_SLUG
 );

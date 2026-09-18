@@ -12,6 +12,7 @@ export async function createPublicCommentFixture(
       slug,
       title: "統合テスト",
       official_url: "https://example.com",
+      submission_url: "https://example.com/submit",
       submission_deadline: "2099-01-01T00:00:00Z",
       status: "published",
       interview_mode: mode,
