@@ -26,6 +26,7 @@ const answer: TurnResponse = {
   quickReplies: [],
   disposition: "answer",
   deepeningDecision: "continue",
+  alreadyCoveredQuestionIds: [],
   guidance: "",
   eligibility: [],
 };
@@ -86,7 +87,7 @@ describe.each(keys)("%s 実DB統合", (key) => {
     expect(data.messages[0].content).toContain(qs[0].premise);
     expect(data.messages[0].content).toContain(qs[0].ask);
     const sessionId = data.sessionId;
-    for (let i = 0; i < (mode === "targeted" ? 18 : 21); i++) {
+    for (let i = 0; i < 10; i++) {
       const response = await handlers.chat(
         request({
           sessionId,
@@ -118,7 +119,7 @@ describe.each(keys)("%s 実DB統合", (key) => {
       .single();
     const state = interviewStateSchema.parse(saved.data?.interview_state);
     expect(state.phase).toBe("done");
-    expect(state.completed).toHaveLength(mode === "targeted" ? 6 : 7);
+    expect(state.turnCount).toBe(10);
     if (mode === "targeted") expect(state.skipped[qs[1].id]).toBe("ineligible");
     const extra = await handlers.chat(
       request({
@@ -459,7 +460,7 @@ describe("共通HTTP境界", () => {
     const normal = routes("suicide-prevention");
     let data = await (await normal.session(request(consent))).json();
     const sessionId = data.sessionId;
-    for (let i = 0; i < 20; i++)
+    for (let i = 0; i < 9; i++)
       data = await (
         await normal.chat(
           request({
