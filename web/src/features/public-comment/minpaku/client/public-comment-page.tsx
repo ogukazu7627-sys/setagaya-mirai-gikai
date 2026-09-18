@@ -35,10 +35,10 @@ import {
   MINPAKU_LEARNING_ESTIMATED_TIME,
   MINPAKU_LESSONS,
 } from "../shared/learning";
+import type { ReceiptResult } from "../shared/receipt";
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
-import type { ReceiptResult } from "../shared/receipt";
 import { ReceiptPreference } from "./receipt-preference";
 import { usePublicCommentViewScroll } from "./use-public-comment-view-scroll";
 
@@ -133,25 +133,25 @@ function PublicCommentStartActions({
     <div className="flex w-full max-w-[370px] flex-col items-center gap-3">
       <Button
         type="button"
-        onClick={onLearn}
+        onClick={onStart}
         className="h-auto min-h-13 w-full whitespace-normal py-3 text-[15px]"
       >
-        <BookOpen className="size-5" />
-        条例改正について学ぶ
+        AIパブコメインタビューをはじめる
         <ArrowRight className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="link"
+        onClick={onLearn}
+        className="whitespace-normal text-sm leading-6"
+      >
+        <BookOpen className="size-4" />
+        学習してからはじめる
       </Button>
       <p className="text-xs text-mirai-text-secondary">
         {MINPAKU_LESSONS.length}章・各1問 / 目安
         {MINPAKU_LEARNING_ESTIMATED_TIME}
       </p>
-      <Button
-        type="button"
-        variant="link"
-        onClick={onStart}
-        className="whitespace-normal text-sm leading-6"
-      >
-        すぐにAIインタビューをはじめる
-      </Button>
     </div>
   );
 }
@@ -172,13 +172,9 @@ function PublicCommentHero({
           </span>
         </div>
         <h1 className="text-center text-2xl font-bold leading-[1.5]">
-          パブリックコメントをつくるAIインタビュー
+          <span className="block">AIパブコメインタビュー</span>
+          <span className="mt-2 block text-xl">{MINPAKU_CAMPAIGN_TITLE}</span>
         </h1>
-        <div className="inline-flex items-center justify-center gap-2.5 rounded-xl bg-white px-4 py-2">
-          <span className="text-center text-[13px] font-medium leading-[1.87] text-black">
-            {MINPAKU_CAMPAIGN_TITLE}
-          </span>
-        </div>
       </div>
 
       <div className="flex w-full max-w-[334px] flex-col gap-4 pl-4">

@@ -56,6 +56,25 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
     vi.restoreAllMocks();
   });
 
+  it("テーマ別の中央見出しとインタビュー優先の開始導線を表示する", () => {
+    render(<PublicCommentTrafficSafetyPlanPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: /AIパブコメインタビュー.*第12次世田谷区交通安全計画/,
+      })
+    ).toHaveClass("text-center");
+    expect(
+      screen.getAllByRole("button", {
+        name: "AIパブコメインタビューをはじめる",
+      })[0]
+    ).toHaveClass("bg-mirai-gradient");
+    expect(
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
+    ).toHaveClass("underline");
+  });
+
   it("通報窓口との違い、個人・場所の特定防止、公式情報を示す", () => {
     render(<PublicCommentTrafficSafetyPlanPage />);
     expect(
@@ -80,7 +99,7 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
   it("指定された6章の学習導線を表示する", () => {
     render(<PublicCommentTrafficSafetyPlanPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: /計画素案について学ぶ/ })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     expect(
       screen.getByRole("heading", {
@@ -119,7 +138,7 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
     render(<PublicCommentTrafficSafetyPlanPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     expect(
@@ -145,7 +164,7 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
     render(<PublicCommentTrafficSafetyPlanPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));

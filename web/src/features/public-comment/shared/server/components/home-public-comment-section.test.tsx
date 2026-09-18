@@ -82,6 +82,11 @@ describe("HomePublicCommentSection", () => {
     ).toHaveAttribute("href", "/public-comment/suicide-prevention");
     expect(
       screen.getByRole("link", {
+        name: /第12次世田谷区交通安全計画/,
+      })
+    ).toHaveAttribute("href", "/public-comment/traffic-safety-plan");
+    expect(
+      screen.getByRole("link", {
         name: /障害理解・地域共生条例の改正素案/,
       })
     ).toHaveAttribute("href", "/public-comment/disability");
