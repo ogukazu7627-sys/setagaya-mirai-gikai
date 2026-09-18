@@ -10,7 +10,8 @@ import {
   type TestUser,
 } from "../utils";
 
-const VERSION = "2026-09-16-receipt-v1";
+const VERSION = "2026-09-18-late-google-auth-v1";
+const LEGACY_VERSION = "2026-09-16-receipt-v1";
 const url = new URL(process.env.SUPABASE_URL ?? "http://127.0.0.1:54421");
 if (!["localhost", "127.0.0.1"].includes(url.hostname))
   throw new Error("Receipt integration tests require local Supabase");
@@ -211,6 +212,23 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
     expect(result.error?.message).toContain("public_comment_invalid_consent");
     expect(await read(f.id)).toBeNull();
     expect((await complete(f.id)).error).toBeNull();
+  });
+
+  it("accepts the receipt consent version used before late Google auth", async () => {
+    const f = await fixture();
+    const result = await adminClient.rpc("complete_public_comment_session", {
+      p_session_id: f.id,
+      p_user_id: user.id,
+      p_publication_requested: true,
+      p_receipt_opt_in: true,
+      p_consent_version: LEGACY_VERSION,
+    });
+    expect(result.error).toBeNull();
+    expect(result.data).toBe("pending_review");
+    expect(await read(f.id)).toMatchObject({
+      consent_version: LEGACY_VERSION,
+      recipient: user.email,
+    });
   });
 
   it("unverified auth email never becomes a sendable recipient", async () => {
