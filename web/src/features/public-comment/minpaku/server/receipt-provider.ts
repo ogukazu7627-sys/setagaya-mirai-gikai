@@ -5,6 +5,7 @@ export type ReceiptEmail = {
   to: string;
   subject: string;
   text: string;
+  html: string;
   idempotencyKey: string;
 };
 
@@ -35,6 +36,7 @@ export function createResendReceiptProvider(
             to: [email.to],
             subject: email.subject,
             text: email.text,
+            html: email.html,
           }),
           signal: AbortSignal.timeout(15_000),
         });

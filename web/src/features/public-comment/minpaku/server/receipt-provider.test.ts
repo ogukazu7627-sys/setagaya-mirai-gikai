@@ -9,6 +9,7 @@ const email: ReceiptEmail = {
   to: "owner@example.test",
   subject: "控え",
   text: "会話\n<原文> & 本文",
+  html: "<p>会話 &amp; 本文</p>",
   idempotencyKey: "minpaku-receipt/session",
 };
 
@@ -37,6 +38,7 @@ describe("Resend receipt provider (fake HTTP only)", () => {
       to: [email.to],
       subject: email.subject,
       text: email.text,
+      html: email.html,
     });
   });
   it.each([400, 401, 429, 500])("does not accept HTTP %s", async (status) => {

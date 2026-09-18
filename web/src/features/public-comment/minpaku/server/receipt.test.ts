@@ -88,6 +88,7 @@ describe("receipt dispatch with injected provider", () => {
       to: "owner@example.test",
       subject: "fixed subject",
       text: "fixed body",
+      html: expect.stringContaining("確認済みコメント"),
       idempotencyKey: "fixed-key",
     });
   });
@@ -249,6 +250,7 @@ describe("receipt dispatch with injected provider", () => {
       to: "owner@example.test",
       subject: "fixed subject",
       text: "fixed body",
+      html: expect.stringContaining("確認済みコメント"),
       idempotencyKey: "fixed-key",
     };
     expect(deps.provider.send.mock.calls).toEqual([
