@@ -32,7 +32,9 @@ export function isWidePage(pathname: string): boolean {
     pathname === "/budget" ||
     pathname.startsWith("/budget/") ||
     pathname === "/learn" ||
-    pathname.startsWith("/learn/")
+    pathname.startsWith("/learn/") ||
+    pathname === "/public-comment" ||
+    pathname === "/public-comment/"
   );
 }
 

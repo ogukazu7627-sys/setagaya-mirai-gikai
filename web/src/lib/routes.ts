@@ -88,6 +88,7 @@ export const routes = {
   learnLesson: (slug: string) => `/learn/${slug}` as const,
 
   // ── パブリックコメント ────────────────────────────────
+  publicComments: () => "/public-comment" as const,
   publicCommentMinpaku: () => "/public-comment/minpaku" as const,
   publicCommentMinpakuComments: () =>
     "/public-comment/minpaku/comments" as const,

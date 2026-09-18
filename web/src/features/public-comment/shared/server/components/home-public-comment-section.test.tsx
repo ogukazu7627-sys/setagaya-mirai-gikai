@@ -52,6 +52,9 @@ describe("HomePublicCommentSection", () => {
       "lg:basis-[32%]"
     );
     expect(screen.getByText("全10件")).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "10件をすべて見る" })
+    ).toHaveAttribute("href", "/public-comment");
 
     expect(
       screen.getByRole("link", {
@@ -92,6 +95,11 @@ describe("HomePublicCommentSection", () => {
         name: /次期せたがやインクルージョンプラン/,
       })
     ).toHaveAttribute("href", "/public-comment/inclusion-plan");
+    expect(
+      screen.getByRole("link", {
+        name: /第12次世田谷区交通安全計画/,
+      })
+    ).toHaveAttribute("href", "/public-comment/traffic-safety-plan");
     expect(
       screen.getByRole("link", {
         name: /いじめの予防と解消に向けた条例素案/,
