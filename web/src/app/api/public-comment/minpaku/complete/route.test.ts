@@ -53,6 +53,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
       id: "session-1",
       user_id: "owner",
       completed_at: null,
+      publication_status: null,
     });
     mocks.findDraft.mockResolvedValue({
       final_body: "Confirmed final comment",
@@ -131,5 +132,66 @@ describe("POST /api/public-comment/minpaku/complete", () => {
       "session-1",
       "owner"
     );
+  });
+
+  it("returns the existing completion when the browser retries after a committed completion", async () => {
+    mocks.findSession.mockResolvedValue({
+      id: "session-1",
+      user_id: "owner",
+      completed_at: "2026-09-19T00:00:00.000Z",
+      publication_status: "private",
+    });
+    mocks.completeSession.mockRejectedValue(new Error("already completed"));
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      status: "private",
+      receipt: { status: "accepted", canRetry: false },
+    });
+    expect(mocks.completeSession).not.toHaveBeenCalled();
+    expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
+      "session-1",
+      "owner"
+    );
+  });
+
+  it("recovers when the completion commit succeeded but its response was lost", async () => {
+    mocks.findSession
+      .mockResolvedValueOnce({
+        id: "session-1",
+        user_id: "owner",
+        completed_at: null,
+        publication_status: null,
+      })
+      .mockResolvedValueOnce({
+        id: "session-1",
+        user_id: "owner",
+        completed_at: "2026-09-19T00:00:00.000Z",
+        publication_status: "private",
+      });
+    mocks.completeSession.mockRejectedValue(new Error("connection lost"));
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      status: "private",
+      receipt: { status: "accepted", canRetry: false },
+    });
+    expect(mocks.findSession).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not turn a receipt exception into a completion failure", async () => {
+    mocks.sendReceipt.mockRejectedValue(new Error("receipt unavailable"));
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      status: "private",
+      receipt: { status: "pending", canRetry: true },
+    });
   });
 });

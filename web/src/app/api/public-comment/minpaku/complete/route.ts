@@ -7,6 +7,7 @@ import {
   findSessionForUser,
 } from "@/features/public-comment/minpaku/server/repository";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import type { PublicCommentReceipt } from "@/features/public-comment/minpaku/shared/receipt";
 
 export const maxDuration = 30;
 
@@ -48,14 +49,40 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const status = await completeSession({
-      sessionId,
-      userId: user.id,
-      publicationRequested,
-      receiptOptIn: body.receiptOptIn,
-      consentVersion: body.consentVersion,
-    });
-    const receipt = await sendPublicCommentReceipt(sessionId, user.id);
+    let status: string;
+    try {
+      // A lost response can leave the session completed while the browser still
+      // shows the review screen. Treat that retry as a read, not a new write.
+      status = session.completed_at
+        ? (session.publication_status ?? "private")
+        : await completeSession({
+            sessionId,
+            userId: user.id,
+            publicationRequested,
+            receiptOptIn: body.receiptOptIn,
+            consentVersion: body.consentVersion,
+          });
+    } catch (error) {
+      // Older deployed SQL functions may reject a second completion request.
+      // Re-read after the error so a committed completion is still recoverable.
+      const completedSession = await findSessionForUser(sessionId, user.id);
+      if (!completedSession?.completed_at) throw error;
+      status = completedSession.publication_status ?? "private";
+    }
+
+    let receipt: PublicCommentReceipt = {
+      status: "not_requested",
+      canRetry: false,
+    };
+    if (body.receiptOptIn) {
+      try {
+        receipt = await sendPublicCommentReceipt(sessionId, user.id);
+      } catch {
+        // Receipt delivery is best-effort. The completed interview must remain
+        // complete and can be retried through the dedicated receipt endpoint.
+        receipt = { status: "pending", canRetry: true };
+      }
+    }
     return NextResponse.json({
       status,
       receipt,
