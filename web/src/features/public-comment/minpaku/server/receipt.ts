@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PublicCommentReceipt } from "../shared/receipt";
+import { createPublicCommentReceiptHtml } from "./receipt-html";
 import {
   createResendReceiptProvider,
   type ReceiptProvider,
@@ -67,6 +68,12 @@ export async function sendPublicCommentReceipt(
               to: claimed.recipient,
               subject: claimed.subject,
               text: claimed.body,
+              html: createPublicCommentReceiptHtml({
+                subject: claimed.subject,
+                body: claimed.body,
+                finalBody: claimed.final_body,
+                conversation: claimed.conversation,
+              }),
               idempotencyKey: claimed.idempotency_key,
             })
             .catch(() => ({ status: "failed" as const }));
