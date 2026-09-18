@@ -80,7 +80,7 @@ describe("PublicCommentElderlyCarePlanPage", () => {
   it("指定された6章の学習導線を表示する", () => {
     render(<PublicCommentElderlyCarePlanPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: /計画素案について学ぶ/ })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     expect(
       screen.getByRole("heading", {
@@ -121,7 +121,7 @@ describe("PublicCommentElderlyCarePlanPage", () => {
     render(<PublicCommentElderlyCarePlanPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     expect(
@@ -147,7 +147,7 @@ describe("PublicCommentElderlyCarePlanPage", () => {
     render(<PublicCommentElderlyCarePlanPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));

@@ -3,6 +3,7 @@
 import {
   Accessibility,
   ArrowRight,
+  Bike,
   Brain,
   CalendarDays,
   HandHeart,
@@ -36,6 +37,7 @@ const campaignIcons = {
   mountain: Mountain,
   equality: Scale,
   school: School,
+  traffic: Bike,
 } as const;
 
 export type HomePublicCommentCampaign = {
