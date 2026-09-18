@@ -24,6 +24,7 @@ const response: TurnResponse = {
   quickReplies: [],
   disposition: "answer",
   deepeningDecision: "continue",
+  alreadyCoveredQuestionIds: [],
   guidance: "",
   eligibility: [],
 };
@@ -62,29 +63,22 @@ describe.each(keys)("%s のサーバー進行", (key) => {
     "loop",
     "bulk",
     "targeted",
-  ] as const)("%s: 必要な場合も深掘りは各テーマ最大2回に制限する", (mode) => {
+  ] as const)("%s: 必要な場合も回答ターンは最大10回に制限する", (mode) => {
     let state = advanceInterview(initialInterviewState(mode), qs, "answer");
     const seen: string[] = [];
-    for (let turn = 0; turn < 21; turn++) {
+    for (let turn = 0; turn < 10; turn++) {
       expect(state.phase).not.toBe("done");
       seen.push(`${state.currentQuestionId}:${state.kind}`);
       expect(canCreateInterviewDraft(state, turn, 7)).toBe(false);
       state = advanceInterview(state, qs, "answer", [], "continue");
     }
-    const base = qs.map((q) => `${q.id}:base`);
-    const follow = qs.flatMap((q) => [`${q.id}:followup`, `${q.id}:followup`]);
-    expect(seen).toEqual(
-      mode === "bulk"
-        ? [...base, ...follow]
-        : qs.flatMap((q) => [
-            `${q.id}:base`,
-            `${q.id}:followup`,
-            `${q.id}:followup`,
-          ])
-    );
+    expect(seen).toHaveLength(10);
+    expect(state.turnCount).toBe(10);
     expect(state.phase).toBe("done");
-    expect(Object.values(state.followUpAnswers)).toEqual(Array(7).fill(2));
-    expect(canCreateInterviewDraft(state, 21, 7)).toBe(true);
+    expect(canCreateInterviewDraft(state, 10, 7)).toBe(true);
+    expect(
+      advanceInterview(state, qs, "answer", [], "continue").turnCount
+    ).toBe(10);
   });
 });
 
@@ -135,6 +129,29 @@ describe("安全・例外・表示", () => {
         "\n\n"
       )
     );
+  });
+  it("回答済みの固定テーマは無言で省略し、次の未回答テーマへ進む", () => {
+    const state = start();
+    const result = resolveInterviewTurn({
+      state,
+      questions,
+      response: {
+        ...response,
+        deepeningDecision: "sufficient",
+        followUp: "",
+        alreadyCoveredQuestionIds: [questions[1].id, questions[2].id],
+      },
+      action: "answer",
+      messages: [],
+    });
+    expect(result.state.skipped).toMatchObject({
+      [questions[1].id]: "covered",
+      [questions[2].id]: "covered",
+    });
+    expect(result.state.currentQuestionId).toBe(questions[3].id);
+    expect(result.content).toContain(questions[3].premise);
+    expect(result.content).not.toContain(questions[1].ask);
+    expect(result.content).not.toContain(questions[2].ask);
   });
   it("一度深掘りした後に回答が十分になれば、二度目は聞かない", () => {
     let state = start();
@@ -200,7 +217,7 @@ describe("安全・例外・表示", () => {
     );
     expect(
       interviewProgress(needsDetail, questions).remainingQuestionRange
-    ).toEqual({ min: 7, max: 10 });
+    ).toEqual({ min: 7, max: 9 });
   });
   it("明示的な対象外のみ内部に保存して無表示で次へ進む", () => {
     const qs = questions.map((q, i) => ({
@@ -350,7 +367,9 @@ describe("安全・例外・表示", () => {
     expect(prompt).toContain("&lt;/conversation&gt;");
     expect(prompt).toContain("追加できる深掘りは最大2回");
     expect(prompt).toContain("deepeningDecision=sufficient");
+    expect(prompt).toContain("alreadyCoveredQuestionIds");
+    expect(prompt).toContain("7つの固定テーマを必ずすべて聞く必要はありません");
     expect(prompt).toContain("経験がないだけなら");
-    expect(prompt).toContain("サーバーが質問順");
+    expect(prompt).toContain("質問の許可順");
   });
 });
