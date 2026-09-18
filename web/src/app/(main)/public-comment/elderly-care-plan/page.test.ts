@@ -5,11 +5,12 @@ import type { ResolvingMetadata } from "next";
 import { describe, expect, it, vi } from "vitest";
 import { generateMetadata } from "./page";
 
-vi.mock("@/features/public-comment/minpaku/client/public-comment-page", () => ({
-  PublicCommentMinpakuPage: () => null,
-}));
+vi.mock(
+  "@/features/public-comment/elderly-care-plan/client/public-comment-page",
+  () => ({ PublicCommentElderlyCarePlanPage: () => null })
+);
 
-describe("民泊パブコメの共有画像", () => {
+describe("高齢者保健福祉計画・介護保険事業計画パブコメの共有画像", () => {
   const openGraph = {
     title: { absolute: "みらい議会＠世田谷区", template: null },
     description: "世田谷区議会の情報整理サイト",
@@ -27,10 +28,10 @@ describe("民泊パブコメの共有画像", () => {
     const parent = Promise.resolve({ openGraph, twitter }) as ResolvingMetadata;
     const metadata = await generateMetadata({}, parent);
     const image = {
-      url: "/minpaku-public-comment-ogp.png",
+      url: "/elderly-care-plan-public-comment-ogp.png",
       width: 1731,
       height: 909,
-      alt: "みらい議会＠世田谷 民泊パブコメインタビュー",
+      alt: "みらい議会＠世田谷 高齢者と介護のAIパブコメインタビュー",
     };
 
     expect(metadata).toEqual({
@@ -44,11 +45,11 @@ describe("民泊パブコメの共有画像", () => {
   it("添付されたPNGを加工せず配信する", () => {
     const file = path.resolve(
       __dirname,
-      "../../../../../public/minpaku-public-comment-ogp.png"
+      "../../../../../public/elderly-care-plan-public-comment-ogp.png"
     );
     expect(
       createHash("sha256").update(fs.readFileSync(file)).digest("hex")
-    ).toBe("903e6c8ba96990513220b61d9cc3c0612ca9bdd78d905b131361e35603cb60a5");
+    ).toBe("1ac4360bb540362fc97542050cf6788ad9a352909f066ec72d7750eae6283749");
     expect(fs.statSync(file).size).toBeLessThan(5 * 1024 * 1024);
   });
 });

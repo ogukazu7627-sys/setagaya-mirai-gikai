@@ -1,4 +1,33 @@
+import type { Metadata, ResolvingMetadata } from "next";
 import { PublicCommentElderlyCarePlanPage } from "@/features/public-comment/elderly-care-plan/client/public-comment-page";
+
+export async function generateMetadata(
+  _props: unknown,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const inherited = await parent;
+  const image = {
+    url: "/elderly-care-plan-public-comment-ogp.png",
+    width: 1731,
+    height: 909,
+    alt: "みらい議会＠世田谷 高齢者と介護のAIパブコメインタビュー",
+  };
+
+  return {
+    openGraph: {
+      title: inherited.openGraph?.title ?? undefined,
+      description: inherited.openGraph?.description ?? undefined,
+      siteName: inherited.openGraph?.siteName ?? undefined,
+      images: [image],
+    },
+    twitter: {
+      title: inherited.twitter?.title ?? undefined,
+      description: inherited.twitter?.description ?? undefined,
+      card: "summary_large_image",
+      images: [image],
+    },
+  };
+}
 
 export default function Page() {
   return <PublicCommentElderlyCarePlanPage />;

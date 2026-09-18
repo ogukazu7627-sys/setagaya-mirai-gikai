@@ -8,8 +8,8 @@ export async function generateMetadata(
   const inherited = await parent;
   const image = {
     url: "/minpaku-public-comment-ogp.png",
-    width: 1672,
-    height: 941,
+    width: 1731,
+    height: 909,
     alt: "みらい議会＠世田谷 民泊パブコメインタビュー",
   };
 
