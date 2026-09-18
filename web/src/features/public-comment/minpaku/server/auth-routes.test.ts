@@ -28,7 +28,6 @@ vi.mock("./repository", () => ({
   completeSession: vi.fn(),
 }));
 
-import { POST as chat } from "@/app/api/public-comment/minpaku/chat/route";
 import { POST as complete } from "@/app/api/public-comment/minpaku/complete/route";
 import {
   POST as draft,
@@ -38,11 +37,6 @@ import { POST as receipt } from "@/app/api/public-comment/minpaku/receipt/route"
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "../shared/consent";
 
 const endpoints = [
-  {
-    name: "chat",
-    handler: chat,
-    body: { sessionId: "session-1", content: "回答" },
-  },
   {
     name: "draft",
     handler: draft,

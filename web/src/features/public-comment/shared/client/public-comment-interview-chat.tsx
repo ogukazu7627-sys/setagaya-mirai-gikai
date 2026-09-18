@@ -9,6 +9,11 @@ import {
 } from "@/components/ai-elements/conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { useActiveInterviewLayout } from "@/components/layouts/interview-layout-context";
+import type {
+  InterviewAction,
+  InterviewMode,
+  InterviewProgress,
+} from "../interview-state";
 import { Button } from "@/components/ui/button";
 import { InterviewChatInput } from "@/features/interview-session/client/components/interview-chat-input";
 import { InterviewErrorDisplay } from "@/features/interview-session/client/components/interview-error-display";
@@ -23,7 +28,10 @@ type PublicCommentMessage = {
   question_id?: string | null;
 };
 
-interface PublicCommentInterviewChatProps {
+export interface PublicCommentInterviewChatProps {
+  progress: InterviewProgress;
+  mode: InterviewMode;
+  onAction: (action: Exclude<InterviewAction, "answer">) => void;
   messages: PublicCommentMessage[];
   quickReplies: string[];
   isLoading: boolean;
@@ -47,31 +55,6 @@ function toUiMessage(message: PublicCommentMessage): UIMessage {
   };
 }
 
-function getProgress(
-  messages: PublicCommentMessage[],
-  questions: readonly { id: string; topic: string }[]
-) {
-  const answerCount = messages.filter(
-    (message) => message.role === "user"
-  ).length;
-  const lastAssistantMessage = [...messages]
-    .reverse()
-    .find((message) => message.role === "assistant");
-  const fallbackQuestion =
-    questions[Math.min(answerCount, questions.length - 1)];
-  const currentQuestion =
-    questions.find(
-      (question) => question.id === lastAssistantMessage?.question_id
-    ) ?? fallbackQuestion;
-  const remaining = Math.max(questions.length - answerCount, 0);
-
-  return {
-    percentage: Math.min((answerCount / questions.length) * 100, 100),
-    currentTopic: currentQuestion?.topic ?? null,
-    remainingQuestionRange: { min: remaining, max: remaining },
-  };
-}
-
 export function PublicCommentInterviewChat({
   messages,
   quickReplies,
@@ -83,12 +66,13 @@ export function PublicCommentInterviewChat({
   onSubmit,
   onQuickReply,
   onContinueToDraft,
-  questions,
+  progress,
+  mode,
+  onAction,
   screenReaderTitle,
   privacyNotice,
 }: PublicCommentInterviewChatProps) {
   useActiveInterviewLayout();
-  const progress = getProgress(messages, questions);
   const errorObject = error ? new Error(error) : null;
   const questionId = messages.findLast(
     (message) => message.role === "assistant"
@@ -103,7 +87,13 @@ export function PublicCommentInterviewChat({
       <h1 className="sr-only">{screenReaderTitle}</h1>
       <div className="flex h-full flex-col bg-white pt-4 min-[768px]:rounded-t-[36px] min-[768px]:px-12 min-[768px]:pt-10">
         <div className="px-4 pb-1">
-          <InterviewProgressBar {...progress} />
+          {mode === "targeted" && !isComplete ? (
+            <p className="text-sm font-bold text-mirai-text">
+              {progress.currentTopic}
+            </p>
+          ) : (
+            <InterviewProgressBar {...progress} />
+          )}
         </div>
         <p className="px-4 pb-2 text-center text-[11px] leading-5 text-mirai-text-secondary">
           {privacyNotice}
@@ -153,18 +143,52 @@ export function PublicCommentInterviewChat({
               内容を確認して下書き作成へ進む
               <ArrowRight className="size-4" />
             </Button>
+          ) : progress.paused ? (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isLoading}
+              onClick={() => onAction("resume")}
+            >
+              意見整理を再開する
+            </Button>
           ) : (
-            <InterviewChatInput
-              input={answer}
-              onInputChange={(value) => {
-                if (questionId && value.length > 0)
-                  setTypedQuestionId(questionId);
-                onAnswerChange(value);
-              }}
-              onSubmit={onSubmit}
-              placeholder="答えたくない内容は書かなくて大丈夫です"
-              isResponding={isLoading}
-            />
+            <>
+              <InterviewChatInput
+                input={answer}
+                onInputChange={(value) => {
+                  if (questionId && value.length > 0)
+                    setTypedQuestionId(questionId);
+                  onAnswerChange(value);
+                }}
+                onSubmit={onSubmit}
+                placeholder="答えたくない内容は書かなくて大丈夫です"
+                isResponding={isLoading}
+              />
+              <div className="mt-2 flex flex-wrap justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isLoading}
+                  onClick={() => onAction("skip")}
+                >
+                  このテーマを飛ばす
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isLoading}
+                  onClick={() => {
+                    if (window.confirm("ここまでの回答で意見をまとめますか？"))
+                      onAction("finish");
+                  }}
+                >
+                  ここまでで終了する
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </div>

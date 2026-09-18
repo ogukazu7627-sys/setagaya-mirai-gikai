@@ -1,3 +1,4 @@
+import { canCreateInterviewDraft } from "@/features/public-comment/shared/interview-state";
 import { NextResponse } from "next/server";
 import {
   checkSystemDailyCostLimit,
@@ -62,8 +63,11 @@ export async function POST(request: Request) {
       });
     const messages = await findMessages(session.id);
     if (
-      messages.filter((message) => message.role === "user").length <
-      ELDERLY_CARE_PLAN_QUESTIONS.length
+      !canCreateInterviewDraft(
+        session.interview_state,
+        messages.filter((message) => message.role === "user").length,
+        ELDERLY_CARE_PLAN_QUESTIONS.length
+      )
     )
       return NextResponse.json(
         { error: "インタビューを最後まで回答してください" },

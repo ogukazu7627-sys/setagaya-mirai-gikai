@@ -2885,30 +2885,36 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          interview_mode: Database["public"]["Enums"]["interview_mode_enum"]
           official_url: string
           slug: string
           status: string
           submission_deadline: string
+          target_audiences: Json
           title: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          interview_mode?: Database["public"]["Enums"]["interview_mode_enum"]
           official_url: string
           slug: string
           status?: string
           submission_deadline: string
+          target_audiences?: Json
           title: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          interview_mode?: Database["public"]["Enums"]["interview_mode_enum"]
           official_url?: string
           slug?: string
           status?: string
           submission_deadline?: string
+          target_audiences?: Json
           title?: string
           updated_at?: string
         }
@@ -2991,6 +2997,32 @@ export type Database = {
         };
         Relationships: [];
       };
+      public_comment_interview_turns: {
+        Row: {
+          request_id: string
+          response: Json
+          session_id: string
+        }
+        Insert: {
+          request_id: string
+          response: Json
+          session_id: string
+        }
+        Update: {
+          request_id?: string
+          response?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_interview_turns_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_comment_messages: {
         Row: {
           content: string
@@ -3037,6 +3069,8 @@ export type Database = {
           consented_at: string
           created_at: string
           id: string
+          interview_revision: number
+          interview_state: Json | null
           publication_status: string
           receipt_opt_in: boolean
           started_at: string
@@ -3050,6 +3084,8 @@ export type Database = {
           consented_at: string
           created_at?: string
           id?: string
+          interview_revision?: number
+          interview_state?: Json | null
           publication_status?: string
           receipt_opt_in?: boolean
           started_at?: string
@@ -3063,6 +3099,8 @@ export type Database = {
           consented_at?: string
           created_at?: string
           id?: string
+          interview_revision?: number
+          interview_state?: Json | null
           publication_status?: string
           receipt_opt_in?: boolean
           started_at?: string
@@ -3600,6 +3638,21 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      commit_public_comment_interview_turn: {
+        Args: {
+          p_assistant_content?: string
+          p_assistant_question_id?: string
+          p_campaign_id: string
+          p_expected_revision: number
+          p_request_id: string
+          p_session_id: string
+          p_state: Json
+          p_user_content?: string
+          p_user_id: string
+          p_user_question_id?: string
+        }
+        Returns: Json
       }
       complete_public_comment_session: {
         Args: {
