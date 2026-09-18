@@ -41,6 +41,12 @@ export function AdminShell({ user, children }: AdminShellProps) {
                 問い合わせ
               </Link>
               <Link
+                href={routes.adminPublicComments() as Route}
+                className="hover:underline"
+              >
+                パブコメ確認
+              </Link>
+              <Link
                 href={routes.adminCouncilorDigests() as Route}
                 className="hover:underline"
               >
