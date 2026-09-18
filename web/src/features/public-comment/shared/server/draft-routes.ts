@@ -153,10 +153,21 @@ export function createPublicCommentDraftRoutes(
         }
 
         const messages = await findMessages(session.id);
+        const userMessageCount = messages.filter(
+          (message) => message.role === "user"
+        ).length;
+        if (userMessageCount === 0)
+          return NextResponse.json(
+            {
+              error:
+                "少なくとも1問に回答してから、意見の下書きを作成してください",
+            },
+            { status: 409 }
+          );
         if (
           !canCreateInterviewDraft(
             session.interview_state,
-            messages.filter((message) => message.role === "user").length,
+            userMessageCount,
             config.questionsLength
           )
         )

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type {
+  CheckpointChoice,
   InterviewAction,
   InterviewMode,
   InterviewProgress,
@@ -24,7 +25,8 @@ type PendingTurn = {
   requestId: string;
   revision: number;
   content: string;
-  action: InterviewAction;
+  action: InterviewAction | "checkpoint";
+  choice?: CheckpointChoice;
 };
 
 export function useInterviewConversation(params: {
@@ -43,6 +45,7 @@ export function useInterviewConversation(params: {
     currentTopic: null,
     remainingQuestionRange: null,
     paused: false,
+    checkpoint: null,
   });
   const [mode, setMode] = useState<InterviewMode>("loop");
   const revision = useRef(0);
@@ -57,9 +60,10 @@ export function useInterviewConversation(params: {
     pending.current = null;
   }, []);
 
-  const sendAnswer = async (
+  const sendRequest = async (
     value = answer,
-    action: InterviewAction = "answer"
+    action: InterviewAction | "checkpoint" = "answer",
+    choice?: CheckpointChoice
   ) => {
     const content = action === "answer" ? value.trim() : "";
     if (
@@ -72,7 +76,9 @@ export function useInterviewConversation(params: {
     // A failed response might already be committed. Always replay that exact turn first.
     if (
       pending.current &&
-      (pending.current.content !== content || pending.current.action !== action)
+      (pending.current.content !== content ||
+        pending.current.action !== action ||
+        pending.current.choice !== choice)
     ) {
       params.setError(
         "前の送信結果を確認できていません。同じ内容で再送するか、ページを再読み込みしてください。"
@@ -84,6 +90,7 @@ export function useInterviewConversation(params: {
       revision: revision.current,
       content,
       action,
+      choice,
     };
     pending.current = turn;
     sending.current = true;
@@ -135,6 +142,10 @@ export function useInterviewConversation(params: {
       params.setBusy(false);
     }
   };
+  const sendAnswer = (value = answer, action: InterviewAction = "answer") =>
+    sendRequest(value, action);
+  const chooseCheckpoint = (choice: CheckpointChoice) =>
+    sendRequest("", "checkpoint", choice);
   return {
     messages,
     answer,
@@ -144,5 +155,6 @@ export function useInterviewConversation(params: {
     mode,
     loadConversation,
     sendAnswer,
+    chooseCheckpoint,
   };
 }

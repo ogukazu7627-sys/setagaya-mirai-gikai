@@ -53,8 +53,10 @@ function Page({
                   currentTopic: "関わり方",
                   remainingQuestionRange: { min: 7, max: 10 },
                   paused: false,
+                  checkpoint: null,
                 }}
                 onAction={vi.fn()}
+                onCheckpointChoice={vi.fn()}
                 messages={[
                   {
                     id: "q1",

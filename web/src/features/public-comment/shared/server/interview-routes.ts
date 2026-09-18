@@ -22,6 +22,8 @@ import {
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 import { registerNodeTelemetry } from "@/lib/telemetry/register";
 import {
+  checkpointChoiceSchema,
+  chooseInterviewPath,
   composeInterviewMessage,
   interviewProgress,
   interviewStateSchema,
@@ -41,10 +43,17 @@ const requestSchema = z
     sessionId: z.uuid(),
     requestId: z.uuid(),
     revision: z.number().int().min(0),
-    action: z.enum(["answer", "skip", "finish", "resume"]).default("answer"),
+    action: z
+      .enum(["answer", "skip", "finish", "resume", "checkpoint"])
+      .default("answer"),
+    choice: checkpointChoiceSchema.optional(),
     content: z.string().trim().max(4000).default(""),
   })
-  .refine((value) => value.action !== "answer" || value.content.length > 0);
+  .refine((value) => value.action !== "answer" || value.content.length > 0)
+  .refine(
+    (value) => value.action !== "checkpoint" || value.choice !== undefined,
+    { message: "checkpoint choice is required", path: ["choice"] }
+  );
 
 function turnPayload(
   turn: Awaited<ReturnType<typeof commitInterviewTurn>>,
@@ -54,7 +63,11 @@ function turnPayload(
     message: turn.message,
     revision: turn.revision,
     userMessageStored: turn.userMessageStored,
-    nextStage: turn.state.phase === "done" ? "draft" : "interview",
+    nextStage: turn.state.checkpoint
+      ? "checkpoint"
+      : turn.state.phase === "done"
+        ? "draft"
+        : "interview",
     quickReplies: turn.state.paused ? [] : turn.state.quickReplies,
     progress: interviewProgress(turn.state, campaign.questions),
     mode: turn.state.mode,
@@ -240,9 +253,11 @@ export function createInterviewRoutes(
             ? isVerifiedUser(user)
               ? "review"
               : "draft"
-            : state.phase === "done"
-              ? "draft"
-              : "interview",
+            : state.checkpoint
+              ? "checkpoint"
+              : state.phase === "done"
+                ? "draft"
+                : "interview",
           quickReplies: state.paused || draft ? [] : state.quickReplies,
           progress: interviewProgress(state, campaign.questions),
           mode: state.mode,
@@ -318,6 +333,18 @@ export function createInterviewRoutes(
             { error: "インタビューは終了しています" },
             { status: 409 }
           );
+        if (input.action === "checkpoint" && !state.checkpoint) {
+          return NextResponse.json(
+            { error: "簡易版・詳細版の選択画面ではありません" },
+            { status: 409 }
+          );
+        }
+        if (state.checkpoint && input.action !== "checkpoint") {
+          return NextResponse.json(
+            { error: "簡易版または詳細版を選択してください" },
+            { status: 409 }
+          );
+        }
         if (state.paused && input.action !== "resume") {
           return NextResponse.json(
             { error: "続ける場合は「意見整理を再開する」を選んでください" },
@@ -348,13 +375,33 @@ export function createInterviewRoutes(
             sessionId: session.id,
           });
         }
-        const next = resolveInterviewTurn({
-          state,
-          questions: campaign.questions,
-          action: input.action,
-          response,
-          messages,
-        });
+        const next =
+          input.action === "checkpoint"
+            ? (() => {
+                const nextState = chooseInterviewPath(
+                  state,
+                  campaign.questions,
+                  input.choice as NonNullable<typeof input.choice>
+                );
+                const question = campaign.questions.find(
+                  (item) => item.id === nextState.currentQuestionId
+                );
+                return {
+                  state: nextState,
+                  content:
+                    nextState.phase === "done" || !question
+                      ? ""
+                      : composeInterviewMessage("", question),
+                  storeUser: false,
+                };
+              })()
+            : resolveInterviewTurn({
+                state,
+                questions: campaign.questions,
+                action: input.action,
+                response,
+                messages,
+              });
         const turn = await commitInterviewTurn({
           sessionId: session.id,
           userId: user.id,
@@ -364,7 +411,7 @@ export function createInterviewRoutes(
           state: next.state,
           userContent: next.storeUser ? input.content : undefined,
           userQuestionId: state.currentQuestionId,
-          assistantContent: next.content,
+          assistantContent: next.content || undefined,
           assistantQuestionId: next.state.paused
             ? null
             : next.state.currentQuestionId,

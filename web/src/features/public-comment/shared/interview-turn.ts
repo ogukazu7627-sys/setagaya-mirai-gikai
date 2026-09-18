@@ -35,6 +35,7 @@ export function buildTurnPrompt(params: {
 }) {
   const { state, questions } = params;
   const current = questions.find((q) => q.id === state.currentQuestionId);
+  const coreStage = state.journey === "core";
   const coveredCandidates = questions
     .filter(
       (question) =>
@@ -46,9 +47,11 @@ export function buildTurnPrompt(params: {
   const answeredFollowUps = current
     ? (state.followUpAnswers[current.id] ?? 0)
     : 0;
-  const remainingFollowUpSlots = current
-    ? Math.max(0, 2 - answeredFollowUps - (state.kind === "followup" ? 1 : 0))
-    : 0;
+  const remainingFollowUpSlots = coreStage
+    ? 0
+    : current
+      ? Math.max(0, 2 - answeredFollowUps - (state.kind === "followup" ? 1 : 0))
+      : 0;
   const nextFollowUpNumber = state.kind === "base" ? 1 : answeredFollowUps + 2;
   const escapeXml = (value: string) =>
     value
@@ -77,6 +80,9 @@ ${current ? JSON.stringify({ id: current.id, topic: current.topic, premise: curr
 ## すでに回答に含まれている可能性がある未出題テーマ（内部用）
 ${JSON.stringify(coveredCandidates)}
 現在の回答だけで、未出題テーマの問いに対する意見が具体的に伝わっている場合だけ、そのIDをalreadyCoveredQuestionIdsに入れます。単に関連しているだけ、推測できるだけ、または少し触れただけの場合は入れません。現在のテーマのIDは入れません。該当しなければ空配列にします。これは画面には表示されません。
+
+## 最初の3問（内部用）
+${coreStage ? "現在は最初の3問です。固定質問への回答を受け止めるだけにし、followUpは必ず空文字、quickRepliesは空配列、deepeningDecisionはsufficientにしてください。4問目以降の深掘りは、3問終了後にユーザーが詳細版を選んだ後だけ行います。" : "現在は詳細版です。4問目以降について、必要な場合だけ深掘りしてください。"}
 
 ## 深掘りの要否判定（内部用）
 残りのユーザー回答ターンは最大${Math.max(0, MAX_INTERVIEW_TURNS - state.turnCount)}回です。残り1回の場合は、追加質問を生成せず、今回の回答を受け止めて終了できる状態にしてください。

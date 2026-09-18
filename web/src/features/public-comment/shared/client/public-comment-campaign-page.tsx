@@ -225,7 +225,7 @@ function PublicCommentIntro({
             ))}
           </ol>
           <p className="mt-4 text-[13px] leading-6 text-mirai-text-secondary">
-            7つのテーマを順に伺い、回答に沿って深掘りします。所要時間は回答の長さによって変わります。答えたくないテーマは飛ばせます。
+            まず3問で簡易版の意見を作成できます。続ける場合は、残りのテーマについて回答に応じた深掘りを行い、詳細版の意見を作成できます。詳細版も回答は最大10回です。答えたくないテーマは飛ばせます。
           </p>
         </IntroSection>
 
@@ -582,6 +582,7 @@ export function PublicCommentCampaignPage({
     mode,
     loadConversation,
     sendAnswer,
+    chooseCheckpoint,
   } = useInterviewConversation({
     sessionId,
     apiBasePath: config.apiBasePath,
@@ -905,6 +906,7 @@ export function PublicCommentCampaignPage({
           progress={progress}
           mode={mode}
           onAction={(action) => void sendAnswer("", action)}
+          onCheckpointChoice={(choice) => void chooseCheckpoint(choice)}
           quickReplies={quickReplies}
           isLoading={busy}
           error={error}

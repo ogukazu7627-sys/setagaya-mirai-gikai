@@ -159,4 +159,18 @@ describe("public comment draft visibility", () => {
     expect(response.status).toBe(404);
     expect(mocks.draft).not.toHaveBeenCalled();
   });
+
+  it("回答がない場合は空の下書きを作成しない", async () => {
+    mocks.actor.mockResolvedValue({ id: "anonymous", is_anonymous: true });
+    mocks.messages.mockResolvedValue([]);
+
+    const response = await routes().POST(request());
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "少なくとも1問に回答してから、意見の下書きを作成してください",
+    });
+    expect(mocks.canCreate).not.toHaveBeenCalled();
+    expect(mocks.claim).not.toHaveBeenCalled();
+  });
 });
