@@ -102,7 +102,7 @@ describe("PublicCommentIjimePage", () => {
     render(<PublicCommentIjimePage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     expect(
@@ -129,7 +129,7 @@ describe("PublicCommentIjimePage", () => {
     render(<PublicCommentIjimePage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
@@ -162,7 +162,7 @@ describe("PublicCommentIjimePage", () => {
     render(<PublicCommentIjimePage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));

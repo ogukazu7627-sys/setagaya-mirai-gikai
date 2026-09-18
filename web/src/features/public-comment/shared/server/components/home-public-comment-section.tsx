@@ -16,6 +16,7 @@ import {
   HomePublicCommentCarousel,
 } from "@/features/public-comment/shared/client/home-public-comment-carousel";
 import { SUICIDE_PREVENTION_SUBMISSION_DEADLINE } from "@/features/public-comment/suicide-prevention/shared/campaign";
+import { TRAFFIC_SAFETY_PLAN_SUBMISSION_DEADLINE } from "@/features/public-comment/traffic-safety-plan/shared/campaign";
 import { routes } from "@/lib/routes";
 
 const campaigns = [
@@ -71,6 +72,15 @@ const campaigns = [
     deadline: SUICIDE_PREVENTION_SUBMISSION_DEADLINE,
     href: routes.publicCommentSuicidePrevention() as Route,
     icon: "health",
+  },
+  {
+    label: "交通安全",
+    title: "第12次世田谷区交通安全計画（素案）",
+    description:
+      "歩行者、自転車、車など、誰もが安全に移動できる地域について考えます。",
+    deadline: TRAFFIC_SAFETY_PLAN_SUBMISSION_DEADLINE,
+    href: routes.publicCommentTrafficSafetyPlan() as Route,
+    icon: "traffic",
   },
   {
     label: "障害理解・地域共生",

@@ -12,8 +12,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Button } from "@/components/ui/button";
 import {
-  PUBLIC_COMMENT_AUTH_RETURN_KEY,
   PUBLIC_COMMENT_AUTH_RECEIPT_KEY,
+  PUBLIC_COMMENT_AUTH_RETURN_KEY,
   PUBLIC_COMMENT_CONSENT_VERSION,
 } from "../shared/consent";
 import { MINPAKU_LESSONS } from "../shared/learning";
@@ -55,6 +55,25 @@ describe("PublicCommentMinpakuPage", () => {
     auth.signInWithGoogle.mockClear();
     sessionStorage.clear();
     window.history.replaceState(null, "", "/public-comment/minpaku");
+  });
+
+  it("テーマ別の中央見出しとインタビュー優先の開始導線を表示する", () => {
+    render(<PublicCommentMinpakuPage />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: /AIパブコメインタビュー.*民泊・旅館業の条例改正素案/,
+      })
+    ).toHaveClass("text-center");
+    expect(
+      screen.getAllByRole("button", {
+        name: "AIパブコメインタビューをはじめる",
+      })[0]
+    ).toHaveClass("bg-mirai-gradient");
+    expect(
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
+    ).toHaveClass("underline");
   });
 
   it("Googleログインをキャンセルして戻った場合も同意画面で再試行できる", async () => {
@@ -144,7 +163,7 @@ describe("PublicCommentMinpakuPage", () => {
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
@@ -181,7 +200,7 @@ describe("PublicCommentMinpakuPage", () => {
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     expect(
@@ -213,7 +232,7 @@ describe("PublicCommentMinpakuPage", () => {
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(
@@ -249,7 +268,7 @@ describe("PublicCommentMinpakuPage", () => {
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(
@@ -292,7 +311,7 @@ describe("PublicCommentMinpakuPage", () => {
 
     render(<PublicCommentMinpakuPage />);
     const startButton = screen.getAllByRole("button", {
-      name: "すぐにAIインタビューをはじめる",
+      name: "AIパブコメインタビューをはじめる",
     })[0];
     expect(startButton).toBeEnabled();
     expect(fetchMock).not.toHaveBeenCalled();
@@ -335,7 +354,7 @@ describe("PublicCommentMinpakuPage", () => {
     );
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     expect(
       screen.getByRole("heading", {
@@ -418,7 +437,7 @@ describe("PublicCommentMinpakuPage", () => {
     const fetchMock = vi.spyOn(global, "fetch");
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     fireEvent.click(screen.getAllByRole("radio")[1]);
     fireEvent.click(screen.getByRole("button", { name: "回答を確認" }));
@@ -451,7 +470,7 @@ describe("PublicCommentMinpakuPage", () => {
     cleanup();
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     expect(
       screen
@@ -471,7 +490,7 @@ describe("PublicCommentMinpakuPage", () => {
     const user = userEvent.setup();
     render(<PublicCommentMinpakuPage />);
     await user.click(
-      screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     for (let step = 0; step < 15; step++) {
       await user.tab();
@@ -507,12 +526,12 @@ describe("PublicCommentMinpakuPage", () => {
     const fetchMock = vi.spyOn(global, "fetch");
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
-      screen.getAllByRole("button", { name: "条例改正について学ぶ" })[0]
+      screen.getAllByRole("button", { name: "学習してからはじめる" })[0]
     );
     fireEvent.click(screen.getByRole("button", { name: "案内画面に戻る" }));
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -560,7 +579,7 @@ describe("PublicCommentMinpakuPage", () => {
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
       screen.getAllByRole("button", {
-        name: "すぐにAIインタビューをはじめる",
+        name: "AIパブコメインタビューをはじめる",
       })[0]
     );
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));

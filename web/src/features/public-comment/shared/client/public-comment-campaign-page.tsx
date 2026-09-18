@@ -110,36 +110,34 @@ function StartActions({
   onLearn,
   lessonCount,
   learningEstimatedTime,
-  targetDocumentLabel,
 }: {
   onStart: () => void;
   onLearn: () => void;
   lessonCount: number;
   learningEstimatedTime: string;
-  targetDocumentLabel: string;
 }) {
   return (
     <div className="flex w-full max-w-[370px] flex-col items-center gap-3">
       <Button
         type="button"
-        onClick={onLearn}
+        onClick={onStart}
         className="h-auto min-h-13 w-full whitespace-normal py-3 text-[15px]"
       >
-        <BookOpen className="size-5" />
-        {targetDocumentLabel}について学ぶ
+        AIパブコメインタビューをはじめる
         <ArrowRight className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="link"
+        onClick={onLearn}
+        className="whitespace-normal text-sm leading-6 text-primary-strong"
+      >
+        <BookOpen className="size-4" />
+        学習してからはじめる
       </Button>
       <p className="text-xs text-mirai-text-secondary">
         {lessonCount}章・各1問 / 目安{learningEstimatedTime}
       </p>
-      <Button
-        type="button"
-        variant="link"
-        onClick={onStart}
-        className="whitespace-normal text-sm leading-6 text-primary-strong"
-      >
-        すぐにAIインタビューをはじめる
-      </Button>
     </div>
   );
 }
@@ -169,18 +167,15 @@ function PublicCommentIntro({
           <div className="inline-flex items-center rounded-2xl bg-primary-strong px-6 py-1 text-[13px] font-medium text-white">
             {config.audienceLabel}
           </div>
-          <h1 className="text-2xl font-bold leading-[1.5]">
-            パブリックコメントをつくるAIインタビュー
+          <h1 className="text-center text-2xl font-bold leading-[1.5]">
+            <span className="block">AIパブコメインタビュー</span>
+            <span className="mt-2 block text-xl">{config.campaignTitle}</span>
           </h1>
-          <p className="max-w-[560px] rounded-xl bg-white px-4 py-3 text-[13px] font-medium leading-6">
-            {config.campaignTitle}
-          </p>
           <StartActions
             onStart={onStart}
             onLearn={onLearn}
             lessonCount={config.lessons.length}
             learningEstimatedTime={config.learningEstimatedTime}
-            targetDocumentLabel={config.targetDocumentLabel ?? "条例素案"}
           />
         </div>
 
@@ -268,7 +263,6 @@ function PublicCommentIntro({
           onLearn={onLearn}
           lessonCount={config.lessons.length}
           learningEstimatedTime={config.learningEstimatedTime}
-          targetDocumentLabel={config.targetDocumentLabel ?? "条例素案"}
         />
       </div>
     </div>
