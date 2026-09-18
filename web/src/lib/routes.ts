@@ -102,6 +102,8 @@ export const routes = {
     "/public-comment/suicide-prevention" as const,
   publicCommentDementiaHopePlan: () =>
     "/public-comment/dementia-hope-plan" as const,
+  publicCommentTrafficSafetyPlan: () =>
+    "/public-comment/traffic-safety-plan" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
