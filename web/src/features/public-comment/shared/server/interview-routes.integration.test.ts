@@ -25,6 +25,7 @@ const answer: TurnResponse = {
   followUp: "その点で、特に大切にしたいことは何ですか？",
   quickReplies: [],
   disposition: "answer",
+  deepeningDecision: "continue",
   guidance: "",
   eligibility: [],
 };
@@ -133,6 +134,35 @@ describe.each(keys)("%s 実DB統合", (key) => {
 describe("共通HTTP境界", () => {
   beforeEach(async () => {
     fixture = await createPublicCommentFixture();
+  });
+  it("十分な回答は深掘りせず、固定7問で下書きへ進む", async () => {
+    const qs = getInterviewCampaign("elderly-care-plan").questions;
+    const handlers = routes("elderly-care-plan", {
+      generate: async () => ({
+        ...answer,
+        followUp: "",
+        deepeningDecision: "sufficient",
+      }),
+    });
+    let data = await (await handlers.session(request(consent))).json();
+    const sessionId = data.sessionId;
+    for (let i = 0; i < qs.length; i++) {
+      const response = await handlers.chat(
+        request({
+          sessionId,
+          revision: data.revision,
+          requestId: crypto.randomUUID(),
+          content: "支援の利用条件と相談先を具体的に示してほしいです。",
+        })
+      );
+      expect(response.status).toBe(200);
+      data = await response.json();
+      if (i < qs.length - 1) {
+        expect(data.message.content).toContain(qs[i + 1].premise);
+        expect(data.message.content).not.toContain(answer.followUp);
+      }
+    }
+    expect(data.nextStage).toBe("draft");
   });
   it("targetedのchatも開始時の対象条件を使う", async () => {
     const qs = getInterviewCampaign("ijime").questions;

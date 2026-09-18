@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   advanceInterview,
   composeInterviewMessage,
+  deepeningDecisionSchema,
   eligibilitySchema,
   type InterviewAction,
   type InterviewQuestion,
@@ -18,6 +19,7 @@ export const turnResponseSchema = z.object({
   followUp: z.string().max(600),
   quickReplies: z.array(z.string().max(80)).max(4),
   disposition: z.enum(["answer", "decline", "clarification", "safety"]),
+  deepeningDecision: deepeningDecisionSchema,
   guidance: z.string().max(1500),
   eligibility: z.array(eligibilitySchema),
 });
@@ -30,12 +32,14 @@ export function buildTurnPrompt(params: {
   messages: TurnMessage[];
 }) {
   const { state, questions } = params;
-  const preview = advanceInterview(state, questions, "answer");
-  const followUp =
-    preview.kind === "followup" && preview.phase !== "done"
-      ? questions.find((q) => q.id === preview.currentQuestionId)
-      : undefined;
   const current = questions.find((q) => q.id === state.currentQuestionId);
+  const answeredFollowUps = current
+    ? (state.followUpAnswers[current.id] ?? 0)
+    : 0;
+  const remainingFollowUpSlots = current
+    ? Math.max(0, 2 - answeredFollowUps - (state.kind === "followup" ? 1 : 0))
+    : 0;
+  const nextFollowUpNumber = state.kind === "base" ? 1 : answeredFollowUps + 2;
   const escapeXml = (value: string) =>
     value
       .replaceAll("&", "&amp;")
@@ -44,7 +48,7 @@ export function buildTurnPrompt(params: {
   return `${params.policy}
 
 ## 今回の出力と進行（この仕様を使う）
-サーバーが質問順、固定前提・質問、深掘り回数、終了を決めます。あなたはその決定を変更しません。
+サーバーが質問順、固定前提・質問、深掘りの上限、終了を管理します。あなたは現在の回答について、追加の深掘りがパブリックコメントの内容を実質的に良くするかだけを判定します。
 旧形式のtext、question_id、topic_title、next_stageは出力しません。
 通常はdisposition=answerとし、acknowledgementに直前の回答を評価せず受け止める1文を書きます。
 受け止めに、固定前提や質問の再掲、次のテーマの予告、対象者判定・スキップへの言及、個人情報を含めません。
@@ -59,10 +63,16 @@ safetyのguidanceは短い受け止めと適切な相談案内だけにし、政
 ## 現在のテーマ
 ${current ? JSON.stringify({ id: current.id, topic: current.topic, premise: current.premise, ask: current.ask, followUp: current.followUp }) : "開始"}
 
-## 次に生成する深掘り
-${followUp ? JSON.stringify({ id: followUp.id, topic: followUp.topic, premise: followUp.premise, ask: followUp.ask, guide: followUp.followUp, number: (preview.followUpAnswers[followUp.id] ?? 0) + 1 }) : "なし。followUpは空文字、quickRepliesは空配列。"}
-深掘りが指定されている場合だけfollowUpに問いを1つ書きます。会話の既出回答に沿って、背景・望む状態・方法・確認方法のまだ聞けていない角度を選びます。同じ問いを繰り返さず、専門知識や個人情報・つらい経験の詳細を要求しません。
-2回目は1回目の回答を踏まえて具体化・確認します。既に十分話されている場合は、抜けや誤解がないか穏やかに確認できます。
+## 深掘りの要否判定（内部用）
+追加できる深掘りは最大${remainingFollowUpSlots}回です。
+- 回答だけで、本人が重視する点と、その理由・経験・期待・具体的な要望のいずれかが区への意見として十分伝わる場合はdeepeningDecision=sufficientにします。
+- 回答が抽象的・曖昧で、背景、望む状態、具体的な対応、確認方法のうち未確認の一点を聞くことで意見が明確になる場合だけdeepeningDecision=continueにします。
+- 短い回答でも内容が明確ならsufficientです。直接の経験がなくても、期待や懸念が明確なら無理に経験を求めません。
+- 同じ内容を言い換えて聞くだけになる場合や、回答者が既に具体的に述べたことはsufficientです。
+- 追加可能回数が0回の場合は必ずsufficientにします。
+
+deepeningDecision=continueの場合だけ、followUpに${nextFollowUpNumber}回目の追加質問を1つ書きます。会話の既出回答に沿って、まだ聞けていない角度を選びます。同じ問いを繰り返さず、専門知識や個人情報・つらい経験の詳細を要求しません。
+deepeningDecision=sufficientの場合はfollowUpを空文字、quickRepliesを空配列にします。
 固定質問の全文や固定前提は出力しません。深掘り指針に終了への言及があっても、終了を宣言しません。
 
 ## 対象者判定（内部用）
@@ -118,7 +128,8 @@ export function resolveInterviewTurn(params: {
     state,
     questions,
     response?.disposition === "decline" ? "skip" : action,
-    eligibility
+    eligibility,
+    response?.deepeningDecision ?? "continue"
   );
   const question = questions.find((q) => q.id === next.currentQuestionId);
   const ack = response?.acknowledgement ?? "";
@@ -141,11 +152,11 @@ export function resolveInterviewTurn(params: {
       storeUser: action === "answer",
     };
   }
-  const preview = advanceInterview(state, questions, "answer");
   const followUp =
     response?.disposition === "answer" &&
+    response.deepeningDecision === "continue" &&
     action === "answer" &&
-    preview.currentQuestionId === next.currentQuestionId
+    state.currentQuestionId === next.currentQuestionId
       ? response.followUp.trim()
       : "";
   // Resume and explicit skip may enter a bulk follow-up without an LLM call.
