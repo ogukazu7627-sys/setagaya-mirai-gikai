@@ -34,7 +34,6 @@ describe("民泊パブリックコメント用プロンプト", () => {
     expect(prompt).toContain(`固定説明: ${question.context}`);
     expect(prompt).toContain(`固定質問: ${question.question}`);
     expect(prompt).toContain("textには直前のユーザー回答への短い受け止めだけ");
-    expect(prompt).toContain("サーバーが固定説明と固定質問を後ろに付けます");
   });
 
   it("下書きでは経験・意見・提案を分け、個人情報を除外する", () => {

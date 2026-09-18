@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
@@ -23,13 +24,6 @@ import {
   type LearningSource,
   PublicCommentLearning,
 } from "./public-comment-learning";
-
-type Message = {
-  id: string;
-  role: "assistant" | "user";
-  content: string;
-  question_id?: string | null;
-};
 
 type Draft = {
   id: string;
@@ -211,7 +205,7 @@ function PublicCommentIntro({
             ))}
           </ol>
           <p className="mt-4 text-[13px] leading-6 text-mirai-text-secondary">
-            目安は10〜15分です。答えたくないことは書かなくて大丈夫です。
+            7つのテーマを順に伺い、回答に沿って深掘りします。所要時間は回答の長さによって変わります。答えたくないテーマは飛ばせます。
           </p>
         </IntroSection>
 
@@ -497,9 +491,6 @@ export function PublicCommentCampaignPage({
   usePublicCommentViewScroll(view, containerRef);
   const [consentOpen, setConsentOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [answer, setAnswer] = useState("");
-  const [quickReplies, setQuickReplies] = useState<string[]>([]);
   const [interviewComplete, setInterviewComplete] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [sources, setSources] = useState<readonly LearningSource[]>(
@@ -510,6 +501,23 @@ export function PublicCommentCampaignPage({
   const [copied, setCopied] = useState(false);
   const [completionPending, setCompletionPending] = useState(false);
   const [authReturnError, setAuthReturnError] = useState<string>();
+  const {
+    messages,
+    answer,
+    setAnswer,
+    quickReplies,
+    progress,
+    mode,
+    loadConversation,
+    sendAnswer,
+  } = useInterviewConversation({
+    sessionId,
+    apiBasePath: config.apiBasePath,
+    busy,
+    setBusy,
+    setError,
+    onDone: () => setInterviewComplete(true),
+  });
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -563,15 +571,7 @@ export function PublicCommentCampaignPage({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
       setSessionId(data.sessionId);
-      setMessages(
-        (data.messages ?? []).map(
-          (message: Omit<Message, "id"> & { id?: string }) => ({
-            ...message,
-            id: message.id ?? crypto.randomUUID(),
-          })
-        )
-      );
-      setQuickReplies(data.quickReplies ?? []);
+      loadConversation(data);
       if (data.draft) setDraft(data.draft);
       if (data.sources) setSources(data.sources);
       if (data.nextStage === "review") {
@@ -589,55 +589,7 @@ export function PublicCommentCampaignPage({
     } finally {
       setBusy(false);
     }
-  }, [auth.status, busy, config.apiBasePath]);
-
-  const sendAnswer = useCallback(
-    async (value = answer) => {
-      const content = value.trim();
-      if (!sessionId || !content || busy) return;
-      setBusy(true);
-      setError(null);
-      setAnswer("");
-      setQuickReplies([]);
-      const optimisticMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content,
-      };
-      setMessages((current) => [...current, optimisticMessage]);
-      try {
-        const response = await fetch(`${config.apiBasePath}/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, content }),
-        });
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error ?? "回答を送信できませんでした");
-        setMessages((current) => [
-          ...(data.userMessageStored === false
-            ? current.filter((message) => message.id !== optimisticMessage.id)
-            : current),
-          { ...data.message, id: data.message.id ?? crypto.randomUUID() },
-        ]);
-        setQuickReplies(data.quickReplies ?? []);
-        if (data.nextStage === "draft") setInterviewComplete(true);
-      } catch (caught) {
-        setMessages((current) =>
-          current.filter((message) => message.id !== optimisticMessage.id)
-        );
-        setAnswer(content);
-        setError(
-          caught instanceof Error
-            ? caught.message
-            : "回答を送信できませんでした"
-        );
-      } finally {
-        setBusy(false);
-      }
-    },
-    [answer, busy, config.apiBasePath, sessionId]
-  );
+  }, [auth.status, busy, config.apiBasePath, loadConversation]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || busy) return;
@@ -729,6 +681,9 @@ export function PublicCommentCampaignPage({
       <div ref={containerRef}>
         <PublicCommentInterviewChat
           messages={messages}
+          progress={progress}
+          mode={mode}
+          onAction={(action) => void sendAnswer("", action)}
           quickReplies={quickReplies}
           isLoading={busy}
           error={error}

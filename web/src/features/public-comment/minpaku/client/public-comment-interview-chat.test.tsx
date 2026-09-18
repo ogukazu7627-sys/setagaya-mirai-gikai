@@ -40,6 +40,14 @@ function Chat({
   const [answer, setAnswer] = useState("");
   return (
     <PublicCommentInterviewChat
+      mode="loop"
+      progress={{
+        percentage: 0,
+        currentTopic: "関わり方",
+        remainingQuestionRange: { min: 21, max: 21 },
+        paused: false,
+      }}
+      onAction={vi.fn()}
       messages={[question]}
       quickReplies={["近隣で暮らしている"]}
       isLoading={isLoading}

@@ -47,6 +47,14 @@ function Page({
           <main>
             {interview ? (
               <PublicCommentInterviewChat
+                mode="loop"
+                progress={{
+                  percentage: 0,
+                  currentTopic: "関わり方",
+                  remainingQuestionRange: { min: 21, max: 21 },
+                  paused: false,
+                }}
+                onAction={vi.fn()}
                 messages={[
                   {
                     id: "q1",

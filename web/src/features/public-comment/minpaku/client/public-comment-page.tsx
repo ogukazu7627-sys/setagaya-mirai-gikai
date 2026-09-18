@@ -14,6 +14,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
@@ -41,13 +42,6 @@ import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
 import { ReceiptPreference } from "./receipt-preference";
 import { usePublicCommentViewScroll } from "./use-public-comment-view-scroll";
-
-type Message = {
-  id: string;
-  role: "assistant" | "user";
-  content: string;
-  question_id?: string | null;
-};
 
 type Draft = {
   id: string;
@@ -252,12 +246,12 @@ function PublicCommentIntro({
           </div>
         </IntroSection>
 
-        <IntroSection title="予定時間">
+        <IntroSection title="進め方">
           <p className="text-[22px] font-bold leading-[1.64] text-primary-accent">
-            10〜15分程度
+            7テーマと、回答に沿った深掘り
           </p>
           <p className="mt-2 text-[13px] leading-[1.69]">
-            回答の長さや、追加の質問によって前後します。
+            所要時間は回答の長さによって変わります。答えたくないテーマは飛ばせます。
           </p>
         </IntroSection>
 
@@ -643,9 +637,6 @@ export function PublicCommentMinpakuPage() {
   usePublicCommentViewScroll(view, containerRef);
   const [consentOpen, setConsentOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [answer, setAnswer] = useState("");
-  const [quickReplies, setQuickReplies] = useState<string[]>([]);
   const [selectedOrdinances, setSelectedOrdinances] = useState<string[]>([
     ...MINPAKU_ORDINANCES,
   ]);
@@ -660,6 +651,23 @@ export function PublicCommentMinpakuPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [authReturnError, setAuthReturnError] = useState<string>();
+  const {
+    messages,
+    answer,
+    setAnswer,
+    quickReplies,
+    progress,
+    mode,
+    loadConversation,
+    sendAnswer,
+  } = useInterviewConversation({
+    sessionId,
+    apiBasePath: "/api/public-comment/minpaku",
+    busy,
+    setBusy,
+    setError,
+    onDone: () => setView("ordinances"),
+  });
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -732,16 +740,16 @@ export function PublicCommentMinpakuPage() {
         if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
         setSessionId(data.sessionId);
         setReceiptOptIn(requestedReceipt);
-        setMessages(
-          (data.messages ?? []).map(
-            (message: Omit<Message, "id"> & { id?: string }) => ({
-              ...message,
-              id: message.id ?? crypto.randomUUID(),
-            })
-          )
+        loadConversation(data);
+        if (data.draft) setDraft(data.draft);
+        if (data.sources) setSources(data.sources);
+        setView(
+          data.nextStage === "review"
+            ? "review"
+            : data.nextStage === "draft"
+              ? "ordinances"
+              : "interview"
         );
-        setQuickReplies(data.quickReplies ?? []);
-        setView("interview");
         return true;
       } catch (caught) {
         setError(
@@ -752,52 +760,7 @@ export function PublicCommentMinpakuPage() {
         setBusy(false);
       }
     },
-    [busy, auth.status]
-  );
-
-  const sendAnswer = useCallback(
-    async (value = answer) => {
-      const content = value.trim();
-      if (!sessionId || !content || busy) return;
-      setBusy(true);
-      setError(null);
-      setAnswer("");
-      setQuickReplies([]);
-      const optimisticMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content,
-      };
-      setMessages((current) => [...current, optimisticMessage]);
-      try {
-        const response = await fetch("/api/public-comment/minpaku/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, content }),
-        });
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(data.error ?? "回答を送信できませんでした");
-        setMessages((current) => [
-          ...current,
-          { ...data.message, id: data.message.id ?? crypto.randomUUID() },
-        ]);
-        setQuickReplies(data.quickReplies ?? []);
-        if (data.nextStage === "draft") setView("ordinances");
-      } catch (caught) {
-        setMessages((current) =>
-          current.filter((message) => message.id !== optimisticMessage.id)
-        );
-        setError(
-          caught instanceof Error
-            ? caught.message
-            : "回答を送信できませんでした"
-        );
-      } finally {
-        setBusy(false);
-      }
-    },
-    [answer, busy, sessionId]
+    [busy, auth.status, loadConversation]
   );
 
   const generateDraft = useCallback(async () => {
@@ -931,6 +894,9 @@ export function PublicCommentMinpakuPage() {
       <div ref={containerRef}>
         <PublicCommentInterviewChat
           messages={messages}
+          progress={progress}
+          mode={mode}
+          onAction={(action) => void sendAnswer("", action)}
           quickReplies={quickReplies}
           isLoading={busy}
           error={error}
