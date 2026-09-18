@@ -1,12 +1,12 @@
-import { adminClient } from "@test-utils/utils";
 import { createPublicCommentFixture } from "@test-utils/public-comment-utils";
+import { adminClient } from "@test-utils/utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PUBLIC_COMMENT_CONSENT_VERSION } from "../../minpaku/shared/consent";
 import { ChatError, ChatErrorCode } from "@/features/chat/shared/types/errors";
-import { QUESTION_PRESENTATIONS } from "../question-presentations";
-import type { TurnResponse } from "../interview-turn";
+import { PUBLIC_COMMENT_CONSENT_VERSION } from "../../minpaku/shared/consent";
 import { interviewStateSchema } from "../interview-state";
-import { getInterviewCampaign, type CampaignKey } from "./interview-campaigns";
+import type { TurnResponse } from "../interview-turn";
+import { QUESTION_PRESENTATIONS } from "../question-presentations";
+import { type CampaignKey, getInterviewCampaign } from "./interview-campaigns";
 import { createInterviewRoutes } from "./interview-routes";
 
 const keys = Object.keys(QUESTION_PRESENTATIONS) as CampaignKey[];
@@ -203,7 +203,7 @@ describe("共通HTTP境界", () => {
       await other.cleanup();
     }
   });
-  it("民泊メール同意の明示取得・再開時の変更・同意versionを維持する", async () => {
+  it("全キャンペーンでメール同意の明示取得・再開時の変更・同意versionを維持する", async () => {
     const handlers = routes("minpaku");
     expect(
       (await handlers.session(request({ ...consent, consentVersion: "old" })))
@@ -227,11 +227,11 @@ describe("共通HTTP境界", () => {
       receipt_opt_in: false,
       consent_version: PUBLIC_COMMENT_CONSENT_VERSION,
     });
-    for (const key of keys.filter((key) => key !== "minpaku"))
+    for (const key of keys)
       expect(
         (await routes(key).session(request({ ...consent, receiptOptIn: true })))
           .status
-      ).toBe(400);
+      ).toBe(200);
   });
   it("旧会話がユーザー発言で途切れても、復元した現在の固定質問を表示する", async () => {
     const session = await fixture.createSession();

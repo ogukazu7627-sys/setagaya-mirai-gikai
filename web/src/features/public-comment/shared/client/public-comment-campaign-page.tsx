@@ -7,17 +7,21 @@ import {
   Clipboard,
   ExternalLink,
   Loader2,
+  Mail,
+  RefreshCw,
   ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
 import { PublicCommentConsentModal } from "@/features/public-comment/minpaku/client/public-comment-consent-modal";
+import { ReceiptPreference } from "@/features/public-comment/minpaku/client/receipt-preference";
 import { usePublicCommentViewScroll } from "@/features/public-comment/minpaku/client/use-public-comment-view-scroll";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import type { ReceiptResult } from "@/features/public-comment/minpaku/shared/receipt";
+import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
   type LearningLesson,
@@ -72,6 +76,16 @@ const PRIMARY_BUTTON_CLASS =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-[100px] bg-primary-strong px-6 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
 const OUTLINE_BUTTON_CLASS =
   "inline-flex min-h-12 items-center justify-center gap-2 rounded-[100px] border border-black px-6 text-[15px] font-bold text-black transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50";
+
+const RECEIPT_STATUS_MESSAGES: Record<ReceiptResult["status"], string> = {
+  not_requested: "",
+  accepted:
+    "控えメールの送信を受け付けました。到着まで時間がかかる場合があります。届かない場合は迷惑メールフォルダもご確認ください。",
+  needs_review:
+    "控えメールの送信状況は運営による確認が必要です。下書きは保存されています。",
+  pending: "控えメールの送信状況を確認中です。下書きは保存されています。",
+  failed: "控えメールの送信を確認できませんでした。下書きは保存されています。",
+};
 
 function formatDeadline(deadline: string) {
   return new Intl.DateTimeFormat("ja-JP", {
@@ -244,7 +258,7 @@ function PublicCommentIntro({
               AIインタビューにはGoogleログインが必要です。同意後の回答は、下書き作成のためアカウントにひも付けて保存します。
             </p>
             <p>
-              このテーマでは、会話や下書きの匿名公開と、会話全文のメール送信は行いません。公式ページへの提出も自動では行われません。
+              会話や下書きの匿名公開は行いません。希望した場合は、完了後に会話全文と確認済みコメントの控えをGoogleログインのメールアドレスへ送ります。公式ページへの提出は自動では行われません。
             </p>
             <p>
               AIが作った下書きは、事実関係と自分の言葉になっているかを必ず確認・編集してから、本人が公式フォームへ転記してください。
@@ -306,9 +320,12 @@ function DraftReview({
   copied,
   isBusy,
   completionPending,
+  receiptOptIn,
+  userEmail,
   onDraftChange,
   onCopy,
   onComplete,
+  onReceiptChange,
   officialSubmissionUrl,
   draftTextareaId,
 }: {
@@ -317,9 +334,12 @@ function DraftReview({
   copied: boolean;
   isBusy: boolean;
   completionPending: boolean;
+  receiptOptIn: boolean;
+  userEmail?: string;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onComplete: () => void;
+  onReceiptChange: (checked: boolean) => void;
   officialSubmissionUrl: string;
   draftTextareaId: string;
 }) {
@@ -402,6 +422,14 @@ function DraftReview({
         <p className="mt-6 border-t border-gray-200 pt-5 text-sm leading-7 text-mirai-text-secondary">
           完了すると本文を固定します。このサイトから区への提出や一般公開は行いません。
         </p>
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <ReceiptPreference
+            checked={receiptOptIn}
+            onChange={onReceiptChange}
+            disabled={isBusy || completionPending}
+            userEmail={userEmail}
+          />
+        </div>
         {completionPending && (
           <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-950">
             下書きは保存済みです。通信が途中で切れた場合は、本文を変更せずに完了処理だけを再試行します。
@@ -429,10 +457,16 @@ function CompletePage({
   copied,
   onCopy,
   officialSubmissionUrl,
+  receipt,
+  isBusy,
+  onRetryReceipt,
 }: {
   copied: boolean;
   onCopy: () => void;
   officialSubmissionUrl: string;
+  receipt: ReceiptResult | null;
+  isBusy: boolean;
+  onRetryReceipt: () => void;
 }) {
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] items-start justify-center bg-mirai-light-gradient px-4 py-8">
@@ -453,6 +487,34 @@ function CompletePage({
         <p className="mt-4 text-sm leading-7 text-mirai-text-secondary">
           このサイトから世田谷区へは自動提出されていません。会話や下書きも一般公開されません。
         </p>
+        {receipt && receipt.status !== "not_requested" && (
+          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+            <p role="status" className="flex items-start gap-2">
+              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+              <span>{RECEIPT_STATUS_MESSAGES[receipt.status]}</span>
+            </p>
+            {receipt.canRetry && (
+              <p className="text-xs text-mirai-text-secondary">
+                再試行しても状況が変わらない場合は、1〜2分待ってからお試しください。
+              </p>
+            )}
+            {receipt.canRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isBusy}
+                onClick={onRetryReceipt}
+              >
+                {isBusy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                控えメールの送信を再試行
+              </Button>
+            )}
+          </div>
+        )}
         <Button
           type="button"
           variant="outline"
@@ -500,6 +562,8 @@ export function PublicCommentCampaignPage({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [completionPending, setCompletionPending] = useState(false);
+  const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
   const [authReturnError, setAuthReturnError] = useState<string>();
   const {
     messages,
@@ -521,9 +585,12 @@ export function PublicCommentCampaignPage({
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("auth_return") === "1") {
+    const returningFromAuth = url.searchParams.get("auth_return") === "1";
+    if (returningFromAuth) {
       setConsentOpen(true);
+      setReceiptOptIn(url.searchParams.get("receipt") !== "0");
       url.searchParams.delete("auth_return");
+      url.searchParams.delete("receipt");
       window.history.replaceState(window.history.state, "", url);
     }
     if (url.searchParams.get("auth_error") === "google_login_failed") {
@@ -537,6 +604,12 @@ export function PublicCommentCampaignPage({
     try {
       if (sessionStorage.getItem(config.authReturnKey) === "1") {
         sessionStorage.removeItem(config.authReturnKey);
+        const savedReceipt = sessionStorage.getItem(
+          `${config.authReturnKey}-receipt`
+        );
+        sessionStorage.removeItem(`${config.authReturnKey}-receipt`);
+        if (!returningFromAuth && savedReceipt === "false")
+          setReceiptOptIn(false);
         setConsentOpen(true);
       }
     } catch {
@@ -544,52 +617,64 @@ export function PublicCommentCampaignPage({
     }
   }, [config.authReturnKey]);
 
-  const signIn = async () => {
+  const signIn = async (requestedReceipt: boolean) => {
     setAuthReturnError(undefined);
     try {
       sessionStorage.setItem(config.authReturnKey, "1");
+      sessionStorage.setItem(
+        `${config.authReturnKey}-receipt`,
+        String(requestedReceipt)
+      );
     } catch {
       // Authentication can continue without browser storage.
     }
-    await auth.signInWithGoogle(`${config.routePath}?auth_return=1`);
+    const params = new URLSearchParams({
+      auth_return: "1",
+      receipt: requestedReceipt ? "1" : "0",
+    });
+    await auth.signInWithGoogle(`${config.routePath}?${params}`);
   };
 
-  const startSession = useCallback(async () => {
-    if (auth.status !== "authenticated" || busy) return false;
-    setBusy(true);
-    setError(null);
-    try {
-      const response = await fetch(`${config.apiBasePath}/session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          consented: true,
-          receiptOptIn: false,
-          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
-      setSessionId(data.sessionId);
-      loadConversation(data);
-      if (data.draft) setDraft(data.draft);
-      if (data.sources) setSources(data.sources);
-      if (data.nextStage === "review") {
-        setView("review");
-      } else {
-        setInterviewComplete(data.nextStage === "draft");
-        setView("interview");
+  const startSession = useCallback(
+    async (requestedReceipt: boolean) => {
+      if (auth.status !== "authenticated" || busy) return false;
+      setBusy(true);
+      setError(null);
+      try {
+        const response = await fetch(`${config.apiBasePath}/session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            consented: true,
+            receiptOptIn: requestedReceipt,
+            consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
+        setSessionId(data.sessionId);
+        setReceiptOptIn(data.receiptOptIn ?? requestedReceipt);
+        loadConversation(data);
+        if (data.draft) setDraft(data.draft);
+        if (data.sources) setSources(data.sources);
+        if (data.nextStage === "review") {
+          setView("review");
+        } else {
+          setInterviewComplete(data.nextStage === "draft");
+          setView("interview");
+        }
+        return true;
+      } catch (caught) {
+        setError(
+          caught instanceof Error ? caught.message : "開始できませんでした"
+        );
+        return false;
+      } finally {
+        setBusy(false);
       }
-      return true;
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "開始できませんでした"
-      );
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }, [auth.status, busy, config.apiBasePath, loadConversation]);
+    },
+    [auth.status, busy, config.apiBasePath, loadConversation]
+  );
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || busy) return;
@@ -642,12 +727,13 @@ export function PublicCommentCampaignPage({
         body: JSON.stringify({
           sessionId,
           publicationRequested: false,
-          receiptOptIn: false,
+          receiptOptIn,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "完了できませんでした");
+      setReceipt(data.receipt);
       setView("complete");
     } catch (caught) {
       setError(
@@ -656,7 +742,39 @@ export function PublicCommentCampaignPage({
     } finally {
       setBusy(false);
     }
-  }, [busy, completionPending, config.apiBasePath, draft, sessionId]);
+  }, [
+    busy,
+    completionPending,
+    config.apiBasePath,
+    draft,
+    receiptOptIn,
+    sessionId,
+  ]);
+
+  const retryReceipt = async () => {
+    if (!sessionId || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiBasePath}/receipt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error ?? "控えメールを再試行できませんでした");
+      setReceipt(data.receipt);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "控えメールを再試行できませんでした"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const copyDraft = useCallback(async () => {
     if (!draft) return;
@@ -734,9 +852,12 @@ export function PublicCommentCampaignPage({
           copied={copied}
           isBusy={busy}
           completionPending={completionPending}
+          receiptOptIn={receiptOptIn}
+          userEmail={auth.userEmail}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onComplete={() => void complete()}
+          onReceiptChange={setReceiptOptIn}
           officialSubmissionUrl={config.officialSubmissionUrl}
           draftTextareaId={config.draftTextareaId}
         />
@@ -746,6 +867,9 @@ export function PublicCommentCampaignPage({
           copied={copied}
           onCopy={() => void copyDraft()}
           officialSubmissionUrl={config.officialSubmissionUrl}
+          receipt={receipt}
+          isBusy={busy}
+          onRetryReceipt={() => void retryReceipt()}
         />
       )}
 
@@ -762,16 +886,15 @@ export function PublicCommentCampaignPage({
         open={consentOpen}
         onOpenChange={setConsentOpen}
         isStarting={busy}
-        onAgree={() => {
-          void startSession().then((started) => {
+        onAgree={(requestedReceipt) => {
+          void startSession(requestedReceipt).then((started) => {
             if (started) setConsentOpen(false);
           });
         }}
         authStatus={auth.status}
         userEmail={auth.userEmail}
         authError={auth.error ?? authReturnError}
-        initialReceiptOptIn={false}
-        receiptEnabled={false}
+        initialReceiptOptIn={receiptOptIn}
         onSignIn={signIn}
       />
     </div>

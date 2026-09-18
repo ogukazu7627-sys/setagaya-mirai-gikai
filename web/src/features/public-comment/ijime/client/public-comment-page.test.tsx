@@ -81,7 +81,7 @@ describe("PublicCommentIjimePage", () => {
     expect(screen.getByText(/2026年10月8日/)).toBeInTheDocument();
   });
 
-  it("センシティブなテーマでは控えメールを表示せず、同意後に専用APIで開始する", async () => {
+  it("控えメールを初期選択し、同意後に専用APIで開始する", async () => {
     const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -106,8 +106,8 @@ describe("PublicCommentIjimePage", () => {
       })[0]
     );
     expect(
-      screen.queryByText(/控えをメールで受け取る/)
-    ).not.toBeInTheDocument();
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -119,7 +119,7 @@ describe("PublicCommentIjimePage", () => {
       "/api/public-comment/ijime/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":false'),
+        body: expect.stringContaining('"receiptOptIn":true'),
       })
     );
   });
@@ -135,7 +135,7 @@ describe("PublicCommentIjimePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/ijime?auth_return=1"
+        "/public-comment/ijime?auth_return=1&receipt=1"
       )
     );
   });
@@ -175,5 +175,72 @@ describe("PublicCommentIjimePage", () => {
     expect(
       screen.getByRole("heading", { name: "あなたの回答から下書きを作ります" })
     ).toBeInTheDocument();
+  });
+
+  it("確認済みコメントの完了後に控えメールの送信受付を表示する", async () => {
+    const draft = {
+      id: "draft-1",
+      ai_body: "AI下書き",
+      final_body: "確認済みコメント",
+      target_ordinances: ["条例素案"],
+      fact_check_notes: [],
+    };
+    const fetchMock = vi
+      .spyOn(global, "fetch")
+      .mockImplementation(async (input, init) => {
+        const url = String(input);
+        if (url.endsWith("/session"))
+          return new Response(
+            JSON.stringify({
+              sessionId: "session-1",
+              messages: [],
+              quickReplies: [],
+              nextStage: "review",
+              receiptOptIn: true,
+              draft,
+            }),
+            { status: 200 }
+          );
+        if (url.endsWith("/draft") && init?.method === "PATCH")
+          return new Response(JSON.stringify({ draft }), { status: 200 });
+        if (url.endsWith("/complete"))
+          return new Response(
+            JSON.stringify({
+              status: "private",
+              receipt: { status: "accepted", canRetry: false },
+            }),
+            { status: 200 }
+          );
+        throw new Error(`Unexpected request: ${url}`);
+      });
+
+    render(<PublicCommentIjimePage />);
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "AIパブコメインタビューをはじめる",
+      })[0]
+    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
+    fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "あなたの言葉になっているか確認してください",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
+
+    expect(
+      await screen.findByText(/控えメールの送信を受け付けました/)
+    ).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/public-comment/ijime/complete",
+      expect.objectContaining({
+        body: expect.stringContaining('"receiptOptIn":true'),
+      })
+    );
   });
 });

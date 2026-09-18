@@ -42,6 +42,7 @@ describe("save_public_comment_draft parent-first locking (real DB)", () => {
         title: "test",
         submission_deadline: "2026-10-06T00:00:00Z",
         official_url: "https://example.test",
+        submission_url: "https://example.test/submit",
       })
       .select()
       .single();

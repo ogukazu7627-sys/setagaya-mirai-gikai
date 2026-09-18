@@ -113,6 +113,9 @@ describe("PublicCommentSuicidePreventionPage", () => {
         name: "AIパブコメインタビューをはじめる",
       })[0]
     );
+    expect(
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -123,7 +126,7 @@ describe("PublicCommentSuicidePreventionPage", () => {
       "/api/public-comment/suicide-prevention/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":false'),
+        body: expect.stringContaining('"receiptOptIn":true'),
       })
     );
   });
@@ -140,7 +143,7 @@ describe("PublicCommentSuicidePreventionPage", () => {
 
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/suicide-prevention?auth_return=1"
+        "/public-comment/suicide-prevention?auth_return=1&receipt=1"
       )
     );
   });

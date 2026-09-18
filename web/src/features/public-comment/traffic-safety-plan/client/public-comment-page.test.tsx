@@ -144,8 +144,8 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
       })[0]
     );
     expect(
-      screen.queryByText(/控えをメールで受け取る/)
-    ).not.toBeInTheDocument();
+      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+    ).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -156,7 +156,7 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
       "/api/public-comment/traffic-safety-plan/session",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"receiptOptIn":false'),
+        body: expect.stringContaining('"receiptOptIn":true'),
       })
     );
   });
@@ -172,7 +172,7 @@ describe("PublicCommentTrafficSafetyPlanPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Google でログイン" }));
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/traffic-safety-plan?auth_return=1"
+        "/public-comment/traffic-safety-plan?auth_return=1&receipt=1"
       )
     );
   });

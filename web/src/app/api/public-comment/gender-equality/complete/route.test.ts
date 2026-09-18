@@ -47,11 +47,8 @@ describe("POST /api/public-comment/gender-equality/complete", () => {
     mocks.completeSession.mockResolvedValue("private");
   });
 
-  it.each([
-    { publicationRequested: true },
-    { receiptOptIn: true },
-  ])("匿名公開と会話全文のメール送信を受け付けない: %j", async (extra) => {
-    const response = await POST(request(extra));
+  it("匿名公開を受け付けない", async () => {
+    const response = await POST(request({ publicationRequested: true }));
 
     expect(response.status).toBe(400);
     expect(mocks.getUser).not.toHaveBeenCalled();
