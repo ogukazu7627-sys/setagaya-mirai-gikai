@@ -352,7 +352,7 @@ export async function completeSession(params: {
 }): Promise<string> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
-    "complete_public_comment_session",
+    "complete_public_comment_session_with_event_invitation",
     {
       p_session_id: params.sessionId,
       p_user_id: params.userId,

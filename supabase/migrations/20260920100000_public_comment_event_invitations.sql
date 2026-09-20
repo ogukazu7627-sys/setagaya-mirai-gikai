@@ -65,7 +65,7 @@ begin
 end;
 $$;
 
-create or replace function public.complete_public_comment_session(
+create or replace function public.complete_public_comment_session_with_event_invitation(
   p_session_id uuid,
   p_user_id uuid,
   p_publication_requested boolean,
@@ -173,32 +173,6 @@ begin
 end;
 $$;
 
--- Keep the pre-event-invitation RPC signature for existing callers and tests.
--- The wrapper deliberately opts out of event mail and delegates all completion
--- rules to the canonical implementation above.
-create or replace function public.complete_public_comment_session(
-  p_session_id uuid,
-  p_user_id uuid,
-  p_publication_requested boolean,
-  p_receipt_opt_in boolean,
-  p_consent_version text
-) returns text language plpgsql security definer set search_path = '' as $$
-begin
-  return public.complete_public_comment_session(
-    p_session_id,
-    p_user_id,
-    p_publication_requested,
-    p_receipt_opt_in,
-    false,
-    p_consent_version,
-    null,
-    null,
-    null,
-    null
-  );
-end;
-$$;
-
 create or replace function public.claim_public_comment_event_invitation(
   p_session_id uuid, p_user_id uuid, p_sender text, p_config_failure text default null
 ) returns setof public.public_comment_event_invitations
@@ -251,11 +225,9 @@ end;
 $$;
 
 revoke all on function public.guard_public_comment_event_invitation_snapshot() from public, anon, authenticated;
-revoke all on function public.complete_public_comment_session(uuid, uuid, boolean, boolean, text) from public, anon, authenticated;
-revoke all on function public.complete_public_comment_session(uuid, uuid, boolean, boolean, boolean, text, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.complete_public_comment_session_with_event_invitation(uuid, uuid, boolean, boolean, boolean, text, text, text, text, text) from public, anon, authenticated;
 revoke all on function public.claim_public_comment_event_invitation(uuid, uuid, text, text) from public, anon, authenticated;
 revoke all on function public.finish_public_comment_event_invitation(uuid, uuid, text, boolean) from public, anon, authenticated;
-grant execute on function public.complete_public_comment_session(uuid, uuid, boolean, boolean, boolean, text, text, text, text, text) to service_role;
-grant execute on function public.complete_public_comment_session(uuid, uuid, boolean, boolean, text) to service_role;
+grant execute on function public.complete_public_comment_session_with_event_invitation(uuid, uuid, boolean, boolean, boolean, text, text, text, text, text) to service_role;
 grant execute on function public.claim_public_comment_event_invitation(uuid, uuid, text, text) to service_role;
 grant execute on function public.finish_public_comment_event_invitation(uuid, uuid, text, boolean) to service_role;
