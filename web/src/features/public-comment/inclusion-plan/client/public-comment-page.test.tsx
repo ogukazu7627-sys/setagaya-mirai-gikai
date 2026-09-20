@@ -164,7 +164,7 @@ describe("PublicCommentInclusionPlanPage", () => {
     window.history.replaceState(
       null,
       "",
-      "/public-comment/inclusion-plan?auth_return=1&receipt=1&session=session-1"
+      "/public-comment/inclusion-plan?auth_return=1&receipt=1&event=1&session=session-1"
     );
     vi.spyOn(global, "fetch").mockImplementation(async (url) => {
       if (String(url).endsWith("/draft"))
@@ -186,7 +186,7 @@ describe("PublicCommentInclusionPlanPage", () => {
     );
     await waitFor(() =>
       expect(auth.signInWithGoogle).toHaveBeenCalledWith(
-        "/public-comment/inclusion-plan?auth_return=1&receipt=1&session=session-1"
+        "/public-comment/inclusion-plan?auth_return=1&receipt=1&event=1&session=session-1"
       )
     );
   });

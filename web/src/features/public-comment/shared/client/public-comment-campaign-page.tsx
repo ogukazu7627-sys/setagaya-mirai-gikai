@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
+import { EventInvitationPreference } from "@/features/public-comment/minpaku/client/event-invitation-preference";
 import { PublicCommentConsentModal } from "@/features/public-comment/minpaku/client/public-comment-consent-modal";
 import { ReceiptPreference } from "@/features/public-comment/minpaku/client/receipt-preference";
 import { usePublicCommentViewScroll } from "@/features/public-comment/minpaku/client/use-public-comment-view-scroll";
@@ -27,6 +28,7 @@ import {
   PublicCommentDraftAuthGate,
 } from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
+import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
   type LearningLesson,
@@ -91,6 +93,18 @@ const RECEIPT_STATUS_MESSAGES: Record<ReceiptResult["status"], string> = {
     "控えメールの送信状況は運営による確認が必要です。下書きは保存されています。",
   pending: "控えメールの送信状況を確認中です。下書きは保存されています。",
   failed: "控えメールの送信を確認できませんでした。下書きは保存されています。",
+};
+
+const EVENT_INVITATION_STATUS_MESSAGES: Record<
+  PublicCommentEventInvitationResult["status"],
+  string
+> = {
+  not_requested: "",
+  accepted:
+    "イベント案内メールの送信を受け付けました。到着まで時間がかかる場合があります。",
+  needs_review: "イベント案内メールの送信状況は運営による確認が必要です。",
+  pending: "イベント案内メールの送信状況を確認中です。",
+  failed: "イベント案内メールの送信を確認できませんでした。",
 };
 
 function formatDeadline(deadline: string) {
@@ -264,7 +278,7 @@ function PublicCommentIntro({
               AIインタビューはログインなしで始められます。同意後の回答は、下書き作成のため一時的な匿名IDにひも付けて保存します。
             </p>
             <p>
-              最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。希望した場合は、完了後に会話全文と確認済みコメントの控えをGoogleログインのメールアドレスへ送ります。公式ページへの提出は自動では行われません。
+              最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。希望した場合は、完了後に会話全文と確認済みコメントの控え、今回の活動に関するイベント案内をGoogleログインのメールアドレスへ送ります。公式ページへの提出は自動では行われません。
             </p>
             <p>
               AIが作った下書きは、事実関係と自分の言葉になっているかを必ず確認・編集してから、本人が公式フォームへ転記してください。
@@ -327,11 +341,13 @@ function DraftReview({
   isBusy,
   completionPending,
   receiptOptIn,
+  eventInvitationOptIn,
   userEmail,
   onDraftChange,
   onCopy,
   onComplete,
   onReceiptChange,
+  onEventInvitationChange,
   officialSubmissionUrl,
   draftTextareaId,
 }: {
@@ -341,11 +357,13 @@ function DraftReview({
   isBusy: boolean;
   completionPending: boolean;
   receiptOptIn: boolean;
+  eventInvitationOptIn: boolean;
   userEmail?: string;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onComplete: () => void;
   onReceiptChange: (checked: boolean) => void;
+  onEventInvitationChange: (checked: boolean) => void;
   officialSubmissionUrl: string;
   draftTextareaId: string;
 }) {
@@ -436,6 +454,14 @@ function DraftReview({
             userEmail={userEmail}
           />
         </div>
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <EventInvitationPreference
+            checked={eventInvitationOptIn}
+            onChange={onEventInvitationChange}
+            disabled={isBusy || completionPending}
+            userEmail={userEmail}
+          />
+        </div>
         {completionPending && (
           <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-950">
             下書きは保存済みです。通信が途中で切れた場合は、本文を変更せずに完了処理だけを再試行します。
@@ -464,15 +490,19 @@ function CompletePage({
   onCopy,
   officialSubmissionUrl,
   receipt,
+  eventInvitation,
   isBusy,
   onRetryReceipt,
+  onRetryEventInvitation,
 }: {
   copied: boolean;
   onCopy: () => void;
   officialSubmissionUrl: string;
   receipt: ReceiptResult | null;
+  eventInvitation: PublicCommentEventInvitationResult | null;
   isBusy: boolean;
   onRetryReceipt: () => void;
+  onRetryEventInvitation: () => void;
 }) {
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] items-start justify-center bg-mirai-light-gradient px-4 py-8">
@@ -517,6 +547,31 @@ function CompletePage({
                   <RefreshCw className="size-4" />
                 )}
                 控えメールの送信を再試行
+              </Button>
+            )}
+          </div>
+        )}
+        {eventInvitation && eventInvitation.status !== "not_requested" && (
+          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+            <p role="status" className="flex items-start gap-2">
+              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+              <span>
+                {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
+              </span>
+            </p>
+            {eventInvitation.canRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isBusy}
+                onClick={onRetryEventInvitation}
+              >
+                {isBusy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                イベント案内メールの送信を再試行
               </Button>
             )}
           </div>
@@ -569,9 +624,12 @@ export function PublicCommentCampaignPage({
   const [copied, setCopied] = useState(false);
   const [completionPending, setCompletionPending] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [eventInvitationOptIn, setEventInvitationOptIn] = useState(true);
   const [draftGenerationStatus, setDraftGenerationStatus] =
     useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
+  const [eventInvitation, setEventInvitation] =
+    useState<PublicCommentEventInvitationResult | null>(null);
   const [authReturnError, setAuthReturnError] = useState<string>();
   const {
     messages,
@@ -597,6 +655,7 @@ export function PublicCommentCampaignPage({
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
       setReceiptOptIn(url.searchParams.get("receipt") !== "0");
+      setEventInvitationOptIn(url.searchParams.get("event") !== "0");
       const returnedSession = url.searchParams.get("session");
       if (returnedSession) {
         setSessionId(returnedSession);
@@ -604,6 +663,7 @@ export function PublicCommentCampaignPage({
       }
       url.searchParams.delete("auth_return");
       url.searchParams.delete("receipt");
+      url.searchParams.delete("event");
       url.searchParams.delete("session");
       window.history.replaceState(window.history.state, "", url);
     }
@@ -626,6 +686,12 @@ export function PublicCommentCampaignPage({
         sessionStorage.removeItem(`${config.authReturnKey}-receipt`);
         if (!returningFromAuth && savedReceipt === "false")
           setReceiptOptIn(false);
+        const savedEvent = sessionStorage.getItem(
+          `${config.authReturnKey}-event`
+        );
+        sessionStorage.removeItem(`${config.authReturnKey}-event`);
+        if (!returningFromAuth && savedEvent === "false")
+          setEventInvitationOptIn(false);
         const savedSession = sessionStorage.getItem(
           `${config.authReturnKey}-session`
         );
@@ -663,6 +729,10 @@ export function PublicCommentCampaignPage({
         `${config.authReturnKey}-receipt`,
         String(receiptOptIn)
       );
+      sessionStorage.setItem(
+        `${config.authReturnKey}-event`,
+        String(eventInvitationOptIn)
+      );
       sessionStorage.setItem(`${config.authReturnKey}-session`, sessionId);
     } catch {
       // Authentication can continue without browser storage.
@@ -670,6 +740,7 @@ export function PublicCommentCampaignPage({
     const params = new URLSearchParams({
       auth_return: "1",
       receipt: receiptOptIn ? "1" : "0",
+      event: eventInvitationOptIn ? "1" : "0",
       session: sessionId,
     });
     await auth.signInWithGoogle(`${config.routePath}?${params}`);
@@ -695,6 +766,8 @@ export function PublicCommentCampaignPage({
       if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
       setSessionId(data.sessionId);
       setReceiptOptIn(true);
+      setEventInvitationOptIn(true);
+      setEventInvitation(null);
       loadConversation(data);
       if (data.draft) setDraft(data.draft);
       if (data.sources) setSources(data.sources);
@@ -832,12 +905,14 @@ export function PublicCommentCampaignPage({
           sessionId,
           publicationRequested: false,
           receiptOptIn,
+          eventInvitationOptIn,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "完了できませんでした");
       setReceipt(data.receipt);
+      setEventInvitation(data.eventInvitation ?? null);
       setView("complete");
     } catch (caught) {
       setError(
@@ -851,6 +926,7 @@ export function PublicCommentCampaignPage({
     completionPending,
     config.apiBasePath,
     draft,
+    eventInvitationOptIn,
     receiptOptIn,
     sessionId,
   ]);
@@ -874,6 +950,33 @@ export function PublicCommentCampaignPage({
         caught instanceof Error
           ? caught.message
           : "控えメールを再試行できませんでした"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const retryEventInvitation = async () => {
+    if (!sessionId || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(`${config.apiBasePath}/event-invitation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(
+          data.error ?? "イベント案内メールを再試行できませんでした"
+        );
+      setEventInvitation(data.eventInvitation);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "イベント案内メールを再試行できませんでした"
       );
     } finally {
       setBusy(false);
@@ -956,9 +1059,11 @@ export function PublicCommentCampaignPage({
           authStatus={auth.status}
           userEmail={auth.userEmail}
           receiptOptIn={receiptOptIn}
+          eventInvitationOptIn={eventInvitationOptIn}
           isBusy={busy}
           error={auth.error ?? authReturnError ?? error}
           onReceiptChange={setReceiptOptIn}
+          onEventInvitationChange={setEventInvitationOptIn}
           onSignIn={() => void signIn()}
           onRetry={() => void generateDraft()}
         />
@@ -971,11 +1076,13 @@ export function PublicCommentCampaignPage({
           isBusy={busy}
           completionPending={completionPending}
           receiptOptIn={receiptOptIn}
+          eventInvitationOptIn={eventInvitationOptIn}
           userEmail={auth.userEmail}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onComplete={() => void complete()}
           onReceiptChange={setReceiptOptIn}
+          onEventInvitationChange={setEventInvitationOptIn}
           officialSubmissionUrl={config.officialSubmissionUrl}
           draftTextareaId={config.draftTextareaId}
         />
@@ -986,8 +1093,10 @@ export function PublicCommentCampaignPage({
           onCopy={() => void copyDraft()}
           officialSubmissionUrl={config.officialSubmissionUrl}
           receipt={receipt}
+          eventInvitation={eventInvitation}
           isBusy={busy}
           onRetryReceipt={() => void retryReceipt()}
+          onRetryEventInvitation={() => void retryEventInvitation()}
         />
       )}
 

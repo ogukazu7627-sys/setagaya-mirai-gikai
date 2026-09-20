@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   findDraft: vi.fn(),
   completeSession: vi.fn(),
   sendReceipt: vi.fn(),
+  sendEventInvitation: vi.fn(),
 }));
 
 vi.mock("@/features/chat/server/utils/supabase-server", () => ({
@@ -20,6 +21,9 @@ vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
 vi.mock("@/features/public-comment/minpaku/server/receipt", () => ({
   sendPublicCommentReceipt: mocks.sendReceipt,
 }));
+vi.mock("@/features/public-comment/shared/server/event-invitation", () => ({
+  sendPublicCommentEventInvitation: mocks.sendEventInvitation,
+}));
 
 import { POST } from "./route";
 
@@ -30,6 +34,7 @@ function request(extra: Record<string, unknown> = {}) {
       sessionId: "session-1",
       publicationRequested: false,
       receiptOptIn: true,
+      eventInvitationOptIn: false,
       consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
       ...extra,
     }),
@@ -63,6 +68,10 @@ describe("POST /api/public-comment/minpaku/complete", () => {
       status: "accepted",
       canRetry: false,
     });
+    mocks.sendEventInvitation.mockResolvedValue({
+      status: "accepted",
+      canRetry: false,
+    });
   });
 
   it.each([
@@ -80,6 +89,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
     expect(await response.json()).toEqual({
       status: "private",
       receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
     expect(mocks.findSession).toHaveBeenCalledExactlyOnceWith(
       "session-1",
@@ -92,6 +102,9 @@ describe("POST /api/public-comment/minpaku/complete", () => {
       publicationRequested: false,
       receiptOptIn: true,
       consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+      eventInvitationOptIn: false,
+      eventInvitationConsentVersion: null,
+      eventInvitationEmail: null,
     });
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
       "session-1",
@@ -126,6 +139,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
     expect(await response.json()).toEqual({
       status: "private",
       receipt: { status: "failed", canRetry: true },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
     expect(mocks.completeSession).toHaveBeenCalledTimes(1);
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
@@ -149,6 +163,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
     expect(await response.json()).toEqual({
       status: "private",
       receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
     expect(mocks.completeSession).not.toHaveBeenCalled();
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
@@ -179,6 +194,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
     expect(await response.json()).toEqual({
       status: "private",
       receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
     expect(mocks.findSession).toHaveBeenCalledTimes(2);
   });
@@ -192,6 +208,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
     expect(await response.json()).toEqual({
       status: "private",
       receipt: { status: "pending", canRetry: true },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
   });
 });

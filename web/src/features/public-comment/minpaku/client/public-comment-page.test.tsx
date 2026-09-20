@@ -137,7 +137,7 @@ describe("PublicCommentMinpakuPage", () => {
     window.history.replaceState(
       null,
       "",
-      `/public-comment/minpaku?auth_return=1&receipt=1&session=session-1&targets=${encodeURIComponent(JSON.stringify(targets))}`
+      `/public-comment/minpaku?auth_return=1&receipt=1&event=1&session=session-1&targets=${encodeURIComponent(JSON.stringify(targets))}`
     );
     const fetchMock = vi
       .spyOn(global, "fetch")
@@ -170,7 +170,7 @@ describe("PublicCommentMinpakuPage", () => {
     );
     expect(auth.signInWithGoogle).toHaveBeenCalledWith(
       expect.stringContaining(
-        "/public-comment/minpaku?auth_return=1&receipt=1&session=session-1&targets="
+        "/public-comment/minpaku?auth_return=1&receipt=1&event=1&session=session-1&targets="
       )
     );
   });
@@ -458,6 +458,7 @@ describe("PublicCommentMinpakuPage", () => {
           sessionId: "session-1",
           publicationRequested: false,
           receiptOptIn: false,
+          eventInvitationOptIn: true,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       })

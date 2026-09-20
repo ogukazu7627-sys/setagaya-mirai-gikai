@@ -4,6 +4,7 @@ import { Loader2, LockKeyhole, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleGIcon } from "@/features/chat/client/components/google-login-gate";
 import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
+import { EventInvitationPreference } from "@/features/public-comment/minpaku/client/event-invitation-preference";
 import { ReceiptPreference } from "@/features/public-comment/minpaku/client/receipt-preference";
 
 export type DraftGenerationStatus = "generating" | "ready" | "failed";
@@ -13,10 +14,12 @@ export function PublicCommentDraftAuthGate({
   authStatus,
   userEmail,
   receiptOptIn,
+  eventInvitationOptIn,
   receiptEnabled = true,
   isBusy,
   error,
   onReceiptChange,
+  onEventInvitationChange,
   onSignIn,
   onRetry,
 }: {
@@ -24,10 +27,12 @@ export function PublicCommentDraftAuthGate({
   authStatus: ChatAuthStatus;
   userEmail?: string;
   receiptOptIn: boolean;
+  eventInvitationOptIn: boolean;
   receiptEnabled?: boolean;
   isBusy: boolean;
   error?: string | null;
   onReceiptChange: (value: boolean) => void;
+  onEventInvitationChange: (value: boolean) => void;
   onSignIn: () => void;
   onRetry: () => void;
 }) {
@@ -69,6 +74,16 @@ export function PublicCommentDraftAuthGate({
             userEmail={authenticated ? userEmail : undefined}
           />
         )}
+        <div
+          className={receiptEnabled ? "mt-5 border-t border-gray-200 pt-5" : ""}
+        >
+          <EventInvitationPreference
+            checked={eventInvitationOptIn}
+            onChange={onEventInvitationChange}
+            disabled={isBusy}
+            userEmail={authenticated ? userEmail : undefined}
+          />
+        </div>
         {!authenticated && (
           <Button
             type="button"

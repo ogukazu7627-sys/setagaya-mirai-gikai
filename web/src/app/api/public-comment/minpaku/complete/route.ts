@@ -6,8 +6,18 @@ import {
   findDraft,
   findSessionForUser,
 } from "@/features/public-comment/minpaku/server/repository";
-import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import {
+  PUBLIC_COMMENT_CONSENT_VERSION,
+  PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION,
+} from "@/features/public-comment/minpaku/shared/consent";
 import type { PublicCommentReceipt } from "@/features/public-comment/minpaku/shared/receipt";
+import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
+import { sendPublicCommentEventInvitation } from "@/features/public-comment/shared/server/event-invitation";
+import {
+  PUBLIC_COMMENT_EVENT_INVITATION_HTML,
+  PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
+  PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
+} from "@/features/public-comment/shared/server/event-invitation-email";
 
 export const maxDuration = 30;
 
@@ -27,6 +37,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  const eventInvitationOptIn = body.eventInvitationOptIn === true;
 
   const user = await getPublicCommentUser();
   if (!user)
@@ -61,6 +72,17 @@ export async function POST(request: Request) {
             publicationRequested,
             receiptOptIn: body.receiptOptIn,
             consentVersion: body.consentVersion,
+            eventInvitationOptIn,
+            eventInvitationConsentVersion: eventInvitationOptIn
+              ? PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION
+              : null,
+            eventInvitationEmail: eventInvitationOptIn
+              ? {
+                  subject: PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
+                  body: PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
+                  html: PUBLIC_COMMENT_EVENT_INVITATION_HTML,
+                }
+              : null,
           });
     } catch (error) {
       // Older deployed SQL functions may reject a second completion request.
@@ -70,22 +92,31 @@ export async function POST(request: Request) {
       status = completedSession.publication_status ?? "private";
     }
 
-    let receipt: PublicCommentReceipt = {
-      status: "not_requested",
-      canRetry: false,
-    };
-    if (body.receiptOptIn) {
-      try {
-        receipt = await sendPublicCommentReceipt(sessionId, user.id);
-      } catch {
-        // Receipt delivery is best-effort. The completed interview must remain
-        // complete and can be retried through the dedicated receipt endpoint.
-        receipt = { status: "pending", canRetry: true };
-      }
-    }
+    // Both messages are independent. Sending them concurrently keeps the
+    // completion request within the serverless function timeout.
+    const receiptPromise: Promise<PublicCommentReceipt> = body.receiptOptIn
+      ? sendPublicCommentReceipt(sessionId, user.id).catch(() => ({
+          // Receipt delivery is best-effort. The completed interview remains
+          // complete and can be retried through the dedicated receipt endpoint.
+          status: "pending",
+          canRetry: true,
+        }))
+      : Promise.resolve({ status: "not_requested", canRetry: false });
+    const eventInvitationPromise: Promise<PublicCommentEventInvitationResult> =
+      eventInvitationOptIn
+        ? sendPublicCommentEventInvitation(sessionId, user.id).catch(() => ({
+            status: "pending",
+            canRetry: true,
+          }))
+        : Promise.resolve({ status: "not_requested", canRetry: false });
+    const [receipt, eventInvitation] = await Promise.all([
+      receiptPromise,
+      eventInvitationPromise,
+    ]);
     return NextResponse.json({
       status,
       receipt,
+      eventInvitation,
     });
   } catch {
     console.error("Public comment completion error");

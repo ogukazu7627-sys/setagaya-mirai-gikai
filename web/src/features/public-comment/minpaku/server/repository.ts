@@ -342,6 +342,13 @@ export async function completeSession(params: {
   publicationRequested: boolean;
   receiptOptIn: boolean;
   consentVersion: string;
+  eventInvitationOptIn: boolean;
+  eventInvitationConsentVersion: string | null;
+  eventInvitationEmail: {
+    subject: string;
+    body: string;
+    html: string;
+  } | null;
 }): Promise<string> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -351,7 +358,12 @@ export async function completeSession(params: {
       p_user_id: params.userId,
       p_publication_requested: params.publicationRequested,
       p_receipt_opt_in: params.receiptOptIn,
+      p_event_invitation_opt_in: params.eventInvitationOptIn,
       p_consent_version: params.consentVersion,
+      p_event_invitation_consent_version: params.eventInvitationConsentVersion,
+      p_event_subject: params.eventInvitationEmail?.subject ?? null,
+      p_event_body: params.eventInvitationEmail?.body ?? null,
+      p_event_html: params.eventInvitationEmail?.html ?? null,
     }
   );
   if (error) throw new Error("public_comment_completion_failed");
