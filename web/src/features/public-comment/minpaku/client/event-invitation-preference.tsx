@@ -1,8 +1,8 @@
 "use client";
 
-import { PUBLIC_COMMENT_RECEIPT_LABEL } from "../shared/consent";
+import { PUBLIC_COMMENT_EVENT_INVITATION_LABEL } from "../shared/consent";
 
-export function ReceiptPreference({
+export function EventInvitationPreference({
   checked,
   onChange,
   disabled,
@@ -23,7 +23,7 @@ export function ReceiptPreference({
           onChange={(event) => onChange(event.target.checked)}
           className="mt-1 size-4 shrink-0 accent-primary"
         />
-        <span>{PUBLIC_COMMENT_RECEIPT_LABEL}</span>
+        <span>{PUBLIC_COMMENT_EVENT_INVITATION_LABEL}</span>
       </label>
       <p className="break-all pl-7 text-xs text-mirai-text-secondary">
         {userEmail
@@ -31,7 +31,7 @@ export function ReceiptPreference({
           : "送信先：Googleログインのメールアドレス"}
       </p>
       <p className="pl-7 text-xs text-mirai-text-secondary">
-        任意です。完了前に変更できます。これは今回のインタビューとコメントの控え専用です。
+        任意です。完了前に変更できます。今回の活動に関する案内のみを送り、インタビューの回答内容は含めません。
       </p>
     </div>
   );

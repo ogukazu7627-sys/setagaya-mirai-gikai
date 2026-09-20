@@ -4,6 +4,7 @@ import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpak
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   sendReceipt: vi.fn(),
+  sendEventInvitation: vi.fn(),
   findCampaign: vi.fn(),
   findSession: vi.fn(),
   findDraft: vi.fn(),
@@ -16,6 +17,9 @@ vi.mock("@/features/public-comment/minpaku/server/auth", () => ({
 vi.mock("@/features/public-comment/minpaku/server/receipt", () => ({
   sendPublicCommentReceipt: mocks.sendReceipt,
 }));
+vi.mock("./event-invitation", () => ({
+  sendPublicCommentEventInvitation: mocks.sendEventInvitation,
+}));
 vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
   completeSession: mocks.completeSession,
   findCampaign: mocks.findCampaign,
@@ -25,19 +29,26 @@ vi.mock("@/features/public-comment/minpaku/server/repository", () => ({
 
 import {
   createPublicCommentCompleteHandler,
+  createPublicCommentEventInvitationHandler,
   createPublicCommentReceiptHandler,
 } from "./receipt-routes";
 
 const complete = createPublicCommentCompleteHandler("campaign-slug");
 const retryReceipt = createPublicCommentReceiptHandler("campaign-slug");
+const retryEventInvitation =
+  createPublicCommentEventInvitationHandler("campaign-slug");
 
-function completionRequest(receiptOptIn: boolean) {
+function completionRequest(
+  receiptOptIn: boolean,
+  eventInvitationOptIn = false
+) {
   return new Request("http://localhost/complete", {
     method: "POST",
     body: JSON.stringify({
       sessionId: "session-1",
       publicationRequested: false,
       receiptOptIn,
+      eventInvitationOptIn,
       consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
     }),
   });
@@ -66,31 +77,59 @@ describe("public comment receipt routes", () => {
       status: "accepted",
       canRetry: false,
     });
+    mocks.sendEventInvitation.mockResolvedValue({
+      status: "accepted",
+      canRetry: false,
+    });
   });
 
   it("希望した本人の完了処理後に控えメールを送る", async () => {
     const response = await complete(completionRequest(true));
 
     expect(response.status).toBe(200);
-    expect(mocks.findSession).toHaveBeenCalledExactlyOnceWith(
-      "session-1",
-      "owner",
-      "campaign-1"
-    );
     expect(mocks.completeSession).toHaveBeenCalledExactlyOnceWith({
       sessionId: "session-1",
       userId: "owner",
       publicationRequested: false,
       receiptOptIn: true,
       consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+      eventInvitationOptIn: false,
+      eventInvitationConsentVersion: null,
+      eventInvitationEmail: null,
     });
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
+      "session-1",
+      "owner"
+    );
+    expect(mocks.sendEventInvitation).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({
+      status: "private",
+      receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
+    });
+  });
+
+  it("控えと同じ完了処理でイベント案内も送る", async () => {
+    const response = await complete(completionRequest(true, true));
+
+    expect(response.status).toBe(200);
+    expect(mocks.completeSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventInvitationOptIn: true,
+        eventInvitationConsentVersion: "2026-09-20-event-invitation-v1",
+        eventInvitationEmail: expect.objectContaining({
+          subject: expect.stringContaining("若者と地域を語る会"),
+        }),
+      })
+    );
+    expect(mocks.sendEventInvitation).toHaveBeenCalledExactlyOnceWith(
       "session-1",
       "owner"
     );
     await expect(response.json()).resolves.toEqual({
       status: "private",
       receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "accepted", canRetry: false },
     });
   });
 
@@ -99,9 +138,11 @@ describe("public comment receipt routes", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.sendReceipt).not.toHaveBeenCalled();
+    expect(mocks.sendEventInvitation).not.toHaveBeenCalled();
     await expect(response.json()).resolves.toEqual({
       status: "private",
       receipt: { status: "not_requested", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
   });
 
@@ -114,12 +155,22 @@ describe("public comment receipt routes", () => {
     const response = await retryReceipt(receiptRequest());
 
     expect(response.status).toBe(200);
-    expect(mocks.findSession).toHaveBeenCalledExactlyOnceWith(
-      "session-1",
-      "owner",
-      "campaign-1"
-    );
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
+      "session-1",
+      "owner"
+    );
+  });
+
+  it("完了済みの本人セッションだけイベント案内を再試行できる", async () => {
+    mocks.findSession.mockResolvedValue({
+      id: "session-1",
+      completed_at: "2026-09-18T00:00:00.000Z",
+      publication_status: "private",
+    });
+    const response = await retryEventInvitation(receiptRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.sendEventInvitation).toHaveBeenCalledExactlyOnceWith(
       "session-1",
       "owner"
     );
@@ -139,6 +190,7 @@ describe("public comment receipt routes", () => {
     await expect(response.json()).resolves.toEqual({
       status: "private",
       receipt: { status: "accepted", canRetry: false },
+      eventInvitation: { status: "not_requested", canRetry: false },
     });
   });
 

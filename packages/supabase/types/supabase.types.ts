@@ -3114,6 +3114,8 @@ export type Database = {
           draft_generation_started_at: string | null
           draft_generation_status: string
           draft_generation_token: string | null
+          event_invitation_consent_version: string | null
+          event_invitation_opt_in: boolean
           id: string
           interview_revision: number
           interview_state: Json | null
@@ -3135,6 +3137,8 @@ export type Database = {
           draft_generation_started_at?: string | null
           draft_generation_status?: string
           draft_generation_token?: string | null
+          event_invitation_consent_version?: string | null
+          event_invitation_opt_in?: boolean
           id?: string
           interview_revision?: number
           interview_state?: Json | null
@@ -3156,6 +3160,8 @@ export type Database = {
           draft_generation_started_at?: string | null
           draft_generation_status?: string
           draft_generation_token?: string | null
+          event_invitation_consent_version?: string | null
+          event_invitation_opt_in?: boolean
           id?: string
           interview_revision?: number
           interview_state?: Json | null
@@ -3246,6 +3252,80 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "public_comment_receipts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_event_invitations: {
+        Row: {
+          accepted_at: string | null
+          attempt_count: number
+          body: string
+          consent_version: string
+          created_at: string
+          failure_code: string | null
+          first_attempt_at: string | null
+          html: string
+          id: string
+          idempotency_key: string
+          lease_expires_at: string | null
+          lease_token: string | null
+          next_attempt_at: string | null
+          provider_id: string | null
+          recipient: string | null
+          sender: string | null
+          session_id: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          attempt_count?: number
+          body: string
+          consent_version: string
+          created_at?: string
+          failure_code?: string | null
+          first_attempt_at?: string | null
+          html: string
+          id?: string
+          idempotency_key: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string | null
+          provider_id?: string | null
+          recipient?: string | null
+          sender?: string | null
+          session_id: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          accepted_at?: string | null
+          attempt_count?: number
+          body?: string
+          consent_version?: string
+          created_at?: string
+          failure_code?: string | null
+          first_attempt_at?: string | null
+          html?: string
+          id?: string
+          idempotency_key?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string | null
+          provider_id?: string | null
+          recipient?: string | null
+          sender?: string | null
+          session_id?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_event_invitations_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: true
             referencedRelation: "public_comment_sessions"
@@ -3769,6 +3849,39 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      complete_public_comment_session_with_event_invitation: {
+        Args: {
+          p_consent_version: string
+          p_event_body: string | null
+          p_event_html: string | null
+          p_event_invitation_consent_version: string | null
+          p_event_invitation_opt_in: boolean
+          p_event_subject: string | null
+          p_publication_requested: boolean
+          p_receipt_opt_in: boolean
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      claim_public_comment_event_invitation: {
+        Args: {
+          p_config_failure?: string
+          p_sender: string
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: Database["public"]["Tables"]["public_comment_event_invitations"]["Row"][]
+      }
+      finish_public_comment_event_invitation: {
+        Args: {
+          p_invitation_id: string
+          p_lease_token: string
+          p_needs_review?: boolean
+          p_provider_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

@@ -70,6 +70,9 @@ describe("POST /api/public-comment/retaining-wall/complete", () => {
       publicationRequested: false,
       receiptOptIn: false,
       consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+      eventInvitationOptIn: false,
+      eventInvitationConsentVersion: null,
+      eventInvitationEmail: null,
     });
   });
 });

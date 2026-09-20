@@ -23,6 +23,7 @@ import {
   PublicCommentDraftAuthGate,
 } from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
+import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { routes } from "@/lib/routes";
 import {
   MINPAKU_CAMPAIGN_TITLE,
@@ -42,6 +43,7 @@ import {
   MINPAKU_LESSONS,
 } from "../shared/learning";
 import type { ReceiptResult } from "../shared/receipt";
+import { EventInvitationPreference } from "./event-invitation-preference";
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
@@ -78,6 +80,18 @@ const RECEIPT_STATUS_MESSAGES: Record<ReceiptResult["status"], string> = {
     "控えメールの送信状況は運営による確認が必要です。下書きは保存されています。",
   pending: "控えメールの送信状況を確認中です。下書きは保存されています。",
   failed: "控えメールの送信を確認できませんでした。下書きは保存されています。",
+};
+
+const EVENT_INVITATION_STATUS_MESSAGES: Record<
+  PublicCommentEventInvitationResult["status"],
+  string
+> = {
+  not_requested: "",
+  accepted:
+    "イベント案内メールの送信を受け付けました。到着まで時間がかかる場合があります。",
+  needs_review: "イベント案内メールの送信状況は運営による確認が必要です。",
+  pending: "イベント案内メールの送信状況を確認中です。",
+  failed: "イベント案内メールの送信を確認できませんでした。",
 };
 
 function formatDeadline() {
@@ -417,8 +431,10 @@ function DraftReview({
   completionPending,
   publicationRequested,
   receiptOptIn,
+  eventInvitationOptIn,
   userEmail,
   onReceiptChange,
+  onEventInvitationChange,
   onDraftChange,
   onCopy,
   onPublicationChange,
@@ -431,18 +447,30 @@ function DraftReview({
   completionPending: boolean;
   publicationRequested: boolean;
   receiptOptIn: boolean;
+  eventInvitationOptIn: boolean;
   userEmail?: string;
   onReceiptChange: (value: boolean) => void;
+  onEventInvitationChange: (value: boolean) => void;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onPublicationChange: (value: boolean) => void;
   onComplete: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+  }, []);
+
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] flex-col bg-mirai-light-gradient px-4 py-8">
       <section className="mx-auto w-full max-w-[720px] rounded-2xl bg-white p-6">
         <p className="text-sm font-bold text-primary">確認・編集</p>
-        <h1 className="mt-2 text-[22px] font-bold leading-[1.64] text-black">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="mt-2 text-[22px] font-bold leading-[1.64] text-black outline-none"
+        >
           あなたの言葉になっているか確認してください
         </h1>
         <p className="mt-3 text-[15px] leading-[1.87] text-black">
@@ -539,6 +567,14 @@ function DraftReview({
             userEmail={userEmail}
           />
         </div>
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <EventInvitationPreference
+            checked={eventInvitationOptIn}
+            onChange={onEventInvitationChange}
+            disabled={isBusy || completionPending}
+            userEmail={userEmail}
+          />
+        </div>
         {completionPending && (
           <p className="mt-4 text-sm leading-7 text-mirai-text-secondary">
             完了処理を開始したため、本文と設定を固定しています。通信に失敗した場合は「確認して完了」で同じ内容の結果を再確認できます。
@@ -565,13 +601,17 @@ function DraftReview({
 function CompletePage({
   publicationRequested,
   receipt,
+  eventInvitation,
   isBusy,
   onRetryReceipt,
+  onRetryEventInvitation,
 }: {
   publicationRequested: boolean;
   receipt: ReceiptResult | null;
+  eventInvitation: PublicCommentEventInvitationResult | null;
   isBusy: boolean;
   onRetryReceipt: () => void;
+  onRetryEventInvitation: () => void;
 }) {
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] flex-col items-center bg-mirai-light-gradient px-4 py-8">
@@ -622,6 +662,31 @@ function CompletePage({
             )}
           </div>
         )}
+        {eventInvitation && eventInvitation.status !== "not_requested" && (
+          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+            <p role="status" className="flex items-start gap-2">
+              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+              <span>
+                {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
+              </span>
+            </p>
+            {eventInvitation.canRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isBusy}
+                onClick={onRetryEventInvitation}
+              >
+                {isBusy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                イベント案内メールの送信を再試行
+              </Button>
+            )}
+          </div>
+        )}
         <a
           href={MINPAKU_OFFICIAL_SUBMISSION_URL}
           target="_blank"
@@ -651,9 +716,12 @@ export function PublicCommentMinpakuPage() {
     useState<readonly MinpakuSource[]>(MINPAKU_SOURCES);
   const [publicationRequested, setPublicationRequested] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
+  const [eventInvitationOptIn, setEventInvitationOptIn] = useState(true);
   const [draftGenerationStatus, setDraftGenerationStatus] =
     useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
+  const [eventInvitation, setEventInvitation] =
+    useState<PublicCommentEventInvitationResult | null>(null);
   const [completionPending, setCompletionPending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -683,6 +751,7 @@ export function PublicCommentMinpakuPage() {
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
       setReceiptOptIn(url.searchParams.get("receipt") === "1");
+      setEventInvitationOptIn(url.searchParams.get("event") !== "0");
       const returnedSession = url.searchParams.get("session");
       const returnedTargets = url.searchParams.get("targets");
       if (returnedSession) {
@@ -699,6 +768,7 @@ export function PublicCommentMinpakuPage() {
       }
       url.searchParams.delete("auth_return");
       url.searchParams.delete("receipt");
+      url.searchParams.delete("event");
       url.searchParams.delete("session");
       url.searchParams.delete("targets");
       window.history.replaceState(window.history.state, "", url);
@@ -722,6 +792,12 @@ export function PublicCommentMinpakuPage() {
         sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY);
         if (!returningFromAuth && savedReceipt === "false")
           setReceiptOptIn(false);
+        const savedEvent = sessionStorage.getItem(
+          `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`
+        );
+        sessionStorage.removeItem(`${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`);
+        if (!returningFromAuth && savedEvent === "false")
+          setEventInvitationOptIn(false);
         const savedSession = sessionStorage.getItem(
           `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`
         );
@@ -772,6 +848,10 @@ export function PublicCommentMinpakuPage() {
         String(receiptOptIn)
       );
       sessionStorage.setItem(
+        `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`,
+        String(eventInvitationOptIn)
+      );
+      sessionStorage.setItem(
         `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`,
         sessionId
       );
@@ -785,6 +865,7 @@ export function PublicCommentMinpakuPage() {
     const params = new URLSearchParams({
       auth_return: "1",
       receipt: receiptOptIn ? "1" : "0",
+      event: eventInvitationOptIn ? "1" : "0",
       session: sessionId,
       targets: JSON.stringify(selectedOrdinances),
     });
@@ -811,6 +892,8 @@ export function PublicCommentMinpakuPage() {
       if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
       setSessionId(data.sessionId);
       setReceiptOptIn(true);
+      setEventInvitationOptIn(true);
+      setEventInvitation(null);
       loadConversation(data);
       if (data.draft) setDraft(data.draft);
       if (data.sources) setSources(data.sources);
@@ -958,12 +1041,14 @@ export function PublicCommentMinpakuPage() {
           sessionId,
           publicationRequested,
           receiptOptIn,
+          eventInvitationOptIn,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "完了できませんでした");
       setReceipt(data.receipt);
+      setEventInvitation(data.eventInvitation ?? null);
       setPublicationRequested(data.status === "pending_review");
       setView("complete");
     } catch (caught) {
@@ -978,6 +1063,7 @@ export function PublicCommentMinpakuPage() {
     completionPending,
     draft,
     publicationRequested,
+    eventInvitationOptIn,
     receiptOptIn,
     sessionId,
   ]);
@@ -998,6 +1084,36 @@ export function PublicCommentMinpakuPage() {
     } catch {
       setError(
         "送信状況を確認できませんでした。しばらくしてからお試しください。"
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const retryEventInvitation = async () => {
+    if (!sessionId || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        "/api/public-comment/minpaku/event-invitation",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(
+          data.error ?? "イベント案内メールを再試行できませんでした"
+        );
+      setEventInvitation(data.eventInvitation);
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "イベント案内メールを再試行できませんでした"
       );
     } finally {
       setBusy(false);
@@ -1082,9 +1198,11 @@ export function PublicCommentMinpakuPage() {
           authStatus={auth.status}
           userEmail={auth.userEmail}
           receiptOptIn={receiptOptIn}
+          eventInvitationOptIn={eventInvitationOptIn}
           isBusy={busy}
           error={auth.error ?? authReturnError ?? error}
           onReceiptChange={setReceiptOptIn}
+          onEventInvitationChange={setEventInvitationOptIn}
           onSignIn={() => void signIn()}
           onRetry={() => void generateDraft()}
         />
@@ -1098,8 +1216,10 @@ export function PublicCommentMinpakuPage() {
           publicationRequested={publicationRequested}
           completionPending={completionPending}
           receiptOptIn={receiptOptIn}
+          eventInvitationOptIn={eventInvitationOptIn}
           userEmail={auth.userEmail}
           onReceiptChange={setReceiptOptIn}
+          onEventInvitationChange={setEventInvitationOptIn}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onPublicationChange={setPublicationRequested}
@@ -1110,8 +1230,10 @@ export function PublicCommentMinpakuPage() {
         <CompletePage
           publicationRequested={publicationRequested}
           receipt={receipt}
+          eventInvitation={eventInvitation}
           isBusy={busy}
           onRetryReceipt={() => void retryReceipt()}
+          onRetryEventInvitation={() => void retryEventInvitation()}
         />
       )}
 
