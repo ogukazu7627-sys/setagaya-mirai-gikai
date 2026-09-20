@@ -1,4 +1,5 @@
-export const PUBLIC_COMMENT_CONSENT_VERSION = "2026-09-18-late-google-auth-v1";
+export const PUBLIC_COMMENT_CONSENT_VERSION =
+  "2026-09-20-admin-private-review-v1";
 export const PUBLIC_COMMENT_RECEIPT_LABEL =
   "終了後に、今回のインタビューとコメントの控えをメールで受け取る";
 export const PUBLIC_COMMENT_EMAIL_NOTICE =
