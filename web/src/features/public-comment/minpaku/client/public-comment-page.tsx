@@ -43,11 +43,10 @@ import {
   MINPAKU_LESSONS,
 } from "../shared/learning";
 import type { ReceiptResult } from "../shared/receipt";
-import { EventInvitationPreference } from "./event-invitation-preference";
+import { PublicCommentEmailPreference } from "./email-preference";
 import { PublicCommentConsentModal } from "./public-comment-consent-modal";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import { PublicCommentLearning } from "./public-comment-learning";
-import { ReceiptPreference } from "./receipt-preference";
 import { usePublicCommentViewScroll } from "./use-public-comment-view-scroll";
 
 type Draft = {
@@ -336,7 +335,7 @@ function PublicCommentIntro({
               回答は同意後に専用のデータベースへ保存します。匿名公開を希望する場合も、運営の確認後に承認された本文だけが公開されます。
             </p>
             <p>
-              学習とAIインタビューはログインなしで利用できます。最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。今回の控えメールの受信は任意です。
+              学習とAIインタビューはログインなしで利用できます。最終文章の表示と編集には、作成待ちの画面でGoogleログインが必要です。控えや活動・イベント案内のメール受信は任意です。
             </p>
           </div>
         </IntroSection>
@@ -430,11 +429,9 @@ function DraftReview({
   isBusy,
   completionPending,
   publicationRequested,
-  receiptOptIn,
-  eventInvitationOptIn,
+  emailOptIn,
   userEmail,
-  onReceiptChange,
-  onEventInvitationChange,
+  onEmailChange,
   onDraftChange,
   onCopy,
   onPublicationChange,
@@ -446,11 +443,9 @@ function DraftReview({
   isBusy: boolean;
   completionPending: boolean;
   publicationRequested: boolean;
-  receiptOptIn: boolean;
-  eventInvitationOptIn: boolean;
+  emailOptIn: boolean;
   userEmail?: string;
-  onReceiptChange: (value: boolean) => void;
-  onEventInvitationChange: (value: boolean) => void;
+  onEmailChange: (value: boolean) => void;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onPublicationChange: (value: boolean) => void;
@@ -560,17 +555,9 @@ function DraftReview({
           </span>
         </label>
         <div className="mt-5 border-t border-gray-200 pt-5">
-          <ReceiptPreference
-            checked={receiptOptIn}
-            onChange={onReceiptChange}
-            disabled={isBusy || completionPending}
-            userEmail={userEmail}
-          />
-        </div>
-        <div className="mt-5 border-t border-gray-200 pt-5">
-          <EventInvitationPreference
-            checked={eventInvitationOptIn}
-            onChange={onEventInvitationChange}
+          <PublicCommentEmailPreference
+            checked={emailOptIn}
+            onChange={onEmailChange}
             disabled={isBusy || completionPending}
             userEmail={userEmail}
           />
@@ -716,7 +703,9 @@ export function PublicCommentMinpakuPage() {
     useState<readonly MinpakuSource[]>(MINPAKU_SOURCES);
   const [publicationRequested, setPublicationRequested] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
-  const [eventInvitationOptIn, setEventInvitationOptIn] = useState(true);
+  const setEmailOptIn = useCallback((value: boolean) => {
+    setReceiptOptIn(value);
+  }, []);
   const [draftGenerationStatus, setDraftGenerationStatus] =
     useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
@@ -750,8 +739,10 @@ export function PublicCommentMinpakuPage() {
     const url = new URL(window.location.href);
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
-      setReceiptOptIn(url.searchParams.get("receipt") === "1");
-      setEventInvitationOptIn(url.searchParams.get("event") !== "0");
+      const emailOptIn =
+        url.searchParams.get("receipt") !== "0" &&
+        url.searchParams.get("event") !== "0";
+      setEmailOptIn(emailOptIn);
       const returnedSession = url.searchParams.get("session");
       const returnedTargets = url.searchParams.get("targets");
       if (returnedSession) {
@@ -790,14 +781,12 @@ export function PublicCommentMinpakuPage() {
           PUBLIC_COMMENT_AUTH_RECEIPT_KEY
         );
         sessionStorage.removeItem(PUBLIC_COMMENT_AUTH_RECEIPT_KEY);
-        if (!returningFromAuth && savedReceipt === "false")
-          setReceiptOptIn(false);
         const savedEvent = sessionStorage.getItem(
           `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`
         );
         sessionStorage.removeItem(`${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`);
-        if (!returningFromAuth && savedEvent === "false")
-          setEventInvitationOptIn(false);
+        if (!returningFromAuth && (savedReceipt || savedEvent))
+          setEmailOptIn(savedReceipt !== "false" && savedEvent !== "false");
         const savedSession = sessionStorage.getItem(
           `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`
         );
@@ -822,7 +811,7 @@ export function PublicCommentMinpakuPage() {
     } catch {
       // Storage may be unavailable; the normal start button remains usable.
     }
-  }, []);
+  }, [setEmailOptIn]);
 
   const signIn = async () => {
     if (!sessionId || busy) return;
@@ -849,7 +838,7 @@ export function PublicCommentMinpakuPage() {
       );
       sessionStorage.setItem(
         `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-event`,
-        String(eventInvitationOptIn)
+        String(receiptOptIn)
       );
       sessionStorage.setItem(
         `${PUBLIC_COMMENT_AUTH_RETURN_KEY}-session`,
@@ -865,7 +854,7 @@ export function PublicCommentMinpakuPage() {
     const params = new URLSearchParams({
       auth_return: "1",
       receipt: receiptOptIn ? "1" : "0",
-      event: eventInvitationOptIn ? "1" : "0",
+      event: receiptOptIn ? "1" : "0",
       session: sessionId,
       targets: JSON.stringify(selectedOrdinances),
     });
@@ -891,8 +880,7 @@ export function PublicCommentMinpakuPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
       setSessionId(data.sessionId);
-      setReceiptOptIn(true);
-      setEventInvitationOptIn(true);
+      setEmailOptIn(true);
       setEventInvitation(null);
       loadConversation(data);
       if (data.draft) setDraft(data.draft);
@@ -920,7 +908,7 @@ export function PublicCommentMinpakuPage() {
     } finally {
       setBusy(false);
     }
-  }, [busy, loadConversation]);
+  }, [busy, loadConversation, setEmailOptIn]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || selectedOrdinances.length === 0 || busy) return;
@@ -1041,7 +1029,7 @@ export function PublicCommentMinpakuPage() {
           sessionId,
           publicationRequested,
           receiptOptIn,
-          eventInvitationOptIn,
+          eventInvitationOptIn: receiptOptIn,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       });
@@ -1063,7 +1051,6 @@ export function PublicCommentMinpakuPage() {
     completionPending,
     draft,
     publicationRequested,
-    eventInvitationOptIn,
     receiptOptIn,
     sessionId,
   ]);
@@ -1197,12 +1184,10 @@ export function PublicCommentMinpakuPage() {
           status={draftGenerationStatus}
           authStatus={auth.status}
           userEmail={auth.userEmail}
-          receiptOptIn={receiptOptIn}
-          eventInvitationOptIn={eventInvitationOptIn}
+          emailOptIn={receiptOptIn}
           isBusy={busy}
           error={auth.error ?? authReturnError ?? error}
-          onReceiptChange={setReceiptOptIn}
-          onEventInvitationChange={setEventInvitationOptIn}
+          onEmailChange={setEmailOptIn}
           onSignIn={() => void signIn()}
           onRetry={() => void generateDraft()}
         />
@@ -1215,11 +1200,9 @@ export function PublicCommentMinpakuPage() {
           isBusy={busy}
           publicationRequested={publicationRequested}
           completionPending={completionPending}
-          receiptOptIn={receiptOptIn}
-          eventInvitationOptIn={eventInvitationOptIn}
+          emailOptIn={receiptOptIn}
           userEmail={auth.userEmail}
-          onReceiptChange={setReceiptOptIn}
-          onEventInvitationChange={setEventInvitationOptIn}
+          onEmailChange={setEmailOptIn}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onPublicationChange={setPublicationRequested}
