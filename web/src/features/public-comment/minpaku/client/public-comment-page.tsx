@@ -456,11 +456,21 @@ function DraftReview({
   onPublicationChange: (value: boolean) => void;
   onComplete: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+  }, []);
+
   return (
     <div className="flex min-h-[calc(100dvh-var(--app-header-layout-offset))] flex-col bg-mirai-light-gradient px-4 py-8">
       <section className="mx-auto w-full max-w-[720px] rounded-2xl bg-white p-6">
         <p className="text-sm font-bold text-primary">確認・編集</p>
-        <h1 className="mt-2 text-[22px] font-bold leading-[1.64] text-black">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="mt-2 text-[22px] font-bold leading-[1.64] text-black outline-none"
+        >
           あなたの言葉になっているか確認してください
         </h1>
         <p className="mt-3 text-[15px] leading-[1.87] text-black">
