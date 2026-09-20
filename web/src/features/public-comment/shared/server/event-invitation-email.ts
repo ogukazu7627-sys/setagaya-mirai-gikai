@@ -56,7 +56,7 @@ https://forms.gle/sx7BdN5ZgWEk1cSKA
 
 お問い合わせ：info@civictech-setagaya.org
 
-このメールは、AIインタビューにご協力いただき、イベント案内の受信を希望された方へお送りしています。
+このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。
 配信停止をご希望の場合は、info@civictech-setagaya.org までご連絡ください。`;
 
 const FORM_URL = "https://forms.gle/sx7BdN5ZgWEk1cSKA";
@@ -128,7 +128,7 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_HTML = `<!doctype html>
           <tr><td style="padding:24px 36px 28px;background-color:#f8fafc;border-top:1px solid #dceaf1;">
             <p style="margin:0 0 10px;color:#075985;font-size:16px;line-height:1.7;font-weight:700;">みらい議会@世田谷</p>
             <p style="margin:0 0 16px;color:#334155;font-size:16px;line-height:1.8;">お問い合わせ：<br><a href="mailto:${CONTACT_EMAIL}?subject=%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E6%A1%88%E5%86%85%E3%81%AE%E9%85%8D%E4%BF%A1%E5%81%9C%E6%AD%A2" style="color:#075985;text-decoration:underline;">${CONTACT_EMAIL}</a></p>
-            <p style="margin:0;color:#475569;font-size:14px;line-height:1.85;">このメールは、AIインタビューにご協力いただき、イベント案内の受信を希望された方へお送りしています。配信停止をご希望の場合は、上記アドレスまでご連絡ください。</p>
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.85;">このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。配信停止をご希望の場合は、上記アドレスまでご連絡ください。</p>
           </td></tr>
         </table>
       </td></tr>

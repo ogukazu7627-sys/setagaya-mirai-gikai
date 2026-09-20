@@ -4,8 +4,7 @@ import { Loader2, LockKeyhole, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleGIcon } from "@/features/chat/client/components/google-login-gate";
 import type { ChatAuthStatus } from "@/features/chat/client/hooks/use-chat-auth";
-import { EventInvitationPreference } from "@/features/public-comment/minpaku/client/event-invitation-preference";
-import { ReceiptPreference } from "@/features/public-comment/minpaku/client/receipt-preference";
+import { PublicCommentEmailPreference } from "@/features/public-comment/minpaku/client/email-preference";
 
 export type DraftGenerationStatus = "generating" | "ready" | "failed";
 
@@ -13,26 +12,20 @@ export function PublicCommentDraftAuthGate({
   status,
   authStatus,
   userEmail,
-  receiptOptIn,
-  eventInvitationOptIn,
-  receiptEnabled = true,
+  emailOptIn,
   isBusy,
   error,
-  onReceiptChange,
-  onEventInvitationChange,
+  onEmailChange,
   onSignIn,
   onRetry,
 }: {
   status: DraftGenerationStatus;
   authStatus: ChatAuthStatus;
   userEmail?: string;
-  receiptOptIn: boolean;
-  eventInvitationOptIn: boolean;
-  receiptEnabled?: boolean;
+  emailOptIn: boolean;
   isBusy: boolean;
   error?: string | null;
-  onReceiptChange: (value: boolean) => void;
-  onEventInvitationChange: (value: boolean) => void;
+  onEmailChange: (value: boolean) => void;
   onSignIn: () => void;
   onRetry: () => void;
 }) {
@@ -66,24 +59,12 @@ export function PublicCommentDraftAuthGate({
       </p>
 
       <div className="mt-8 w-full rounded-2xl border border-gray-200 bg-white p-5 text-left">
-        {receiptEnabled && (
-          <ReceiptPreference
-            checked={receiptOptIn}
-            onChange={onReceiptChange}
-            disabled={isBusy}
-            userEmail={authenticated ? userEmail : undefined}
-          />
-        )}
-        <div
-          className={receiptEnabled ? "mt-5 border-t border-gray-200 pt-5" : ""}
-        >
-          <EventInvitationPreference
-            checked={eventInvitationOptIn}
-            onChange={onEventInvitationChange}
-            disabled={isBusy}
-            userEmail={authenticated ? userEmail : undefined}
-          />
-        </div>
+        <PublicCommentEmailPreference
+          checked={emailOptIn}
+          onChange={onEmailChange}
+          disabled={isBusy}
+          userEmail={authenticated ? userEmail : undefined}
+        />
         {!authenticated && (
           <Button
             type="button"

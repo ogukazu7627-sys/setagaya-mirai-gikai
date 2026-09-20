@@ -16,9 +16,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { useChatAuth } from "@/features/chat/client/hooks/use-chat-auth";
-import { EventInvitationPreference } from "@/features/public-comment/minpaku/client/event-invitation-preference";
+import { PublicCommentEmailPreference } from "@/features/public-comment/minpaku/client/email-preference";
 import { PublicCommentConsentModal } from "@/features/public-comment/minpaku/client/public-comment-consent-modal";
-import { ReceiptPreference } from "@/features/public-comment/minpaku/client/receipt-preference";
 import { usePublicCommentViewScroll } from "@/features/public-comment/minpaku/client/use-public-comment-view-scroll";
 import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 import type { ReceiptResult } from "@/features/public-comment/minpaku/shared/receipt";
@@ -340,14 +339,12 @@ function DraftReview({
   copied,
   isBusy,
   completionPending,
-  receiptOptIn,
-  eventInvitationOptIn,
+  emailOptIn,
   userEmail,
   onDraftChange,
   onCopy,
   onComplete,
-  onReceiptChange,
-  onEventInvitationChange,
+  onEmailChange,
   officialSubmissionUrl,
   draftTextareaId,
 }: {
@@ -356,14 +353,12 @@ function DraftReview({
   copied: boolean;
   isBusy: boolean;
   completionPending: boolean;
-  receiptOptIn: boolean;
-  eventInvitationOptIn: boolean;
+  emailOptIn: boolean;
   userEmail?: string;
   onDraftChange: (value: string) => void;
   onCopy: () => void;
   onComplete: () => void;
-  onReceiptChange: (checked: boolean) => void;
-  onEventInvitationChange: (checked: boolean) => void;
+  onEmailChange: (checked: boolean) => void;
   officialSubmissionUrl: string;
   draftTextareaId: string;
 }) {
@@ -447,17 +442,9 @@ function DraftReview({
           完了すると本文を固定します。このサイトから区への提出や一般公開は行いません。
         </p>
         <div className="mt-5 border-t border-gray-200 pt-5">
-          <ReceiptPreference
-            checked={receiptOptIn}
-            onChange={onReceiptChange}
-            disabled={isBusy || completionPending}
-            userEmail={userEmail}
-          />
-        </div>
-        <div className="mt-5 border-t border-gray-200 pt-5">
-          <EventInvitationPreference
-            checked={eventInvitationOptIn}
-            onChange={onEventInvitationChange}
+          <PublicCommentEmailPreference
+            checked={emailOptIn}
+            onChange={onEmailChange}
             disabled={isBusy || completionPending}
             userEmail={userEmail}
           />
@@ -624,7 +611,9 @@ export function PublicCommentCampaignPage({
   const [copied, setCopied] = useState(false);
   const [completionPending, setCompletionPending] = useState(false);
   const [receiptOptIn, setReceiptOptIn] = useState(true);
-  const [eventInvitationOptIn, setEventInvitationOptIn] = useState(true);
+  const setEmailOptIn = useCallback((value: boolean) => {
+    setReceiptOptIn(value);
+  }, []);
   const [draftGenerationStatus, setDraftGenerationStatus] =
     useState<DraftGenerationStatus>("generating");
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
@@ -654,8 +643,10 @@ export function PublicCommentCampaignPage({
     const url = new URL(window.location.href);
     const returningFromAuth = url.searchParams.get("auth_return") === "1";
     if (returningFromAuth) {
-      setReceiptOptIn(url.searchParams.get("receipt") !== "0");
-      setEventInvitationOptIn(url.searchParams.get("event") !== "0");
+      const emailOptIn =
+        url.searchParams.get("receipt") !== "0" &&
+        url.searchParams.get("event") !== "0";
+      setEmailOptIn(emailOptIn);
       const returnedSession = url.searchParams.get("session");
       if (returnedSession) {
         setSessionId(returnedSession);
@@ -684,14 +675,12 @@ export function PublicCommentCampaignPage({
           `${config.authReturnKey}-receipt`
         );
         sessionStorage.removeItem(`${config.authReturnKey}-receipt`);
-        if (!returningFromAuth && savedReceipt === "false")
-          setReceiptOptIn(false);
         const savedEvent = sessionStorage.getItem(
           `${config.authReturnKey}-event`
         );
         sessionStorage.removeItem(`${config.authReturnKey}-event`);
-        if (!returningFromAuth && savedEvent === "false")
-          setEventInvitationOptIn(false);
+        if (!returningFromAuth && (savedReceipt || savedEvent))
+          setEmailOptIn(savedReceipt !== "false" && savedEvent !== "false");
         const savedSession = sessionStorage.getItem(
           `${config.authReturnKey}-session`
         );
@@ -704,7 +693,7 @@ export function PublicCommentCampaignPage({
     } catch {
       // Storage may be unavailable; the normal start button remains usable.
     }
-  }, [config.authReturnKey]);
+  }, [config.authReturnKey, setEmailOptIn]);
 
   const signIn = async () => {
     if (!sessionId || busy) return;
@@ -731,7 +720,7 @@ export function PublicCommentCampaignPage({
       );
       sessionStorage.setItem(
         `${config.authReturnKey}-event`,
-        String(eventInvitationOptIn)
+        String(receiptOptIn)
       );
       sessionStorage.setItem(`${config.authReturnKey}-session`, sessionId);
     } catch {
@@ -740,7 +729,7 @@ export function PublicCommentCampaignPage({
     const params = new URLSearchParams({
       auth_return: "1",
       receipt: receiptOptIn ? "1" : "0",
-      event: eventInvitationOptIn ? "1" : "0",
+      event: receiptOptIn ? "1" : "0",
       session: sessionId,
     });
     await auth.signInWithGoogle(`${config.routePath}?${params}`);
@@ -765,8 +754,7 @@ export function PublicCommentCampaignPage({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "開始できませんでした");
       setSessionId(data.sessionId);
-      setReceiptOptIn(true);
-      setEventInvitationOptIn(true);
+      setEmailOptIn(true);
       setEventInvitation(null);
       loadConversation(data);
       if (data.draft) setDraft(data.draft);
@@ -798,7 +786,7 @@ export function PublicCommentCampaignPage({
     } finally {
       setBusy(false);
     }
-  }, [busy, config.apiBasePath, loadConversation]);
+  }, [busy, config.apiBasePath, loadConversation, setEmailOptIn]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || busy) return;
@@ -905,7 +893,7 @@ export function PublicCommentCampaignPage({
           sessionId,
           publicationRequested: false,
           receiptOptIn,
-          eventInvitationOptIn,
+          eventInvitationOptIn: receiptOptIn,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       });
@@ -926,7 +914,6 @@ export function PublicCommentCampaignPage({
     completionPending,
     config.apiBasePath,
     draft,
-    eventInvitationOptIn,
     receiptOptIn,
     sessionId,
   ]);
@@ -1058,12 +1045,10 @@ export function PublicCommentCampaignPage({
           status={draftGenerationStatus}
           authStatus={auth.status}
           userEmail={auth.userEmail}
-          receiptOptIn={receiptOptIn}
-          eventInvitationOptIn={eventInvitationOptIn}
+          emailOptIn={receiptOptIn}
           isBusy={busy}
           error={auth.error ?? authReturnError ?? error}
-          onReceiptChange={setReceiptOptIn}
-          onEventInvitationChange={setEventInvitationOptIn}
+          onEmailChange={setEmailOptIn}
           onSignIn={() => void signIn()}
           onRetry={() => void generateDraft()}
         />
@@ -1075,14 +1060,12 @@ export function PublicCommentCampaignPage({
           copied={copied}
           isBusy={busy}
           completionPending={completionPending}
-          receiptOptIn={receiptOptIn}
-          eventInvitationOptIn={eventInvitationOptIn}
+          emailOptIn={receiptOptIn}
           userEmail={auth.userEmail}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
           onCopy={() => void copyDraft()}
           onComplete={() => void complete()}
-          onReceiptChange={setReceiptOptIn}
-          onEventInvitationChange={setEventInvitationOptIn}
+          onEmailChange={setEmailOptIn}
           officialSubmissionUrl={config.officialSubmissionUrl}
           draftTextareaId={config.draftTextareaId}
         />

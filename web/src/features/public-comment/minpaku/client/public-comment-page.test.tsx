@@ -429,7 +429,7 @@ describe("PublicCommentMinpakuPage", () => {
     return fetchMock;
   }
 
-  it("完了前までメールを送らず、最終編集と受信設定を確定してから送信する", async () => {
+  it("完了前までメールを送らず、一つの受信設定を確定してから送信する", async () => {
     const fetchMock = await reachReview();
     expect(
       screen.getByRole("heading", {
@@ -444,10 +444,10 @@ describe("PublicCommentMinpakuPage", () => {
       { target: { value: "私が確認した最終コメント" } }
     );
     expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+      screen.getByRole("checkbox", { name: /控えや今後の活動・イベント案内/ })
     ).toBeChecked();
     fireEvent.click(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+      screen.getByRole("checkbox", { name: /控えや今後の活動・イベント案内/ })
     );
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
     await screen.findByRole("heading", { name: "下書きを保存しました" });
@@ -458,7 +458,7 @@ describe("PublicCommentMinpakuPage", () => {
           sessionId: "session-1",
           publicationRequested: false,
           receiptOptIn: false,
-          eventInvitationOptIn: true,
+          eventInvitationOptIn: false,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
         }),
       })
@@ -529,7 +529,7 @@ describe("PublicCommentMinpakuPage", () => {
       screen.getByRole("textbox", { name: "提出用に編集する本文" })
     ).toBeDisabled();
     expect(
-      screen.getByRole("checkbox", { name: /控えをメールで受け取る/ })
+      screen.getByRole("checkbox", { name: /控えや今後の活動・イベント案内/ })
     ).toBeDisabled();
     expect(screen.getByRole("checkbox", { name: /匿名で公開/ })).toBeDisabled();
     fetchMock.mockClear();
