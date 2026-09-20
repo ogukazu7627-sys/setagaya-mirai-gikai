@@ -23,7 +23,7 @@ export default function PrivacyPage() {
     >
       <Container className="space-y-8">
         <p className="text-sm text-mirai-text-muted">
-          最終更新日：2026年9月16日
+          最終更新日：2026年9月20日
         </p>
 
         <section className="space-y-4">
@@ -65,6 +65,9 @@ export default function PrivacyPage() {
           </LegalParagraph>
           <LegalParagraph>
             パブリックコメント作成支援では、保存への同意後に一時的な匿名IDを発行し、Googleログイン前の会話と作成中の下書きをこのIDにひも付けて保存します。最終文章の表示時にGoogleログインが完了すると、そのインタビューの会話と下書きの所有者を、確認済みのGoogleアカウントに引き継ぎます。Googleログインが完了するまで、最終文章は表示しません。
+          </LegalParagraph>
+          <LegalParagraph>
+            完了したパブリックコメント作成支援の内容は、公開設定にかかわらず、運営管理者が管理画面でGoogleログインのメールアドレス、最終文章、質問・回答履歴を確認します。非公開を選んだ内容は外部へ公開せず、完了後に公開設定へ変更することもできません。匿名公開を希望した場合のみ、運営の確認後に最終文章を公開することがありますが、メールアドレスと質問・回答履歴は公開しません。
           </LegalParagraph>
           <LegalParagraph>
             問題報告・お問い合わせフォームを利用する場合、入力された本文、任意で入力された氏名・メールアドレス、対象ページURL、対象案件ID、送信時の技術的なログを取得することがあります。

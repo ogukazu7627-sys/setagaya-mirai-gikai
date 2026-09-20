@@ -10,7 +10,8 @@ import {
   type TestUser,
 } from "../utils";
 
-const VERSION = "2026-09-18-late-google-auth-v1";
+const VERSION = "2026-09-20-admin-private-review-v1";
+const PREVIOUS_VERSION = "2026-09-18-late-google-auth-v1";
 const LEGACY_VERSION = "2026-09-16-receipt-v1";
 const url = new URL(process.env.SUPABASE_URL ?? "http://127.0.0.1:54421");
 if (!["localhost", "127.0.0.1"].includes(url.hostname))
@@ -214,21 +215,53 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
     expect((await complete(f.id)).error).toBeNull();
   });
 
-  it("accepts the receipt consent version used before late Google auth", async () => {
+  it.each([
+    PREVIOUS_VERSION,
+    LEGACY_VERSION,
+  ])("accepts the previous consent version %s", async (consentVersion) => {
     const f = await fixture();
     const result = await adminClient.rpc("complete_public_comment_session", {
       p_session_id: f.id,
       p_user_id: user.id,
       p_publication_requested: true,
       p_receipt_opt_in: true,
-      p_consent_version: LEGACY_VERSION,
+      p_consent_version: consentVersion,
     });
     expect(result.error).toBeNull();
     expect(result.data).toBe("pending_review");
     expect(await read(f.id)).toMatchObject({
-      consent_version: LEGACY_VERSION,
+      consent_version: consentVersion,
       recipient: user.email,
     });
+  });
+
+  it("completed private comments can never transition to a public status", async () => {
+    const f = await fixture();
+    const result = await adminClient.rpc("complete_public_comment_session", {
+      p_session_id: f.id,
+      p_user_id: user.id,
+      p_publication_requested: false,
+      p_receipt_opt_in: false,
+      p_consent_version: VERSION,
+    });
+    expect(result.error).toBeNull();
+    expect(result.data).toBe("private");
+
+    const publication = await adminClient
+      .from("public_comment_sessions")
+      .update({ publication_status: "published" })
+      .eq("id", f.id);
+
+    expect(publication.error?.message).toContain(
+      "completed_private_public_comment_is_immutable"
+    );
+    const session = await adminClient
+      .from("public_comment_sessions")
+      .select("publication_status")
+      .eq("id", f.id)
+      .single();
+    expect(session.error).toBeNull();
+    expect(session.data?.publication_status).toBe("private");
   });
 
   it("unverified auth email never becomes a sendable recipient", async () => {

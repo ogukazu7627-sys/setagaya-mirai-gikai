@@ -11,6 +11,7 @@ export type PublicCommentReviewItem = {
   id: string;
   completed_at: string | null;
   publication_status: string;
+  user_email: string | null;
   campaign: {
     slug: string;
     title: string;
@@ -34,6 +35,7 @@ type NestedReviewRow = {
   id: string;
   completed_at: string | null;
   publication_status: string;
+  user_id: string;
   public_comment_campaigns:
     | {
         slug: string;
@@ -72,7 +74,10 @@ function first<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-function mapReviewItem(row: NestedReviewRow): PublicCommentReviewItem {
+function mapReviewItem(
+  row: NestedReviewRow,
+  userEmail: string | null
+): PublicCommentReviewItem {
   const campaign = first(row.public_comment_campaigns);
   const draft = first(row.public_comment_drafts);
 
@@ -80,6 +85,7 @@ function mapReviewItem(row: NestedReviewRow): PublicCommentReviewItem {
     id: row.id,
     completed_at: row.completed_at,
     publication_status: row.publication_status,
+    user_email: userEmail,
     campaign: campaign ?? {
       slug: "",
       title: "不明なキャンペーン",
@@ -96,41 +102,55 @@ const REVIEW_SELECT = `
   id,
   completed_at,
   publication_status,
+  user_id,
   public_comment_campaigns!inner(slug, title, official_url),
   public_comment_drafts(final_body, target_ordinances, fact_check_notes, reviewed_at),
   public_comment_messages(id, role, content, created_at)
 `;
 
-export async function listPendingPublicCommentReviews() {
-  const { data, error } = await createAdminClient()
+export type PublicCommentAdminReviews = {
+  private: PublicCommentReviewItem[];
+  pending: PublicCommentReviewItem[];
+  published: PublicCommentReviewItem[];
+};
+
+export async function listPublicCommentAdminReviews(): Promise<PublicCommentAdminReviews> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
     .from("public_comment_sessions")
     .select(REVIEW_SELECT)
-    .eq("publication_status", "pending_review")
+    .not("completed_at", "is", null)
+    .in("publication_status", ["private", "pending_review", "published"])
     .order("completed_at", { ascending: false });
 
   if (error) {
-    throw new Error(
-      `パブコメ確認待ち一覧を取得できませんでした: ${error.message}`
-    );
+    throw new Error(`パブコメ管理一覧を取得できませんでした: ${error.message}`);
   }
 
-  return ((data ?? []) as unknown as NestedReviewRow[]).map(mapReviewItem);
-}
+  const rows = (data ?? []) as unknown as NestedReviewRow[];
+  const userIds = [...new Set(rows.map((row) => row.user_id))];
+  const emailEntries = await Promise.all(
+    userIds.map(async (userId) => {
+      const { data: userData, error: userError } =
+        await supabase.auth.admin.getUserById(userId);
+      return [
+        userId,
+        userError ? null : (userData.user.email ?? null),
+      ] as const;
+    })
+  );
+  const emails = new Map(emailEntries);
+  const items = rows.map((row) =>
+    mapReviewItem(row, emails.get(row.user_id) ?? null)
+  );
 
-export async function listPublishedPublicCommentReviews() {
-  const { data, error } = await createAdminClient()
-    .from("public_comment_sessions")
-    .select(REVIEW_SELECT)
-    .eq("publication_status", "published")
-    .order("completed_at", { ascending: false });
-
-  if (error) {
-    throw new Error(
-      `公開済みパブコメ一覧を取得できませんでした: ${error.message}`
-    );
-  }
-
-  return ((data ?? []) as unknown as NestedReviewRow[]).map(mapReviewItem);
+  return {
+    private: items.filter((item) => item.publication_status === "private"),
+    pending: items.filter(
+      (item) => item.publication_status === "pending_review"
+    ),
+    published: items.filter((item) => item.publication_status === "published"),
+  };
 }
 
 export async function updatePublicCommentReviewStatus(params: {
