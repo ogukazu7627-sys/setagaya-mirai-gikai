@@ -3843,11 +3843,11 @@ export type Database = {
       complete_public_comment_session: {
         Args: {
           p_consent_version: string
-          p_event_body: string | null
-          p_event_html: string | null
-          p_event_invitation_consent_version: string | null
-          p_event_invitation_opt_in: boolean
-          p_event_subject: string | null
+          p_event_body?: string | null
+          p_event_html?: string | null
+          p_event_invitation_consent_version?: string | null
+          p_event_invitation_opt_in?: boolean
+          p_event_subject?: string | null
           p_publication_requested: boolean
           p_receipt_opt_in: boolean
           p_session_id: string
