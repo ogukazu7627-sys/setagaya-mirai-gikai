@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient, type Database } from "@mirai-gikai/supabase";
+import { getCompletionErrorDiagnostic } from "../shared/utils/completion-error";
 
 type Campaign = Database["public"]["Tables"]["public_comment_campaigns"]["Row"];
 type Session = Database["public"]["Tables"]["public_comment_sessions"]["Row"];
@@ -366,7 +367,13 @@ export async function completeSession(params: {
       p_event_html: params.eventInvitationEmail?.html ?? null,
     }
   );
-  if (error) throw new Error("public_comment_completion_failed");
+  if (error) {
+    console.error(
+      "public_comment_completion_rpc_failed",
+      getCompletionErrorDiagnostic(error)
+    );
+    throw new Error("public_comment_completion_failed");
+  }
   return data;
 }
 
