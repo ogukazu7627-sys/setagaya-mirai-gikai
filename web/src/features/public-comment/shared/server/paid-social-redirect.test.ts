@@ -61,4 +61,52 @@ describe("createPaidSocialRedirect", () => {
     expect(response.status).toBe(404);
     expect(mocks.createVisit).not.toHaveBeenCalled();
   });
+
+  it("イベント広告は流入を記録してからGoogleフォームへ即時転送する", async () => {
+    const response = await createPaidSocialRedirect({
+      request: new Request(
+        "https://civictech-setagaya.org/go/event/event-2026-10-03-wave2/creative-b"
+      ),
+      campaign: "event-2026-10-03-wave2",
+      content: "creative-b",
+      journeyType: "event_direct",
+      adTheme: "event-direct",
+      landingPath: "/external/google-form/event-direct",
+      destinationUrl: "https://forms.gle/yJb9ivpgyBAi2iwS6",
+    });
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://forms.gle/yJb9ivpgyBAi2iwS6"
+    );
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.createVisit).toHaveBeenCalledExactlyOnceWith({
+      journeyType: "event_direct",
+      adTheme: "event-direct",
+      landingPath: "/external/google-form/event-direct",
+      utmCampaign: "event-2026-10-03-wave2",
+      utmContent: "creative-b",
+    });
+  });
+
+  it("計測保存に失敗してもイベント広告はフォームへ転送する", async () => {
+    mocks.createVisit.mockRejectedValueOnce(new Error("database unavailable"));
+
+    const response = await createPaidSocialRedirect({
+      request: new Request(
+        "https://civictech-setagaya.org/go/event/event-2026-10-03-wave2/creative-a"
+      ),
+      campaign: "event-2026-10-03-wave2",
+      content: "creative-a",
+      journeyType: "event_direct",
+      adTheme: "event-direct",
+      landingPath: "/external/google-form/event-direct",
+      destinationUrl: "https://forms.gle/yJb9ivpgyBAi2iwS6",
+    });
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://forms.gle/yJb9ivpgyBAi2iwS6"
+    );
+  });
 });

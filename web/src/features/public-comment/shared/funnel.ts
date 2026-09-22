@@ -1,19 +1,11 @@
 export const PUBLIC_COMMENT_FUNNEL_STORAGE_PREFIX =
   "mirai-public-comment-funnel";
 
-export const YOUTH_DIALOGUE_EVENT_SLUG = "youth-dialogue-2026-10-03";
-export const YOUTH_DIALOGUE_EVENT_PATH = "/events/youth-dialogue-2026-10-03";
-export const YOUTH_DIALOGUE_AGREEMENT_VERSION = "2026-09-22-v1";
 export const YOUTH_DIALOGUE_AD_CAMPAIGN = "event-2026-10-03-wave2";
-
-export const YOUTH_DIALOGUE_INTERESTS = [
-  "民泊",
-  "いじめ",
-  "高齢者福祉・介護",
-  "障がい理解",
-  "交通問題",
-  "防災",
-] as const;
+export const YOUTH_DIALOGUE_INTERVIEW_RSVP_URL =
+  "https://forms.gle/sx7BdN5ZgWEk1cSKA";
+export const YOUTH_DIALOGUE_DIRECT_RSVP_URL =
+  "https://forms.gle/yJb9ivpgyBAi2iwS6";
 
 export type FunnelJourneyType = "interview" | "event_direct";
 

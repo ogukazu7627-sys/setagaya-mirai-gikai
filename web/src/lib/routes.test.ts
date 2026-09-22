@@ -88,13 +88,25 @@ describe("routes", () => {
   ].sort();
 
   it("routes.ts の全ルートが app/ 内の page.tsx に対応している", () => {
+    const routeHandlerDestinations = [
+      "/events/youth-dialogue-2026-10-03/apply",
+    ];
+    const availableInternalRoutes = [
+      ...normalizedAppRoutes,
+      ...routeHandlerDestinations,
+    ];
     const missing = normalizedDefinedRoutes.filter(
-      (r) => !normalizedAppRoutes.includes(r)
+      (r) => !availableInternalRoutes.includes(r)
     );
     if (missing.length > 0) {
       expect.fail(
         `routes.ts に定義されているが page.tsx が存在しないルート:\n${missing.map((r) => `  - ${r}`).join("\n")}`
       );
+    }
+    for (const route of routeHandlerDestinations) {
+      expect(
+        fs.existsSync(path.join(appDir, "(main)", route.slice(1), "route.ts"))
+      ).toBe(true);
     }
   });
 

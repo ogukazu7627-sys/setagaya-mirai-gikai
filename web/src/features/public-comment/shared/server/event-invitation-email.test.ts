@@ -17,9 +17,8 @@ describe("public comment event invitation email", () => {
       expect(content).toContain("太子堂区民センター 第二会議室");
       expect(content).toContain("参加費");
       expect(content).toContain("無料");
-      expect(content).toContain(
-        "https://civictech-setagaya.org/events/youth-dialogue-2026-10-03"
-      );
+      expect(content).toContain("https://forms.gle/sx7BdN5ZgWEk1cSKA");
+      expect(content).toContain("来場状況は本サイトでは取得せず");
     }
   });
 

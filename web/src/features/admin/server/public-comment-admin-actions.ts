@@ -7,10 +7,7 @@ import {
   type PublicCommentReviewStatus,
   updatePublicCommentReviewStatus,
 } from "./public-comment-admin";
-import {
-  setPublicCommentEventAttendance,
-  upsertPublicCommentAdDailyStat,
-} from "./public-comment-funnel";
+import { upsertPublicCommentAdDailyStat } from "./public-comment-funnel";
 
 export async function updatePublicCommentReviewStatusAction(
   formData: FormData
@@ -67,23 +64,6 @@ export async function upsertPublicCommentAdDailyStatAction(formData: FormData) {
     impressions: nonNegativeInteger(formData, "impressions"),
     linkClicks: nonNegativeInteger(formData, "linkClicks"),
     spendYen: nonNegativeInteger(formData, "spendYen"),
-  });
-  revalidatePath(routes.adminPublicCommentFunnel());
-}
-
-export async function setPublicCommentEventAttendanceAction(
-  formData: FormData
-) {
-  "use server";
-  const admin = await requireAdmin(routes.adminPublicCommentFunnel());
-  const registrationId = requiredText(formData, "registrationId");
-  const attended = requiredText(formData, "attended");
-  if (attended !== "true" && attended !== "false")
-    throw new Error("来場状況を確認してください");
-  await setPublicCommentEventAttendance({
-    registrationId,
-    attended: attended === "true",
-    recordedBy: "id" in admin ? admin.id : null,
   });
   revalidatePath(routes.adminPublicCommentFunnel());
 }

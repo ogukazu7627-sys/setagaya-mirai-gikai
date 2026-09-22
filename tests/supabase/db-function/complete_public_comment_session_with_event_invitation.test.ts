@@ -133,6 +133,16 @@ describe("event invitation completion RPC (real DB, no external email)", () => {
     expect(result.error).toBeNull();
   });
 
+  it("keeps compatibility with the previous event invitation consent", async () => {
+    const input = args();
+    input.p_event_invitation_consent_version = "2026-09-22-event-funnel-v1";
+    const result = await adminClient.rpc(
+      "complete_public_comment_session_with_event_invitation",
+      input
+    );
+    expect(result.error).toBeNull();
+  });
+
   it.each([
     ["consent", "public_comment_invalid_consent"],
     ["event", "public_comment_invalid_event_invitation"],
