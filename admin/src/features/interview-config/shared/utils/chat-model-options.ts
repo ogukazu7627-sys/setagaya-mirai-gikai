@@ -30,7 +30,7 @@ const OPENAI_MODELS = [
   { value: AI_MODELS.gpt5_1_instant, label: "GPT-5.1 Instant" },
   { value: AI_MODELS.gpt5_1_thinking, label: "GPT-5.1 Thinking" },
   { value: AI_MODELS.gpt5_2, label: "GPT-5.2" },
-  { value: AI_MODELS.gpt5_6_luna, label: "GPT-5.6 Luna" },
+  { value: AI_MODELS.gpt6_luna, label: "GPT-6 Luna" },
 ] as const;
 
 const GOOGLE_MODELS = [

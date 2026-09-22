@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL, isKnownModel } from "./models";
+import {
+  AI_MODELS,
+  DEFAULT_INTERVIEW_CHAT_MODEL,
+  DEFAULT_PUBLIC_COMMENT_DRAFT_MODEL,
+  isKnownModel,
+} from "./models";
 
 describe("isKnownModel", () => {
   it("AI_MODELS に登録済みのIDは true", () => {
@@ -13,7 +18,11 @@ describe("isKnownModel", () => {
     expect(isKnownModel("not-a-model")).toBe(false);
   });
 
-  it("AIインタビューのデフォルトモデルはGPT-5.6 Luna", () => {
-    expect(DEFAULT_INTERVIEW_CHAT_MODEL).toBe(AI_MODELS.gpt5_6_luna);
+  it("AIインタビューのデフォルトモデルはGPT-6 Luna", () => {
+    expect(DEFAULT_INTERVIEW_CHAT_MODEL).toBe(AI_MODELS.gpt6_luna);
+  });
+
+  it("パブリックコメント下書きのデフォルトモデルはGPT-6 Sol", () => {
+    expect(DEFAULT_PUBLIC_COMMENT_DRAFT_MODEL).toBe(AI_MODELS.gpt6_sol);
   });
 });

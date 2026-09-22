@@ -10,7 +10,10 @@ import {
   publicCommentChatResponseSchema,
   publicCommentDraftSchema,
 } from "@/features/public-comment/minpaku/shared/schemas";
-import { AI_MODELS, DEFAULT_INTERVIEW_CHAT_MODEL } from "@/lib/ai/models";
+import {
+  DEFAULT_INTERVIEW_CHAT_MODEL,
+  DEFAULT_PUBLIC_COMMENT_DRAFT_MODEL,
+} from "@/lib/ai/models";
 import { env } from "@/lib/env";
 import { INCLUSION_PLAN_CAMPAIGN_SLUG } from "../shared/campaign";
 import { buildDraftPrompt, buildInterviewPrompt } from "./prompt";
@@ -92,7 +95,7 @@ export async function generatePublicCommentDraft(params: {
   model?: LanguageModel;
 }) {
   await checkCost(params.userId);
-  const model = params.model ?? AI_MODELS.gpt5_6_sol;
+  const model = params.model ?? DEFAULT_PUBLIC_COMMENT_DRAFT_MODEL;
   const result = await generateText({
     model,
     prompt: buildDraftPrompt({ messages: params.messages }),

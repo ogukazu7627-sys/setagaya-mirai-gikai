@@ -74,6 +74,14 @@ export const modelPricing: Record<string, ModelPricing> = {
     inputTokensPerMillionUsd: 1,
     outputTokensPerMillionUsd: 6,
   },
+  [AI_MODELS.gpt6_luna]: {
+    inputTokensPerMillionUsd: 0.1,
+    outputTokensPerMillionUsd: 0.5,
+  },
+  [AI_MODELS.gpt6_sol]: {
+    inputTokensPerMillionUsd: 2,
+    outputTokensPerMillionUsd: 10,
+  },
   // --- Google ---
   [AI_MODELS.gemini3_flash]: {
     inputTokensPerMillionUsd: 0.5,
