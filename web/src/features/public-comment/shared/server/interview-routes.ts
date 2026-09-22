@@ -36,7 +36,18 @@ import {
   getInterviewCampaign,
   type InterviewCampaign,
 } from "./interview-campaigns";
+import {
+  attachFunnelVisitToSession,
+  markInterviewFunnelProgress,
+} from "./funnel-repository";
 import { commitInterviewTurn, findCommittedTurn } from "./interview-repository";
+
+const sessionRequestSchema = z.object({
+  consented: z.literal(true),
+  receiptOptIn: z.boolean(),
+  consentVersion: z.string(),
+  attributionToken: z.uuid().nullable().optional(),
+});
 
 const requestSchema = z
   .object({
@@ -134,10 +145,12 @@ export function createInterviewRoutes(
   return {
     session: async (request: Request) => {
       await registerTelemetry();
-      const body = await request.json().catch(() => null);
+      const parsedBody = sessionRequestSchema.safeParse(
+        await request.json().catch(() => null)
+      );
+      const body = parsedBody.success ? parsedBody.data : null;
       if (
-        body?.consented !== true ||
-        typeof body.receiptOptIn !== "boolean" ||
+        !body ||
         (!base.receiptEnabled && body.receiptOptIn !== false) ||
         body.consentVersion !== PUBLIC_COMMENT_CONSENT_VERSION
       ) {
@@ -185,6 +198,15 @@ export function createInterviewRoutes(
             session = await findActiveSession(record.id, user.id);
             if (!session) throw error;
           }
+        }
+        try {
+          await attachFunnelVisitToSession({
+            sessionId: session.id,
+            campaignId: record.id,
+            publicToken: body.attributionToken,
+          });
+        } catch {
+          console.warn("public_comment_funnel_session_tracking_failed");
         }
         if (session.interview_state)
           campaign = getInterviewCampaign(
@@ -315,7 +337,19 @@ export function createInterviewRoutes(
             interviewStateSchema.parse(session.interview_state).targetAudiences
           );
         const replay = await findCommittedTurn(session.id, input.requestId);
-        if (replay) return NextResponse.json(turnPayload(replay, campaign));
+        if (replay) {
+          try {
+            await markInterviewFunnelProgress({
+              sessionId: session.id,
+              state: replay.state,
+              checkpointChoice:
+                input.action === "checkpoint" ? input.choice : undefined,
+            });
+          } catch {
+            console.warn("public_comment_funnel_progress_tracking_failed");
+          }
+          return NextResponse.json(turnPayload(replay, campaign));
+        }
         if (
           session.completed_at ||
           input.revision !== session.interview_revision
@@ -416,6 +450,16 @@ export function createInterviewRoutes(
             ? null
             : next.state.currentQuestionId,
         });
+        try {
+          await markInterviewFunnelProgress({
+            sessionId: session.id,
+            state: turn.state,
+            checkpointChoice:
+              input.action === "checkpoint" ? input.choice : undefined,
+          });
+        } catch {
+          console.warn("public_comment_funnel_progress_tracking_failed");
+        }
         return NextResponse.json(turnPayload(turn, campaign));
       } catch (error) {
         return errorResponse(error, "回答を処理できませんでした");

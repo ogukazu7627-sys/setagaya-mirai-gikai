@@ -136,7 +136,10 @@ describe.each([
         email.idempotencyKey.startsWith("public-comment-event-invitation/")
       );
       expect(event.text).not.toContain("Private interview answer");
-      expect(event.text).toContain("https://forms.gle/sx7BdN5ZgWEk1cSKA");
+      expect(event.text).toMatch(
+        /http:\/\/localhost:3000\/events\/youth-dialogue-2026-10-03\/invite\/[0-9a-f-]{36}/
+      );
+      expect(event.text).not.toContain("forms.gle");
     }
     // A lost response or repeated click must not generate a second delivery.
     expect((await complete(request(optIn))).status).toBe(200);

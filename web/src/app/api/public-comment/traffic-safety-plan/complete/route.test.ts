@@ -75,6 +75,7 @@ describe("POST /api/public-comment/traffic-safety-plan/complete", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
   });
 });

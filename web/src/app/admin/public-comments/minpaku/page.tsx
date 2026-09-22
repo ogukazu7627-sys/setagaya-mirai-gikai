@@ -21,6 +21,12 @@ export default async function AdminPublicCommentsPage() {
             完了した意見のメールアドレス、最終本文、質問と回答の推移を管理者だけが確認できます。
             非公開の意見は閲覧専用で、公開できません。
           </p>
+          <Link
+            href={routes.adminPublicCommentFunnel() as Route}
+            className="mt-4 inline-flex text-sm font-bold text-mirai-primary hover:underline"
+          >
+            広告からイベント来場までのファネルを見る
+          </Link>
         </div>
 
         <section className="space-y-4">

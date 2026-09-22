@@ -27,6 +27,7 @@ import {
   PublicCommentDraftAuthGate,
 } from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
+import { usePublicCommentAttribution } from "@/features/public-comment/shared/client/use-public-comment-attribution";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
@@ -620,6 +621,10 @@ export function PublicCommentCampaignPage({
   const [eventInvitation, setEventInvitation] =
     useState<PublicCommentEventInvitationResult | null>(null);
   const [authReturnError, setAuthReturnError] = useState<string>();
+  const { ensureAttribution } = usePublicCommentAttribution({
+    journeyType: "interview",
+    adTheme: config.apiBasePath.split("/").at(-1) ?? "public-comment",
+  });
   const {
     messages,
     answer,
@@ -742,6 +747,7 @@ export function PublicCommentCampaignPage({
     setError(null);
     try {
       await ensurePublicCommentActor();
+      const attributionToken = await ensureAttribution();
       const response = await fetch(`${config.apiBasePath}/session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -749,6 +755,7 @@ export function PublicCommentCampaignPage({
           consented: true,
           receiptOptIn: false,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          attributionToken,
         }),
       });
       const data = await response.json();
@@ -786,7 +793,13 @@ export function PublicCommentCampaignPage({
     } finally {
       setBusy(false);
     }
-  }, [busy, config.apiBasePath, loadConversation, setEmailOptIn]);
+  }, [
+    busy,
+    config.apiBasePath,
+    ensureAttribution,
+    loadConversation,
+    setEmailOptIn,
+  ]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || busy) return;

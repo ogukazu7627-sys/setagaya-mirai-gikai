@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
 import { sendPublicCommentReceipt } from "@/features/public-comment/minpaku/server/receipt";
@@ -16,11 +17,7 @@ import {
 import type { PublicCommentReceipt } from "@/features/public-comment/minpaku/shared/receipt";
 import type { PublicCommentEventInvitationResult } from "../event-invitation";
 import { sendPublicCommentEventInvitation } from "./event-invitation";
-import {
-  PUBLIC_COMMENT_EVENT_INVITATION_HTML,
-  PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
-  PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
-} from "./event-invitation-email";
+import { buildPublicCommentEventInvitationEmail } from "./event-invitation-email";
 
 export function createPublicCommentCompleteHandler(campaignSlug: string) {
   return async function POST(request: Request) {
@@ -75,6 +72,17 @@ export function createPublicCommentCompleteHandler(campaignSlug: string) {
         );
       let status: string;
       try {
+        const eventInvitationClickToken = eventInvitationOptIn
+          ? randomUUID()
+          : null;
+        const eventInvitationEmail = eventInvitationClickToken
+          ? buildPublicCommentEventInvitationEmail(
+              new URL(
+                `/events/youth-dialogue-2026-10-03/invite/${eventInvitationClickToken}`,
+                process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000"
+              ).toString()
+            )
+          : null;
         // A response can be lost after the database commit, especially in an
         // embedded browser. Retrying must not turn a completed session into a
         // generic 500 error.
@@ -90,13 +98,8 @@ export function createPublicCommentCompleteHandler(campaignSlug: string) {
               eventInvitationConsentVersion: eventInvitationOptIn
                 ? PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION
                 : null,
-              eventInvitationEmail: eventInvitationOptIn
-                ? {
-                    subject: PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
-                    body: PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
-                    html: PUBLIC_COMMENT_EVENT_INVITATION_HTML,
-                  }
-                : null,
+              eventInvitationEmail,
+              eventInvitationClickToken,
             });
       } catch (error) {
         const completedSession = await findSessionForCampaignUser(

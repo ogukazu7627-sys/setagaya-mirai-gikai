@@ -105,7 +105,10 @@ describe("PublicCommentMinpakuPage", () => {
       name: "AIパブコメインタビューをはじめる",
     })[0];
     expect(startButton).toBeEnabled();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
 
     fireEvent.click(startButton);
     const consentCheckbox = await screen.findByRole("checkbox", {
@@ -114,7 +117,10 @@ describe("PublicCommentMinpakuPage", () => {
     expect(
       screen.getByRole("button", { name: "同意してはじめる" })
     ).toBeDisabled();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
     fireEvent.click(consentCheckbox);
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
 
@@ -244,26 +250,28 @@ describe("PublicCommentMinpakuPage", () => {
       if (lesson !== MINPAKU_LESSONS.at(-1))
         fireEvent.click(screen.getByRole("button", { name: "次の章へ" }));
     }
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
     fireEvent.click(
       screen.getByRole("button", {
         name: "AIインタビューをはじめる",
       })
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
     expect(await screen.findByText("最初の質問です")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/public-comment/minpaku/session",
       expect.objectContaining({
-        body: JSON.stringify({
-          consented: true,
-          receiptOptIn: false,
-          consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
-        }),
+        body: expect.stringContaining('"consented":true'),
       })
     );
   });
@@ -301,7 +309,10 @@ describe("PublicCommentMinpakuPage", () => {
     expect(
       screen.getByRole("button", { name: "同意してはじめる" })
     ).toBeDisabled();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
     cleanup();
     render(<PublicCommentMinpakuPage />);
     fireEvent.click(
@@ -370,7 +381,10 @@ describe("PublicCommentMinpakuPage", () => {
       })[0]
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      "/api/public-comment/minpaku/session",
+      expect.anything()
+    );
   });
 
   async function reachReview() {

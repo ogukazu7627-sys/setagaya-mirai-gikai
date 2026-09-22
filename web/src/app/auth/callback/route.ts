@@ -9,6 +9,7 @@ import {
 import { consumeAuthHandoff } from "@/features/public-comment/minpaku/server/repository";
 import { PUBLIC_COMMENT_AUTH_HANDOFF_COOKIE } from "@/features/public-comment/shared/auth-handoff";
 import { hashPublicCommentAuthToken } from "@/features/public-comment/shared/server/auth-handoff";
+import { markPublicCommentGoogleClaimed } from "@/features/public-comment/shared/server/funnel-repository";
 import { env } from "@/lib/env";
 import { routes } from "@/lib/routes";
 
@@ -66,10 +67,15 @@ export async function GET(request: Request) {
           return NextResponse.redirect(failureUrl);
         }
         try {
-          await consumeAuthHandoff({
+          const claimedSessionId = await consumeAuthHandoff({
             tokenHash: hashPublicCommentAuthToken(publicCommentHandoff),
             targetUserId: data.user.id,
           });
+          try {
+            await markPublicCommentGoogleClaimed(claimedSessionId);
+          } catch {
+            console.warn("public_comment_funnel_google_claim_tracking_failed");
+          }
           cookieStore.set(PUBLIC_COMMENT_AUTH_HANDOFF_COOKIE, "", {
             path: "/",
             maxAge: 0,

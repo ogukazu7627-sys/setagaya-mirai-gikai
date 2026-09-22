@@ -70,6 +70,7 @@ describe("POST /api/public-comment/ijime/complete", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
   });
 

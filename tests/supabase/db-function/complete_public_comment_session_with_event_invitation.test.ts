@@ -52,6 +52,7 @@ describe("event invitation completion RPC (real DB, no external email)", () => {
       p_event_subject: "Event invitation",
       p_event_body: "An invitation without interview answers",
       p_event_html: "<p>Event invitation</p>",
+      p_event_click_token: randomUUID(),
     };
   }
 

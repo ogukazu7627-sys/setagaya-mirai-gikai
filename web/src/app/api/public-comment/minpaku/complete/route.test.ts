@@ -105,6 +105,7 @@ describe("POST /api/public-comment/minpaku/complete", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
       "session-1",

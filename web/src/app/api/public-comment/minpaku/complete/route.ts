@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getPublicCommentUser } from "@/features/public-comment/minpaku/server/auth";
 import { sendPublicCommentReceipt } from "@/features/public-comment/minpaku/server/receipt";
@@ -13,11 +14,7 @@ import {
 import type { PublicCommentReceipt } from "@/features/public-comment/minpaku/shared/receipt";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { sendPublicCommentEventInvitation } from "@/features/public-comment/shared/server/event-invitation";
-import {
-  PUBLIC_COMMENT_EVENT_INVITATION_HTML,
-  PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
-  PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
-} from "@/features/public-comment/shared/server/event-invitation-email";
+import { buildPublicCommentEventInvitationEmail } from "@/features/public-comment/shared/server/event-invitation-email";
 
 export const maxDuration = 30;
 
@@ -62,6 +59,17 @@ export async function POST(request: Request) {
     }
     let status: string;
     try {
+      const eventInvitationClickToken = eventInvitationOptIn
+        ? randomUUID()
+        : null;
+      const eventInvitationEmail = eventInvitationClickToken
+        ? buildPublicCommentEventInvitationEmail(
+            new URL(
+              `/events/youth-dialogue-2026-10-03/invite/${eventInvitationClickToken}`,
+              process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000"
+            ).toString()
+          )
+        : null;
       // A lost response can leave the session completed while the browser still
       // shows the review screen. Treat that retry as a read, not a new write.
       status = session.completed_at
@@ -76,13 +84,8 @@ export async function POST(request: Request) {
             eventInvitationConsentVersion: eventInvitationOptIn
               ? PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION
               : null,
-            eventInvitationEmail: eventInvitationOptIn
-              ? {
-                  subject: PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
-                  body: PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
-                  html: PUBLIC_COMMENT_EVENT_INVITATION_HTML,
-                }
-              : null,
+            eventInvitationEmail,
+            eventInvitationClickToken,
           });
     } catch (error) {
       // Older deployed SQL functions may reject a second completion request.

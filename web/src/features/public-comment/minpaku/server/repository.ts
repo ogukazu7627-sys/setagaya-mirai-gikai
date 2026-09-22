@@ -350,6 +350,7 @@ export async function completeSession(params: {
     body: string;
     html: string;
   } | null;
+  eventInvitationClickToken: string | null;
 }): Promise<string> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.rpc(
@@ -361,10 +362,12 @@ export async function completeSession(params: {
       p_receipt_opt_in: params.receiptOptIn,
       p_event_invitation_opt_in: params.eventInvitationOptIn,
       p_consent_version: params.consentVersion,
-      p_event_invitation_consent_version: params.eventInvitationConsentVersion,
-      p_event_subject: params.eventInvitationEmail?.subject ?? null,
-      p_event_body: params.eventInvitationEmail?.body ?? null,
-      p_event_html: params.eventInvitationEmail?.html ?? null,
+      p_event_invitation_consent_version:
+        params.eventInvitationConsentVersion ?? undefined,
+      p_event_subject: params.eventInvitationEmail?.subject,
+      p_event_body: params.eventInvitationEmail?.body,
+      p_event_html: params.eventInvitationEmail?.html,
+      p_event_click_token: params.eventInvitationClickToken ?? undefined,
     }
   );
   if (error) {

@@ -105,6 +105,7 @@ export const routes = {
     "/public-comment/dementia-hope-plan" as const,
   publicCommentTrafficSafetyPlan: () =>
     "/public-comment/traffic-safety-plan" as const,
+  youthDialogueEvent: () => "/events/youth-dialogue-2026-10-03" as const,
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,
@@ -118,6 +119,7 @@ export const routes = {
   adminIssueReports: () => "/admin/reports" as const,
   adminPublicCommentsIndex: () => "/admin/public-comments" as const,
   adminPublicComments: () => "/admin/public-comments/minpaku" as const,
+  adminPublicCommentFunnel: () => "/admin/public-comments/funnel" as const,
   adminCouncilorDigests: () => "/admin/councilor-digests" as const,
   adminSeo: () => "/admin/seo" as const,
 
