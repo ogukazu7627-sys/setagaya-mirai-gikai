@@ -7,6 +7,10 @@ import {
   type PublicCommentReviewStatus,
   updatePublicCommentReviewStatus,
 } from "./public-comment-admin";
+import {
+  setPublicCommentEventAttendance,
+  upsertPublicCommentAdDailyStat,
+} from "./public-comment-funnel";
 
 export async function updatePublicCommentReviewStatusAction(
   formData: FormData
@@ -32,4 +36,54 @@ export async function updatePublicCommentReviewStatusAction(
   });
   revalidatePath(routes.adminPublicComments());
   revalidatePath("/public-comment/minpaku/comments");
+}
+
+function requiredText(formData: FormData, name: string) {
+  const value = formData.get(name);
+  if (typeof value !== "string" || !value.trim())
+    throw new Error(`${name}が必要です`);
+  return value.trim();
+}
+
+function nonNegativeInteger(formData: FormData, name: string) {
+  const value = Number(requiredText(formData, name));
+  if (!Number.isSafeInteger(value) || value < 0)
+    throw new Error(`${name}は0以上の整数で入力してください`);
+  return value;
+}
+
+export async function upsertPublicCommentAdDailyStatAction(formData: FormData) {
+  "use server";
+  await requireAdmin(routes.adminPublicCommentFunnel());
+  const statDate = requiredText(formData, "statDate");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(statDate))
+    throw new Error("日付を確認してください");
+  await upsertPublicCommentAdDailyStat({
+    statDate,
+    utmSource: requiredText(formData, "utmSource"),
+    utmCampaign: requiredText(formData, "utmCampaign"),
+    utmContent: requiredText(formData, "utmContent"),
+    adTheme: requiredText(formData, "adTheme"),
+    impressions: nonNegativeInteger(formData, "impressions"),
+    linkClicks: nonNegativeInteger(formData, "linkClicks"),
+    spendYen: nonNegativeInteger(formData, "spendYen"),
+  });
+  revalidatePath(routes.adminPublicCommentFunnel());
+}
+
+export async function setPublicCommentEventAttendanceAction(
+  formData: FormData
+) {
+  "use server";
+  const admin = await requireAdmin(routes.adminPublicCommentFunnel());
+  const registrationId = requiredText(formData, "registrationId");
+  const attended = requiredText(formData, "attended");
+  if (attended !== "true" && attended !== "false")
+    throw new Error("来場状況を確認してください");
+  await setPublicCommentEventAttendance({
+    registrationId,
+    attended: attended === "true",
+    recordedBy: "id" in admin ? admin.id : null,
+  });
+  revalidatePath(routes.adminPublicCommentFunnel());
 }

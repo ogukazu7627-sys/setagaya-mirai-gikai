@@ -73,6 +73,7 @@ describe("POST /api/public-comment/disability/complete", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
   });
 });

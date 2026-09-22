@@ -47,6 +47,12 @@ export function AdminShell({ user, children }: AdminShellProps) {
                 パブコメ確認
               </Link>
               <Link
+                href={routes.adminPublicCommentFunnel() as Route}
+                className="hover:underline"
+              >
+                広告→来場
+              </Link>
+              <Link
                 href={routes.adminCouncilorDigests() as Route}
                 className="hover:underline"
               >

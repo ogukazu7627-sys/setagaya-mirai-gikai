@@ -7,6 +7,9 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION = CONSENT_VERSION;
 export const PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT =
   "【10/3開催】AIに話したその続きを、地域の人と。｜若者と地域を語る会";
 
+const DEFAULT_EVENT_RSVP_URL =
+  "https://civictech-setagaya.org/events/youth-dialogue-2026-10-03";
+
 export const PUBLIC_COMMENT_EVENT_INVITATION_TEXT = `みらい議会@世田谷
 
 AIに話したその続きを、
@@ -52,14 +55,14 @@ AIインタビューで考えたことや、普段の暮らしで感じている
 参加費：無料
 
 参加を申し込む
-https://forms.gle/sx7BdN5ZgWEk1cSKA
+${DEFAULT_EVENT_RSVP_URL}
 
 お問い合わせ：info@civictech-setagaya.org
 
-このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。
+このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。申込リンクのクリック、イベント申込・来場状況は、案内の改善と運営のため記録します。
 配信停止をご希望の場合は、info@civictech-setagaya.org までご連絡ください。`;
 
-const FORM_URL = "https://forms.gle/sx7BdN5ZgWEk1cSKA";
+const FORM_URL = DEFAULT_EVENT_RSVP_URL;
 const CONTACT_EMAIL = "info@civictech-setagaya.org";
 const BLUE = "#0ea5e9";
 const PALE_BLUE = "#e0f2fe";
@@ -128,10 +131,18 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_HTML = `<!doctype html>
           <tr><td style="padding:24px 36px 28px;background-color:#f8fafc;border-top:1px solid #dceaf1;">
             <p style="margin:0 0 10px;color:#075985;font-size:16px;line-height:1.7;font-weight:700;">みらい議会@世田谷</p>
             <p style="margin:0 0 16px;color:#334155;font-size:16px;line-height:1.8;">お問い合わせ：<br><a href="mailto:${CONTACT_EMAIL}?subject=%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E6%A1%88%E5%86%85%E3%81%AE%E9%85%8D%E4%BF%A1%E5%81%9C%E6%AD%A2" style="color:#075985;text-decoration:underline;">${CONTACT_EMAIL}</a></p>
-            <p style="margin:0;color:#475569;font-size:14px;line-height:1.85;">このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。配信停止をご希望の場合は、上記アドレスまでご連絡ください。</p>
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.85;">このメールは、AIインタビューにご協力いただき、控えや活動・イベント案内の受信を希望された方へお送りしています。申込リンクのクリック、イベント申込・来場状況は、案内の改善と運営のため記録します。配信停止をご希望の場合は、上記アドレスまでご連絡ください。</p>
           </td></tr>
         </table>
       </td></tr>
     </table>
   </body>
 </html>`;
+
+export function buildPublicCommentEventInvitationEmail(rsvpUrl: string) {
+  return {
+    subject: PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
+    body: PUBLIC_COMMENT_EVENT_INVITATION_TEXT.replaceAll(FORM_URL, rsvpUrl),
+    html: PUBLIC_COMMENT_EVENT_INVITATION_HTML.replaceAll(FORM_URL, rsvpUrl),
+  };
+}

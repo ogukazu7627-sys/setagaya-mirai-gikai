@@ -23,6 +23,7 @@ import {
   PublicCommentDraftAuthGate,
 } from "@/features/public-comment/shared/client/public-comment-draft-auth-gate";
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
+import { usePublicCommentAttribution } from "@/features/public-comment/shared/client/use-public-comment-attribution";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { routes } from "@/lib/routes";
 import {
@@ -690,6 +691,10 @@ function CompletePage({
 
 export function PublicCommentMinpakuPage() {
   const auth = useChatAuth();
+  const { ensureAttribution } = usePublicCommentAttribution({
+    journeyType: "interview",
+    adTheme: "minpaku-2026",
+  });
   const [view, setView] = useState<View>("intro");
   const containerRef = useRef<HTMLDivElement>(null);
   usePublicCommentViewScroll(view, containerRef);
@@ -868,6 +873,7 @@ export function PublicCommentMinpakuPage() {
     setError(null);
     try {
       await ensurePublicCommentActor();
+      const attributionToken = await ensureAttribution();
       const response = await fetch("/api/public-comment/minpaku/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -875,6 +881,7 @@ export function PublicCommentMinpakuPage() {
           consented: true,
           receiptOptIn: false,
           consentVersion: PUBLIC_COMMENT_CONSENT_VERSION,
+          attributionToken,
         }),
       });
       const data = await response.json();
@@ -908,7 +915,7 @@ export function PublicCommentMinpakuPage() {
     } finally {
       setBusy(false);
     }
-  }, [busy, loadConversation, setEmailOptIn]);
+  }, [busy, ensureAttribution, loadConversation, setEmailOptIn]);
 
   const generateDraft = useCallback(async () => {
     if (!sessionId || selectedOrdinances.length === 0 || busy) return;

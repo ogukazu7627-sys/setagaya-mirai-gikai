@@ -2881,6 +2881,48 @@ export type Database = {
           },
         ]
       }
+      public_comment_ad_daily_stats: {
+        Row: {
+          ad_theme: string
+          created_at: string
+          id: string
+          impressions: number
+          link_clicks: number
+          spend_yen: number
+          stat_date: string
+          updated_at: string
+          utm_campaign: string
+          utm_content: string
+          utm_source: string
+        }
+        Insert: {
+          ad_theme: string
+          created_at?: string
+          id?: string
+          impressions?: number
+          link_clicks?: number
+          spend_yen?: number
+          stat_date: string
+          updated_at?: string
+          utm_campaign: string
+          utm_content: string
+          utm_source?: string
+        }
+        Update: {
+          ad_theme?: string
+          created_at?: string
+          id?: string
+          impressions?: number
+          link_clicks?: number
+          spend_yen?: number
+          stat_date?: string
+          updated_at?: string
+          utm_campaign?: string
+          utm_content?: string
+          utm_source?: string
+        }
+        Relationships: []
+      }
       public_comment_auth_handoffs: {
         Row: {
           anonymous_user_id: string
@@ -3104,6 +3146,8 @@ export type Database = {
       }
       public_comment_sessions: {
         Row: {
+          ad_theme: string | null
+          arrived_at: string | null
           campaign_id: string
           completed_at: string | null
           consent_version: string | null
@@ -3116,6 +3160,7 @@ export type Database = {
           draft_generation_token: string | null
           event_invitation_consent_version: string | null
           event_invitation_opt_in: boolean
+          funnel_completion_mode: string | null
           id: string
           interview_revision: number
           interview_state: Json | null
@@ -3125,8 +3170,14 @@ export type Database = {
           superseded_at: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
+          ad_theme?: string | null
+          arrived_at?: string | null
           campaign_id: string
           completed_at?: string | null
           consent_version?: string | null
@@ -3139,6 +3190,7 @@ export type Database = {
           draft_generation_token?: string | null
           event_invitation_consent_version?: string | null
           event_invitation_opt_in?: boolean
+          funnel_completion_mode?: string | null
           id?: string
           interview_revision?: number
           interview_state?: Json | null
@@ -3148,8 +3200,14 @@ export type Database = {
           superseded_at?: string | null
           updated_at?: string
           user_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
+          ad_theme?: string | null
+          arrived_at?: string | null
           campaign_id?: string
           completed_at?: string | null
           consent_version?: string | null
@@ -3162,6 +3220,7 @@ export type Database = {
           draft_generation_token?: string | null
           event_invitation_consent_version?: string | null
           event_invitation_opt_in?: boolean
+          funnel_completion_mode?: string | null
           id?: string
           interview_revision?: number
           interview_state?: Json | null
@@ -3171,6 +3230,10 @@ export type Database = {
           superseded_at?: string | null
           updated_at?: string
           user_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
           {
@@ -3264,8 +3327,11 @@ export type Database = {
           accepted_at: string | null
           attempt_count: number
           body: string
+          click_token: string
           consent_version: string
           created_at: string
+          delivered_at: string | null
+          delivery_status: string | null
           failure_code: string | null
           first_attempt_at: string | null
           html: string
@@ -3285,8 +3351,11 @@ export type Database = {
           accepted_at?: string | null
           attempt_count?: number
           body: string
+          click_token?: string
           consent_version: string
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           failure_code?: string | null
           first_attempt_at?: string | null
           html: string
@@ -3306,8 +3375,11 @@ export type Database = {
           accepted_at?: string | null
           attempt_count?: number
           body?: string
+          click_token?: string
           consent_version?: string
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           failure_code?: string | null
           first_attempt_at?: string | null
           html?: string
@@ -3326,6 +3398,188 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "public_comment_event_invitations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "public_comment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_event_registrations: {
+        Row: {
+          ad_theme: string | null
+          agreement_version: string
+          attendance_recorded_by: string | null
+          attended_at: string | null
+          attendee_name: string
+          created_at: string
+          email: string
+          email_normalized: string
+          event_slug: string
+          funnel_visit_id: string | null
+          id: string
+          interests: string[]
+          last_submitted_at: string
+          note: string | null
+          registered_at: string
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ad_theme?: string | null
+          agreement_version: string
+          attendance_recorded_by?: string | null
+          attended_at?: string | null
+          attendee_name: string
+          created_at?: string
+          email: string
+          email_normalized: string
+          event_slug: string
+          funnel_visit_id?: string | null
+          id?: string
+          interests?: string[]
+          last_submitted_at?: string
+          note?: string | null
+          registered_at?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ad_theme?: string | null
+          agreement_version?: string
+          attendance_recorded_by?: string | null
+          attended_at?: string | null
+          attendee_name?: string
+          created_at?: string
+          email?: string
+          email_normalized?: string
+          event_slug?: string
+          funnel_visit_id?: string | null
+          id?: string
+          interests?: string[]
+          last_submitted_at?: string
+          note?: string | null
+          registered_at?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_event_registrations_funnel_visit_id_fkey"
+            columns: ["funnel_visit_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_funnel_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_comment_funnel_visits: {
+        Row: {
+          ad_theme: string
+          arrived_at: string | null
+          campaign_id: string | null
+          checkpoint_choice: string | null
+          completion_mode: string | null
+          core_completed_at: string | null
+          created_at: string
+          event_attended_at: string | null
+          event_invitation_accepted_at: string | null
+          event_invitation_clicked_at: string | null
+          event_invitation_delivered_at: string | null
+          event_invitation_delivery_status: string | null
+          event_registered_at: string | null
+          event_signup_link_clicked_at: string | null
+          google_claimed_at: string | null
+          id: string
+          interview_completed_at: string | null
+          interview_started_at: string | null
+          journey_type: string
+          landing_path: string
+          public_token: string
+          session_id: string | null
+          short_link_opened_at: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ad_theme: string
+          arrived_at?: string | null
+          campaign_id?: string | null
+          checkpoint_choice?: string | null
+          completion_mode?: string | null
+          core_completed_at?: string | null
+          created_at?: string
+          event_attended_at?: string | null
+          event_invitation_accepted_at?: string | null
+          event_invitation_clicked_at?: string | null
+          event_invitation_delivered_at?: string | null
+          event_invitation_delivery_status?: string | null
+          event_registered_at?: string | null
+          event_signup_link_clicked_at?: string | null
+          google_claimed_at?: string | null
+          id?: string
+          interview_completed_at?: string | null
+          interview_started_at?: string | null
+          journey_type: string
+          landing_path: string
+          public_token?: string
+          session_id?: string | null
+          short_link_opened_at?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ad_theme?: string
+          arrived_at?: string | null
+          campaign_id?: string | null
+          checkpoint_choice?: string | null
+          completion_mode?: string | null
+          core_completed_at?: string | null
+          created_at?: string
+          event_attended_at?: string | null
+          event_invitation_accepted_at?: string | null
+          event_invitation_clicked_at?: string | null
+          event_invitation_delivered_at?: string | null
+          event_invitation_delivery_status?: string | null
+          event_registered_at?: string | null
+          event_signup_link_clicked_at?: string | null
+          google_claimed_at?: string | null
+          id?: string
+          interview_completed_at?: string | null
+          interview_started_at?: string | null
+          journey_type?: string
+          landing_path?: string
+          public_token?: string
+          session_id?: string | null
+          short_link_opened_at?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_comment_funnel_visits_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "public_comment_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_comment_funnel_visits_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: true
             referencedRelation: "public_comment_sessions"
@@ -3853,11 +4107,12 @@ export type Database = {
       complete_public_comment_session_with_event_invitation: {
         Args: {
           p_consent_version: string
-          p_event_body: string | null
-          p_event_html: string | null
-          p_event_invitation_consent_version: string | null
+          p_event_body?: string
+          p_event_click_token?: string
+          p_event_html?: string
+          p_event_invitation_consent_version?: string
           p_event_invitation_opt_in: boolean
-          p_event_subject: string | null
+          p_event_subject?: string
           p_publication_requested: boolean
           p_receipt_opt_in: boolean
           p_session_id: string
@@ -3882,6 +4137,34 @@ export type Database = {
           p_provider_id?: string
         }
         Returns: undefined
+      }
+      register_public_comment_event: {
+        Args: {
+          p_agreement_version: string
+          p_attendee_name: string
+          p_email: string
+          p_event_slug: string
+          p_interests: string[]
+          p_note?: string
+          p_public_token: string
+        }
+        Returns: string
+      }
+      set_public_comment_event_attendance: {
+        Args: {
+          p_attended: boolean
+          p_recorded_by?: string
+          p_registration_id: string
+        }
+        Returns: undefined
+      }
+      start_public_comment_funnel_session: {
+        Args: {
+          p_campaign_id: string
+          p_public_token?: string
+          p_session_id: string
+        }
+        Returns: string
       }
     }
     Enums: {

@@ -73,6 +73,7 @@ describe("POST /api/public-comment/dementia-hope-plan/complete", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
   });
 });

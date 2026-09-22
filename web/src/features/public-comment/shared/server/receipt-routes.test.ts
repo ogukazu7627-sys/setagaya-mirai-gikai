@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PUBLIC_COMMENT_CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
+import {
+  PUBLIC_COMMENT_CONSENT_VERSION,
+  PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION,
+} from "@/features/public-comment/minpaku/shared/consent";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -96,6 +99,7 @@ describe("public comment receipt routes", () => {
       eventInvitationOptIn: false,
       eventInvitationConsentVersion: null,
       eventInvitationEmail: null,
+      eventInvitationClickToken: null,
     });
     expect(mocks.sendReceipt).toHaveBeenCalledExactlyOnceWith(
       "session-1",
@@ -116,9 +120,14 @@ describe("public comment receipt routes", () => {
     expect(mocks.completeSession).toHaveBeenCalledWith(
       expect.objectContaining({
         eventInvitationOptIn: true,
-        eventInvitationConsentVersion: "2026-09-20-event-invitation-v1",
+        eventInvitationConsentVersion:
+          PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION,
+        eventInvitationClickToken: expect.any(String),
         eventInvitationEmail: expect.objectContaining({
           subject: expect.stringContaining("若者と地域を語る会"),
+          body: expect.stringContaining(
+            "/events/youth-dialogue-2026-10-03/invite/"
+          ),
         }),
       })
     );
