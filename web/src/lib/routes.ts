@@ -106,6 +106,10 @@ export const routes = {
   publicCommentTrafficSafetyPlan: () =>
     "/public-comment/traffic-safety-plan" as const,
   youthDialogueEvent: () => "/events/youth-dialogue-2026-10-03" as const,
+  youthDialogueEventApply: (publicToken?: string | null) =>
+    publicToken
+      ? (`/events/youth-dialogue-2026-10-03/apply?attribution=${encodeURIComponent(publicToken)}` as const)
+      : ("/events/youth-dialogue-2026-10-03/apply" as const),
 
   // ── 管理画面 ──────────────────────────────────────
   adminHome: () => "/admin" as const,

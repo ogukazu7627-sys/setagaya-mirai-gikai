@@ -50,7 +50,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
                 href={routes.adminPublicCommentFunnel() as Route}
                 className="hover:underline"
               >
-                広告→来場
+                広告計測
               </Link>
               <Link
                 href={routes.adminCouncilorDigests() as Route}

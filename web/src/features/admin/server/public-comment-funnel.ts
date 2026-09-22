@@ -11,6 +11,7 @@ export type PublicCommentFunnelRow = {
   impressions: number;
   linkClicks: number;
   spendYen: number;
+  trackedLinkAccesses: number;
   pageLoads: number;
   interviewStarts: number;
   coreCompleted: number;
@@ -21,21 +22,6 @@ export type PublicCommentFunnelRow = {
   emailAccepted: number;
   emailDelivered: number;
   emailClicked: number;
-  registrations: number;
-  attendees: number;
-};
-
-export type EventRegistrationAdminItem = {
-  id: string;
-  attendeeName: string;
-  email: string;
-  interests: string[];
-  note: string | null;
-  registeredAt: string;
-  attendedAt: string | null;
-  utmCampaign: string | null;
-  utmContent: string | null;
-  adTheme: string | null;
 };
 
 function keyOf(parts: {
@@ -67,6 +53,7 @@ function emptyRow(parts: {
     impressions: 0,
     linkClicks: 0,
     spendYen: 0,
+    trackedLinkAccesses: 0,
     pageLoads: 0,
     interviewStarts: 0,
     coreCompleted: 0,
@@ -77,8 +64,6 @@ function emptyRow(parts: {
     emailAccepted: 0,
     emailDelivered: 0,
     emailClicked: 0,
-    registrations: 0,
-    attendees: 0,
   };
 }
 
@@ -98,6 +83,7 @@ export async function listPublicCommentFunnelDashboard() {
   for (const visit of visits ?? []) {
     const key = keyOf(visit);
     const row = rows.get(key) ?? emptyRow(visit);
+    row.trackedLinkAccesses += visit.short_link_opened_at ? 1 : 0;
     row.pageLoads += visit.arrived_at ? 1 : 0;
     row.interviewStarts += visit.interview_started_at ? 1 : 0;
     row.coreCompleted += visit.core_completed_at ? 1 : 0;
@@ -108,8 +94,6 @@ export async function listPublicCommentFunnelDashboard() {
     row.emailAccepted += visit.event_invitation_accepted_at ? 1 : 0;
     row.emailDelivered += visit.event_invitation_delivered_at ? 1 : 0;
     row.emailClicked += visit.event_invitation_clicked_at ? 1 : 0;
-    row.registrations += visit.event_registered_at ? 1 : 0;
-    row.attendees += visit.event_attended_at ? 1 : 0;
     rows.set(key, row);
   }
   for (const stat of stats ?? []) {
@@ -121,35 +105,12 @@ export async function listPublicCommentFunnelDashboard() {
     rows.set(key, row);
   }
 
-  const { data: registrations, error: registrationError } = await supabase
-    .from("public_comment_event_registrations")
-    .select(
-      "id, attendee_name, email, interests, note, registered_at, attended_at, utm_campaign, utm_content, ad_theme"
-    )
-    .order("registered_at", { ascending: false });
-  if (registrationError)
-    throw new Error("イベント申込一覧を取得できませんでした");
-
   return {
     rows: [...rows.values()].sort(
       (a, b) =>
         b.spendYen - a.spendYen ||
         b.pageLoads - a.pageLoads ||
         a.key.localeCompare(b.key)
-    ),
-    registrations: (registrations ?? []).map(
-      (registration): EventRegistrationAdminItem => ({
-        id: registration.id,
-        attendeeName: registration.attendee_name,
-        email: registration.email,
-        interests: registration.interests,
-        note: registration.note,
-        registeredAt: registration.registered_at,
-        attendedAt: registration.attended_at,
-        utmCampaign: registration.utm_campaign,
-        utmContent: registration.utm_content,
-        adTheme: registration.ad_theme,
-      })
     ),
   };
 }
@@ -182,20 +143,4 @@ export async function upsertPublicCommentAdDailyStat(params: {
       }
     );
   if (error) throw new Error("広告実績を保存できませんでした");
-}
-
-export async function setPublicCommentEventAttendance(params: {
-  registrationId: string;
-  attended: boolean;
-  recordedBy: string | null;
-}) {
-  const { error } = await createAdminClient().rpc(
-    "set_public_comment_event_attendance",
-    {
-      p_registration_id: params.registrationId,
-      p_attended: params.attended,
-      p_recorded_by: params.recordedBy ?? undefined,
-    }
-  );
-  if (error) throw new Error("来場状況を保存できませんでした");
 }

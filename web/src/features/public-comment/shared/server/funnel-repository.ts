@@ -1,8 +1,8 @@
 import "server-only";
 
 import { createAdminClient } from "@mirai-gikai/supabase";
-import type { InterviewState } from "../interview-state";
 import type { FunnelAttributionInput } from "../funnel";
+import type { InterviewState } from "../interview-state";
 
 type DeliveryStatus = "delivered" | "bounced" | "complained" | "suppressed";
 
@@ -181,30 +181,6 @@ export async function recordEventSignupLinkClick(publicToken: string) {
     .maybeSingle();
   if (error || !data) throw new Error("public_comment_event_link_invalid");
   return data.public_token;
-}
-
-export async function registerYouthDialogueEvent(params: {
-  publicToken: string;
-  email: string;
-  attendeeName: string;
-  interests: string[];
-  agreementVersion: string;
-  note?: string | null;
-}) {
-  const { data, error } = await createAdminClient().rpc(
-    "register_public_comment_event",
-    {
-      p_public_token: params.publicToken,
-      p_event_slug: "youth-dialogue-2026-10-03",
-      p_email: params.email,
-      p_attendee_name: params.attendeeName,
-      p_interests: params.interests,
-      p_agreement_version: params.agreementVersion,
-      p_note: params.note ?? undefined,
-    }
-  );
-  if (error) throw new Error("public_comment_event_registration_failed");
-  return data;
 }
 
 export async function updateEventInvitationDelivery(params: {

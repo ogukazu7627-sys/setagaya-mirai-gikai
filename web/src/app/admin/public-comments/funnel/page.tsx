@@ -1,15 +1,12 @@
-import { Check, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { ShareUrlButton } from "@/components/share/share-url-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShareUrlButton } from "@/components/share/share-url-button";
 import { AdminShell } from "@/features/admin/components/admin-shell";
 import { requireAdmin } from "@/features/admin/server/auth";
-import {
-  setPublicCommentEventAttendanceAction,
-  upsertPublicCommentAdDailyStatAction,
-} from "@/features/admin/server/public-comment-admin-actions";
+import { upsertPublicCommentAdDailyStatAction } from "@/features/admin/server/public-comment-admin-actions";
 import { listPublicCommentFunnelDashboard } from "@/features/admin/server/public-comment-funnel";
 import { YOUTH_DIALOGUE_AD_CAMPAIGN } from "@/features/public-comment/shared/funnel";
 import { env } from "@/lib/env";
@@ -20,6 +17,7 @@ export const dynamic = "force-dynamic";
 const FUNNEL_COLUMNS = [
   ["impressions", "広告表示"],
   ["linkClicks", "リンククリック"],
+  ["trackedLinkAccesses", "計測リンクアクセス"],
   ["pageLoads", "ページ読込"],
   ["interviewStarts", "開始"],
   ["coreCompleted", "3問完了"],
@@ -30,22 +28,7 @@ const FUNNEL_COLUMNS = [
   ["emailAccepted", "メール送信受付"],
   ["emailDelivered", "メール配信"],
   ["emailClicked", "メールクリック"],
-  ["registrations", "申込"],
-  ["attendees", "来場"],
 ] as const;
-
-function formatDateTime(value: string | null) {
-  if (!value) return "-";
-  return new Intl.DateTimeFormat("ja-JP", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Tokyo",
-  }).format(new Date(value));
-}
-
-function cost(spendYen: number, count: number) {
-  return count > 0 ? `${Math.round(spendYen / count).toLocaleString()}円` : "-";
-}
 
 export default async function AdminPublicCommentFunnelPage() {
   const user = await requireAdmin(routes.adminPublicCommentFunnel());
@@ -58,9 +41,9 @@ export default async function AdminPublicCommentFunnelPage() {
     <AdminShell user={user}>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">広告からイベント来場まで</h1>
+          <h1 className="text-2xl font-bold">広告・AIインタビュー計測</h1>
           <p className="mt-2 text-sm leading-6 text-mirai-text-secondary">
-            UTM別に、広告表示からページ読込、AIインタビュー、案内メール、申込、来場までを確認します。回答本文や個人の政治的意見は集計に使用しません。
+            広告・計測リンクへのアクセスから、AIインタビューと案内メールの状況を確認します。イベント単体広告は計測後にGoogleフォームへ転送します。フォーム回答数と来場者数はこの画面には表示されず、Googleフォームと当日の受付で別途確認してください。
           </p>
         </div>
 
@@ -70,7 +53,10 @@ export default async function AdminPublicCommentFunnelPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <TrackingLink label="民泊AIインタビュー広告" url={minpakuUrl} />
-            <TrackingLink label="イベント単体広告" url={eventUrl} />
+            <TrackingLink
+              label="イベント単体広告（Googleフォームへ即時転送）"
+              url={eventUrl}
+            />
             <p className="leading-6 text-mirai-text-secondary">
               広告クリエイティブごとに末尾の
               <code className="mx-1 rounded bg-gray-100 px-1">creative-a</code>
@@ -79,6 +65,9 @@ export default async function AdminPublicCommentFunnelPage() {
               などへ変えてください。そこが
               <code className="mx-1 rounded bg-gray-100 px-1">utm_content</code>
               として保存されます。
+            </p>
+            <p className="leading-6 text-mirai-text-secondary">
+              「リンククリック」はMeta広告マネージャーから手入力した値、「計測リンクアクセス」は当サイトのURLに到達した回数で、ユニーク人数ではありません。再アクセスやSNS側の事前確認なども含まれる場合があります。イベントの申込回答は各Googleフォームで確認してください。当サイトでは回答者とインタビュー完了者を個人単位で結び付けず、来場状況も記録しません。
             </p>
           </CardContent>
         </Card>
@@ -172,8 +161,6 @@ export default async function AdminPublicCommentFunnelPage() {
                     </th>
                   ))}
                   <th className="p-3 text-right">消化金額</th>
-                  <th className="p-3 text-right">申込単価</th>
-                  <th className="p-3 text-right">来場単価</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,87 +181,11 @@ export default async function AdminPublicCommentFunnelPage() {
                     <td className="p-3 text-right tabular-nums">
                       {row.spendYen.toLocaleString()}円
                     </td>
-                    <td className="p-3 text-right tabular-nums">
-                      {cost(row.spendYen, row.registrations)}
-                    </td>
-                    <td className="p-3 text-right tabular-nums">
-                      {cost(row.spendYen, row.attendees)}
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </section>
-
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-xl font-bold">
-              イベント申込・来場確認（{dashboard.registrations.length}件）
-            </h2>
-            <p className="mt-1 text-sm text-mirai-text-secondary">
-              氏名とメールアドレスはイベント運営だけに使用し、公開しません。当日は来場した方だけを「来場済み」にしてください。
-            </p>
-          </div>
-          {dashboard.registrations.length === 0 ? (
-            <p className="rounded-xl border bg-white p-6 text-sm text-mirai-text-secondary">
-              申込はまだありません。
-            </p>
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {dashboard.registrations.map((registration) => (
-                <Card key={registration.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {registration.attendeeName}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    <p className="break-all">{registration.email}</p>
-                    <p>関心: {registration.interests.join(" / ")}</p>
-                    <p>申込: {formatDateTime(registration.registeredAt)}</p>
-                    <p>
-                      流入: {registration.adTheme ?? "organic"} /{" "}
-                      {registration.utmContent ?? "organic"}
-                    </p>
-                    {registration.note ? (
-                      <p className="whitespace-pre-wrap rounded-md bg-gray-50 p-3">
-                        {registration.note}
-                      </p>
-                    ) : null}
-                    <form action={setPublicCommentEventAttendanceAction}>
-                      <input
-                        type="hidden"
-                        name="registrationId"
-                        value={registration.id}
-                      />
-                      <input
-                        type="hidden"
-                        name="attended"
-                        value={registration.attendedAt ? "false" : "true"}
-                      />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant={
-                          registration.attendedAt ? "outline" : "default"
-                        }
-                      >
-                        {registration.attendedAt ? (
-                          <>
-                            <Check className="size-4" />
-                            来場済み（取り消す）
-                          </>
-                        ) : (
-                          "来場済みにする"
-                        )}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
         </section>
 
         <Link

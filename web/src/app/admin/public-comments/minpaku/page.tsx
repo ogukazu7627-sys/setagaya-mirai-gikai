@@ -25,7 +25,7 @@ export default async function AdminPublicCommentsPage() {
             href={routes.adminPublicCommentFunnel() as Route}
             className="mt-4 inline-flex text-sm font-bold text-mirai-primary hover:underline"
           >
-            広告からイベント来場までのファネルを見る
+            広告・イベント案内の計測を見る
           </Link>
         </div>
 

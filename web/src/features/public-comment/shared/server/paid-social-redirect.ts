@@ -18,6 +18,7 @@ export async function createPaidSocialRedirect(params: {
   journeyType: "interview" | "event_direct";
   adTheme: string;
   landingPath: string;
+  destinationUrl?: string;
 }) {
   const parsed = z
     .object({ campaign: pathTagSchema, content: pathTagSchema })
@@ -29,6 +30,10 @@ export async function createPaidSocialRedirect(params: {
     );
   }
 
+  const destination = params.destinationUrl
+    ? new URL(params.destinationUrl)
+    : new URL(params.landingPath, params.request.url);
+
   try {
     const publicToken = await createShortLinkFunnelVisit({
       journeyType: params.journeyType,
@@ -37,16 +42,22 @@ export async function createPaidSocialRedirect(params: {
       utmCampaign: parsed.data.campaign,
       utmContent: parsed.data.content,
     });
-    const url = new URL(params.landingPath, params.request.url);
-    url.searchParams.set("utm_source", "instagram");
-    url.searchParams.set("utm_medium", "paid_social");
-    url.searchParams.set("utm_campaign", parsed.data.campaign);
-    url.searchParams.set("utm_content", parsed.data.content);
-    url.searchParams.set("attribution", publicToken);
-    return NextResponse.redirect(url, {
+    if (!params.destinationUrl) {
+      destination.searchParams.set("utm_source", "instagram");
+      destination.searchParams.set("utm_medium", "paid_social");
+      destination.searchParams.set("utm_campaign", parsed.data.campaign);
+      destination.searchParams.set("utm_content", parsed.data.content);
+      destination.searchParams.set("attribution", publicToken);
+    }
+    return NextResponse.redirect(destination, {
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch {
+    if (params.destinationUrl) {
+      return NextResponse.redirect(destination, {
+        headers: { "Cache-Control": "private, no-store" },
+      });
+    }
     return NextResponse.json(
       { error: "広告リンクを開けませんでした" },
       { status: 500 }

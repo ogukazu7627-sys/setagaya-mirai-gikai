@@ -1,4 +1,4 @@
-import { YOUTH_DIALOGUE_EVENT_PATH } from "@/features/public-comment/shared/funnel";
+import { YOUTH_DIALOGUE_DIRECT_RSVP_URL } from "@/features/public-comment/shared/funnel";
 import { createPaidSocialRedirect } from "@/features/public-comment/shared/server/paid-social-redirect";
 
 export async function GET(
@@ -12,6 +12,7 @@ export async function GET(
     content,
     journeyType: "event_direct",
     adTheme: "event-direct",
-    landingPath: YOUTH_DIALOGUE_EVENT_PATH,
+    landingPath: "/external/google-form/event-direct",
+    destinationUrl: YOUTH_DIALOGUE_DIRECT_RSVP_URL,
   });
 }
