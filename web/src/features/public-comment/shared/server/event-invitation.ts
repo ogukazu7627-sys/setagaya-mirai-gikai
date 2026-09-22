@@ -3,6 +3,10 @@ import "server-only";
 import type { ReceiptProvider } from "@/features/public-comment/minpaku/server/receipt-provider";
 import type { PublicCommentEventInvitationResult } from "../event-invitation";
 import {
+  buildPublicCommentEventInvitationEmail,
+  PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
+} from "./event-invitation-email";
+import {
   type EventInvitationRepository,
   eventInvitationRepository,
 } from "./event-invitation-repository";
@@ -100,9 +104,9 @@ export async function sendPublicCommentEventInvitation(
         ).send({
           from: claimed.sender,
           to: claimed.recipient,
-          subject: claimed.subject,
+          subject: PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT,
           text: claimed.body,
-          html: claimed.html,
+          html: refreshInvitationHtml(claimed.body, claimed.html),
           idempotencyKey: claimed.idempotency_key,
         });
     await repository.finish({
@@ -118,6 +122,23 @@ export async function sendPublicCommentEventInvitation(
     console.warn("public_comment_event_invitation_processing_failed");
     return { status: "pending", canRetry: true };
   }
+}
+
+function refreshInvitationHtml(body: string, savedHtml: string): string {
+  const urls = body.match(/https?:\/\/[^\s<>"']+/g) ?? [];
+  const invitationUrl = urls.find((candidate) => {
+    try {
+      const url = new URL(candidate);
+      return /^\/events\/youth-dialogue-2026-10-03\/invite\/[0-9a-f-]{36}$/i.test(
+        url.pathname
+      );
+    } catch {
+      return false;
+    }
+  });
+  return invitationUrl
+    ? buildPublicCommentEventInvitationEmail(invitationUrl).html
+    : savedHtml;
 }
 
 function createEventInvitationProvider(apiKey: string): ReceiptProvider {
