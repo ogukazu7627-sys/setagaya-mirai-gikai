@@ -379,7 +379,7 @@ describe("PublicCommentMinpakuPage", () => {
       ai_body: "AIの下書き",
       final_body: "AIの下書き",
       target_ordinances: ["条例"],
-      fact_check_notes: [],
+      fact_check_notes: ["数値を公式資料で確認してください。"],
     };
     const fetchMock = vi
       .spyOn(global, "fetch")
@@ -439,6 +439,25 @@ describe("PublicCommentMinpakuPage", () => {
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).endsWith("/complete"))
     ).toBe(false);
+    const reviewElements = [
+      screen.getByRole("textbox", { name: "提出用に編集する本文" }),
+      screen.getByText("確認が必要な箇所"),
+      screen.getByRole("checkbox", {
+        name: /控えや今後の活動・イベント案内/,
+      }),
+      screen.getByRole("button", { name: "確認して完了" }),
+      screen.getByRole("button", { name: "本文をコピー" }),
+      screen.getByRole("link", { name: "公式提出ページ" }),
+      screen.getByRole("heading", { name: "確認した資料" }),
+    ];
+    for (const [index, element] of reviewElements.entries()) {
+      const nextElement = reviewElements[index + 1];
+      if (!nextElement) break;
+      expect(
+        element.compareDocumentPosition(nextElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).not.toBe(0);
+    }
     fireEvent.change(
       screen.getByRole("textbox", { name: "提出用に編集する本文" }),
       { target: { value: "私が確認した最終コメント" } }
