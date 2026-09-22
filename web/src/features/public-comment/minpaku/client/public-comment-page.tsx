@@ -498,50 +498,6 @@ function DraftReview({
           </div>
         )}
 
-        <div className="mt-7 border-t border-gray-200 pt-6">
-          <h2 className="text-base font-bold text-black">確認した資料</h2>
-          <ul className="mt-3 space-y-2">
-            {sources.map((source) => (
-              <li key={source.id}>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline"
-                >
-                  <ExternalLink className="size-4" />
-                  {source.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCopy}
-            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
-          >
-            {copied ? (
-              <Check className="size-4" />
-            ) : (
-              <Clipboard className="size-4" />
-            )}
-            {copied ? "コピーしました" : "本文をコピー"}
-          </Button>
-          <a
-            href={MINPAKU_OFFICIAL_SUBMISSION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
-          >
-            <ExternalLink className="size-4" />
-            公式提出ページ
-          </a>
-        </div>
-
         <label className="mt-8 flex cursor-pointer items-start gap-3 border-t border-gray-200 pt-5 text-sm leading-7 text-black">
           <input
             type="checkbox"
@@ -580,6 +536,50 @@ function DraftReview({
           )}
           確認して完了
         </Button>
+
+        <div className="mt-7 flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCopy}
+            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
+          >
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Clipboard className="size-4" />
+            )}
+            {copied ? "コピーしました" : "本文をコピー"}
+          </Button>
+          <a
+            href={MINPAKU_OFFICIAL_SUBMISSION_URL}
+            target="_blank"
+            rel="noreferrer"
+            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
+          >
+            <ExternalLink className="size-4" />
+            公式提出ページ
+          </a>
+        </div>
+
+        <div className="mt-7 border-t border-gray-200 pt-6">
+          <h2 className="text-base font-bold text-black">確認した資料</h2>
+          <ul className="mt-3 space-y-2">
+            {sources.map((source) => (
+              <li key={source.id}>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary underline-offset-4 hover:underline"
+                >
+                  <ExternalLink className="size-4" />
+                  {source.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   );

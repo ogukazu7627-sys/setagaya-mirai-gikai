@@ -193,7 +193,7 @@ describe("PublicCommentIjimePage", () => {
       ai_body: "AI下書き",
       final_body: "確認済みコメント",
       target_ordinances: ["条例素案"],
-      fact_check_notes: [],
+      fact_check_notes: ["事実関係を公式資料で確認してください。"],
     };
     const fetchMock = vi
       .spyOn(global, "fetch")
@@ -238,6 +238,25 @@ describe("PublicCommentIjimePage", () => {
         name: "あなたの言葉になっているか確認してください",
       })
     ).toBeInTheDocument();
+    const reviewElements = [
+      screen.getByRole("textbox", { name: "提出用に編集する本文" }),
+      screen.getByText("提出前に確認すること"),
+      screen.getByRole("checkbox", {
+        name: /控えや今後の活動・イベント案内/,
+      }),
+      screen.getByRole("button", { name: "確認して完了" }),
+      screen.getByRole("button", { name: "本文をコピー" }),
+      screen.getByRole("link", { name: "公式提出ページ" }),
+      screen.getByRole("heading", { name: "参照資料" }),
+    ];
+    for (const [index, element] of reviewElements.entries()) {
+      const nextElement = reviewElements[index + 1];
+      if (!nextElement) break;
+      expect(
+        element.compareDocumentPosition(nextElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).not.toBe(0);
+    }
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
 
     expect(
