@@ -86,7 +86,7 @@ describe("receipt dispatch with injected provider", () => {
     expect(deps.provider.send).toHaveBeenCalledWith({
       from: deps.env.PUBLIC_COMMENT_RECEIPT_FROM,
       to: "owner@example.test",
-      subject: "fixed subject",
+      subject: "AIインタビューの控え",
       text: "fixed body",
       html: expect.stringContaining("確認済みコメント"),
       idempotencyKey: "fixed-key",
@@ -248,15 +248,16 @@ describe("receipt dispatch with injected provider", () => {
     const expectedEmail = {
       from: "sender@example.test",
       to: "owner@example.test",
-      subject: "fixed subject",
+      subject: "AIインタビューの控え",
       text: "fixed body",
       html: expect.stringContaining("確認済みコメント"),
       idempotencyKey: "fixed-key",
     };
-    expect(deps.provider.send.mock.calls).toEqual([
-      [expectedEmail],
-      [expectedEmail],
-    ]);
+    expect(deps.provider.send).toHaveBeenNthCalledWith(1, expectedEmail);
+    expect(deps.provider.send).toHaveBeenNthCalledWith(2, expectedEmail);
+    expect(deps.provider.send.mock.calls[1]).toEqual(
+      deps.provider.send.mock.calls[0]
+    );
     expect(deps.repository.finish).toHaveBeenNthCalledWith(2, {
       receiptId: "receipt",
       leaseToken: "lease-2",

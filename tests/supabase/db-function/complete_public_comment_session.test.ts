@@ -146,7 +146,7 @@ describe("receipt completion and delivery RPCs (real local DB; no email provider
     const row = await read(f.id);
     expect(row).toMatchObject({
       recipient: user.email,
-      subject: "receipt integration：インタビューと最終案の控え",
+      subject: "AIインタビューの控え",
       final_body: "  最終案\n編集済み  ",
       consent_version: VERSION,
       idempotency_key: `public-comment-receipt/${f.id}`,
