@@ -27,7 +27,9 @@ describe("public comment event invitation email", () => {
       PUBLIC_COMMENT_EVENT_INVITATION_HTML.match(/参加を申し込む/g)
     ).toHaveLength(2);
     expect(PUBLIC_COMMENT_EVENT_INVITATION_HTML).toContain("<!doctype html>");
-    expect(PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT).toContain("10/3開催");
+    expect(PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT).toBe(
+      "【10/3(土)開催】若者と地域を語る会のお誘い"
+    );
   });
 
   it("replaces both calls to action with the private tracked link", () => {

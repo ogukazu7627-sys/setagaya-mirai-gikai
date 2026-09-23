@@ -1,5 +1,10 @@
 import "server-only";
 
+import {
+  PUBLIC_COMMENT_EMAIL_ICON_URL,
+  PUBLIC_COMMENT_RECEIPT_SUBJECT,
+} from "@/features/public-comment/shared/server/email-brand";
+
 type ConversationMessage = {
   role: "assistant" | "user";
   content: string;
@@ -107,8 +112,13 @@ export function createPublicCommentReceiptHtml({
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border:1px solid ${BORDER_BLUE};border-radius:18px;overflow:hidden;">
             <tr>
               <td style="padding:24px 26px;background:#e7f8ff;border-bottom:1px solid ${BORDER_BLUE};">
-                <div style="color:${BRAND_BLUE};font-size:14px;font-weight:800;letter-spacing:.02em;">◯ みらい議会＠世田谷</div>
-                <h1 style="margin:14px 0 8px;color:${DARK_BLUE};font-size:24px;line-height:1.45;">AIパブコメインタビューの控え</h1>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  <tr>
+                    <td style="padding-right:12px;vertical-align:middle;"><img src="${PUBLIC_COMMENT_EMAIL_ICON_URL}" width="44" height="44" alt="みらい議会＠世田谷" style="display:block;width:44px;height:44px;border:0;border-radius:10px;"></td>
+                    <td style="vertical-align:middle;color:${BRAND_BLUE};font-size:14px;font-weight:800;">みらい議会＠世田谷</td>
+                  </tr>
+                </table>
+                <h1 style="margin:14px 0 8px;color:${DARK_BLUE};font-size:24px;line-height:1.45;">${PUBLIC_COMMENT_RECEIPT_SUBJECT}</h1>
                 <p style="margin:0;color:#536b7a;font-size:14px;line-height:1.7;">${escapeHtml(subject)}</p>
               </td>
             </tr>

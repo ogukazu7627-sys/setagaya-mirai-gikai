@@ -1,5 +1,6 @@
 import "server-only";
 
+import { PUBLIC_COMMENT_RECEIPT_SUBJECT } from "@/features/public-comment/shared/server/email-brand";
 import type { PublicCommentReceipt } from "../shared/receipt";
 import { createPublicCommentReceiptHtml } from "./receipt-html";
 import {
@@ -66,10 +67,10 @@ export async function sendPublicCommentReceipt(
             .send({
               from: claimed.sender,
               to: claimed.recipient,
-              subject: claimed.subject,
+              subject: PUBLIC_COMMENT_RECEIPT_SUBJECT,
               text: claimed.body,
               html: createPublicCommentReceiptHtml({
-                subject: claimed.subject,
+                subject: PUBLIC_COMMENT_RECEIPT_SUBJECT,
                 body: claimed.body,
                 finalBody: claimed.final_body,
                 conversation: claimed.conversation,

@@ -2,11 +2,12 @@ import "server-only";
 
 import { PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION as CONSENT_VERSION } from "@/features/public-comment/minpaku/shared/consent";
 import { YOUTH_DIALOGUE_INTERVIEW_RSVP_URL } from "@/features/public-comment/shared/funnel";
+import { PUBLIC_COMMENT_EMAIL_ICON_URL } from "./email-brand";
 
 export const PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION = CONSENT_VERSION;
 
 export const PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT =
-  "【10/3開催】AIに話したその続きを、地域の人と。｜若者と地域を語る会";
+  "【10/3(土)開催】若者と地域を語る会のお誘い";
 
 const DEFAULT_EVENT_RSVP_URL = YOUTH_DIALOGUE_INTERVIEW_RSVP_URL;
 
@@ -84,8 +85,12 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_HTML = `<!doctype html>
       <tr><td align="center" style="padding:32px 12px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background-color:#ffffff;">
           <tr><td style="padding:22px 36px;border-top:5px solid ${BLUE};border-bottom:1px solid ${PALE_BLUE};">
-            <p style="margin:0;color:#075985;font-size:19px;line-height:1.5;font-weight:700;">みらい議会@世田谷</p>
-            <p style="margin:4px 0 0;color:#475569;font-size:14px;line-height:1.6;">AIインタビューから、地域の対話へ。</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td style="padding-right:12px;vertical-align:middle;"><img src="${PUBLIC_COMMENT_EMAIL_ICON_URL}" width="44" height="44" alt="みらい議会＠世田谷" style="display:block;width:44px;height:44px;border:0;border-radius:10px;"></td>
+              <td style="vertical-align:middle;"><p style="margin:0;color:#075985;font-size:19px;line-height:1.5;font-weight:700;">みらい議会@世田谷</p>
+                <p style="margin:4px 0 0;color:#475569;font-size:14px;line-height:1.6;">AIインタビューから、地域の対話へ。</p>
+              </td>
+            </tr></table>
           </td></tr>
           <tr><td align="center" bgcolor="${PALE_BLUE}" style="padding:32px 36px 28px;background-color:${PALE_BLUE};">
             <h1 style="margin:0 0 22px;color:${DARK};font-size:26px;line-height:1.6;font-weight:700;">AIに話したその続きを、<br>今度は人と話してみませんか。</h1>
