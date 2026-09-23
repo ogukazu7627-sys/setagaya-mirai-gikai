@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { YouthDialogueEventPage } from "@/features/events/youth-dialogue/client/youth-dialogue-event-page";
+import { YouthDialogueEvent } from "@/features/events/youth-dialogue/server/components/youth-dialogue-event";
+
+// 締切・開催後に申込ボタンを消すため、受付状態を定期的に再計算する
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "若者と地域を語る会 | みらい議会＠世田谷区",
   description:
-    "AIインタビューをきっかけに、世代や立場を超えて地域のことを話す対話会です。2026年10月3日、太子堂区民センターで開催します。",
+    "世田谷の気になることを、世代や立場をこえて話す対話の会です。2026年10月3日（土）14:00〜16:00、太子堂区民センターで開催。参加費無料、AIインタビューを使っていなくても参加できます。",
 };
 
 export default function Page() {
-  return <YouthDialogueEventPage />;
+  return <YouthDialogueEvent />;
 }

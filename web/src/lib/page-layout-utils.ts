@@ -34,7 +34,8 @@ export function isWidePage(pathname: string): boolean {
     pathname === "/learn" ||
     pathname.startsWith("/learn/") ||
     pathname === "/public-comment" ||
-    pathname === "/public-comment/"
+    pathname === "/public-comment/" ||
+    pathname === "/events/youth-dialogue-2026-10-03"
   );
 }
 

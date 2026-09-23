@@ -64,6 +64,11 @@ describe("isWidePage", () => {
     expect(isWidePage("/public-comment/")).toBe(true);
   });
 
+  it("returns true for the youth dialogue event landing page", () => {
+    expect(isWidePage("/events/youth-dialogue-2026-10-03")).toBe(true);
+    expect(isWidePage("/events/youth-dialogue-2026-10-03/apply")).toBe(false);
+  });
+
   it("returns false for other routes", () => {
     expect(isWidePage("/")).toBe(false);
     expect(isWidePage("/bills")).toBe(false);
