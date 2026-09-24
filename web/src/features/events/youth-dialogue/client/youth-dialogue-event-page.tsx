@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Check,
   ExternalLink,
-  MessagesSquare,
   Plus,
 } from "lucide-react";
 import Image from "next/image";
@@ -88,21 +87,25 @@ const BACKGROUND_CARDS = [
 
 const PROMISES = [
   {
+    emoji: "🎫",
     stat: "無料",
     title: "参加費0円",
     body: "参加費はかかりません。",
   },
   {
+    emoji: "👪",
     stat: "年齢不問",
     title: "どの世代も参加できます",
     body: "若い世代が呼びかける会ですが、年齢の制限はありません。",
   },
   {
+    emoji: "🙆",
     stat: "AI不要",
     title: "AIインタビューは使わなくても大丈夫",
     body: "AIインタビューをしていなくても、申し込み・参加できます。",
   },
   {
+    emoji: "👂",
     stat: "聴くだけも歓迎",
     title: "まとまった意見はいりません",
     body: "専門知識がなくても、話すのが苦手でも大丈夫です。",
@@ -196,7 +199,7 @@ export function YouthDialogueEventPage({
             {EVENT.dateLabel} ／ {EVENT.venueName}
           </p>
           <p className="mt-5 flex items-center gap-2 text-base font-bold tracking-[0.06em] md:text-lg">
-            <MessagesSquare aria-hidden="true" className="size-5" />
+            <Emoji>💬</Emoji>
             {EVENT.name}
           </p>
           <h1
@@ -373,6 +376,7 @@ export function YouthDialogueEventPage({
         <ol className="mt-8 grid gap-[14px]">
           <FlowStep
             step="STEP 1"
+            emoji="📝"
             title="Googleフォームで申し込む"
             description="「参加を申し込む」ボタンからGoogleフォームへ進み、送信します。"
           >
@@ -394,6 +398,7 @@ export function YouthDialogueEventPage({
           </FlowStep>
           <FlowStep
             step="STEP 2"
+            emoji="🏢"
             title="当日、会場へ"
             description="太子堂区民センターの第二会議室に集まり、世代をこえて話し、聴き合います。"
           >
@@ -419,6 +424,7 @@ export function YouthDialogueEventPage({
           </FlowStep>
           <FlowStep
             step="STEP 3"
+            emoji="💡"
             title="気づきや問いを持ち帰る"
             description="話して、聴いて、気づいたことや新しく生まれた問いを、それぞれが持ち帰ります。"
           />
@@ -496,6 +502,7 @@ export function YouthDialogueEventPage({
               className="rounded-2xl border border-mirai-border bg-white p-7 shadow-sm"
             >
               <p className="text-[1.625rem] font-bold leading-[1.45] text-primary-strong">
+                <Emoji>{promise.emoji}</Emoji>
                 {promise.stat}
               </p>
               <h3 className="mt-1 text-base font-bold leading-[1.45]">
@@ -862,13 +869,24 @@ function Tag({
   );
 }
 
+/** 見出しに添える絵文字。読み上げでは飛ばす */
+function Emoji({ children }: { children: ReactNode }) {
+  return (
+    <span aria-hidden="true" className="mr-1.5">
+      {children}
+    </span>
+  );
+}
+
 function FlowStep({
   step,
+  emoji,
   title,
   description,
   children,
 }: {
   step: string;
+  emoji: string;
   title: string;
   description: string;
   children?: ReactNode;
@@ -879,7 +897,10 @@ function FlowStep({
         {step}
       </span>
       <div className="min-w-0 flex-1">
-        <h3 className="text-base font-bold leading-[1.45]">{title}</h3>
+        <h3 className="text-base font-bold leading-[1.45]">
+          <Emoji>{emoji}</Emoji>
+          {title}
+        </h3>
         <p className="mt-1 text-[13px] leading-[1.9] text-mirai-text-secondary">
           {description}
         </p>
