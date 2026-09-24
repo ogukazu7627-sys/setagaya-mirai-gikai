@@ -460,10 +460,14 @@ describe("PublicCommentMinpakuPage", () => {
         name: /控えや今後の活動・イベント案内/,
       }),
       screen.getByRole("button", { name: "確認して完了" }),
-      screen.getByRole("button", { name: "本文をコピー" }),
-      screen.getByRole("link", { name: "公式提出ページ" }),
       screen.getByRole("heading", { name: "確認した資料" }),
     ];
+    expect(
+      screen.queryByRole("button", { name: "本文をコピー" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "公式提出ページ" })
+    ).not.toBeInTheDocument();
     for (const [index, element] of reviewElements.entries()) {
       const nextElement = reviewElements[index + 1];
       if (!nextElement) break;
@@ -485,8 +489,17 @@ describe("PublicCommentMinpakuPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
     await screen.findByRole("heading", { name: "下書きを保存しました" });
     expect(
-      screen.getByRole("link", { name: "イベントの詳細を見る" })
+      screen.getByRole("button", { name: "本文をコピー" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "公式提出ページ" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "イベントの詳細・参加申込" })
     ).toHaveAttribute("href", "/events/youth-dialogue-2026-10-03");
+    expect(
+      screen.queryByText(/控えメールの送信を受け付けました/)
+    ).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/public-comment/minpaku/complete",
       expect.objectContaining({
@@ -526,20 +539,18 @@ describe("PublicCommentMinpakuPage", () => {
     );
     fetchMock.mockClear();
     fireEvent.click(retry);
-    await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent(
-        "送信を受け付けました"
-      )
-    );
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
       "/api/public-comment/minpaku/receipt",
       expect.objectContaining({
         body: JSON.stringify({ sessionId: "session-1" }),
       })
     );
-    expect(
-      screen.queryByRole("button", { name: "控えメールの送信を再試行" })
-    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "控えメールの送信を再試行" })
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("完了応答が失われても内容を固定し、同じ完了処理だけを再確認する", async () => {
@@ -578,8 +589,6 @@ describe("PublicCommentMinpakuPage", () => {
     expect(
       screen.queryByText(/匿名公開の申請は運営確認待ち/)
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "送信を受け付けました"
-    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

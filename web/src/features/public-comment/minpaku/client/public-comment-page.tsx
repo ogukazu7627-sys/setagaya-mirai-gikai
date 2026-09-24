@@ -26,6 +26,7 @@ import { useInterviewConversation } from "@/features/public-comment/shared/clien
 import { usePublicCommentAttribution } from "@/features/public-comment/shared/client/use-public-comment-attribution";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
 import { routes } from "@/lib/routes";
+import { PublicCommentEventPromotion } from "../../shared/client/public-comment-event-promotion";
 import {
   MINPAKU_CAMPAIGN_TITLE,
   MINPAKU_OFFICIAL_SUBMISSION_URL,
@@ -426,7 +427,6 @@ function OrdinanceSelection({
 function DraftReview({
   draft,
   sources,
-  copied,
   isBusy,
   completionPending,
   publicationRequested,
@@ -434,13 +434,11 @@ function DraftReview({
   userEmail,
   onEmailChange,
   onDraftChange,
-  onCopy,
   onPublicationChange,
   onComplete,
 }: {
   draft: Draft;
   sources: readonly MinpakuSource[];
-  copied: boolean;
   isBusy: boolean;
   completionPending: boolean;
   publicationRequested: boolean;
@@ -448,7 +446,6 @@ function DraftReview({
   userEmail?: string;
   onEmailChange: (value: boolean) => void;
   onDraftChange: (value: string) => void;
-  onCopy: () => void;
   onPublicationChange: (value: boolean) => void;
   onComplete: () => void;
 }) {
@@ -538,31 +535,6 @@ function DraftReview({
           確認して完了
         </Button>
 
-        <div className="mt-7 flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCopy}
-            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
-          >
-            {copied ? (
-              <Check className="size-4" />
-            ) : (
-              <Clipboard className="size-4" />
-            )}
-            {copied ? "コピーしました" : "本文をコピー"}
-          </Button>
-          <a
-            href={MINPAKU_OFFICIAL_SUBMISSION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className={`${OUTLINE_BUTTON_CLASS} w-full sm:w-auto`}
-          >
-            <ExternalLink className="size-4" />
-            公式提出ページ
-          </a>
-        </div>
-
         <div className="mt-7 border-t border-gray-200 pt-6">
           <h2 className="text-base font-bold text-black">確認した資料</h2>
           <ul className="mt-3 space-y-2">
@@ -587,6 +559,8 @@ function DraftReview({
 }
 
 function CompletePage({
+  copied,
+  onCopy,
   publicationRequested,
   receipt,
   eventInvitation,
@@ -594,6 +568,8 @@ function CompletePage({
   onRetryReceipt,
   onRetryEventInvitation,
 }: {
+  copied: boolean;
+  onCopy: () => void;
   publicationRequested: boolean;
   receipt: ReceiptResult | null;
   eventInvitation: PublicCommentEventInvitationResult | null;
@@ -622,7 +598,7 @@ function CompletePage({
             匿名公開の申請は運営確認待ちです。承認されたコメントだけが公開一覧に表示されます。
           </p>
         )}
-        {receipt && receipt.status !== "not_requested" && (
+        {receipt && !["not_requested", "accepted"].includes(receipt.status) && (
           <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
             <p role="status" className="flex items-start gap-2">
               <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
@@ -650,55 +626,57 @@ function CompletePage({
             )}
           </div>
         )}
-        {eventInvitation && eventInvitation.status !== "not_requested" && (
-          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
-            <p role="status" className="flex items-start gap-2">
-              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
-              <span>
-                {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
-              </span>
-            </p>
-            {eventInvitation.canRetry && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isBusy}
-                onClick={onRetryEventInvitation}
-              >
-                {isBusy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-4" />
-                )}
-                イベント案内メールの送信を再試行
-              </Button>
-            )}
-          </div>
-        )}
-        <div className="mt-6 border-t border-sky-100 pt-5">
-          <h2 className="text-base font-bold text-black">
-            AIに話したその続きを、地域の人と話しませんか？
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-mirai-text-secondary">
-            10月3日（土）開催の「若者と地域を語る会」。若い世代が主催し、どの世代の方も参加できます。
-          </p>
-          <Link
-            href={routes.youthDialogueEvent()}
-            className={`${OUTLINE_BUTTON_CLASS} mt-4 w-full border-primary text-primary`}
+        {eventInvitation &&
+          !["not_requested", "accepted"].includes(eventInvitation.status) && (
+            <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+              <p role="status" className="flex items-start gap-2">
+                <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
+                </span>
+              </p>
+              {eventInvitation.canRetry && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isBusy}
+                  onClick={onRetryEventInvitation}
+                >
+                  {isBusy ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-4" />
+                  )}
+                  イベント案内メールの送信を再試行
+                </Button>
+              )}
+            </div>
+          )}
+        <div className="mt-6 flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCopy}
+            className={`${OUTLINE_BUTTON_CLASS} w-full sm:flex-1`}
           >
-            イベントの詳細を見る
-            <ArrowRight className="size-4" />
-          </Link>
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Clipboard className="size-4" />
+            )}
+            {copied ? "コピーしました" : "本文をコピー"}
+          </Button>
+          <a
+            href={MINPAKU_OFFICIAL_SUBMISSION_URL}
+            target="_blank"
+            rel="noreferrer"
+            className={`${PRIMARY_BUTTON_CLASS} w-full sm:flex-1`}
+          >
+            <ExternalLink className="size-4" />
+            公式提出ページ
+          </a>
         </div>
-        <a
-          href={MINPAKU_OFFICIAL_SUBMISSION_URL}
-          target="_blank"
-          rel="noreferrer"
-          className={`${PRIMARY_BUTTON_CLASS} mt-7 w-full`}
-        >
-          <ExternalLink className="size-4" />
-          公式提出ページを開く
-        </a>
+        <PublicCommentEventPromotion />
       </section>
     </div>
   );
@@ -1218,7 +1196,6 @@ export function PublicCommentMinpakuPage() {
         <DraftReview
           draft={draft}
           sources={sources}
-          copied={copied}
           isBusy={busy}
           publicationRequested={publicationRequested}
           completionPending={completionPending}
@@ -1226,13 +1203,14 @@ export function PublicCommentMinpakuPage() {
           userEmail={auth.userEmail}
           onEmailChange={setEmailOptIn}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
-          onCopy={() => void copyDraft()}
           onPublicationChange={setPublicationRequested}
           onComplete={() => void complete()}
         />
       )}
       {view === "complete" && (
         <CompletePage
+          copied={copied}
+          onCopy={() => void copyDraft()}
           publicationRequested={publicationRequested}
           receipt={receipt}
           eventInvitation={eventInvitation}
