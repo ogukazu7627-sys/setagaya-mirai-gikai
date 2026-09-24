@@ -262,6 +262,9 @@ describe("PublicCommentIjimePage", () => {
     expect(
       await screen.findByText(/控えメールの送信を受け付けました/)
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "イベントの詳細を見る" })
+    ).toHaveAttribute("href", "/events/youth-dialogue-2026-10-03");
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/public-comment/ijime/complete",
       expect.objectContaining({

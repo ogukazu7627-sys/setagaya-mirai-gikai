@@ -484,6 +484,9 @@ describe("PublicCommentMinpakuPage", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
     await screen.findByRole("heading", { name: "下書きを保存しました" });
+    expect(
+      screen.getByRole("link", { name: "イベントの詳細を見る" })
+    ).toHaveAttribute("href", "/events/youth-dialogue-2026-10-03");
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/public-comment/minpaku/complete",
       expect.objectContaining({

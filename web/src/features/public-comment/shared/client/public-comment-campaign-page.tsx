@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import {
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import { usePublicCommentAttribution } from "@/features/public-comment/shared/client/use-public-comment-attribution";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
+import { routes } from "@/lib/routes";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
   type LearningLesson,
@@ -564,6 +566,21 @@ function CompletePage({
             )}
           </div>
         )}
+        <div className="mt-6 border-t border-sky-100 pt-5">
+          <h2 className="text-base font-bold text-black">
+            AIに話したその続きを、地域の人と話しませんか？
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-mirai-text-secondary">
+            10月3日（土）開催の「若者と地域を語る会」。若い世代が主催し、どの世代の方も参加できます。
+          </p>
+          <Link
+            href={routes.youthDialogueEvent()}
+            className={`${OUTLINE_BUTTON_CLASS} mt-4 w-full border-primary-strong text-primary-strong`}
+          >
+            イベントの詳細を見る
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
         <Button
           type="button"
           variant="outline"
