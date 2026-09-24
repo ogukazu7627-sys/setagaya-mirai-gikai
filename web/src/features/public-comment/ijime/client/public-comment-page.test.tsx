@@ -187,7 +187,7 @@ describe("PublicCommentIjimePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("確認済みコメントの完了後に控えメールの送信受付を表示する", async () => {
+  it("確認済みコメントの完了後に提出操作とイベント案内を表示する", async () => {
     const draft = {
       id: "draft-1",
       ai_body: "AI下書き",
@@ -245,10 +245,14 @@ describe("PublicCommentIjimePage", () => {
         name: /控えや今後の活動・イベント案内/,
       }),
       screen.getByRole("button", { name: "確認して完了" }),
-      screen.getByRole("button", { name: "本文をコピー" }),
-      screen.getByRole("link", { name: "公式提出ページ" }),
       screen.getByRole("heading", { name: "参照資料" }),
     ];
+    expect(
+      screen.queryByRole("button", { name: "本文をコピー" })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "公式提出ページ" })
+    ).not.toBeInTheDocument();
     for (const [index, element] of reviewElements.entries()) {
       const nextElement = reviewElements[index + 1];
       if (!nextElement) break;
@@ -260,10 +264,16 @@ describe("PublicCommentIjimePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "確認して完了" }));
 
     expect(
-      await screen.findByText(/控えメールの送信を受け付けました/)
+      await screen.findByRole("button", { name: /本文をコピー/ })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "イベントの詳細を見る" })
+      screen.getByRole("link", { name: "公式提出ページ" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/控えメールの送信を受け付けました/)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "イベントの詳細・参加申込" })
     ).toHaveAttribute("href", "/events/youth-dialogue-2026-10-03");
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/public-comment/ijime/complete",

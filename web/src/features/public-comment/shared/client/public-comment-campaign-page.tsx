@@ -12,7 +12,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ import {
 import { useInterviewConversation } from "@/features/public-comment/shared/client/use-interview-conversation";
 import { usePublicCommentAttribution } from "@/features/public-comment/shared/client/use-public-comment-attribution";
 import type { PublicCommentEventInvitationResult } from "@/features/public-comment/shared/event-invitation";
-import { routes } from "@/lib/routes";
+import { PublicCommentEventPromotion } from "./public-comment-event-promotion";
 import { PublicCommentInterviewChat } from "./public-comment-interview-chat";
 import {
   type LearningLesson,
@@ -339,30 +338,24 @@ function DraftReady({
 function DraftReview({
   draft,
   sources,
-  copied,
   isBusy,
   completionPending,
   emailOptIn,
   userEmail,
   onDraftChange,
-  onCopy,
   onComplete,
   onEmailChange,
-  officialSubmissionUrl,
   draftTextareaId,
 }: {
   draft: Draft;
   sources: readonly LearningSource[];
-  copied: boolean;
   isBusy: boolean;
   completionPending: boolean;
   emailOptIn: boolean;
   userEmail?: string;
   onDraftChange: (value: string) => void;
-  onCopy: () => void;
   onComplete: () => void;
   onEmailChange: (checked: boolean) => void;
-  officialSubmissionUrl: string;
   draftTextareaId: string;
 }) {
   return (
@@ -428,30 +421,6 @@ function DraftReview({
           )}
           確認して完了
         </Button>
-        <div className="mt-7 flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCopy}
-            className={OUTLINE_BUTTON_CLASS}
-          >
-            {copied ? (
-              <Check className="size-4" />
-            ) : (
-              <Clipboard className="size-4" />
-            )}
-            {copied ? "コピーしました" : "本文をコピー"}
-          </Button>
-          <a
-            href={officialSubmissionUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={OUTLINE_BUTTON_CLASS}
-          >
-            <ExternalLink className="size-4" />
-            公式提出ページ
-          </a>
-        </div>
         <div className="mt-7 border-t border-gray-200 pt-6">
           <h2 className="text-base font-bold">参照資料</h2>
           <ul className="mt-3 space-y-2">
@@ -513,7 +482,7 @@ function CompletePage({
         <p className="mt-4 text-sm leading-7 text-mirai-text-secondary">
           このサイトから世田谷区へは自動提出されていません。会話や下書きも一般公開されません。
         </p>
-        {receipt && receipt.status !== "not_requested" && (
+        {receipt && !["not_requested", "accepted"].includes(receipt.status) && (
           <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
             <p role="status" className="flex items-start gap-2">
               <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
@@ -541,68 +510,57 @@ function CompletePage({
             )}
           </div>
         )}
-        {eventInvitation && eventInvitation.status !== "not_requested" && (
-          <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
-            <p role="status" className="flex items-start gap-2">
-              <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
-              <span>
-                {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
-              </span>
-            </p>
-            {eventInvitation.canRetry && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isBusy}
-                onClick={onRetryEventInvitation}
-              >
-                {isBusy ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-4" />
-                )}
-                イベント案内メールの送信を再試行
-              </Button>
-            )}
-          </div>
-        )}
-        <div className="mt-6 border-t border-sky-100 pt-5">
-          <h2 className="text-base font-bold text-black">
-            AIに話したその続きを、地域の人と話しませんか？
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-mirai-text-secondary">
-            10月3日（土）開催の「若者と地域を語る会」。若い世代が主催し、どの世代の方も参加できます。
-          </p>
-          <Link
-            href={routes.youthDialogueEvent()}
-            className={`${OUTLINE_BUTTON_CLASS} mt-4 w-full border-primary-strong text-primary-strong`}
-          >
-            イベントの詳細を見る
-            <ArrowRight className="size-4" />
-          </Link>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCopy}
-          className={`${OUTLINE_BUTTON_CLASS} mt-7 w-full`}
-        >
-          {copied ? (
-            <Check className="size-4" />
-          ) : (
-            <Clipboard className="size-4" />
+        {eventInvitation &&
+          !["not_requested", "accepted"].includes(eventInvitation.status) && (
+            <div className="mt-5 space-y-3 border-t border-gray-200 pt-5 text-sm leading-7">
+              <p role="status" className="flex items-start gap-2">
+                <Mail className="mt-1 size-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {EVENT_INVITATION_STATUS_MESSAGES[eventInvitation.status]}
+                </span>
+              </p>
+              {eventInvitation.canRetry && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isBusy}
+                  onClick={onRetryEventInvitation}
+                >
+                  {isBusy ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-4" />
+                  )}
+                  イベント案内メールの送信を再試行
+                </Button>
+              )}
+            </div>
           )}
-          {copied ? "コピーしました" : "提出用の本文をコピー"}
-        </Button>
-        <a
-          href={officialSubmissionUrl}
-          target="_blank"
-          rel="noreferrer"
-          className={`${PRIMARY_BUTTON_CLASS} mt-3 w-full`}
-        >
-          <ExternalLink className="size-4" />
-          公式提出ページを開く
-        </a>
+        <div className="mt-6 flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCopy}
+            className={`${OUTLINE_BUTTON_CLASS} w-full sm:flex-1`}
+          >
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Clipboard className="size-4" />
+            )}
+            {copied ? "コピーしました" : "本文をコピー"}
+          </Button>
+          <a
+            href={officialSubmissionUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={`${PRIMARY_BUTTON_CLASS} w-full sm:flex-1`}
+          >
+            <ExternalLink className="size-4" />
+            公式提出ページ
+          </a>
+        </div>
+        <PublicCommentEventPromotion />
       </section>
     </div>
   );
@@ -1087,16 +1045,13 @@ export function PublicCommentCampaignPage({
         <DraftReview
           draft={draft}
           sources={sources}
-          copied={copied}
           isBusy={busy}
           completionPending={completionPending}
           emailOptIn={receiptOptIn}
           userEmail={auth.userEmail}
           onDraftChange={(value) => setDraft({ ...draft, final_body: value })}
-          onCopy={() => void copyDraft()}
           onComplete={() => void complete()}
           onEmailChange={setEmailOptIn}
-          officialSubmissionUrl={config.officialSubmissionUrl}
           draftTextareaId={config.draftTextareaId}
         />
       )}
