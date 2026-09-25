@@ -434,10 +434,14 @@ describe("PublicCommentMinpakuPage", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: /回答の保存に同意/ }));
     fireEvent.click(screen.getByRole("button", { name: "同意してはじめる" }));
     fireEvent.click(await screen.findByRole("button", { name: "回答する" }));
-    const heading = await screen.findByRole("heading", {
-      name: "どの条例について意見を書きますか？",
-    });
-    expect(heading).toHaveFocus();
+    // 見出しへのフォーカスは表示後の effect で移るため、移るまで待って確かめる
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", {
+          name: "どの条例について意見を書きますか？",
+        })
+      ).toHaveFocus()
+    );
     fireEvent.click(screen.getByRole("button", { name: "下書きを作る" }));
     await screen.findByRole("textbox", { name: "提出用に編集する本文" });
     return fetchMock;
@@ -445,11 +449,13 @@ describe("PublicCommentMinpakuPage", () => {
 
   it("完了前までメールを送らず、一つの受信設定を確定してから送信する", async () => {
     const fetchMock = await reachReview();
-    expect(
-      screen.getByRole("heading", {
-        name: "あなたの言葉になっているか確認してください",
-      })
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", {
+          name: "あなたの言葉になっているか確認してください",
+        })
+      ).toHaveFocus()
+    );
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).endsWith("/complete"))
     ).toBe(false);
@@ -518,9 +524,11 @@ describe("PublicCommentMinpakuPage", () => {
     expect(JSON.parse(String(patch?.[1]?.body)).finalBody).toBe(
       "私が確認した最終コメント"
     );
-    expect(
-      screen.getByRole("heading", { name: "下書きを保存しました" })
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "下書きを保存しました" })
+      ).toHaveFocus()
+    );
     expect(window.scrollTo).toHaveBeenCalledWith({
       top: 0,
       left: 0,
