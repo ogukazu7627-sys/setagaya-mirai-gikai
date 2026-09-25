@@ -124,7 +124,7 @@ describe("public comment receipt routes", () => {
           PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION,
         eventInvitationClickToken: expect.any(String),
         eventInvitationEmail: expect.objectContaining({
-          subject: expect.stringContaining("若者と地域を語る会"),
+          subject: expect.stringContaining("世田谷のみらいを語る会"),
           body: expect.stringContaining(
             "/events/youth-dialogue-2026-10-03/invite/"
           ),

@@ -6,7 +6,7 @@ export function PublicCommentEventPromotion() {
   return (
     <section className="-mx-6 mt-8 bg-[#e0f2fe] px-6 py-7 sm:-mx-8 sm:px-8">
       <p className="text-center text-sm font-bold text-[#0369a1]">
-        若者と地域を語る会
+        世田谷のみらいを語る会
       </p>
       <h2 className="mt-3 text-center text-[22px] font-bold leading-[1.6] text-[#082f49]">
         AIに話したその続きを、

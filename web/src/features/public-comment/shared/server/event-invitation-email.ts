@@ -7,7 +7,7 @@ import { PUBLIC_COMMENT_EMAIL_ICON_URL } from "./email-brand";
 export const PUBLIC_COMMENT_EVENT_INVITATION_CONSENT_VERSION = CONSENT_VERSION;
 
 export const PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT =
-  "【10/3(土)開催】若者と地域を語る会のお誘い";
+  "【10/3(土)開催】世田谷のみらいを語る会のお誘い";
 
 const DEFAULT_EVENT_RSVP_URL = YOUTH_DIALOGUE_INTERVIEW_RSVP_URL;
 
@@ -16,7 +16,7 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_TEXT = `みらい議会@世田谷
 AIに話したその続きを、
 今度は人と話してみませんか。
 
-若者と地域を語る会
+世田谷のみらいを語る会
 若い世代が主催。どの世代の方も歓迎します。
 
 2026年10月3日（土）14:00〜16:00
@@ -26,7 +26,7 @@ AIに話したその続きを、
 
 先日は、AIインタビューにご協力いただき、ありがとうございました。
 
-インタビューで考えたことを、今度は地域の誰かと話してみる。そんな場として、「若者と地域を語る会」を開催します。
+インタビューで考えたことを、今度は地域の誰かと話してみる。そんな場として、「世田谷のみらいを語る会」を開催します。
 
 「暮らしの中で、こんなことが気になっている」
 「ほかの人は、どう感じているんだろう」
@@ -94,7 +94,7 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_HTML = `<!doctype html>
           </td></tr>
           <tr><td align="center" bgcolor="${PALE_BLUE}" style="padding:32px 36px 28px;background-color:${PALE_BLUE};">
             <h1 style="margin:0 0 22px;color:${DARK};font-size:26px;line-height:1.6;font-weight:700;">AIに話したその続きを、<br>今度は人と話してみませんか。</h1>
-            <h2 style="margin:0 0 12px;color:#075985;font-size:24px;line-height:1.5;font-weight:700;">若者と地域を語る会</h2>
+            <h2 style="margin:0 0 12px;color:#075985;font-size:24px;line-height:1.5;font-weight:700;">世田谷のみらいを語る会</h2>
             <p style="margin:0;color:#243746;font-size:16px;line-height:1.8;font-weight:700;">若い世代が主催。どの世代の方も歓迎します。</p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-top:22px;"><tr><td align="center" style="padding-top:18px;border-top:1px solid ${BORDER};">
               <p style="margin:0 0 5px;color:${DARK};font-size:19px;line-height:1.7;font-weight:700;">2026年10月3日（土）14:00〜16:00</p>
@@ -106,7 +106,7 @@ export const PUBLIC_COMMENT_EVENT_INVITATION_HTML = `<!doctype html>
           </td></tr>
           <tr><td style="padding:30px 36px 24px;">
             <p style="margin:0 0 18px;font-size:16px;line-height:1.9;">先日は、AIインタビューにご協力いただき、ありがとうございました。</p>
-            <p style="margin:0 0 18px;font-size:16px;line-height:1.9;">インタビューで考えたことを、今度は地域の誰かと話してみる。そんな場として、<strong>「若者と地域を語る会」</strong>を開催します。</p>
+            <p style="margin:0 0 18px;font-size:16px;line-height:1.9;">インタビューで考えたことを、今度は地域の誰かと話してみる。そんな場として、<strong>「世田谷のみらいを語る会」</strong>を開催します。</p>
             <p style="margin:0;padding:2px 0 2px 16px;border-left:3px solid ${BLUE};color:#075985;font-size:17px;line-height:1.9;font-weight:700;">「暮らしの中で、こんなことが気になっている」<br>「ほかの人は、どう感じているんだろう」</p>
             <p style="margin:18px 0 0;font-size:16px;line-height:1.9;">そんな身近な話から、世田谷のことを一緒に考えてみませんか。</p>
             <p style="margin:14px 0 0;font-size:16px;line-height:1.9;">若い世代の主催者も輪に加わり、世代や立場の違う皆さんと、お互いの経験や考えを聞き合います。</p>
