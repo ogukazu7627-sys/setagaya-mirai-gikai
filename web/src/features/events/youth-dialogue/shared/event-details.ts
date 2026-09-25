@@ -16,6 +16,18 @@ export const YOUTH_DIALOGUE_EVENT = {
   contactEmail: "info@civictech-setagaya.org",
 } as const;
 
+/** 主催者。代表のプロフィールは本人が公開している経歴のみを載せる。 */
+export const YOUTH_DIALOGUE_ORGANIZER = {
+  name: "civictech-setagaya",
+  representative: "雄倉 和輝",
+  representativeProfile: [
+    "東京大学教育学部卒業",
+    "一般社団法人次世代の学び創造機構 理事",
+  ],
+  photo: "/images/events/youth-dialogue/organizer-ogura.jpg",
+  sourceCodeUrl: "https://github.com/ogukazu7627-sys/setagaya-mirai-gikai",
+} as const;
+
 /** 申込フォームで選べる関心分野。当日すべてを扱うとは限らない「話題の例」として表示する。 */
 export const YOUTH_DIALOGUE_TOPICS = [
   "民泊",
