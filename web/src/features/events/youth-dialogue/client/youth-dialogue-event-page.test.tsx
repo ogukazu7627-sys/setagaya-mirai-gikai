@@ -61,4 +61,23 @@ describe("YouthDialogueEventPage", () => {
       screen.getAllByText("定員に達したため、申込の受付を終了しました。")
     ).toHaveLength(2);
   });
+
+  it("主催者と代表、非公式の取り組みであることを表示する", async () => {
+    render(<YouthDialogueEventPage registrationStatus="open" />);
+
+    await waitFor(() => {
+      expect(mocks.ensureAttribution).toHaveBeenCalled();
+    });
+    expect(
+      screen.getByRole("heading", { name: "主催について" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "雄倉 和輝" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "世田谷区・世田谷区議会・チームみらいが運営するものではありません。"
+      )
+    ).toBeInTheDocument();
+  });
 });

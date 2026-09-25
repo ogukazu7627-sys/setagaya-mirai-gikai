@@ -1,19 +1,13 @@
 "use client";
 
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  ExternalLink,
-  Plus,
-} from "lucide-react";
+import { ArrowDown, ArrowRight, Check, ExternalLink, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   YOUTH_DIALOGUE_EVENT as EVENT,
+  YOUTH_DIALOGUE_ORGANIZER as ORGANIZER,
   YOUTH_DIALOGUE_PROMISES,
   YOUTH_DIALOGUE_TOPICS,
 } from "@/features/events/youth-dialogue/shared/event-details";
@@ -22,8 +16,9 @@ import { usePublicCommentAttribution } from "@/features/public-comment/shared/cl
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
-// 構成は「駒場こども縁日」（次世代の学び創造機構）のページと同じ並び・同じ部品。
-// 色と書体は、みらい議会＠世田谷のデザインシステムに合わせている。
+// 部品は「駒場こども縁日」（次世代の学び創造機構）のページと同じ形。色と書体は、
+// みらい議会＠世田谷のデザインシステムに合わせている。
+// 構成は「だれが、どんな方針で開く会か」が伝わることを優先している。
 
 /** ヒーローの背景写真（会場のある三軒茶屋・太子堂あたりの街並み） */
 const HERO_PHOTO = "/images/events/youth-dialogue/hero.webp";
@@ -40,48 +35,47 @@ const APPLY_NOTE = "申込はGoogleフォームで受け付けます（新しい
 const FOCUS_STRONG =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-strong";
 
-const RECOMMENDS = [
-  "暮らしやまちのことで、気になっていることがある",
-  "ちがう世代や立場の人が、どう考えているか聴いてみたい",
-  "政治や地域のことを、身近な言葉で話してみたい",
-] as const;
-
-const AIMS = [
-  {
-    kanji: "話",
-    title: "話す",
-    body: "暮らしの中で気になっていること、まちで見聞きして引っかかっていることを、うまくまとまっていなくても、ことばにしてみます。",
-  },
-  {
-    kanji: "聴",
-    title: "聴く",
-    body: "同じ世田谷で暮らす、年齢や立場のちがう人の経験に耳を傾けます。話すより聴くほうが多くてもかまいません。",
-  },
-  {
-    kanji: "問",
-    title: "問いを持ち帰る",
-    body: "話して、聴いて、気づいたことや新しく生まれた問いを、それぞれが持ち帰ります。",
-  },
-] as const;
-
-const BACKGROUND_CARDS = [
+const ACTIVITIES = [
   {
     image: "/images/events/youth-dialogue/background-site.webp",
-    tag: "サイト",
+    tag: "Webサイト",
     title: "みらい議会＠世田谷区",
-    body: "世田谷区議会の議案などを、やさしい言葉で紹介する非公式のWebサイト。チームみらいの「みらい議会」を参考にした世田谷区版で、世田谷区やチームみらいが公式に運営するものではありません。",
+    body: "世田谷区議会の議案や区の予算、議員の情報などを、やさしい言葉で紹介する非公式のWebサイトです。区や区議会が公開している資料をもとにしています。",
   },
   {
     image: "/images/events/youth-dialogue/background-ai-interview.webp",
     tag: "機能",
     title: "AIインタビュー",
-    body: "政策資料をふまえたAIの質問に答えながら、考えを整理し、意見の下書きをつくる機能。AIは賛成・反対を決めず、下書きはご自身で確認・編集してから提出します。",
+    body: "区が意見を募集している案について、政策資料をふまえたAIの質問に答えながら考えを整理し、意見の下書きをつくる機能です。AIは賛成・反対を決めず、下書きはご自身で確認・編集してから提出します。",
   },
   {
-    image: "/images/events/youth-dialogue/background-official-documents.webp",
-    tag: "ご注意",
-    title: "公式資料もご確認ください",
-    body: "AIの要約や説明には、誤りや情報の更新遅れがあり得ます。大事な点は、区の公式資料でもご確認ください。",
+    image: "/images/events/youth-dialogue/hero.webp",
+    tag: "対話の会",
+    title: EVENT.name,
+    body: "Webでの取り組みに加えて、年齢や立場のちがう人が顔を合わせて話す場として開きます。",
+  },
+] as const;
+
+const POLICIES = [
+  {
+    title: "事実と意見を分けて伝えます",
+    body: "区の資料に書かれている事実と、解説や意見を区別して伝えます。",
+  },
+  {
+    title: "公式資料に戻れるようにします",
+    body: "AIの要約や説明には誤りや更新の遅れがあり得るため、もとになった区の公式資料を確かめられるようにしています。",
+  },
+  {
+    title: "人ではなく、制度や論点について話します",
+    body: "特定の議員や会派を評価するのではなく、決め方や論点をわかりやすくすることに取り組みます。",
+  },
+  {
+    title: "特定の政党や候補者の応援・勧誘はしません",
+    body: "この会で、選挙の応援や政党への加入をお願いすることはありません。",
+  },
+  {
+    title: "非公式の取り組みです",
+    body: "世田谷区・世田谷区議会・チームみらいが運営するものではありません。",
   },
 ] as const;
 
@@ -125,6 +119,15 @@ const PROMISE_DETAILS: Record<
 };
 
 const FAQS = [
+  {
+    question: "主催はどんな団体ですか？",
+    answer: `${ORGANIZER.name}（代表：${ORGANIZER.representative}）です。世田谷区議会や区の予算などの公開情報を、やさしい言葉で紹介するWebサイト「みらい議会＠世田谷区」を運営しています。世田谷区・世田谷区議会・チームみらいとは別の、非公式の取り組みです。`,
+  },
+  {
+    question: "政党や宗教の勧誘はありますか？",
+    answer:
+      "ありません。特定の政党や候補者の応援をお願いしたり、政党への加入や宗教の勧誘をしたりすることはありません。",
+  },
   {
     question: "AIインタビューをしていなくても参加できますか？",
     answer:
@@ -216,6 +219,9 @@ export function YouthDialogueEventPage({
             {EVENT.dateLabel} {EVENT.timeLabel}・{EVENT.venueName}
             {EVENT.roomName}・参加費{EVENT.fee}
           </p>
+          <p className="mt-3 text-sm font-bold tracking-[0.04em] md:text-[15px]">
+            主催：{ORGANIZER.name}（代表 {ORGANIZER.representative}）
+          </p>
           <a
             href="#outline"
             className="mt-7 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/15 px-[34px] py-[15px] text-[15px] font-bold tracking-[0.04em] text-white hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -288,6 +294,18 @@ export function YouthDialogueEventPage({
           <OutlineRow label="申込">
             Googleフォーム（「参加を申し込む」ボタンから）
           </OutlineRow>
+          <OutlineRow label="主催">
+            {ORGANIZER.name}（代表：{ORGANIZER.representative}）
+            <a
+              href="#organizer"
+              className={cn(
+                "ml-2 text-xs font-bold text-primary-strong underline underline-offset-4",
+                FOCUS_STRONG
+              )}
+            >
+              主催について
+            </a>
+          </OutlineRow>
           <OutlineRow label="お問い合わせ">
             <a
               href={`mailto:${EVENT.contactEmail}`}
@@ -302,191 +320,6 @@ export function YouthDialogueEventPage({
         </dl>
       </section>
 
-      {/* こんな方におすすめ */}
-      <section
-        aria-labelledby="recommend-heading"
-        className="mx-auto max-w-[900px] px-5 py-12 md:px-9 md:py-16"
-      >
-        <h2
-          id="recommend-heading"
-          className="text-center text-[1.625rem] font-bold leading-[1.6] tracking-[0.04em] md:text-[2rem]"
-        >
-          こんな方に
-          <br />
-          おすすめです。
-        </h2>
-        <ul className="mt-8 grid gap-[14px]">
-          {RECOMMENDS.map((item) => (
-            <li
-              key={item}
-              className="flex items-center gap-4 rounded-[12px] bg-mirai-surface px-[22px] py-[18px]"
-            >
-              <span className="flex size-[26px] shrink-0 items-center justify-center rounded-full bg-mirai-gradient-end text-primary-strong">
-                <Check aria-hidden="true" className="size-4" strokeWidth={3} />
-              </span>
-              <p className="text-[15px] leading-[1.7] text-mirai-text-secondary">
-                {item}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* この会で大切にしたいこと */}
-      <section
-        aria-labelledby="aim-heading"
-        className="bg-mirai-gradient-end py-14 md:py-[84px]"
-      >
-        <div className="mx-auto max-w-[1000px] px-5 md:px-9">
-          <SectionHeading id="aim-heading" eyebrow="Aim">
-            この会で大切にしたいこと
-          </SectionHeading>
-          <ul className="mt-8 grid gap-5 md:grid-cols-3 md:gap-[23px]">
-            {AIMS.map((aim) => (
-              <li
-                key={aim.kanji}
-                className="flex flex-col gap-[14px] rounded-2xl bg-white p-7 shadow-sm"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-11 items-center justify-center rounded-[12px] border border-black bg-mirai-gradient text-xl font-bold"
-                >
-                  {aim.kanji}
-                </span>
-                <h3 className="text-lg font-bold leading-[1.45] tracking-[0.03em]">
-                  {aim.title}
-                </h3>
-                <p className="text-[13px] leading-[1.9] text-mirai-text-secondary">
-                  {aim.body}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* 申込から当日までの流れ */}
-      <section
-        aria-labelledby="flow-heading"
-        className="mx-auto max-w-[900px] px-5 py-14 md:px-9 md:py-[84px]"
-      >
-        <SectionHeading id="flow-heading" eyebrow="Flow">
-          申込から当日までの流れ
-        </SectionHeading>
-        <ol className="mt-8 grid gap-[14px]">
-          <FlowStep
-            step="STEP 1"
-            emoji="📝"
-            title="Googleフォームで申し込む"
-            description="「参加を申し込む」ボタンからGoogleフォームへ進み、送信します。"
-          >
-            <div className="rounded-[10px] border border-mirai-border bg-white px-4 py-[13px]">
-              <p className="text-sm font-bold tracking-[0.03em]">
-                フォームでおたずねすること
-              </p>
-              <ul className="mt-1 list-disc pl-[15px] text-[12.5px] leading-[1.85] text-mirai-text-secondary">
-                <li>
-                  関心のある分野（民泊・いじめ・高齢者福祉・介護・障がい理解・交通問題・防災から）
-                </li>
-                <li>参加時の3つの約束への同意</li>
-              </ul>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Tag>参加費 無料</Tag>
-              <Tag tone="neutral">申込 Googleフォーム</Tag>
-            </div>
-          </FlowStep>
-          <FlowStep
-            step="STEP 2"
-            emoji="🏢"
-            title="当日、会場へ"
-            description="太子堂区民センターの第二会議室に集まり、世代をこえて話し、聴き合います。"
-          >
-            <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 rounded-[10px] border border-mirai-border bg-white px-[15px] py-[11px]">
-              <span className="font-lexend text-[15px] font-semibold text-primary-strong">
-                10.03
-              </span>
-              <span className="text-sm font-bold tracking-[0.03em]">
-                {EVENT.dateLabel}
-              </span>
-              <span className="text-[13px] font-bold tracking-[0.03em] text-primary-strong">
-                {EVENT.timeLabel}
-              </span>
-            </div>
-            <div className="mt-3 rounded-[10px] border border-mirai-border bg-white px-[15px] py-[11px]">
-              <p className="text-[13px] font-bold tracking-[0.03em]">
-                会場 {EVENT.venueName} {EVENT.roomName}
-              </p>
-              <p className="text-xs leading-[1.7] text-mirai-text-muted">
-                {EVENT.access.join(" ／ ")}
-              </p>
-            </div>
-          </FlowStep>
-          <FlowStep
-            step="STEP 3"
-            emoji="💡"
-            title="気づきや問いを持ち帰る"
-            description="話して、聴いて、気づいたことや新しく生まれた問いを、それぞれが持ち帰ります。"
-          />
-        </ol>
-      </section>
-
-      {/* この会の背景 */}
-      <section
-        aria-labelledby="background-heading"
-        className="mx-auto max-w-[1000px] px-5 py-14 md:px-9 md:py-[84px]"
-      >
-        <SectionHeading
-          id="background-heading"
-          eyebrow="Background"
-          lead="このページは、世田谷区議会の話題をやさしく紹介するWebサイト「みらい議会＠世田谷区」に掲載しています。"
-        >
-          この会の背景
-        </SectionHeading>
-        <ul className="mt-8 grid gap-6 md:grid-cols-3 md:gap-7">
-          {BACKGROUND_CARDS.map((card) => (
-            <li
-              key={card.title}
-              className="flex flex-col rounded-2xl border border-mirai-border bg-white px-[14px] pt-[14px] pb-5 shadow-sm"
-            >
-              <div className="relative aspect-square overflow-hidden rounded-[14px]">
-                <Image
-                  src={card.image}
-                  alt=""
-                  fill
-                  sizes="(min-width: 700px) 300px, 100vw"
-                  className="object-cover"
-                />
-              </div>
-              <Tag tone="strong" className="mt-4 self-start">
-                {card.tag}
-              </Tag>
-              <h3 className="mt-2 text-lg font-bold leading-[1.45] tracking-[0.06em]">
-                {card.title}
-              </h3>
-              <p className="mt-1 text-xs leading-[1.8] text-mirai-text-secondary">
-                {card.body}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <Link
-            href={routes.publicCommentMinpaku()}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-8 py-[13px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
-              FOCUS_STRONG
-            )}
-          >
-            AIインタビューの例を見る（民泊）
-            <ArrowRight aria-hidden="true" className="size-4" />
-          </Link>
-          <p className="text-sm font-bold leading-7">
-            この会への参加に、AIインタビューの利用は必要ありません。
-          </p>
-        </div>
-      </section>
-
       {/* この会の約束 */}
       <section
         aria-labelledby="promise-heading"
@@ -495,7 +328,7 @@ export function YouthDialogueEventPage({
         <SectionHeading id="promise-heading" eyebrow="Promise">
           この会の約束
         </SectionHeading>
-        <ul className="mt-8 grid gap-5 md:grid-cols-2 pc:grid-cols-3 pc:gap-[22px]">
+        <ul className="mt-8 grid gap-5 md:grid-cols-2 md:gap-5">
           {PROMISES.map((promise) => (
             <li
               key={promise.stat}
@@ -514,6 +347,151 @@ export function YouthDialogueEventPage({
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* 主催について */}
+      <section
+        id="organizer"
+        aria-labelledby="organizer-heading"
+        className="mx-auto max-w-[1000px] scroll-mt-24 px-5 py-14 md:px-9 md:py-[84px]"
+      >
+        <SectionHeading
+          id="organizer-heading"
+          eyebrow="Organizer"
+          lead={`この会は、${ORGANIZER.name}が主催します。世田谷区議会や区の予算など、区が公開している情報を、だれでも読めるやさしい言葉で届ける取り組みをしています。`}
+        >
+          主催について
+        </SectionHeading>
+        <article className="mx-auto mt-8 grid max-w-[820px] gap-5 rounded-2xl border border-mirai-border bg-white p-[14px] shadow-sm sm:grid-cols-[200px_minmax(0,1fr)] sm:items-center sm:gap-7 sm:p-5">
+          <div className="relative aspect-square overflow-hidden rounded-[14px]">
+            <Image
+              src={ORGANIZER.photo}
+              alt={`${ORGANIZER.name} 代表の${ORGANIZER.representative}`}
+              fill
+              sizes="(min-width: 500px) 200px, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="px-2 pb-3 sm:px-0 sm:pb-0">
+            <Tag tone="strong">代表</Tag>
+            <h3 className="mt-2 text-xl font-bold leading-[1.45] tracking-[0.08em]">
+              {ORGANIZER.representative}
+            </h3>
+            <p className="mt-0.5 text-sm font-bold text-primary-strong">
+              {ORGANIZER.name} 代表
+            </p>
+            <ul className="mt-3 grid gap-1 text-[13px] leading-[1.8] text-mirai-text-secondary">
+              {ORGANIZER.representativeProfile.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+        </article>
+
+        <h3 className="mt-14 text-center text-lg font-bold tracking-[0.04em]">
+          主な取り組み
+        </h3>
+        <ul className="mt-6 grid gap-6 md:grid-cols-3 md:gap-7">
+          {ACTIVITIES.map((activity) => (
+            <li
+              key={activity.title}
+              className="flex flex-col rounded-2xl border border-mirai-border bg-white px-[14px] pt-[14px] pb-5 shadow-sm"
+            >
+              <div className="relative aspect-square overflow-hidden rounded-[14px]">
+                <Image
+                  src={activity.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 700px) 300px, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <Tag tone="strong" className="mt-4 self-start">
+                {activity.tag}
+              </Tag>
+              <h4 className="mt-2 text-lg font-bold leading-[1.45] tracking-[0.06em]">
+                {activity.title}
+              </h4>
+              <p className="mt-1 text-xs leading-[1.8] text-mirai-text-secondary">
+                {activity.body}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link
+            href={routes.home()}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-7 py-[13px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
+              FOCUS_STRONG
+            )}
+          >
+            みらい議会＠世田谷区を見る
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </Link>
+          <Link
+            href={routes.publicCommentMinpaku()}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-7 py-[13px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
+              FOCUS_STRONG
+            )}
+          >
+            AIインタビューの例を見る（民泊）
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </Link>
+          <a
+            href={ORGANIZER.sourceCodeUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-7 py-[13px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
+              FOCUS_STRONG
+            )}
+          >
+            サイトのソースコード（GitHub）
+            <ExternalLink aria-hidden="true" className="size-4" />
+            <span className="sr-only">（新しいタブで開きます）</span>
+          </a>
+        </div>
+        <p className="mx-auto mt-5 max-w-[720px] text-center text-xs leading-[1.9] text-mirai-text-muted">
+          ＊みらい議会＠世田谷区は、チームみらいの「みらい議会」を参考にした世田谷区版の非公式サイトです。世田谷区・世田谷区議会・チームみらいが運営するものではありません。この会への参加に、AIインタビューの利用は必要ありません。
+        </p>
+      </section>
+
+      {/* 運営の方針 */}
+      <section
+        aria-labelledby="policy-heading"
+        className="bg-mirai-gradient-end py-14 md:py-[84px]"
+      >
+        <div className="mx-auto max-w-[900px] px-5 md:px-9">
+          <SectionHeading id="policy-heading" eyebrow="Policy">
+            運営の方針
+          </SectionHeading>
+          <ul className="mt-8 grid gap-[14px]">
+            {POLICIES.map((policy) => (
+              <li
+                key={policy.title}
+                className="flex gap-4 rounded-[12px] bg-white px-[22px] py-[18px]"
+              >
+                <span className="mt-0.5 flex size-[26px] shrink-0 items-center justify-center rounded-full bg-mirai-gradient-end text-primary-strong">
+                  <Check
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={3}
+                  />
+                </span>
+                <div>
+                  <h3 className="text-[15px] font-bold leading-[1.7]">
+                    {policy.title}
+                  </h3>
+                  <p className="mt-0.5 text-[13px] leading-[1.9] text-mirai-text-secondary">
+                    {policy.body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* 参加時の約束 */}
@@ -684,33 +662,6 @@ export function YouthDialogueEventPage({
         </div>
       </section>
 
-      {/* ほかのページへ */}
-      <nav
-        aria-label="関連ページ"
-        className="mx-auto flex max-w-[1080px] flex-wrap justify-center gap-3 px-5 pt-5 pb-14 md:px-9"
-      >
-        <Link
-          href={routes.publicComments()}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-[30px] py-[14px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
-            FOCUS_STRONG
-          )}
-        >
-          パブリックコメントとAIインタビューの一覧
-          <ArrowRight aria-hidden="true" className="size-4" />
-        </Link>
-        <Link
-          href={routes.home()}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-full border border-mirai-border bg-white px-[30px] py-[14px] text-sm font-bold tracking-[0.03em] text-mirai-text-secondary hover:bg-mirai-surface",
-            FOCUS_STRONG
-          )}
-        >
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          みらい議会＠世田谷区のトップへ
-        </Link>
-      </nav>
-
       {/* 画面下に固定した申込ボタン（スマホでは下部ナビの上に置く） */}
       {isOpen && (
         <div className="fixed inset-x-0 bottom-[calc(var(--mobile-primary-navigation-height)+env(safe-area-inset-bottom,0px))] z-20 bg-linear-to-t from-mirai-text/15 to-transparent px-5 pt-3 pb-3 pc:bottom-0">
@@ -875,38 +826,6 @@ function Emoji({ children }: { children: ReactNode }) {
     <span aria-hidden="true" className="mr-1.5">
       {children}
     </span>
-  );
-}
-
-function FlowStep({
-  step,
-  emoji,
-  title,
-  description,
-  children,
-}: {
-  step: string;
-  emoji: string;
-  title: string;
-  description: string;
-  children?: ReactNode;
-}) {
-  return (
-    <li className="flex flex-col gap-3 rounded-[14px] bg-mirai-surface px-5 py-[22px] sm:flex-row sm:gap-[18px] md:px-6">
-      <span className="self-start rounded-full bg-primary-strong px-[14px] py-1.5 font-lexend text-[11px] font-semibold tracking-[0.06em] text-white">
-        {step}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-base font-bold leading-[1.45]">
-          <Emoji>{emoji}</Emoji>
-          {title}
-        </h3>
-        <p className="mt-1 text-[13px] leading-[1.9] text-mirai-text-secondary">
-          {description}
-        </p>
-        {children && <div className="mt-[14px]">{children}</div>}
-      </div>
-    </li>
   );
 }
 
