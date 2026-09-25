@@ -1,5 +1,5 @@
 export const YOUTH_DIALOGUE_EVENT = {
-  name: "若者と地域を語る会",
+  name: "世田谷のみらいを語る会",
   dateLabel: "2026年10月3日（土）",
   timeLabel: "14:00〜16:00",
   startsAt: new Date("2026-10-03T14:00:00+09:00"),

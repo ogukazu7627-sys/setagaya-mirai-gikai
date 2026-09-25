@@ -27,6 +27,9 @@ describe("YouthDialogueEventPage", () => {
 
   it("申込ボタンはすべて同じラベルで計測ルートを経由し、サイト内では個人情報を受け取らない", async () => {
     render(<YouthDialogueEventPage registrationStatus="open" />);
+    expect(
+      screen.getAllByText("世田谷のみらいを語る会").length
+    ).toBeGreaterThan(0);
 
     await waitFor(() => {
       const applyLinks = screen.getAllByRole("link", {

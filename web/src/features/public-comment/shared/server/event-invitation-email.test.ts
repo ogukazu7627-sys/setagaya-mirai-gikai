@@ -12,7 +12,7 @@ describe("public comment event invitation email", () => {
       PUBLIC_COMMENT_EVENT_INVITATION_TEXT,
       PUBLIC_COMMENT_EVENT_INVITATION_HTML,
     ]) {
-      expect(content).toContain("若者と地域を語る会");
+      expect(content).toContain("世田谷のみらいを語る会");
       expect(content).toContain("2026年10月3日（土）");
       expect(content).toContain("太子堂区民センター 第二会議室");
       expect(content).toContain("参加費");
@@ -28,7 +28,7 @@ describe("public comment event invitation email", () => {
     ).toHaveLength(2);
     expect(PUBLIC_COMMENT_EVENT_INVITATION_HTML).toContain("<!doctype html>");
     expect(PUBLIC_COMMENT_EVENT_INVITATION_SUBJECT).toBe(
-      "【10/3(土)開催】若者と地域を語る会のお誘い"
+      "【10/3(土)開催】世田谷のみらいを語る会のお誘い"
     );
   });
 
