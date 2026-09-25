@@ -24,6 +24,15 @@ import { cn } from "@/lib/utils";
 /** ヒーローの背景写真（会場のある三軒茶屋・太子堂あたりの街並み） */
 const HERO_PHOTO = "/images/events/youth-dialogue/hero.webp";
 
+const HERO_FACTS = [
+  { label: "日時", value: `${EVENT.dateLabel} ${EVENT.timeLabel}` },
+  {
+    label: "会場",
+    value: `${EVENT.venueName} ${EVENT.roomName}（三軒茶屋駅から徒歩4〜5分）`,
+  },
+  { label: "参加費", value: `${EVENT.fee}・どの世代も参加できます` },
+] as const;
+
 const CLOSED_MESSAGES: Record<Exclude<RegistrationStatus, "open">, string> = {
   closed: "申込の受付は終了しました。",
   full: "定員に達したため、申込の受付を終了しました。",
@@ -216,11 +225,18 @@ export function YouthDialogueEventPage({
             世代をこえて話そう。
           </h1>
           <p className="mt-4 max-w-[640px] text-sm font-medium leading-[1.9] md:mt-5 md:text-base">
-            暮らしやまちで気になっていることを、年齢や立場のちがう人と話し、聴き合う2時間。
-            <br />
-            {EVENT.dateLabel} {EVENT.timeLabel}・{EVENT.venueName}
-            {EVENT.roomName}・参加費{EVENT.fee}
+            世田谷の身近なテーマ（民泊・いじめ・介護・防災など）について、参加者どうしで話し合う会です。
           </p>
+          <dl className="mt-4 grid max-w-[640px] gap-1.5 text-sm font-bold leading-[1.7] md:text-base">
+            {HERO_FACTS.map((fact) => (
+              <div key={fact.label} className="flex items-baseline gap-3">
+                <dt className="w-[4.5em] shrink-0 rounded-full bg-white/20 py-0.5 text-center text-xs tracking-[0.06em]">
+                  {fact.label}
+                </dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
           <p className="mt-3 text-sm font-bold tracking-[0.04em] md:text-[15px]">
             主催：{ORGANIZER.name}（代表 {ORGANIZER.representative}）
           </p>
@@ -245,25 +261,6 @@ export function YouthDialogueEventPage({
             </span>
           </p>
         )}
-      </section>
-
-      {/* 導入の一文 */}
-      <section
-        aria-label="この会について"
-        className="mx-auto max-w-[900px] px-5 pt-12 pb-7 text-center md:px-9"
-      >
-        <p className="text-base font-bold leading-[2] tracking-[0.04em] md:text-lg">
-          「{EVENT.name}」は、まちのことを“聞かされる人”ではなく
-          <br className="hidden md:inline" />
-          “話し合う人”になる会です。
-        </p>
-        <p className="mt-4 text-sm leading-[2] text-mirai-text-secondary">
-          暮らしの困りごとも、ふと感じた疑問も。
-          <br />
-          <strong className="text-primary-strong">
-            専門知識やまとまった意見がなくても、世代をこえて話し、聴き合います。
-          </strong>
-        </p>
       </section>
 
       {/* 開催概要 */}
