@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   YOUTH_DIALOGUE_EVENT as EVENT,
   YOUTH_DIALOGUE_ORGANIZER as ORGANIZER,
+  YOUTH_DIALOGUE_FEW_SEATS_LEFT,
   YOUTH_DIALOGUE_PROMISES,
   YOUTH_DIALOGUE_TOPICS,
 } from "@/features/events/youth-dialogue/shared/event-details";
@@ -172,6 +173,7 @@ export function YouthDialogueEventPage({
 
   const applyHref = routes.youthDialogueEventApply(publicToken);
   const isOpen = registrationStatus === "open";
+  const showFewSeatsBadge = isOpen && YOUTH_DIALOGUE_FEW_SEATS_LEFT;
 
   return (
     <div
@@ -230,6 +232,19 @@ export function YouthDialogueEventPage({
             <ArrowDown aria-hidden="true" className="size-4" />
           </a>
         </div>
+        {showFewSeatsBadge && (
+          <p className="absolute right-5 bottom-10 z-10 size-[84px] -rotate-12 drop-shadow-md md:right-10 md:bottom-[72px] md:size-[108px] pc:top-1/2 pc:right-[9%] pc:bottom-auto pc:size-[156px] pc:-translate-y-1/2">
+            <span
+              aria-hidden="true"
+              className="shape-starburst absolute inset-0 bg-white/45"
+            />
+            <span className="shape-starburst absolute inset-[4px] flex items-center justify-center bg-mirai-gradient text-black text-center text-sm font-black leading-[1.25] tracking-[0.04em] md:inset-[5px] md:text-lg pc:inset-[7px] pc:text-[26px]">
+              残席
+              <br />
+              わずか
+            </span>
+          </p>
+        )}
       </section>
 
       {/* 導入の一文 */}

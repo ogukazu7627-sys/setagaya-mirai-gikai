@@ -57,6 +57,7 @@ describe("YouthDialogueEventPage", () => {
       expect(mocks.ensureAttribution).toHaveBeenCalled();
     });
     expect(screen.queryByRole("link", { name: "参加を申し込む" })).toBeNull();
+    expect(screen.queryByText("残席わずか")).toBeNull();
     expect(
       screen.getAllByText("定員に達したため、申込の受付を終了しました。")
     ).toHaveLength(2);
@@ -79,5 +80,14 @@ describe("YouthDialogueEventPage", () => {
         "世田谷区・世田谷区議会・チームみらいが運営するものではありません。"
       )
     ).toBeInTheDocument();
+  });
+
+  it("受付中はヒーローに残席わずかを表示する", async () => {
+    render(<YouthDialogueEventPage registrationStatus="open" />);
+
+    await waitFor(() => {
+      expect(mocks.ensureAttribution).toHaveBeenCalled();
+    });
+    expect(screen.getByText("残席わずか")).toBeInTheDocument();
   });
 });
