@@ -46,6 +46,12 @@ export const YOUTH_DIALOGUE_PROMISES = [
 ] as const;
 
 /**
+ * ヒーローに「残席わずか」のバッジを出すか。
+ * 残席が少ないことを運営が把握しているあいだだけ true にする。受付終了・満席・開催後は自動で出ない。
+ */
+export const YOUTH_DIALOGUE_FEW_SEATS_LEFT = true;
+
+/**
  * 申込締切・満席を運営が手動で反映する設定。
  * - 締切日時が決まったら registrationClosesAt に設定する（過ぎると自動で受付終了）
  * - 満席になったら manualStatus を "full" にする
