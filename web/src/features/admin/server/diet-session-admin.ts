@@ -12,32 +12,11 @@ import {
   getSetagayaMockSession,
   isSetagayaMockMode,
 } from "@/lib/setagaya-mock";
+import { dietSessionFormSchema } from "../shared/admin-diet-session-api";
 import { requireAdmin } from "./auth";
 
 export type AdminDietSession =
   Database["public"]["Tables"]["diet_sessions"]["Row"];
-
-const dateInputSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "日付はYYYY-MM-DD形式で入力してください");
-
-const dietSessionFormSchema = z
-  .object({
-    id: z.string().uuid().optional(),
-    name: z.string().trim().min(1, "会期名は必須です"),
-    start_date: dateInputSchema,
-    end_date: dateInputSchema,
-    slug: z.string().trim().nullable(),
-  })
-  .superRefine((value, ctx) => {
-    if (value.end_date < value.start_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["end_date"],
-        message: "会期の終了日は開始日以降にしてください",
-      });
-    }
-  });
 
 function nullableString(value: FormDataEntryValue | null): string | null {
   if (typeof value !== "string") return null;
